@@ -235,7 +235,7 @@ Entri Checkpoint 3 di atas ditulis. File di-stage: `src/schemas/turn_dependency.
 **Apa yang dilakukan**
 Kelompok A (rujukan eksplisit): turn 2 "Bandingkan dengan bulan sebelumnya" merujuk turn 1 (revenue reservasi Maret). Kelompok B (berdiri sendiri): turn 2 soal fasilitas spa, histori turn 1 soal staff HR — topik tidak nyambung sama sekali. Kelompok C (rujukan turn jauh): skenario 7-turn domain hospitality penuh (occupancy→F&B→**komplain housekeeping**→maintenance AC→spa→performa staff→"balik lagi ke soal komplain housekeeping tadi") — turn 7 harus merujuk turn 3, bukan turn 6 (topik terdekat, staff performance, sama sekali tidak nyambung ke komplain housekeeping).
 
-**Commit:** *(lihat Task 16b)*
+**Commit:** `9a6f204` — `test(milestone-1.3): skenario uji dependency turn dan verifikasi span nyata`
 
 ---
 
@@ -246,7 +246,7 @@ Kelompok A (rujukan eksplisit): turn 2 "Bandingkan dengan bulan sebelumnya" meru
 **Apa yang dilakukan**
 3 fungsi test (satu per kelompok), `pytestmark` skip otomatis kalau `OPENROUTER_API_KEY` tidak diset. Panggilan `detect_turn_dependency()` sungguhan (bukan mock).
 
-**Commit:** *(lihat Task 16b)*
+**Commit:** `9a6f204` — `test(milestone-1.3): skenario uji dependency turn dan verifikasi span nyata`
 
 ---
 
@@ -260,7 +260,7 @@ Kelompok A (rujukan eksplisit): turn 2 "Bandingkan dengan bulan sebelumnya" meru
 **Hasil Verifikasi**
 Ketiga test **lolos** (3 passed in 17.72s), termasuk Kelompok C — bukti langsung bahwa gap yang memicu revisi payload di Checkpoint 1 sekarang genuinely terselesaikan: LLM benar mengarahkan `referenced_turn_index=3` untuk turn 7, bukan salah tangkap ke turn 6 (topik terdekat tapi tidak relevan).
 
-**Commit:** *(lihat Task 16b)*
+**Commit:** `9a6f204` — `test(milestone-1.3): skenario uji dependency turn dan verifikasi span nyata`
 
 ---
 
@@ -274,7 +274,7 @@ Disadari sebelum verifikasi: pemanggilan `detect_turn_dependency()` langsung (ba
 **Hasil Verifikasi**
 Query `GET /api/traces?service=nirwana-chatbot-context-resolution` mengembalikan trace `063e9af0cced951dc696009003e08afc`: span `chat`, atribut `gen_ai.operation.name=chat`, `gen_ai.request.model=deepseek/deepseek-v4-flash-0731`, `gen_ai.usage.input_tokens=418`, `gen_ai.usage.output_tokens=366` (angka nyata dari respons API, bukan 0/kosong), `dependency.referenced_turn_index=1`. Seluruhnya sesuai kontrak Bagian 2 dokumen observability.
 
-**Commit:** *(lihat Task 16b)*
+**Commit:** `9a6f204` — `test(milestone-1.3): skenario uji dependency turn dan verifikasi span nyata`
 
 ---
 
@@ -285,7 +285,7 @@ Query `GET /api/traces?service=nirwana-chatbot-context-resolution` mengembalikan
 **Apa yang dilakukan**
 Entri Checkpoint 4 di atas ditulis. File di-stage: `tests/layers/context_resolution/__init__.py`, `tests/layers/context_resolution/test_turn_dependency.py`, `milestones/1.3-pemetaan-ketergantungan-turn/logs.md`.
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `9a6f204` — `test(milestone-1.3): skenario uji dependency turn dan verifikasi span nyata`
 
 ---
 

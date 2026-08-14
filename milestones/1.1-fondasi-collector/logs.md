@@ -282,6 +282,57 @@ Entri Checkpoint 3 di atas ditulis (Task 8-11 digabung penulisannya karena salin
 
 ---
 
+## Checkpoint 4 — Verifikasi Fondasi Bersama (Simulasi Multi-Emitter)
+
+**Mulai:** 2026-08-14 16:15 · **Selesai:** 2026-08-14 16:30
+
+### Task 12 — Tulis `send_dummy_span_secondary.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditulis `infra/observability/smoke_test/send_dummy_span_secondary.py`: `service.name` berbeda (`milestone-1.1-smoke-test-secondary`), dan sengaja memakai bentuk span non-LLM `input.validate` (kontrak Bagian 2 dokumen observability untuk Input Layer) — bukan `chat`/`gen_ai.*` seperti skrip primer — supaya secara struktural jelas berbeda, bukan sekadar duplikat skrip pertama dengan nama lain.
+
+**Temuan** Tidak ada temuan baru — pola setup tracing sama seperti Task 10, disederhanakan (tanpa metrics, tanpa span induk `invoke_agent`, karena tujuannya cukup membuktikan span independen sampai ke Collector yang sama).
+
+**Error/Kegagalan (jika ada)** Tidak ada.
+
+**Hasil Verifikasi:** *(lihat Task 13)*
+
+**Commit:** *(lihat Task 13a)*
+
+---
+
+### Task 13 — Jalankan kedua skrip terpisah, verifikasi dua trace independen
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Dijalankan dua kali `uv run python ...` sebagai dua proses berurutan-tapi-independen (bukan dipanggil dari satu proses/skrip pemanggil bersama): `send_dummy_span.py` (primer) menghasilkan `trace_id=0b7eac5b771ed638828c02e738292793`, `send_dummy_span_secondary.py` (sekunder) menghasilkan `trace_id=d60dcc0532ed143743dcaa6817f2b075`. Keduanya di-query terpisah lewat Jaeger API.
+
+**Hasil Verifikasi**
+- Trace primer: `GET /api/traces/0b7eac5b771ed638828c02e738292793` → span `chat` + `invoke_agent`, `serviceName=milestone-1.1-smoke-test-primary`.
+- Trace sekunder: `GET /api/traces/d60dcc0532ed143743dcaa6817f2b075` → span `input.validate`, `serviceName=milestone-1.1-smoke-test-secondary`.
+
+Dua `trace_id` berbeda, dua `service.name` berbeda, masing-masing dari proses Python terpisah yang dijalankan independen, keduanya diterima dan diteruskan dengan benar oleh **satu instance Collector yang sama** — membuktikan fondasi bersama benar-benar bisa dipakai tanpa instance terpisah per pengirim, sejauh yang bisa dibuktikan lewat simulasi (lihat catatan keterbatasan di `report.md`: ini simulasi, bukan bukti dari PIC 2/3/4 sungguhan, karena keduanya belum dimulai).
+
+**Commit:** *(lihat Task 13a)*
+
+---
+
+### Task 13a — Catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri Checkpoint 4 di atas ditulis. File di-stage: `infra/observability/smoke_test/send_dummy_span_secondary.py`, `milestones/1.1-fondasi-collector/logs.md`.
+
+**Hasil Verifikasi** `git status --short` dicek sebelum staging.
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada — penyimpangan Task 1 (flag `uv init`) dan Task 7 (rename exporter `otlp`→`otlp_grpc`) adalah koreksi di dalam task yang sudah direncanakan, bukan task/checkpoint baru di luar plan. Temuan Task 8 (perpindahan governance GenAI semconv) memperluas *kedalaman* Task 8/9 secara signifikan, tapi tidak menambah task/checkpoint baru di luar struktur plan — hanya menambah satu item baru ke `docs/keterbatasan-diterima.md` yang memang sudah direncanakan diinisialisasi di Checkpoint 5 lewat Risiko & Mitigasi di plan.
+Tidak ada — penyimpangan Task 1 (flag `uv init`) dan Task 7 (rename exporter `otlp`→`otlp_grpc`) adalah koreksi di dalam task yang sudah direncanakan, bukan task/checkpoint baru di luar plan. Temuan Task 8 (perpindahan governance GenAI semconv) memperluas *kedalaman* Task 8/9 secara signifikan dan memicu inisialisasi `docs/keterbatasan-diterima.md` lebih awal dari rencana semula di plan (plan menyebutnya "diinisialisasi di Checkpoint 5" lewat tabel Risiko & Mitigasi, tapi nyatanya diinisialisasi di Checkpoint 3 begitu keterbatasannya ditemukan) — konsisten dengan prinsip "jangan tunda ke penutupan" yang sama seperti aturan `logs.md`+commit per checkpoint.

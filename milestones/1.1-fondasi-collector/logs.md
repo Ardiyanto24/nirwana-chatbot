@@ -29,7 +29,7 @@ Dihapus seluruh output percobaan pertama (`src/`, `README.md`, `pyproject.toml`,
 **Hasil Verifikasi**
 `pyproject.toml` hasil `--bare` hanya berisi `[project]` (name, version, description, requires-python, dependencies) — tidak ada `src/`, tidak ada `[build-system]`. Dikonfirmasi via `cat pyproject.toml` dan `ls -la` (tidak ada folder `src/` di root).
 
-**Commit:** *(dicatat di akhir Checkpoint 1, lihat Task 3a)*
+**Commit:** `f048cb0` — `chore(milestone-1.1): inisialisasi proyek python dengan uv`
 
 ---
 
@@ -49,7 +49,7 @@ Tidak ada.
 **Hasil Verifikasi**
 Output `uv add` menunjukkan 10 paket ter-install tanpa error, `uv.lock` ter-generate.
 
-**Commit:** *(dicatat di akhir Checkpoint 1, lihat Task 3a)*
+**Commit:** `f048cb0` — `chore(milestone-1.1): inisialisasi proyek python dengan uv`
 
 ---
 
@@ -69,7 +69,7 @@ Tidak ada.
 **Hasil Verifikasi**
 Output `uv run python -c "import opentelemetry; ..."` mencetak `opentelemetry import OK, version module loaded` tanpa exception.
 
-**Commit:** *(dicatat di Task 3a)*
+**Commit:** `f048cb0` — `chore(milestone-1.1): inisialisasi proyek python dengan uv`
 
 ---
 
@@ -89,7 +89,7 @@ Tidak ada.
 **Hasil Verifikasi**
 `git status --short` sebelum commit menunjukkan hanya `pyproject.toml` dan `uv.lock` sebagai file baru yang relevan (plus `.gitignore` modified dan `docs/CLAUDE.md` deleted, keduanya pre-existing dari sebelum sesi ini dan di luar cakupan milestone ini — tidak ikut di-stage).
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `f048cb0` — `chore(milestone-1.1): inisialisasi proyek python dengan uv`
 
 ---
 

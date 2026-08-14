@@ -10,7 +10,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 2 | `4e37e9f` (+ `dd782d5` fix hash) | `feat(milestone-1.2): skema payload dan logic validasi input layer` |
 | 3 | `8b75bd9` (+ `53e9656` fix hash) | `feat(milestone-1.2): endpoint FastAPI POST /v1/turns` |
 | 4 | `1fa42af` (+ `7257469` fix hash) | `test(milestone-1.2): test suite input layer dan verifikasi span nyata` |
-| 5 | *(lihat entri Checkpoint 5 di bawah)* | `docs(milestone-1.2): decisions, logs, report` |
+| 5 | `8f0fdf3` | `docs(milestone-1.2): decisions, logs, report` (`CLAUDE.md`/`AGENT.md` sengaja tidak di-commit, lihat Task 17) |
 
 ---
 
@@ -286,6 +286,66 @@ Trace `c12381fbddee1e1dadc515f217314877` ditemukan: span `input.validate`, `serv
 Entri Checkpoint 4 di atas ditulis. File di-stage: `tests/__init__.py`, `tests/layers/__init__.py`, `tests/layers/test_input_layer.py`, `pyproject.toml`+`uv.lock` (swap `httpx`→`httpx2`), `milestones/1.2-input-layer/logs.md`.
 
 **Commit:** `1fa42af` — `test(milestone-1.2): test suite input layer dan verifikasi span nyata`
+
+---
+
+## Checkpoint 5 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-14 · **Selesai:** 2026-08-14
+
+### Task 14 — Tulis `decisions.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+16 entri keputusan ditulis: 7 Jenis A (genuinely terbuka — 5 dari `AskUserQuestion` sebelum implementasi, 2 ditemukan di tengah implementasi: exception handler `ValidationError`, swap `httpx`→`httpx2`) dan 9 Jenis B (forced/preseden), seluruhnya dengan "Opsi yang Dipertimbangkan tapi Ditolak" sesuai aturan wajib `CLAUDE.md`.
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 15 — Lengkapi `logs.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tabel ringkasan commit per checkpoint ditambahkan di bagian atas dokumen ini. Entri Checkpoint 5 ini sendiri ditulis sebagai penuntas.
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 16 — Tulis `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Kedua Kriteria Keberhasilan sumber dipetakan ke bukti nyata (Bagian 2), cara kerja+diagram Mermaid ditulis (Bagian 3), dikonfirmasi tidak ada "Catatan Serah Terima" eksplisit untuk Milestone 1.2 di dokumen sumber — dinyatakan eksplisit alih-alih mengarang kontrak yang tidak ada (Bagian 3, Integrasi). 7 perubahan-dari-plan didaftar (Bagian 4), 4 keterbatasan didaftar (Bagian 5), 3 follow-up didaftar (Bagian 6).
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 17 — Perbarui Struktur Repository & Status Saat Ini
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`CLAUDE.md`: baris `src/` diperbarui (struktur per-layer resmi, isi folder), baris `tests/` diperbarui, baris `infra/observability/` diperbarui (catat `genai_semconv.py` pindah), baris `docs/keputusan-tertunda.md` diperbarui (tidak lagi "belum dibuat"), baris `milestones/<id>-<slug>/` diperbarui (M1.2 ikut disebut). Section "Status Saat Ini" diperbarui: M1.2 SELESAI, struktur `src/` per-layer dicatat, keputusan tertunda #1 disebut. `AGENT.md` disinkronkan ulang (`cp` + `diff` kosong).
+
+**Hasil Verifikasi**
+Sesuai keputusan Milestone 1.1 Checkpoint 5, `CLAUDE.md`/`AGENT.md` **tidak** ikut di-`git add`/commit — dikonfirmasi lewat `git status --short` yang tidak menampilkan keduanya sama sekali (gitignored, root `.gitignore` sudah menyertakan `AGENT.md`+`CLAUDE.md` eksplisit sejak Checkpoint 4).
+
+**Commit:** Tidak ada commit untuk Task ini (disengaja, konsisten preseden Milestone 1.1).
+
+---
+
+### Task Gabungan (14-16) — Commit checkpoint
+
+**Apa yang dilakukan**
+File Task 14-16 di-stage bersama: `milestones/1.2-input-layer/{decisions.md,report.md,logs.md}`. `CLAUDE.md`/`AGENT.md` tidak ikut (Task 17, disengaja).
+
+**Commit:** `8f0fdf3` — `docs(milestone-1.2): decisions, logs, report`
 
 ---
 

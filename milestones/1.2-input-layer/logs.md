@@ -173,6 +173,51 @@ Entri Checkpoint 2 di atas ditulis. File di-stage: `src/schemas/turn_payload.py`
 
 ---
 
+## Checkpoint 3 — Endpoint FastAPI
+
+**Mulai:** 2026-08-14 · **Selesai:** 2026-08-14
+
+### Task 10 — Tulis `src/main.py`
+
+**Kesesuaian dengan plan:** Menyimpang dari plan di satu detail teknis — lihat Temuan.
+
+**Apa yang dilakukan**
+`FastAPI(lifespan=...)` dengan `setup_tracing(SERVICE_NAME)` dipanggil sekali saat startup (pola `lifespan` async context manager, bukan `@app.on_event("startup")` yang sudah deprecated). Endpoint `POST /v1/turns` menerima body sebagai `dict` (FastAPI parse JSON mentah, bukan lewat parameter bertipe `TurnPayload`), memanggil `validate_turn_payload()`, mengembalikan `payload.model_dump()` (echo) dengan status `200` kalau sukses.
+
+**Temuan**
+Plan menyatakan "FastAPI otomatis mengembalikan `422`... dimanfaatkan langsung (bukan custom exception handler)" — ini **keliru** dan dikoreksi saat implementasi. FastAPI hanya otomatis menangani `RequestValidationError` miliknya sendiri (dipicu saat parameter endpoint bertipe model Pydantic divalidasi FastAPI sendiri sebelum handler jalan). Karena desain checkpoint ini sengaja memanggil `TurnPayload.model_validate()` secara manual di dalam `validate_turn_payload()` (supaya fungsi itu tetap murni & bisa diuji lepas dari HTTP, sesuai Checkpoint 2), exception yang dilempar adalah `pydantic.ValidationError` biasa — yang TIDAK ditangani otomatis oleh FastAPI dan akan jadi `500` kalau dibiarkan. Diperbaiki dengan mendaftarkan `@app.exception_handler(ValidationError)` yang mengonversinya jadi `422` dengan detail per-field (`exc.errors()`) — pola resmi yang didokumentasikan FastAPI untuk kasus validasi manual di luar parameter endpoint.
+
+**Error/Kegagalan (jika ada)**
+Percobaan pertama (sebelum exception handler ditambahkan) mengembalikan `500 Internal Server Error` untuk payload tidak valid, bukan `422` — diketahui lewat pengujian `curl` manual sebelum ditulis ke Task ini, langsung diperbaiki.
+
+**Diagnosis dan Perbaikan**
+Lihat Temuan di atas.
+
+**Hasil Verifikasi:** *(digabung Task 10a — server dijalankan & diuji `curl` nyata)*
+
+**Commit:** *(lihat Task 10a)*
+
+---
+
+### Task 10a — Verifikasi curl nyata, catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan (setelah perbaikan Task 10 di atas).
+
+**Apa yang dilakukan**
+`uv run uvicorn src.main:app --port 8000` dijalankan di background, dikonfirmasi `startup complete` dari log dan `GET /docs` → `200`. Empat request `curl` dikirim ke `POST /v1/turns`.
+
+**Hasil Verifikasi**
+- Payload valid `turn_index=1` → `200`, body echo payload tervalidasi (`previous_turn: null`).
+- Payload valid `turn_index=2` + `previous_turn` → `200`, body echo lengkap termasuk `previous_turn`.
+- Payload tanpa `role_title` → `422`, `detail[0].loc=["role_title"]`, `msg="Field required"`.
+- Payload `role_title="Bukan Role"` (tidak dikenal) → `422`, `detail[0].loc=["role_title"]`, `msg="Value error, role_title tidak dikenal: 'Bukan Role'"`.
+
+Keempatnya sesuai ekspektasi persis. Server dihentikan setelah verifikasi (`kill` proses background).
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Update `infra/observability/README.md` (referensi path `genai_semconv.py`) di Task 3 — bukan task baru, perluasan kecil dari file list Task 3 yang sudah direncanakan, dicatat eksplisit di atas.
+Update `infra/observability/README.md` (referensi path `genai_semconv.py`) di Task 3 — bukan task baru, perluasan kecil dari file list Task 3 yang sudah direncanakan, dicatat eksplisit di atas. Perbaikan exception handler `ValidationError` di Task 10 juga bukan task baru — koreksi kesalahan asumsi teknis di deskripsi plan sendiri, dicatat eksplisit di Task 10 alih-alih diam-diam diubah.

@@ -93,6 +93,100 @@ Tidak ada.
 
 ---
 
+## Checkpoint 2 — Docker Compose: Collector + Jaeger + Prometheus
+
+**Mulai:** 2026-08-14 15:22 · **Selesai:** 2026-08-14 15:35
+
+### Task 4 — Tulis `otel-collector-config.yaml`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditulis `infra/observability/otel-collector-config.yaml`: receiver `otlp` (grpc `0.0.0.0:4317`, http `0.0.0.0:4318`), processor `memory_limiter` (limit 512MiB/spike 128MiB) + `batch` + `attributes` (upsert `deployment.environment=local-dev` sebagai contoh enrichment), exporter jalur privat (trace ke Jaeger via OTLP, metrics via exporter `prometheus` di `:8889`), dan blok komentar eksplisit untuk slot exporter publik PIC 6 (tidak diaktifkan, hanya dokumentasi bentuknya).
+
+**Temuan**
+Jaeger all-in-one modern (image `latest`) sudah punya receiver OTLP bawaan di port 4317/4318 di dalam network Docker — jadi trace dikirim dari Collector ke Jaeger lewat OTLP juga (`otlp_grpc/jaeger` exporter mengarah ke `jaeger:4317`), bukan format lama Jaeger-native (`jaeger` exporter/thrift). Port OTLP milik container `jaeger` sengaja **tidak** dipetakan ke host, supaya Collector tetap jadi satu-satunya titik penerima OTLP dari luar (kontrak "titik penerima tunggal").
+
+**Error/Kegagalan (jika ada)**
+Tidak ada saat penulisan file.
+
+**Hasil Verifikasi**
+*(digabung dengan Task 7, lihat di bawah — file config baru bisa diverifikasi setelah container jalan)*
+
+**Commit:** *(lihat Task 7a)*
+
+---
+
+### Task 5 — Tulis `prometheus.yml`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditulis `infra/observability/prometheus.yml`: satu scrape job `otel-collector` mengarah ke `otel-collector:8889` (endpoint exporter `prometheus` di Collector), interval 15s.
+
+**Temuan** Tidak ada. **Error/Kegagalan** Tidak ada.
+
+**Hasil Verifikasi:** *(digabung dengan Task 7)*
+
+**Commit:** *(lihat Task 7a)*
+
+---
+
+### Task 6 — Tulis `docker-compose.yml`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditulis `infra/observability/docker-compose.yml`: service `otel-collector` (image `otel/opentelemetry-collector-contrib:latest`, port host 4317/4318/8889), `jaeger` (image `jaegertracing/all-in-one:latest`, hanya port UI 16686 dipetakan ke host), `prometheus` (image `prom/prometheus:latest`, port UI 9090). Tag image sengaja `latest` (bukan versi tertentu yang mungkin sudah tidak ada saat dijalankan) karena ini stack verifikasi lokal, bukan deployment produksi — dicatat sebagai keputusan turunan implementasi bebas.
+
+**Temuan** Tidak ada. **Error/Kegagalan** Tidak ada.
+
+**Hasil Verifikasi:** *(digabung dengan Task 7)*
+
+**Commit:** *(lihat Task 7a)*
+
+---
+
+### Task 7 — Jalankan `docker compose up -d`, verifikasi service
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu perbaikan kecil di tengah jalan (lihat Temuan).
+
+**Apa yang dilakukan**
+`docker compose up -d` dijalankan (image ditarik pertama kali, berjalan di background ~3 menit karena unduhan). Setelah selesai: `docker compose ps` dicek, log `otel-collector` dicek, dan Jaeger UI (`curl -o /dev/null -w "%{http_code}" http://localhost:16686`) serta Prometheus UI (`http://localhost:9090`) dicek reachability-nya.
+
+**Temuan**
+Log startup pertama Collector menampilkan warning: `"otlp" alias is deprecated; use "otlp_grpc" instead` untuk exporter `otlp/jaeger` — versi `otel/opentelemetry-collector-contrib:latest` yang tertarik adalah v0.158.0, di mana alias exporter type `otlp` (untuk gRPC) sudah deprecated. Diperbaiki dengan mengubah component id exporter dari `otlp/jaeger` menjadi `otlp_grpc/jaeger` di `otel-collector-config.yaml` (Task 4) dan referensinya di pipeline `traces`, lalu `docker compose restart otel-collector`. Log startup kedua tidak lagi menampilkan warning tersebut.
+
+**Error/Kegagalan (jika ada)**
+Warning deprecation di atas (bukan error fatal, container tetap "Everything is ready" pada percobaan pertama) — tetap diperbaiki karena dasarnya jelas (pesan warning eksplisit menyebut pengganti yang benar) dan murah diperbaiki sebelum commit, menghindari technical debt di titik paling awal proyek.
+
+**Diagnosis dan Perbaikan**
+Lihat Temuan di atas — perbaikan berupa rename component id, bukan perubahan perilaku fungsional.
+
+**Hasil Verifikasi**
+- `docker compose ps`: ketiga service (`nirwana-otel-collector`, `nirwana-jaeger`, `nirwana-prometheus`) berstatus `Up`.
+- Log `otel-collector` (setelah fix): tidak ada baris `error`/`warn` konfigurasi, diakhiri `"Everything is ready. Begin running and processing data."` untuk kedua receiver (grpc `:4317`, http `:4318`).
+- Jaeger UI (`http://localhost:16686`): HTTP 200.
+- Prometheus UI (`http://localhost:9090`): HTTP 302 (redirect ke `/graph`, perilaku normal Prometheus di root path).
+
+**Commit:** *(lihat Task 7a)*
+
+---
+
+### Task 7a — Catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri Checkpoint 2 di atas ditulis. File di-stage: `infra/observability/{docker-compose.yml,otel-collector-config.yaml,prometheus.yml}` dan `milestones/1.1-fondasi-collector/logs.md`.
+
+**Hasil Verifikasi**
+`git status --short` dicek sebelum staging untuk memastikan hanya file Checkpoint 2 yang ikut (tidak termasuk `.gitignore`/`docs/CLAUDE.md` yang pre-existing di luar cakupan).
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada — penyimpangan Task 1 (flag `uv init`) adalah koreksi di dalam task yang sudah direncanakan, bukan task/checkpoint baru di luar plan.
+Tidak ada — penyimpangan Task 1 (flag `uv init`) dan Task 7 (rename exporter `otlp`→`otlp_grpc`) adalah koreksi di dalam task yang sudah direncanakan, bukan task/checkpoint baru di luar plan.

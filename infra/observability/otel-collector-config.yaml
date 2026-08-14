@@ -1,0 +1,57 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    timeout: 5s
+  attributes:
+    actions:
+      - key: deployment.environment
+        value: local-dev
+        action: upsert
+
+exporters:
+  # --- Jalur privat (aktif penuh) ---
+  # Trace -> Jaeger (Jaeger all-in-one punya OTLP receiver bawaan di 4317/4318
+  # di dalam network docker compose, tidak diekspos ke host - satu-satunya
+  # titik penerima OTLP dari luar adalah Collector ini sendiri).
+  otlp_grpc/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  # Metrics -> diserap Prometheus lewat scrape endpoint yang dibuka exporter ini.
+  prometheus:
+    endpoint: 0.0.0.0:8889
+
+  # --- Jalur publik (slot kosong, JANGAN DIHAPUS) ---
+  # Diisi Milestone 6.1 (rancangan-custom-exporter-supabase.md, PIC 6) dengan
+  # custom exporter Go yang menulis span ke Supabase. Bentuk contoh (belum aktif):
+  #
+  # otlphttp/supabase_exporter:
+  #   endpoint: http://custom-exporter:4319
+  #
+  # Setelah exporter publik ini diisi, tambahkan namanya ke daftar `exporters`
+  # pipeline `traces` di bawah (mis. [otlp_grpc/jaeger, otlphttp/supabase_exporter]).
+
+service:
+  telemetry:
+    logs:
+      level: info
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [otlp_grpc/jaeger]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [prometheus]

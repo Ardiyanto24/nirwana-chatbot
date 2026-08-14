@@ -113,7 +113,7 @@ Tidak ada saat penulisan file.
 **Hasil Verifikasi**
 *(digabung dengan Task 7, lihat di bawah — file config baru bisa diverifikasi setelah container jalan)*
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `8c2e73d` — `feat(milestone-1.1): konfigurasi otel collector, jaeger, prometheus via docker compose`
 
 ---
 
@@ -128,7 +128,7 @@ Ditulis `infra/observability/prometheus.yml`: satu scrape job `otel-collector` m
 
 **Hasil Verifikasi:** *(digabung dengan Task 7)*
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `8c2e73d` — `feat(milestone-1.1): konfigurasi otel collector, jaeger, prometheus via docker compose`
 
 ---
 
@@ -143,7 +143,7 @@ Ditulis `infra/observability/docker-compose.yml`: service `otel-collector` (imag
 
 **Hasil Verifikasi:** *(digabung dengan Task 7)*
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `8c2e73d` — `feat(milestone-1.1): konfigurasi otel collector, jaeger, prometheus via docker compose`
 
 ---
 
@@ -169,7 +169,7 @@ Lihat Temuan di atas — perbaikan berupa rename component id, bukan perubahan p
 - Jaeger UI (`http://localhost:16686`): HTTP 200.
 - Prometheus UI (`http://localhost:9090`): HTTP 302 (redirect ke `/graph`, perilaku normal Prometheus di root path).
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `8c2e73d` — `feat(milestone-1.1): konfigurasi otel collector, jaeger, prometheus via docker compose`
 
 ---
 
@@ -183,7 +183,7 @@ Entri Checkpoint 2 di atas ditulis. File di-stage: `infra/observability/{docker-
 **Hasil Verifikasi**
 `git status --short` dicek sebelum staging untuk memastikan hanya file Checkpoint 2 yang ikut (tidak termasuk `.gitignore`/`docs/CLAUDE.md` yang pre-existing di luar cakupan).
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `8c2e73d` — `feat(milestone-1.1): konfigurasi otel collector, jaeger, prometheus via docker compose`
 
 ---
 

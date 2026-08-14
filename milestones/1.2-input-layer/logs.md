@@ -232,7 +232,7 @@ Keempatnya sesuai ekspektasi persis. Server dihentikan setelah verifikasi (`kill
 **Temuan**
 Untuk kasus `previous_turn` hilang, error-nya berasal dari `model_validator(mode="after")` (validasi lintas-field, bukan field tunggal) — `loc` Pydantic untuk error jenis ini bukan `("previous_turn",)` seperti error field biasa. Test disesuaikan mengecek isi teks `msg` (yang memang secara eksplisit menyebut `"previous_turn"`) alih-alih `loc`, supaya tetap merepresentasikan dengan akurat bagaimana Pydantic melaporkan error jenis ini — bukan memaksakan asumsi struktur `loc` yang salah.
 
-**Commit:** *(lihat Task 13a)*
+**Commit:** `1fa42af` — `test(milestone-1.2): test suite input layer dan verifikasi span nyata`
 
 ---
 
@@ -250,7 +250,7 @@ Run pertama: 9/9 lolos, tapi ada `StarletteDeprecationWarning`: *"Using `httpx` 
 
 **Hasil Verifikasi:** Output final: `9 passed in 1.13s`, tanpa warning.
 
-**Commit:** *(lihat Task 13a)*
+**Commit:** `1fa42af` — `test(milestone-1.2): test suite input layer dan verifikasi span nyata`
 
 ---
 
@@ -264,7 +264,7 @@ Stack Docker (`infra/observability/`) dikonfirmasi masih jalan (`docker compose 
 **Hasil Verifikasi**
 Trace `c12381fbddee1e1dadc515f217314877` ditemukan: span `input.validate`, `serviceName=nirwana-chatbot-input-layer`, atribut `session.id=milestone-1.2-span-verify`, `turn.index=1`, tanpa `error`. **Bonus temuan:** query yang sama juga menampilkan span-span dari pengujian `curl` negatif Checkpoint 3 (field hilang, role tidak dikenal) yang ternyata masih tersimpan di Jaeger — masing-masing menunjukkan `error=true`, `otel.status_code=ERROR`, `otel.status_description` berisi pesan Pydantic lengkap, dan `logs[].fields` berisi `exception.stacktrace` penuh. Ini mengonfirmasi nyata (bukan cuma klaim di Task 9) bahwa OTel SDK Python otomatis merekam exception & status ERROR pada span lewat context manager `start_as_current_span`, tanpa kode tambahan apa pun di `validate_turn_payload()`.
 
-**Commit:** *(lihat Task 13a)*
+**Commit:** `1fa42af` — `test(milestone-1.2): test suite input layer dan verifikasi span nyata`
 
 ---
 
@@ -275,7 +275,7 @@ Trace `c12381fbddee1e1dadc515f217314877` ditemukan: span `input.validate`, `serv
 **Apa yang dilakukan**
 Entri Checkpoint 4 di atas ditulis. File di-stage: `tests/__init__.py`, `tests/layers/__init__.py`, `tests/layers/test_input_layer.py`, `pyproject.toml`+`uv.lock` (swap `httpx`→`httpx2`), `milestones/1.2-input-layer/logs.md`.
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `1fa42af` — `test(milestone-1.2): test suite input layer dan verifikasi span nyata`
 
 ---
 

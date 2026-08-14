@@ -12,11 +12,12 @@ import sys
 import time
 from pathlib import Path
 
-# genai_semconv.py ada satu level di atas folder skrip ini (infra/observability/),
-# bukan paket yang di-install - ditambahkan manual ke sys.path supaya bisa
-# diimpor terlepas dari cwd saat skrip dijalankan.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import genai_semconv as semconv  # noqa: E402
+# genai_semconv.py dipindah ke src/observability/ (Milestone 1.2) supaya jadi
+# bagian paket aplikasi yang sesungguhnya, bukan lagi di infra/observability/.
+# Root repo ditambahkan manual ke sys.path supaya "src" bisa diimpor sebagai
+# paket terlepas dari cwd saat skrip dijalankan (bukan paket ter-install).
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.observability import genai_semconv as semconv  # noqa: E402
 
 from opentelemetry import metrics, trace  # noqa: E402
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (  # noqa: E402

@@ -37,7 +37,7 @@ Config: [`otel-collector-config.yaml`](otel-collector-config.yaml).
 
 ## Versi Konvensi Atribut GenAI (`gen_ai.*`) yang Dikunci
 
-Lihat [`genai_semconv.py`](genai_semconv.py) — modul ini adalah sumber kebenaran satu-satunya untuk nama atribut `gen_ai.*` yang dipakai proyek ini. **Import konstantanya dari sini, jangan hardcode string `"gen_ai.xxx"` sendiri di kode masing-masing layer.**
+Lihat [`src/observability/genai_semconv.py`](../../src/observability/genai_semconv.py) — modul ini adalah sumber kebenaran satu-satunya untuk nama atribut `gen_ai.*` yang dipakai proyek ini (dipindah dari `infra/observability/` ke `src/observability/` di Milestone 1.2, begitu struktur `src/` diputuskan). **Import konstantanya dari sini, jangan hardcode string `"gen_ai.xxx"` sendiri di kode masing-masing layer.**
 
 Ringkasan status per 2026-08-14 (detail lengkap di `docs/keterbatasan-diterima.md` #1): governance spesifikasi GenAI baru pindah ke repo `open-telemetry/semantic-conventions-genai` (2026-06-12), belum ada rilis paket Python resmi di sana. Proyek ini memakai `opentelemetry-semantic-conventions==0.65b0` (dipin di `uv.lock`) sebagai sumber nilai string, dikonfirmasi identik dengan dokumentasi repo baru.
 

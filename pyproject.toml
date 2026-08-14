@@ -4,7 +4,16 @@ version = "0.1.0"
 description = "AI Chatbot RBAC backend - Nirwana Hospitality Group"
 requires-python = ">=3.13"
 dependencies = [
+    "fastapi>=0.141.1",
     "opentelemetry-api>=1.44.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.44.0",
     "opentelemetry-sdk>=1.44.0",
+    "pyyaml>=6.0.3",
+    "uvicorn[standard]>=0.52.3",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
 ]

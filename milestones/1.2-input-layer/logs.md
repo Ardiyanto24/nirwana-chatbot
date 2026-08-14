@@ -218,6 +218,67 @@ Keempatnya sesuai ekspektasi persis. Server dihentikan setelah verifikasi (`kill
 
 ---
 
+## Checkpoint 4 — Test Suite + Verifikasi Span Nyata
+
+**Mulai:** 2026-08-14 · **Selesai:** 2026-08-14
+
+### Task 11 — Tulis `tests/layers/test_input_layer.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`pytest` + `fastapi.testclient.TestClient` (import `src.main.app` langsung, tanpa proses server terpisah). 9 test: `test_missing_required_field_rejected_with_specific_message` (parametrized 5× untuk `session_id`/`turn_index`/`role_title`/`employee_id`/`question`, assert `422` + `loc` menyebut field itu), `test_turn_index_1_without_history_accepted` (`200`), `test_turn_index_2_with_previous_turn_accepted` (`200`), `test_unknown_role_title_rejected` (`422`), `test_turn_index_2_without_previous_turn_rejected` (`422`, assert pesan menyebut `previous_turn`).
+
+**Temuan**
+Untuk kasus `previous_turn` hilang, error-nya berasal dari `model_validator(mode="after")` (validasi lintas-field, bukan field tunggal) — `loc` Pydantic untuk error jenis ini bukan `("previous_turn",)` seperti error field biasa. Test disesuaikan mengecek isi teks `msg` (yang memang secara eksplisit menyebut `"previous_turn"`) alih-alih `loc`, supaya tetap merepresentasikan dengan akurat bagaimana Pydantic melaporkan error jenis ini — bukan memaksakan asumsi struktur `loc` yang salah.
+
+**Commit:** *(lihat Task 13a)*
+
+---
+
+### Task 12 — Jalankan test suite
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu perbaikan tambahan di luar Task literal — lihat Temuan.
+
+**Apa yang dilakukan**
+`uv run pytest tests/layers/test_input_layer.py -v`.
+
+**Temuan**
+Run pertama: 9/9 lolos, tapi ada `StarletteDeprecationWarning`: *"Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead."* Diverifikasi lewat web search: `httpx2` adalah fork resmi dari tim Pydantic (development `httpx` asli mandek), Starlette resmi pindah ke `httpx2` untuk `TestClient` sejak rilis 1.2.0 (merged 2026-05-25). Diperbaiki: `uv remove --dev httpx` + `uv add --dev httpx2` — konsisten dengan kebiasaan proyek memperbaiki deprecation begitu ditemukan (preseden: fix `otlp`→`otlp_grpc` di Milestone 1.1). Run kedua: 9/9 lolos, tanpa warning.
+
+**Error/Kegagalan** Tidak ada test yang gagal di kedua run — hanya warning (bukan failure) di run pertama.
+
+**Hasil Verifikasi:** Output final: `9 passed in 1.13s`, tanpa warning.
+
+**Commit:** *(lihat Task 13a)*
+
+---
+
+### Task 13 — Verifikasi span nyata
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Stack Docker (`infra/observability/`) dikonfirmasi masih jalan (`docker compose ps` — sempat perlu restart di Checkpoint 1 karena idle, tapi bertahan sejak itu). `uv run uvicorn src.main:app --port 8000` dijalankan (server sungguhan, proses baru terpisah dari test suite). Satu request `curl` valid dikirim (`session_id=milestone-1.2-span-verify`, `turn_index=1`), lalu di-query lewat Jaeger API `GET /api/traces?service=nirwana-chatbot-input-layer&limit=5`.
+
+**Hasil Verifikasi**
+Trace `c12381fbddee1e1dadc515f217314877` ditemukan: span `input.validate`, `serviceName=nirwana-chatbot-input-layer`, atribut `session.id=milestone-1.2-span-verify`, `turn.index=1`, tanpa `error`. **Bonus temuan:** query yang sama juga menampilkan span-span dari pengujian `curl` negatif Checkpoint 3 (field hilang, role tidak dikenal) yang ternyata masih tersimpan di Jaeger — masing-masing menunjukkan `error=true`, `otel.status_code=ERROR`, `otel.status_description` berisi pesan Pydantic lengkap, dan `logs[].fields` berisi `exception.stacktrace` penuh. Ini mengonfirmasi nyata (bukan cuma klaim di Task 9) bahwa OTel SDK Python otomatis merekam exception & status ERROR pada span lewat context manager `start_as_current_span`, tanpa kode tambahan apa pun di `validate_turn_payload()`.
+
+**Commit:** *(lihat Task 13a)*
+
+---
+
+### Task 13a — Catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri Checkpoint 4 di atas ditulis. File di-stage: `tests/__init__.py`, `tests/layers/__init__.py`, `tests/layers/test_input_layer.py`, `pyproject.toml`+`uv.lock` (swap `httpx`→`httpx2`), `milestones/1.2-input-layer/logs.md`.
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Update `infra/observability/README.md` (referensi path `genai_semconv.py`) di Task 3 — bukan task baru, perluasan kecil dari file list Task 3 yang sudah direncanakan, dicatat eksplisit di atas. Perbaikan exception handler `ValidationError` di Task 10 juga bukan task baru — koreksi kesalahan asumsi teknis di deskripsi plan sendiri, dicatat eksplisit di Task 10 alih-alih diam-diam diubah.
+Update `infra/observability/README.md` (referensi path `genai_semconv.py`) di Task 3 — bukan task baru, perluasan kecil dari file list Task 3 yang sudah direncanakan, dicatat eksplisit di atas. Perbaikan exception handler `ValidationError` di Task 10 juga bukan task baru — koreksi kesalahan asumsi teknis di deskripsi plan sendiri, dicatat eksplisit di Task 10 alih-alih diam-diam diubah. Swap `httpx`→`httpx2` di Task 12 juga bukan task baru — perbaikan deprecation ditemukan saat run pertama, dicatat eksplisit alih-alih dibiarkan.

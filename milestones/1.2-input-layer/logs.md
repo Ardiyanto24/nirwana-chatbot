@@ -126,6 +126,55 @@ Entri Checkpoint 1 di atas ditulis. File di-stage dalam 2 commit terpisah per ka
 
 ---
 
+## Checkpoint 2 — Skema Payload + Logic Validasi Murni
+
+**Mulai:** 2026-08-14 · **Selesai:** 2026-08-14
+
+### Task 8 — Tulis `src/schemas/turn_payload.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`PreviousTurn` (question/answer, keduanya `min_length=1`) dan `TurnPayload` (`session_id`/`role_title`/`employee_id`/`question` non-empty, `turn_index` `ge=1`, `previous_turn: PreviousTurn | None = None`). Validasi `role_title` lewat `field_validator` yang cek keanggotaan ke `load_valid_roles()` (bukan `Literal[...]` — sumbernya benar-benar dari `roles.yaml`, bukan hardcode ulang di Pydantic). Validasi `previous_turn` wajib-jika-`turn_index>1` lewat `model_validator(mode="after")`.
+
+**Temuan** Tidak ada. **Error/Kegagalan** Tidak ada.
+
+**Hasil Verifikasi:** *(digabung dengan Task 9)*
+
+**Commit:** *(lihat Task 9a)*
+
+---
+
+### Task 9 — Tulis `src/layers/input_layer.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`validate_turn_payload(raw: dict) -> TurnPayload`: membungkus `TurnPayload.model_validate(raw)` dalam span `input.validate` (`get_tracer` dari `src/observability/tracing.py`), mengisi atribut `session.id`/`turn.index` best-effort dari raw payload sebelum validasi (supaya tetap terekam meski validasi gagal total). Exception (`pydantic.ValidationError`) dibiarkan menjalar apa adanya — OTel SDK otomatis merekam exception & status ERROR pada span lewat context manager `start_as_current_span`, tidak perlu kode tambahan.
+
+**Temuan**
+Saat menguji manual, disadari `get_tracer()` di titik ini memakai `TracerProvider` default OTel (no-op) karena `setup_tracing()` belum pernah dipanggil di checkpoint ini — itu memang baru terjadi di `src/main.py` (Checkpoint 3) saat aplikasi startup. Span call jadi no-op diam-diam (tidak error, tidak terkirim kemana pun) — perilaku yang diharapkan untuk pengujian murni fungsi di checkpoint ini, verifikasi span nyata baru dilakukan di Checkpoint 4.
+
+**Error/Kegagalan** Tidak ada.
+
+**Hasil Verifikasi**
+Diuji manual lewat `uv run python -c "..."` dengan 5 skenario: (1) `turn_index=1` tanpa histori → sukses; (2) `turn_index=2` dengan `previous_turn` → sukses; (3) `role_title` tidak dikenal (`"Bukan Role Asli"`) → `ValidationError` pesan `"role_title tidak dikenal: 'Bukan Role Asli'"`; (4) `turn_index=2` tanpa `previous_turn` → `ValidationError` pesan `"previous_turn wajib diisi kalau turn_index > 1"`; (5) field `session_id` dihilangkan → `ValidationError` dengan `loc=('session_id',)`, pesan `"Field required"` — menyebut field spesifik, bukan pesan generik. Kelima skenario lolos sesuai ekspektasi.
+
+**Commit:** *(lihat Task 9a)*
+
+---
+
+### Task 9a — Catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri Checkpoint 2 di atas ditulis. File di-stage: `src/schemas/turn_payload.py`, `src/layers/input_layer.py`, `milestones/1.2-input-layer/logs.md`.
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Update `infra/observability/README.md` (referensi path `genai_semconv.py`) di Task 3 — bukan task baru, perluasan kecil dari file list Task 3 yang sudah direncanakan, dicatat eksplisit di atas.

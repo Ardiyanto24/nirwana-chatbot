@@ -96,6 +96,74 @@ Entri Checkpoint 1 di atas ditulis. File di-stage dalam 2 commit terpisah (dokum
 
 ---
 
+## Checkpoint 2 — Fondasi Provider LLM (OpenRouter)
+
+**Mulai:** 2026-08-14 · **Selesai:** 2026-08-14
+
+### Task 7 — Tambah dependency
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`uv add openai python-dotenv`.
+
+**Temuan**
+`openai==3.0.0` ter-install — versi major 3.x, lebih baru dari yang mungkin diasumsikan generik. Dicek langsung: `chat.completions.create` (API lama, kompatibel OpenRouter) masih tersedia di versi ini, begitu juga `responses.create` (API baru OpenAI, belum tentu kompatibel proxy OpenRouter) — diputuskan tetap pakai `chat.completions.create` untuk Checkpoint 3, sesuai dokumentasi kompatibilitas resmi OpenRouter.
+
+**Commit:** *(lihat Task 10a)*
+
+---
+
+### Task 8 — Tulis `.env.example`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Template `OPENROUTER_API_KEY=` (nilai kosong) di root, komentar menjelaskan cara pakai dan larangan commit nilai asli. Dikonfirmasi `.env` sudah gitignored sejak baris 1 `.gitignore` awal repo (tidak perlu ditambah lagi).
+
+**Commit:** *(lihat Task 10a)*
+
+---
+
+### Task 9 — Tulis `src/config/llm.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Konstanta `OPENROUTER_BASE_URL`, `OPENROUTER_MODEL="deepseek/deepseek-v4-flash-0731"`, fungsi `get_openrouter_client()` yang baca `OPENROUTER_API_KEY` (via `load_dotenv()` + `os.environ.get`), lempar `RuntimeError` jelas kalau tidak diset.
+
+**Temuan**
+Saat verifikasi, ditemukan `OPENROUTER_API_KEY` **sudah ter-set di environment shell** (dikonfirmasi lewat `env | grep OPENROUTER_API_KEY` — hasilnya ada, format `sk-or-v1-...` sesuai pola key OpenRouter) meskipun `.env` belum dibuat user. Kemungkinan sudah ada di environment sistem/profil pengguna dari luar sesi ini. Nilai asli tidak dicatat/ditampilkan ulang di log ini atau di manapun. Karena sudah tersedia di environment, `get_openrouter_client()` langsung berhasil tanpa perlu menunggu `.env` dibuat.
+
+**Hasil Verifikasi**
+`uv run python -c "from src.config.llm import get_openrouter_client; print(get_openrouter_client())"` berhasil, mengembalikan objek `OpenAI` tanpa error.
+
+**Commit:** *(lihat Task 10a)*
+
+---
+
+### Task 10 — Skeleton `src/layers/context_resolution/`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`src/layers/context_resolution/__init__.py` (kosong, subpackage baru untuk 4 milestone Context Resolution — M1.3 mengisi modul pertamanya di Checkpoint 3).
+
+**Commit:** *(lihat Task 10a)*
+
+---
+
+### Task 10a — Catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri Checkpoint 2 di atas ditulis. File di-stage: `pyproject.toml`, `uv.lock`, `.env.example`, `src/config/llm.py`, `src/layers/context_resolution/__init__.py`, `milestones/1.3-pemetaan-ketergantungan-turn/logs.md`.
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada — seluruh Task 1-6 berjalan sesuai plan, dengan satu perluasan kecil di Task 5 (skenario sukses tambahan) yang dicatat eksplisit di atas, bukan penyimpangan dari struktur checkpoint.
+Tidak ada — seluruh Task 1-10 berjalan sesuai plan, dengan satu perluasan kecil di Task 5 (skenario sukses tambahan) yang dicatat eksplisit di atas, bukan penyimpangan dari struktur checkpoint.

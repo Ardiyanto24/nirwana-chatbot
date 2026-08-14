@@ -122,8 +122,6 @@ Entri Checkpoint 1 di atas ditulis. File di-stage dalam 2 commit terpisah per ka
 
 **Commit:** `1640a53` — `docs(milestone-1.2): catat logs checkpoint 1`
 
-**Commit:** *(diisi setelah commit dieksekusi)*
-
 ---
 
 ## Checkpoint 2 — Skema Payload + Logic Validasi Murni
@@ -141,7 +139,7 @@ Entri Checkpoint 1 di atas ditulis. File di-stage dalam 2 commit terpisah per ka
 
 **Hasil Verifikasi:** *(digabung dengan Task 9)*
 
-**Commit:** *(lihat Task 9a)*
+**Commit:** `4e37e9f` — `feat(milestone-1.2): skema payload dan logic validasi input layer`
 
 ---
 
@@ -160,7 +158,7 @@ Saat menguji manual, disadari `get_tracer()` di titik ini memakai `TracerProvide
 **Hasil Verifikasi**
 Diuji manual lewat `uv run python -c "..."` dengan 5 skenario: (1) `turn_index=1` tanpa histori → sukses; (2) `turn_index=2` dengan `previous_turn` → sukses; (3) `role_title` tidak dikenal (`"Bukan Role Asli"`) → `ValidationError` pesan `"role_title tidak dikenal: 'Bukan Role Asli'"`; (4) `turn_index=2` tanpa `previous_turn` → `ValidationError` pesan `"previous_turn wajib diisi kalau turn_index > 1"`; (5) field `session_id` dihilangkan → `ValidationError` dengan `loc=('session_id',)`, pesan `"Field required"` — menyebut field spesifik, bukan pesan generik. Kelima skenario lolos sesuai ekspektasi.
 
-**Commit:** *(lihat Task 9a)*
+**Commit:** `4e37e9f` — `feat(milestone-1.2): skema payload dan logic validasi input layer`
 
 ---
 
@@ -171,7 +169,7 @@ Diuji manual lewat `uv run python -c "..."` dengan 5 skenario: (1) `turn_index=1
 **Apa yang dilakukan**
 Entri Checkpoint 2 di atas ditulis. File di-stage: `src/schemas/turn_payload.py`, `src/layers/input_layer.py`, `milestones/1.2-input-layer/logs.md`.
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `4e37e9f` — `feat(milestone-1.2): skema payload dan logic validasi input layer`
 
 ---
 

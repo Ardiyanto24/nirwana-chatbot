@@ -2,6 +2,16 @@
 
 Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dikelompokkan per checkpoint, lalu per task di dalamnya. Logs adalah catatan peristiwa, bukan ringkasan hasil akhir (itu tugas `report.md`).
 
+**Ringkasan commit per checkpoint:**
+
+| Checkpoint | Commit | Pesan |
+|---|---|---|
+| 1 | `049a8d5`, `832078f` (+ `a81052f` fix hash) | `docs: revisi kontrak payload turn...` + `feat(milestone-1.3): revisi payload...` |
+| 2 | `beee282` (+ `7f5b4bc` fix hash) | `chore(milestone-1.3): fondasi provider llm openrouter` |
+| 3 | `ec6c21a` (+ `62df336` fix hash) | `feat(milestone-1.3): deteksi ketergantungan turn via llm, span chat` |
+| 4 | `9a6f204` (+ `949be00` fix hash) | `test(milestone-1.3): skenario uji dependency turn dan verifikasi span nyata` |
+| 5 | *(lihat entri Checkpoint 5 di bawah)* | `docs(milestone-1.3): decisions, logs, report` |
+
 ---
 
 ## Checkpoint 1 — Revisi Kontrak Payload M1.2 (Prasyarat): Histori Penuh

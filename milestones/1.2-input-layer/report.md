@@ -70,6 +70,8 @@ Tujuh penyimpangan dari plan, semuanya koreksi di tempat (tidak ada checkpoint/t
 - **`previous_turn` diabaikan (bukan ditolak) saat `turn_index=1` tapi tetap terkirim** — keputusan derived tanpa dasar dokumen eksplisit (Keputusan 13 `decisions.md`), risiko rendah (perilaku permisif), belum diverifikasi terhadap payload frontend sungguhan (belum ada frontend nyata).
 - **Response sukses (`200`) murni echo** — karena Layer 2 (Context Resolution, Milestone 1.3) belum ada, endpoint belum benar-benar "meneruskan" payload kemana pun. Ini bukan bug, tapi keterbatasan sementara yang wajar untuk milestone tunggal.
 
+**Addendum pasca-milestone (ditambahkan saat Milestone 1.3, 2026-08-14):** Kontrak `previous_turn: PreviousTurn | None` (tunggal) yang dijelaskan di seluruh laporan ini **sudah direvisi** menjadi `history: list[HistoryTurn]` (seluruh histori sesi) di Milestone 1.3 — gap nyata ditemukan antara kontrak ini dan Kriteria Keberhasilan M1.3 (deteksi rujukan ke turn jauh, bukan cuma N-1). Lihat `milestones/1.3-pemetaan-ketergantungan-turn/decisions.md` Keputusan 1 untuk kronologi lengkap. Entri di atas (termasuk baris `previous_turn` tepat sebelum addendum ini) **tidak diubah** — ini catatan forward-reference murni, konsisten prinsip "jangan menghaluskan sejarah"; laporan ini tetap merekam kondisi nyata saat Milestone 1.2 selesai.
+
 ## Bagian 6 — Follow-up
 
 - Milestone 1.3 (Pemetaan Ketergantungan Turn) menjadi konsumen langsung `TurnPayload` — perlu membaca `src/schemas/turn_payload.py` langsung karena tidak ada kontrak dokumen tertulis terpisah (lihat Bagian 3, Integrasi).

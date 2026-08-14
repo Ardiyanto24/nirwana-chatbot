@@ -224,6 +224,71 @@ Entri Checkpoint 3 di atas ditulis. File di-stage: `src/schemas/turn_dependency.
 
 ---
 
+## Checkpoint 4 — Test Suite (3 Skenario) + Verifikasi Span Nyata
+
+**Mulai:** 2026-08-14 · **Selesai:** 2026-08-14
+
+### Task 13 — Susun 3 kelompok skenario uji
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Kelompok A (rujukan eksplisit): turn 2 "Bandingkan dengan bulan sebelumnya" merujuk turn 1 (revenue reservasi Maret). Kelompok B (berdiri sendiri): turn 2 soal fasilitas spa, histori turn 1 soal staff HR — topik tidak nyambung sama sekali. Kelompok C (rujukan turn jauh): skenario 7-turn domain hospitality penuh (occupancy→F&B→**komplain housekeeping**→maintenance AC→spa→performa staff→"balik lagi ke soal komplain housekeeping tadi") — turn 7 harus merujuk turn 3, bukan turn 6 (topik terdekat, staff performance, sama sekali tidak nyambung ke komplain housekeeping).
+
+**Commit:** *(lihat Task 16b)*
+
+---
+
+### Task 14 — Tulis `tests/layers/context_resolution/test_turn_dependency.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+3 fungsi test (satu per kelompok), `pytestmark` skip otomatis kalau `OPENROUTER_API_KEY` tidak diset. Panggilan `detect_turn_dependency()` sungguhan (bukan mock).
+
+**Commit:** *(lihat Task 16b)*
+
+---
+
+### Task 15 — Jalankan test suite
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`uv run pytest tests/layers/context_resolution/ -v`.
+
+**Hasil Verifikasi**
+Ketiga test **lolos** (3 passed in 17.72s), termasuk Kelompok C — bukti langsung bahwa gap yang memicu revisi payload di Checkpoint 1 sekarang genuinely terselesaikan: LLM benar mengarahkan `referenced_turn_index=3` untuk turn 7, bukan salah tangkap ke turn 6 (topik terdekat tapi tidak relevan).
+
+**Commit:** *(lihat Task 16b)*
+
+---
+
+### Task 16 — Verifikasi span nyata di Jaeger
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Disadari sebelum verifikasi: pemanggilan `detect_turn_dependency()` langsung (baik di smoke test Checkpoint 3 maupun test suite Task 15) **tidak pernah memanggil `setup_tracing()`** — beda dari jalur HTTP (`src.main`) yang memanggilnya otomatis lewat `lifespan`. Tanpa itu, span dipakai `TracerProvider` no-op default, tidak benar-benar terkirim ke Collector. Diperbaiki untuk verifikasi ini: panggil `setup_tracing('nirwana-chatbot-context-resolution')` eksplisit dulu, baru `detect_turn_dependency()`, lalu `force_flush()` + `sleep(2)` sebelum query — pola persis sama seperti skrip smoke-test Milestone 1.1.
+
+**Hasil Verifikasi**
+Query `GET /api/traces?service=nirwana-chatbot-context-resolution` mengembalikan trace `063e9af0cced951dc696009003e08afc`: span `chat`, atribut `gen_ai.operation.name=chat`, `gen_ai.request.model=deepseek/deepseek-v4-flash-0731`, `gen_ai.usage.input_tokens=418`, `gen_ai.usage.output_tokens=366` (angka nyata dari respons API, bukan 0/kosong), `dependency.referenced_turn_index=1`. Seluruhnya sesuai kontrak Bagian 2 dokumen observability.
+
+**Commit:** *(lihat Task 16b)*
+
+---
+
+### Task 16b — Catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan (menggantikan penomoran "Task 16a" di plan untuk konsistensi dengan pola 16a=temuan setup_tracing yang digabung ke Task 16 di atas).
+
+**Apa yang dilakukan**
+Entri Checkpoint 4 di atas ditulis. File di-stage: `tests/layers/context_resolution/__init__.py`, `tests/layers/context_resolution/test_turn_dependency.py`, `milestones/1.3-pemetaan-ketergantungan-turn/logs.md`.
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada — seluruh Task 1-12 berjalan sesuai plan, dengan perluasan kecil (skenario sukses tambahan Task 5; smoke test kedua Task 12a-b; pilihan `json_object` alih-alih `json_schema` di Task 12) yang dicatat eksplisit di masing-masing entri, bukan penyimpangan dari struktur checkpoint.
+Tidak ada — seluruh Task 1-16 berjalan sesuai plan, dengan perluasan/penyesuaian kecil (skenario sukses tambahan Task 5; smoke test kedua Task 12a-b; pilihan `json_object` alih-alih `json_schema` Task 12; kebutuhan `setup_tracing()` eksplisit Task 16) yang dicatat eksplisit di masing-masing entri, bukan penyimpangan dari struktur checkpoint.

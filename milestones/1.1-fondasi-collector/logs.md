@@ -187,6 +187,101 @@ Entri Checkpoint 2 di atas ditulis. File di-stage: `infra/observability/{docker-
 
 ---
 
+## Checkpoint 3 — Skrip Verifikasi Span/Metric Dummy + Kunci Versi GenAI Semconv
+
+**Mulai:** 2026-08-14 15:40 · **Selesai:** 2026-08-14 16:10
+
+### Task 8 — Cek versi terkini OTel GenAI Semantic Conventions
+
+**Kesesuaian dengan plan:** Sesuai plan, tapi hasilnya jauh lebih signifikan dari yang dibayangkan saat plan ditulis — lihat Temuan.
+
+**Apa yang dilakukan**
+Diperiksa dulu paket `opentelemetry-semantic-conventions==0.65b0` yang sudah ter-install (transitive dependency dari Checkpoint 1). File `.venv/Lib/site-packages/opentelemetry/semconv/_incubating/attributes/gen_ai_attributes.py` dibaca langsung. Lalu dicari konfirmasi resmi lewat web search + fetch ke beberapa sumber: GitHub `open-telemetry/semantic-conventions-genai`, halaman resmi `opentelemetry.io/docs/specs/semconv/gen-ai/`, dan registry attribute `gen-ai.md` di repo baru.
+
+**Temuan**
+Seluruh konstanta `gen_ai.*` di paket `opentelemetry-semantic-conventions` (termasuk yang dipakai proyek ini: `GEN_AI_OPERATION_NAME`, `GEN_AI_REQUEST_MODEL`, `GEN_AI_CONVERSATION_ID`, `GEN_AI_USAGE_INPUT_TOKENS`, `GEN_AI_USAGE_OUTPUT_TOKENS`) sudah ditandai "Deprecated" di docstring-nya, dengan catatan "Moved to the OpenTelemetry GenAI semantic conventions repository". Dikonfirmasi via web search: governance spesifikasi GenAI pindah dari repo utama `open-telemetry/semantic-conventions` ke repo terpisah `open-telemetry/semantic-conventions-genai` sejak rilis `semantic-conventions v1.42.0` (2026-06-12). Per pengecekan ini (2026-08-14), repo baru tersebut **belum punya release/tag resmi maupun paket PyPI generated-code sendiri** — dikonfirmasi lewat `WebFetch` ke halaman Releases repo baru ("There aren't any releases here"). Namun nilai string atribut itu sendiri **tidak berubah** — dikonfirmasi dengan membandingkan langsung ke `docs/registry/attributes/gen-ai.md` di repo baru: `gen_ai.operation.name`, `gen_ai.request.model`, `gen_ai.conversation.id`, `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens` semuanya identik, status "Development" (belum ada yang "Stable").
+
+Diverifikasi juga secara teknis bahwa mengakses konstanta ini di Python **tidak** memicu `DeprecationWarning` runtime (dites dengan `python -W error::DeprecationWarning`) — status "Deprecated" murni catatan dokumentasi/docstring, bukan decorator `@deprecated` aktif.
+
+Keputusan praktis: tetap memakai paket `opentelemetry-semantic-conventions==0.65b0` (dipin lewat `uv.lock`) sebagai sumber string konstanta, karena ini satu-satunya sumber konstanta Python yang ter-install & ter-versi saat ini — bukan mengabaikan status deprecated, tapi pilihan sadar karena tidak ada alternatif yang lebih baik tersedia. Dicatat sebagai keterbatasan diterima (lihat Task 9 dan `docs/keterbatasan-diterima.md`).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada error teknis — ini murni temuan riset yang mengubah bentuk pekerjaan Task 8/9 dari "cek versi lalu catat" (dibayangkan sederhana di plan) menjadi "cek versi, temukan perpindahan repo governance yang baru terjadi ~2 bulan lalu, verifikasi nilai atribut belum berubah, dan catat keterbatasan secara eksplisit".
+
+**Hasil Verifikasi**
+Web search + WebFetch ke: `github.com/open-telemetry/semantic-conventions-genai`, `opentelemetry.io/docs/specs/semconv/gen-ai/`, `github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/registry/attributes/gen-ai.md`, `github.com/open-telemetry/semantic-conventions-genai/releases`. Uji lokal `uv run python -W error::DeprecationWarning -c "..."` tidak melempar exception.
+
+**Commit:** *(lihat Task 11a)*
+
+---
+
+### Task 9 — Tulis `genai_semconv.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditulis `infra/observability/genai_semconv.py`: docstring modul menjelaskan temuan Task 8 secara lengkap (perpindahan governance, status pre-stable, alasan tetap memakai paket lama), konstanta `GENAI_SEMCONV_SPEC_STATUS`/`GENAI_SEMCONV_SPEC_SOURCE`/`GENAI_SEMCONV_PYTHON_PACKAGE` sebagai metadata versi terkunci, dan re-export lima konstanta atribut yang dipakai proyek ini dari `opentelemetry.semconv._incubating.attributes.gen_ai_attributes`.
+
+**Temuan**
+Modul stabil (`opentelemetry.semconv.attributes`, tanpa `_incubating`) tidak punya file `gen_ai_attributes.py` sama sekali — dikonfirmasi lewat pencarian file di `.venv`. Ini bukan kesalahan, memang konvensi standar OTel Python: atribut eksperimental/pre-stable selalu ditaruh di bawah `_incubating`, jadi mengimpor dari path itu adalah cara yang benar, bukan workaround.
+
+**Error/Kegagalan (jika ada)** Tidak ada.
+
+**Hasil Verifikasi:** *(digabung dengan Task 11)*
+
+**Commit:** *(lihat Task 11a)*
+
+---
+
+### Task 10 — Tulis `send_dummy_span.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditulis `infra/observability/smoke_test/send_dummy_span.py`: setup `TracerProvider`+`OTLPSpanExporter` dan `MeterProvider`+`OTLPMetricExporter` (keduanya ke `localhost:4317`, `insecure=True`), mengirim satu trace berisi span induk `invoke_agent` (atribut `session.id`, `turn.index`) dan span anak `chat` (atribut `gen_ai.*` dari `genai_semconv.py` + `smoke_test.marker`), plus satu metric counter `smoke_test.dummy_counter`.
+
+**Temuan**
+Karena `genai_semconv.py` bukan bagian dari paket ter-install (dan struktur `src/` sengaja belum ada), impor lintas-file di `infra/observability/` butuh manipulasi `sys.path` manual (menambahkan folder induk skrip ke `sys.path`) — pola standar untuk skrip standalone tanpa packaging, didokumentasikan lewat komentar di kode kenapa ini diperlukan.
+
+**Error/Kegagalan (jika ada)** Tidak ada — skrip jalan sukses di percobaan pertama.
+
+**Hasil Verifikasi:** *(lihat Task 11)*
+
+**Commit:** *(lihat Task 11a)*
+
+---
+
+### Task 11 — Jalankan skrip, verifikasi di Jaeger & Prometheus
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`uv run python infra/observability/smoke_test/send_dummy_span.py` dijalankan dari root repo. Skrip mencetak `trace_id=029ce450fc0631e4d44cb36680aac90d`. Trace itu di-query langsung lewat Jaeger API (`GET /api/traces/029ce450fc0631e4d44cb36680aac90d`), dan metric di-query lewat Prometheus HTTP API (`GET /api/v1/query?query=smoke_test_dummy_counter_total`).
+
+**Hasil Verifikasi**
+- **Jaeger API** mengembalikan 1 trace berisi 2 span: `invoke_agent` (induk, atribut `session.id=milestone-1.1-smoke-test`, `turn.index=1`, `deployment.environment=local-dev` dari processor enrichment) dan `chat` (anak, `CHILD_OF` `invoke_agent`, atribut `gen_ai.operation.name=chat`, `gen_ai.request.model=dummy-model-smoke-test`, `gen_ai.conversation.id=milestone-1.1-smoke-test`, `gen_ai.usage.input_tokens=10`, `gen_ai.usage.output_tokens=5`, `smoke_test.marker=milestone-1.1-primary`). `processes.p1.serviceName=milestone-1.1-smoke-test-primary`.
+- **Prometheus API** mengembalikan hasil query `smoke_test_dummy_counter_total` dengan `value=1`, label `smoke_test_marker=milestone-1.1-primary`, `deployment_environment=local-dev`, `job=otel-collector`, `exported_job=milestone-1.1-smoke-test-primary` — membuktikan metric benar-benar melewati pipeline Collector (label `job`/`instance` dari scrape Prometheus, label `exported_job`/`exported_instance` dari resource asli si pengirim, sesuai perilaku standar relabeling Prometheus saat nama label bentrok).
+
+Kedua bukti di atas membuktikan Kriteria Keberhasilan sumber #1 dan #3 (span dummy terlihat di Jaeger dengan atribut benar; versi GenAI semconv terkunci eksplisit di kode).
+
+**Commit:** *(lihat Task 11a)*
+
+---
+
+### Task 11a — Catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri Checkpoint 3 di atas ditulis (Task 8-11 digabung penulisannya karena saling terkait erat). File di-stage: `infra/observability/genai_semconv.py`, `infra/observability/smoke_test/send_dummy_span.py`, `milestones/1.1-fondasi-collector/logs.md`.
+
+**Hasil Verifikasi**
+`git status --short` dicek sebelum staging.
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada — penyimpangan Task 1 (flag `uv init`) dan Task 7 (rename exporter `otlp`→`otlp_grpc`) adalah koreksi di dalam task yang sudah direncanakan, bukan task/checkpoint baru di luar plan.
+Tidak ada — penyimpangan Task 1 (flag `uv init`) dan Task 7 (rename exporter `otlp`→`otlp_grpc`) adalah koreksi di dalam task yang sudah direncanakan, bukan task/checkpoint baru di luar plan. Temuan Task 8 (perpindahan governance GenAI semconv) memperluas *kedalaman* Task 8/9 secara signifikan, tapi tidak menambah task/checkpoint baru di luar struktur plan — hanya menambah satu item baru ke `docs/keterbatasan-diterima.md` yang memang sudah direncanakan diinisialisasi di Checkpoint 5 lewat Risiko & Mitigasi di plan.

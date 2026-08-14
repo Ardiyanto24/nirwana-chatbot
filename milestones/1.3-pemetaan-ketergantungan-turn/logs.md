@@ -15,7 +15,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 **Apa yang dilakukan**
 Baris 93-95 (kontrak payload) diubah dari "teks & jawaban turn sebelumnya" (tunggal) jadi "seluruh histori turn-turn sebelumnya dalam sesi — turn 1 s.d. turn_index-1, masing-masing dengan turn_index, teks pertanyaan & jawabannya". Ditambahkan catatan inline (bracket) menjelaskan kapan/kenapa direvisi, merujuk balik ke `decisions.md` milestone ini.
 
-**Temuan/Error** Tidak ada. **Commit:** *(lihat Task 6a)*
+**Temuan/Error** Tidak ada. **Commit:** `049a8d5` (dokumen) / `832078f` (kode)
 
 ---
 
@@ -28,7 +28,7 @@ Baris 93-95 (kontrak payload) diubah dari "teks & jawaban turn sebelumnya" (tung
 
 **Hasil Verifikasi:** `grep` ulang setelah revisi tidak menemukan sisa referensi bentuk tunggal yang belum diperbarui di lokasi relevan.
 
-**Commit:** *(lihat Task 6a)*
+**Commit:** `049a8d5` (dokumen) / `832078f` (kode)
 
 ---
 
@@ -41,7 +41,7 @@ Baris 93-95 (kontrak payload) diubah dari "teks & jawaban turn sebelumnya" (tung
 
 **Temuan/Error** Tidak ada.
 
-**Commit:** *(lihat Task 6a)*
+**Commit:** `049a8d5` (dokumen) / `832078f` (kode)
 
 ---
 
@@ -52,7 +52,7 @@ Baris 93-95 (kontrak payload) diubah dari "teks & jawaban turn sebelumnya" (tung
 **Apa yang dilakukan**
 `grep "previous_turn"` ke `src/` — nihil. Dikonfirmasi (bukan diasumsikan) span attribute yang direkam `validate_turn_payload()` cuma `session.id`/`turn.index`, tidak menyentuh isi `previous_turn`/`history` sama sekali — tidak ada perubahan diperlukan di kedua file ini.
 
-**Commit:** *(lihat Task 6a)*
+**Commit:** `049a8d5` (dokumen) / `832078f` (kode)
 
 ---
 
@@ -66,7 +66,7 @@ Baris 93-95 (kontrak payload) diubah dari "teks & jawaban turn sebelumnya" (tung
 **Temuan**
 Plan menyebut "duplikat turn_index" dan "histori kurang lengkap" sebagai skenario tambahan — ditambahkan skenario ketiga (`turn_index_3_with_full_multi_turn_history_accepted`, kasus sukses 2-entri) yang tidak eksplisit disebut di plan tapi relevan langsung untuk membuktikan validator menangani histori >1 entri dengan benar, bukan cuma 0 atau 1 entri.
 
-**Commit:** *(lihat Task 6a)*
+**Commit:** `049a8d5` (dokumen) / `832078f` (kode)
 
 ---
 
@@ -81,7 +81,7 @@ Plan menyebut "duplikat turn_index" dan "histori kurang lengkap" sebagai skenari
 - Payload histori lengkap → `200`, echo benar termasuk kedua entri histori dengan `turn_index` masing-masing.
 - Payload histori gap → `422`, pesan: `"history harus berisi tepat turn_index [1, 2] ..., ditemukan [1]"` — menyebut selisih persis, bukan pesan generik.
 
-**Commit:** *(lihat Task 6a)*
+**Commit:** `049a8d5` (dokumen) / `832078f` (kode)
 
 ---
 
@@ -92,7 +92,7 @@ Plan menyebut "duplikat turn_index" dan "histori kurang lengkap" sebagai skenari
 **Apa yang dilakukan**
 Entri Checkpoint 1 di atas ditulis. File di-stage dalam 2 commit terpisah (dokumen vs kode), sesuai rencana Commit di plan.
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `049a8d5` (dokumen) / `832078f` (kode)
 
 ---
 

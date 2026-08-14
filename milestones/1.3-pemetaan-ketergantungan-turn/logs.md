@@ -10,7 +10,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 2 | `beee282` (+ `7f5b4bc` fix hash) | `chore(milestone-1.3): fondasi provider llm openrouter` |
 | 3 | `ec6c21a` (+ `62df336` fix hash) | `feat(milestone-1.3): deteksi ketergantungan turn via llm, span chat` |
 | 4 | `9a6f204` (+ `949be00` fix hash) | `test(milestone-1.3): skenario uji dependency turn dan verifikasi span nyata` |
-| 5 | *(lihat entri Checkpoint 5 di bawah)* | `docs(milestone-1.3): decisions, logs, report` |
+| 5 | `95c1587` | `docs(milestone-1.3): decisions, logs, report` (`CLAUDE.md`/`AGENT.md` sengaja tidak di-commit, lihat Task 22) |
 
 ---
 
@@ -299,6 +299,88 @@ Entri Checkpoint 4 di atas ditulis. File di-stage: `tests/layers/context_resolut
 
 ---
 
+## Checkpoint 5 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-14 · **Selesai:** 2026-08-14
+
+### Task 17 — Tulis `decisions.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+11 entri keputusan: 5 Jenis A (genuinely terbuka dari `AskUserQuestion` — payload histori penuh, provider, model, plus 2 ditemukan saat implementasi: `response_format`, `setup_tracing`) dan 6 Jenis B (forced/preseden), seluruhnya dengan "Opsi yang Dipertimbangkan tapi Ditolak".
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 18 — Lengkapi `logs.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tabel ringkasan commit per checkpoint ditambahkan. Entri Checkpoint 5 ini sendiri ditulis sebagai penuntas.
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 19 — Tulis `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ketiga Kriteria Keberhasilan sumber dipetakan ke bukti nyata (Bagian 2), cara kerja+diagram Mermaid ditulis (Bagian 3, termasuk alur bounds-check/fallback), dikonfirmasi tidak ada "Catatan Serah Terima" eksplisit untuk M1.3 tapi "Kenapa Terpisah" M1.3 sendiri menyebut M1.4/M1.5 sebagai penerima langsung (Bagian 3, Integrasi). 4 perubahan-dari-plan didaftar (Bagian 4), 4 keterbatasan didaftar (Bagian 5), 3 follow-up didaftar (Bagian 6).
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 20 — Entri baru `docs/keterbatasan-diterima.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri #2: payload histori penuh bisa membesar untuk sesi sangat panjang. Sekalian diperbaiki referensi path `genai_semconv.py` yang stale di entri #1 (masih menyebut `infra/observability/`, padahal sudah pindah ke `src/observability/` sejak M1.2) — perluasan kecil housekeeping, dicatat di sini.
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 21 — Addendum `milestones/1.2-input-layer/report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Satu paragraf addendum ditambahkan di akhir Bagian 5 (Keterbatasan) M1.2, mencatat revisi kontrak `previous_turn`→`history`. Entri asli di atasnya (termasuk yang menyebut `previous_turn`) **tidak diubah** — prinsip "jangan menghaluskan sejarah" dipertahankan.
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 22 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tabel "Struktur Repository": baris `src/` (catat subpackage `context_resolution/` untuk layer multi-milestone), `tests/`, `docs/keterbatasan-diterima.md` diperbarui. "Status Saat Ini": M1.3 SELESAI dicatat, catatan eksplisit bahwa skema payload M1.2 sudah bukan bentuk final lagi (rujuk M1.3), provider/model LLM dicatat sudah ditentukan (untuk M1.3, dengan catatan status "testing" bukan otomatis final seluruh proyek). `AGENT.md` disinkronkan ulang (`cp` + `diff` kosong).
+
+**Hasil Verifikasi**
+Konsisten preseden M1.1/M1.2: `CLAUDE.md`/`AGENT.md` **tidak** ikut di-`git add`/commit (dikonfirmasi `git status --short` tidak menampilkan keduanya, gitignored).
+
+**Commit:** Tidak ada commit untuk Task ini (disengaja, konsisten preseden).
+
+---
+
+### Task Gabungan (17, 19-21) — Commit checkpoint
+
+**Apa yang dilakukan**
+File Task 17, 19-21 di-stage bersama: `docs/keterbatasan-diterima.md`, `milestones/1.2-input-layer/report.md`, `milestones/1.3-pemetaan-ketergantungan-turn/{decisions.md,report.md}`. `CLAUDE.md`/`AGENT.md` tidak ikut (Task 22, disengaja).
+
+**Commit:** `95c1587` — `docs(milestone-1.3): decisions, logs, report`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada — seluruh Task 1-16 berjalan sesuai plan, dengan perluasan/penyesuaian kecil (skenario sukses tambahan Task 5; smoke test kedua Task 12a-b; pilihan `json_object` alih-alih `json_schema` Task 12; kebutuhan `setup_tracing()` eksplisit Task 16) yang dicatat eksplisit di masing-masing entri, bukan penyimpangan dari struktur checkpoint.
+Tidak ada checkpoint baru di luar plan. Penyimpangan task (semuanya koreksi/penyesuaian di dalam task yang sudah direncanakan, dicatat eksplisit di masing-masing entri): skenario sukses tambahan Task 5; smoke test kedua Task 12a-b; pilihan `json_object` alih-alih `json_schema` Task 12; kebutuhan `setup_tracing()` eksplisit Task 16; perbaikan path stale `genai_semconv.py` di Task 20.

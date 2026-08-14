@@ -1,0 +1,10 @@
+[project]
+name = "nirwana-chatbot"
+version = "0.1.0"
+description = "AI Chatbot RBAC backend - Nirwana Hospitality Group"
+requires-python = ">=3.13"
+dependencies = [
+    "opentelemetry-api>=1.44.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.44.0",
+    "opentelemetry-sdk>=1.44.0",
+]

@@ -175,7 +175,7 @@ Entri Checkpoint 2 di atas ditulis. File di-stage: `pyproject.toml`, `uv.lock`, 
 **Apa yang dilakukan**
 `TurnDependencyResult(is_dependent: bool, referenced_turn_index: int | None = None)`. `session_id` sengaja tidak diminta dari LLM (ditempel kode setelah hasil diterima, di layer pemanggil nanti) — mengurangi risiko halusinasi.
 
-**Commit:** *(lihat Task 12c)*
+**Commit:** `ec6c21a` — `feat(milestone-1.3): deteksi ketergantungan turn via llm, span chat`
 
 ---
 
@@ -191,7 +191,7 @@ Plan menyebut "response_format JSON schema (structured output)" — diputuskan p
 
 **Error/Kegagalan** Tidak ada.
 
-**Commit:** *(lihat Task 12c)*
+**Commit:** `ec6c21a` — `feat(milestone-1.3): deteksi ketergantungan turn via llm, span chat`
 
 ---
 
@@ -209,7 +209,7 @@ Slug model `deepseek/deepseek-v4-flash-0731` **valid** — API call sukses tanpa
 - Skenario 1: `TurnDependencyResult(is_dependent=False, referenced_turn_index=None)` — benar, pertanyaan berdiri sendiri.
 - Skenario 2: `TurnDependencyResult(is_dependent=True, referenced_turn_index=1)` — benar, rujukan ke turn 1 terdeteksi tepat.
 
-**Commit:** *(lihat Task 12c)*
+**Commit:** `ec6c21a` — `feat(milestone-1.3): deteksi ketergantungan turn via llm, span chat`
 
 ---
 
@@ -220,7 +220,7 @@ Slug model `deepseek/deepseek-v4-flash-0731` **valid** — API call sukses tanpa
 **Apa yang dilakukan**
 Entri Checkpoint 3 di atas ditulis. File di-stage: `src/schemas/turn_dependency.py`, `src/layers/context_resolution/turn_dependency.py`, `milestones/1.3-pemetaan-ketergantungan-turn/logs.md`.
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `ec6c21a` — `feat(milestone-1.3): deteksi ketergantungan turn via llm, span chat`
 
 ---
 

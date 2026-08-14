@@ -110,7 +110,7 @@ Entri Checkpoint 1 di atas ditulis. File di-stage dalam 2 commit terpisah (dokum
 **Temuan**
 `openai==3.0.0` ter-install — versi major 3.x, lebih baru dari yang mungkin diasumsikan generik. Dicek langsung: `chat.completions.create` (API lama, kompatibel OpenRouter) masih tersedia di versi ini, begitu juga `responses.create` (API baru OpenAI, belum tentu kompatibel proxy OpenRouter) — diputuskan tetap pakai `chat.completions.create` untuk Checkpoint 3, sesuai dokumentasi kompatibilitas resmi OpenRouter.
 
-**Commit:** *(lihat Task 10a)*
+**Commit:** `beee282` — `chore(milestone-1.3): fondasi provider llm openrouter`
 
 ---
 
@@ -121,7 +121,7 @@ Entri Checkpoint 1 di atas ditulis. File di-stage dalam 2 commit terpisah (dokum
 **Apa yang dilakukan**
 Template `OPENROUTER_API_KEY=` (nilai kosong) di root, komentar menjelaskan cara pakai dan larangan commit nilai asli. Dikonfirmasi `.env` sudah gitignored sejak baris 1 `.gitignore` awal repo (tidak perlu ditambah lagi).
 
-**Commit:** *(lihat Task 10a)*
+**Commit:** `beee282` — `chore(milestone-1.3): fondasi provider llm openrouter`
 
 ---
 
@@ -138,7 +138,7 @@ Saat verifikasi, ditemukan `OPENROUTER_API_KEY` **sudah ter-set di environment s
 **Hasil Verifikasi**
 `uv run python -c "from src.config.llm import get_openrouter_client; print(get_openrouter_client())"` berhasil, mengembalikan objek `OpenAI` tanpa error.
 
-**Commit:** *(lihat Task 10a)*
+**Commit:** `beee282` — `chore(milestone-1.3): fondasi provider llm openrouter`
 
 ---
 
@@ -149,7 +149,7 @@ Saat verifikasi, ditemukan `OPENROUTER_API_KEY` **sudah ter-set di environment s
 **Apa yang dilakukan**
 `src/layers/context_resolution/__init__.py` (kosong, subpackage baru untuk 4 milestone Context Resolution — M1.3 mengisi modul pertamanya di Checkpoint 3).
 
-**Commit:** *(lihat Task 10a)*
+**Commit:** `beee282` — `chore(milestone-1.3): fondasi provider llm openrouter`
 
 ---
 
@@ -160,7 +160,7 @@ Saat verifikasi, ditemukan `OPENROUTER_API_KEY` **sudah ter-set di environment s
 **Apa yang dilakukan**
 Entri Checkpoint 2 di atas ditulis. File di-stage: `pyproject.toml`, `uv.lock`, `.env.example`, `src/config/llm.py`, `src/layers/context_resolution/__init__.py`, `milestones/1.3-pemetaan-ketergantungan-turn/logs.md`.
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `beee282` — `chore(milestone-1.3): fondasi provider llm openrouter`
 
 ---
 

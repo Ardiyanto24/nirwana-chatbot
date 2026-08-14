@@ -164,6 +164,66 @@ Entri Checkpoint 2 di atas ditulis. File di-stage: `pyproject.toml`, `uv.lock`, 
 
 ---
 
+## Checkpoint 3 — Prompt, Pemanggilan LLM, Span `chat`
+
+**Mulai:** 2026-08-14 · **Selesai:** 2026-08-14
+
+### Task 11 — Tulis `src/schemas/turn_dependency.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`TurnDependencyResult(is_dependent: bool, referenced_turn_index: int | None = None)`. `session_id` sengaja tidak diminta dari LLM (ditempel kode setelah hasil diterima, di layer pemanggil nanti) — mengurangi risiko halusinasi.
+
+**Commit:** *(lihat Task 12c)*
+
+---
+
+### Task 12 — Tulis `src/layers/context_resolution/turn_dependency.py`
+
+**Kesesuaian dengan plan:** Sesuai plan, satu penyesuaian teknis kecil — lihat Temuan.
+
+**Apa yang dilakukan**
+`detect_turn_dependency(payload) -> TurnDependencyResult`: system+user prompt (histori dilabeli per `turn_index`, urut), panggilan `client.chat.completions.create` dengan `response_format={"type": "json_object"}`, span `chat` (atribut `gen_ai.operation.name`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`/`output_tokens` dari `response.usage`). Bounds-check deterministik: `referenced_turn_index` di luar himpunan `turn_index` histori yang tersedia → dipaksa `is_dependent=False`, dicatat sebagai span attribute `dependency.forced_independent_reason`. Kegagalan parse JSON total juga dipaksa `is_dependent=False` dengan alasan serupa.
+
+**Temuan**
+Plan menyebut "response_format JSON schema (structured output)" — diputuskan pakai `{"type": "json_object"}` (mode JSON umum) alih-alih `json_schema` strict mode, karena dukungan `json_schema` strict bervariasi antar model/provider di OpenRouter (dikonfirmasi lewat riset sebelum plan: "JSON Schema response formats on compatible models" — tidak semua model). `json_object` lebih universal, dikombinasikan dengan instruksi bentuk JSON persis di system prompt + validasi Pydantic defensif (try/except) di sisi kode — hasil akhirnya sama-sama robust tanpa bergantung pada fitur yang belum tentu didukung penuh model spesifik ini.
+
+**Error/Kegagalan** Tidak ada.
+
+**Commit:** *(lihat Task 12c)*
+
+---
+
+### Task 12a-b — Smoke Test Manual (2 skenario)
+
+**Kesesuaian dengan plan:** Sesuai plan (Task 12a), ditambah satu smoke test kedua di luar deskripsi literal Task 12a untuk keyakinan lebih (lihat Temuan).
+
+**Apa yang dilakukan**
+Skenario 1 (persis sesuai plan): `turn_index=1`, `history=[]`, pertanyaan berdiri sendiri — memanggil `detect_turn_dependency()` langsung (bukan mock), API call nyata ke OpenRouter. Skenario 2 (tambahan): `turn_index=2` dengan 1 entri histori, pertanyaan eksplisit merujuk ("Bandingkan dengan bulan lalu").
+
+**Temuan**
+Slug model `deepseek/deepseek-v4-flash-0731` **valid** — API call sukses tanpa error model-not-found, mengonfirmasi riset web sebelum plan sudah benar (tidak perlu koreksi, berbeda dari risiko yang diantisipasi di plan).
+
+**Hasil Verifikasi**
+- Skenario 1: `TurnDependencyResult(is_dependent=False, referenced_turn_index=None)` — benar, pertanyaan berdiri sendiri.
+- Skenario 2: `TurnDependencyResult(is_dependent=True, referenced_turn_index=1)` — benar, rujukan ke turn 1 terdeteksi tepat.
+
+**Commit:** *(lihat Task 12c)*
+
+---
+
+### Task 12c — Catat logs, commit checkpoint
+
+**Kesesuaian dengan plan:** Sesuai plan (penomoran Task 12a/12b di plan digabung jadi satu entri smoke test di atas; Task 12c menggantikan "Task 12b — catat logs" di plan untuk menghindari tabrakan penomoran).
+
+**Apa yang dilakukan**
+Entri Checkpoint 3 di atas ditulis. File di-stage: `src/schemas/turn_dependency.py`, `src/layers/context_resolution/turn_dependency.py`, `milestones/1.3-pemetaan-ketergantungan-turn/logs.md`.
+
+**Commit:** *(diisi setelah commit dieksekusi)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada — seluruh Task 1-10 berjalan sesuai plan, dengan satu perluasan kecil di Task 5 (skenario sukses tambahan) yang dicatat eksplisit di atas, bukan penyimpangan dari struktur checkpoint.
+Tidak ada — seluruh Task 1-12 berjalan sesuai plan, dengan perluasan kecil (skenario sukses tambahan Task 5; smoke test kedua Task 12a-b; pilihan `json_object` alih-alih `json_schema` di Task 12) yang dicatat eksplisit di masing-masing entri, bukan penyimpangan dari struktur checkpoint.

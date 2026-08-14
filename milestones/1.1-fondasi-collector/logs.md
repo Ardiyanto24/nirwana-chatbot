@@ -10,7 +10,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 2 | `8c2e73d` (+ `37e8229` fix hash) | `feat(milestone-1.1): konfigurasi otel collector, jaeger, prometheus via docker compose` |
 | 3 | `746301a` (+ `ac822fc` fix hash) | `feat(milestone-1.1): skrip verifikasi span/metric dummy dan kunci versi genai semconv` |
 | 4 | `7074bdd` (+ `37c4e3a` fix hash) | `test(milestone-1.1): verifikasi multi-emitter fondasi collector bersama` |
-| 5 | *(lihat entri Checkpoint 5 di bawah)* | `docs(milestone-1.1): decisions, logs, report` + `docs: tambah agent.md dan perbarui struktur repo & status project` |
+| 5 | `7fe1449` | `docs(milestone-1.1): decisions, logs, report` (commit kedua rencana plan untuk AGENT.md/struktur repo **tidak jadi ada** — lihat Task 18) |
 
 ---
 
@@ -343,6 +343,90 @@ Entri Checkpoint 4 di atas ditulis. File di-stage: `infra/observability/smoke_te
 
 ---
 
+## Checkpoint 5 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-14 16:35 · **Selesai:** 2026-08-14 17:10
+
+### Task 14 — Tulis `infra/observability/README.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditulis panduan untuk PIC lain: cara menjalankan stack, endpoint OTLP, ringkasan pipeline Collector, versi GenAI semconv terkunci, dan cara verifikasi instrumentasi (contoh `curl` langsung ke Jaeger/Prometheus API, bukan hanya "buka browser").
+
+**Temuan/Error** Tidak ada. **Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 15 — Tulis `decisions.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Enam entri keputusan ditulis (2 Jenis B/forced dari kontrak, 4 Jenis A/genuinely terbuka termasuk 3 yang ditemukan di tengah implementasi: tag image `latest`, fix `otlp_grpc`, tetap pakai paket semconv deprecated) — seluruhnya dengan "Opsi yang Dipertimbangkan tapi Ditolak" sesuai aturan wajib `CLAUDE.md`.
+
+**Temuan/Error** Tidak ada. **Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 16 — Lengkapi `logs.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tabel ringkasan commit per checkpoint ditambahkan di bagian atas dokumen ini (setelah paragraf pembuka). Entri Checkpoint 5 ini sendiri ditulis sebagai penuntas.
+
+**Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 17 — Tulis `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ketiga Kriteria Keberhasilan sumber dipetakan ke bukti nyata (Bagian 2), cara kerja+diagram Mermaid ditulis (Bagian 3), Catatan Serah Terima ke PIC 2/3/4/6 dikonfirmasi terpenuhi (Bagian 3, Integrasi), 3 perubahan-dari-plan didaftar (Bagian 4), 3 keterbatasan didaftar termasuk yang belum tercatat formal di `docs/keterbatasan-diterima.md` karena sifatnya spesifik-waktu (Bagian 5), 3 follow-up untuk PIC lain didaftar (Bagian 6).
+
+**Temuan/Error** Tidak ada. **Commit:** *(lihat commit gabungan di bawah)*
+
+---
+
+### Task 18 — Buat `AGENT.md`, perbarui Struktur Repository & Status Saat Ini
+
+**Kesesuaian dengan plan:** Menyimpang dari plan — lihat Temuan.
+
+**Apa yang dilakukan**
+`AGENT.md` dibuat sebagai salinan identik `CLAUDE.md` (lewat `cp`, dikonfirmasi `diff` kosong). Tabel "Struktur Repository" diperbarui (baris baru `infra/observability/`, baris `docs/keterbatasan-diterima.md` dan `milestones/<id>-<slug>/` diperbarui statusnya dari "Belum dibuat" jadi mencerminkan keadaan nyata). Section "Status Saat Ini" diperbarui mencerminkan Milestone 1.1 selesai. Kedua perubahan diterapkan ke `CLAUDE.md` lalu `AGENT.md` disinkronkan ulang (`cp` + `diff` kosong) supaya identik.
+
+**Temuan**
+Saat hendak men-stage `CLAUDE.md`/`AGENT.md`, ditemukan `git status` tidak menampilkan `CLAUDE.md` sebagai modified sama sekali — dicek lebih lanjut lewat `git ls-files | grep -i claude` dan `git check-ignore -v CLAUDE.md`: ternyata **hanya `docs/CLAUDE.md`** (versi lama, kini berstatus dihapus, pre-existing dari sebelum sesi ini) yang pernah ter-track git. Root `CLAUDE.md` sendiri tidak pernah di-commit, dan ada perubahan `.gitignore` pending (juga pre-existing dari sebelum sesi ini) yang menambahkan `CLAUDE.md` ke ignore list. Ini bertentangan dengan asumsi plan (bahwa `CLAUDE.md`/`AGENT.md` akan di-commit sebagai bagian checkpoint penutupan).
+
+**Diagnosis dan Perbaikan**
+Ditanyakan ke user lewat `AskUserQuestion` (bukan diasumsikan sepihak, sesuai prinsip proyek soal keputusan genuinely terbuka yang ditemukan di tengah implementasi). User memilih: **ikuti `.gitignore` yang sudah ada, jangan commit `CLAUDE.md`/`AGENT.md`** — konsisten dengan pending state yang sudah ada sebelum sesi ini, tidak menyentuh `.gitignore` lebih jauh. Karena itu, `CLAUDE.md` dan `AGENT.md` **tetap ada di working tree** (dibaca sistem tiap sesi seperti biasa) tapi **tidak di-`git add`/commit** sebagai bagian Milestone 1.1 ini.
+
+**Hasil Verifikasi**
+`git status --short` setelah keputusan ini menunjukkan `AGENT.md` sebagai `??` (untracked) dan `CLAUDE.md` tidak muncul sama sekali di status (karena gitignored) — sesuai keputusan user.
+
+**Commit:** Tidak ada commit untuk Task ini (disengaja, lihat Diagnosis dan Perbaikan) — berbeda dari rencana awal plan yang mengasumsikan ada commit `docs: tambah agent.md dan perbarui struktur repo & status project`.
+
+---
+
+### Task Gabungan (14-17) — Commit checkpoint
+
+**Apa yang dilakukan**
+File Task 14-17 di-stage bersama (`infra/observability/README.md`, `milestones/1.1-fondasi-collector/{decisions.md,report.md,logs.md}`) — `CLAUDE.md`/`AGENT.md` **tidak** ikut di-stage sesuai keputusan Task 18 di atas.
+
+**Hasil Verifikasi**
+`git status --short` dicek sebelum staging — hanya 4 file di atas yang ter-stage, `AGENT.md` tetap `??`, `.gitignore`/`docs/CLAUDE.md` (pre-existing, di luar cakupan) tidak ikut.
+
+**Commit:** `7fe1449` — `docs(milestone-1.1): decisions, logs, report`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada — penyimpangan Task 1 (flag `uv init`) dan Task 7 (rename exporter `otlp`→`otlp_grpc`) adalah koreksi di dalam task yang sudah direncanakan, bukan task/checkpoint baru di luar plan. Temuan Task 8 (perpindahan governance GenAI semconv) memperluas *kedalaman* Task 8/9 secara signifikan dan memicu inisialisasi `docs/keterbatasan-diterima.md` lebih awal dari rencana semula di plan (plan menyebutnya "diinisialisasi di Checkpoint 5" lewat tabel Risiko & Mitigasi, tapi nyatanya diinisialisasi di Checkpoint 3 begitu keterbatasannya ditemukan) — konsisten dengan prinsip "jangan tunda ke penutupan" yang sama seperti aturan `logs.md`+commit per checkpoint.
+Tidak ada checkpoint baru di luar plan. Tiga penyimpangan task (semuanya koreksi di dalam task yang sudah direncanakan, bukan task baru):
+1. Task 1 (flag `uv init`).
+2. Task 7 (rename exporter `otlp`→`otlp_grpc`).
+3. Temuan Task 8 (perpindahan governance GenAI semconv) memperluas *kedalaman* Task 8/9 secara signifikan dan memicu inisialisasi `docs/keterbatasan-diterima.md` lebih awal dari rencana semula di plan (plan menyebutnya "diinisialisasi di Checkpoint 5" lewat tabel Risiko & Mitigasi, tapi nyatanya diinisialisasi di Checkpoint 3 begitu keterbatasannya ditemukan) — konsisten dengan prinsip "jangan tunda ke penutupan" yang sama seperti aturan `logs.md`+commit per checkpoint.
+4. Task 18 (lihat entri lengkap di atas) — `CLAUDE.md`/`AGENT.md` tidak jadi di-commit di Milestone 1.1 ini, berbeda dari asumsi plan, karena ditemukan keduanya sudah dalam status sengaja tidak di-track git dari sebelum sesi ini dimulai.

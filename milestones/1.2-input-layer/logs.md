@@ -2,6 +2,16 @@
 
 Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dikelompokkan per checkpoint, lalu per task di dalamnya. Logs adalah catatan peristiwa, bukan ringkasan hasil akhir (itu tugas `report.md`).
 
+**Ringkasan commit per checkpoint** (detail lengkap di masing-masing entri Task di bawah):
+
+| Checkpoint | Commit | Pesan |
+|---|---|---|
+| 1 | `22d9d3a`, `fb3c255` (+ `1640a53`/`77056a0` fix hash) | `chore(...): skeleton src/...` + `docs: perbaiki referensi jumlah role...` |
+| 2 | `4e37e9f` (+ `dd782d5` fix hash) | `feat(milestone-1.2): skema payload dan logic validasi input layer` |
+| 3 | `8b75bd9` (+ `53e9656` fix hash) | `feat(milestone-1.2): endpoint FastAPI POST /v1/turns` |
+| 4 | `1fa42af` (+ `7257469` fix hash) | `test(milestone-1.2): test suite input layer dan verifikasi span nyata` |
+| 5 | *(lihat entri Checkpoint 5 di bawah)* | `docs(milestone-1.2): decisions, logs, report` |
+
 ---
 
 ## Checkpoint 1 — Fondasi: Dependency, Skeleton `src/`, Reposisi Modul Observability

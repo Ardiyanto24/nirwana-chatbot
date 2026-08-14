@@ -195,7 +195,7 @@ Lihat Temuan di atas.
 
 **Hasil Verifikasi:** *(digabung Task 10a — server dijalankan & diuji `curl` nyata)*
 
-**Commit:** *(lihat Task 10a)*
+**Commit:** `8b75bd9` — `feat(milestone-1.2): endpoint FastAPI POST /v1/turns`
 
 ---
 
@@ -214,7 +214,7 @@ Lihat Temuan di atas.
 
 Keempatnya sesuai ekspektasi persis. Server dihentikan setelah verifikasi (`kill` proses background).
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `8b75bd9` — `feat(milestone-1.2): endpoint FastAPI POST /v1/turns`
 
 ---
 

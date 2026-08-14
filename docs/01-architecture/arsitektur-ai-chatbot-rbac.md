@@ -91,8 +91,18 @@ Production DB → BigQuery (raw → mart_cleaned → mart_aggregated)
 
 ```
 Frontend → payload: session_id, turn_index, role_title, employee_id,
-           teks pertanyaan turn ini, (+ teks & jawaban turn sebelumnya
+           teks pertanyaan turn ini, (+ seluruh histori turn-turn
+           sebelumnya dalam sesi — turn 1 s.d. turn_index-1, masing-
+           masing dengan turn_index, teks pertanyaan & jawabannya —
            kalau turn_index > 1)
+           [Direvisi di Milestone 1.3: desain awal hanya membawa SATU
+           turn sebelumnya (N-1), tapi Kriteria Keberhasilan Milestone
+           1.3 menuntut deteksi rujukan ke turn yang jauh lebih lama
+           (bukan cuma N-1) — sementara Langkah 2 di titik ini belum
+           boleh membaca session memory, sehingga histori penuh di
+           payload adalah satu-satunya sumber data yang memungkinkan
+           deteksi itu. Lihat milestones/1.3-pemetaan-ketergantungan-
+           turn/decisions.md untuk kronologi lengkap.]
         │
         ▼
 ┌───────────────────────────────────────────────────────┐

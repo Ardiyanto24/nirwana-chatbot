@@ -2,6 +2,16 @@
 
 Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dikelompokkan per checkpoint, lalu per task di dalamnya, mengikuti struktur yang sama dengan Checkpoint & Task Breakdown di plan. Logs adalah catatan peristiwa, bukan ringkasan hasil akhir (itu tugas `report.md`).
 
+**Ringkasan commit per checkpoint** (detail lengkap di masing-masing entri Task di bawah):
+
+| Checkpoint | Commit | Pesan |
+|---|---|---|
+| 1 | `f048cb0` (+ `1c5f3f5` fix hash) | `chore(milestone-1.1): inisialisasi proyek python dengan uv` |
+| 2 | `8c2e73d` (+ `37e8229` fix hash) | `feat(milestone-1.1): konfigurasi otel collector, jaeger, prometheus via docker compose` |
+| 3 | `746301a` (+ `ac822fc` fix hash) | `feat(milestone-1.1): skrip verifikasi span/metric dummy dan kunci versi genai semconv` |
+| 4 | `7074bdd` (+ `37c4e3a` fix hash) | `test(milestone-1.1): verifikasi multi-emitter fondasi collector bersama` |
+| 5 | *(lihat entri Checkpoint 5 di bawah)* | `docs(milestone-1.1): decisions, logs, report` + `docs: tambah agent.md dan perbarui struktur repo & status project` |
+
 ---
 
 ## Checkpoint 1 — Inisialisasi Proyek Python (uv)

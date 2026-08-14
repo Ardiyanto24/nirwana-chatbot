@@ -21,7 +21,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 
 **Hasil Verifikasi:** Output `uv add` menunjukkan seluruh paket ter-install tanpa error, `uv.lock` ter-update.
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `22d9d3a` — `chore(milestone-1.2): skeleton src/, dependency fastapi/uvicorn/pyyaml, reposisi genai_semconv.py`
 
 ---
 
@@ -34,7 +34,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 
 **Error/Kegagalan** Tidak ada.
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `22d9d3a` — `chore(milestone-1.2): skeleton src/, dependency fastapi/uvicorn/pyyaml, reposisi genai_semconv.py`
 
 ---
 
@@ -53,7 +53,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 **Hasil Verifikasi**
 `uv run python -c "from src.observability.genai_semconv import GEN_AI_OPERATION_NAME; print(GEN_AI_OPERATION_NAME)"` → `gen_ai.operation.name`, tanpa error. Stack Docker Milestone 1.1 sempat berhenti (kemungkinan karena sesi/mesin idle sejak commit terakhir) — dinyalakan ulang (`docker compose up -d` di `infra/observability/`) sebelum verifikasi lanjutan. `uv run python infra/observability/smoke_test/send_dummy_span.py` (dengan import baru) berhasil, mencetak `trace_id=4ec57dbe2d8641285ad3d16eb7258bed` tanpa exception — membuktikan reposisi tidak merusak skrip lama.
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `22d9d3a` — `chore(milestone-1.2): skeleton src/, dependency fastapi/uvicorn/pyyaml, reposisi genai_semconv.py`
 
 ---
 
@@ -66,7 +66,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 
 **Error/Kegagalan** Tidak ada (belum diverifikasi end-to-end di checkpoint ini — akan dipakai nyata di Checkpoint 3 saat `src/main.py` ditulis).
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `22d9d3a` — `chore(milestone-1.2): skeleton src/, dependency fastapi/uvicorn/pyyaml, reposisi genai_semconv.py`
 
 ---
 
@@ -79,7 +79,7 @@ Dua kemunculan di `docs/02-implementation-plan/rancangan-rbac-authorization.md` 
 
 **Hasil Verifikasi:** `grep -n "19 role" docs/02-implementation-plan/rancangan-rbac-authorization.md` tidak lagi menemukan hasil.
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `fb3c255` — `docs: perbaiki referensi jumlah role dan inisialisasi keputusan-tertunda`
 
 ---
 
@@ -95,7 +95,7 @@ Dua kemunculan di `docs/02-implementation-plan/rancangan-rbac-authorization.md` 
 **Hasil Verifikasi**
 `uv run python -c "from src.config.roles import load_valid_roles; roles = load_valid_roles(); assert len(roles) == 20; print(sorted(roles))"` → tepat 20 role tercetak, cocok persis dengan tabel §2 sumber (dicek manual satu-satu).
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `22d9d3a` — `chore(milestone-1.2): skeleton src/, dependency fastapi/uvicorn/pyyaml, reposisi genai_semconv.py`
 
 ---
 
@@ -106,7 +106,7 @@ Dua kemunculan di `docs/02-implementation-plan/rancangan-rbac-authorization.md` 
 **Apa yang dilakukan**
 File pertama untuk backlog keputusan tertunda project-wide (belum ada sebelumnya di repo). Satu entri: keputusan database utuh untuk proyek (dipakai Session Memory, berpotensi juga migrasi daftar role) ditunda ke Milestone 1.5, dengan konteks kemunculan dan pemicu peninjauan eksplisit.
 
-**Commit:** *(lihat Task 7a)*
+**Commit:** `fb3c255` — `docs: perbaiki referensi jumlah role dan inisialisasi keputusan-tertunda`
 
 ---
 
@@ -119,6 +119,8 @@ Entri Checkpoint 1 di atas ditulis. File di-stage dalam 2 commit terpisah per ka
 
 **Hasil Verifikasi**
 `git status --short` dicek sebelum staging — dipastikan `.gitignore`/`docs/CLAUDE.md` (pre-existing, di luar cakupan) dan `AGENT.md` (sengaja tidak di-track) tidak ikut ter-stage.
+
+**Commit:** `1640a53` — `docs(milestone-1.2): catat logs checkpoint 1`
 
 **Commit:** *(diisi setelah commit dieksekusi)*
 

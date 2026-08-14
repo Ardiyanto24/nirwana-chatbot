@@ -299,7 +299,7 @@ Ditulis `infra/observability/smoke_test/send_dummy_span_secondary.py`: `service.
 
 **Hasil Verifikasi:** *(lihat Task 13)*
 
-**Commit:** *(lihat Task 13a)*
+**Commit:** `7074bdd` — `test(milestone-1.1): verifikasi multi-emitter fondasi collector bersama`
 
 ---
 
@@ -316,7 +316,7 @@ Dijalankan dua kali `uv run python ...` sebagai dua proses berurutan-tapi-indepe
 
 Dua `trace_id` berbeda, dua `service.name` berbeda, masing-masing dari proses Python terpisah yang dijalankan independen, keduanya diterima dan diteruskan dengan benar oleh **satu instance Collector yang sama** — membuktikan fondasi bersama benar-benar bisa dipakai tanpa instance terpisah per pengirim, sejauh yang bisa dibuktikan lewat simulasi (lihat catatan keterbatasan di `report.md`: ini simulasi, bukan bukti dari PIC 2/3/4 sungguhan, karena keduanya belum dimulai).
 
-**Commit:** *(lihat Task 13a)*
+**Commit:** `7074bdd` — `test(milestone-1.1): verifikasi multi-emitter fondasi collector bersama`
 
 ---
 
@@ -329,7 +329,7 @@ Entri Checkpoint 4 di atas ditulis. File di-stage: `infra/observability/smoke_te
 
 **Hasil Verifikasi** `git status --short` dicek sebelum staging.
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `7074bdd` — `test(milestone-1.1): verifikasi multi-emitter fondasi collector bersama`
 
 ---
 

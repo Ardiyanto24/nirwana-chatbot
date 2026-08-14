@@ -211,7 +211,7 @@ Tidak ada error teknis — ini murni temuan riset yang mengubah bentuk pekerjaan
 **Hasil Verifikasi**
 Web search + WebFetch ke: `github.com/open-telemetry/semantic-conventions-genai`, `opentelemetry.io/docs/specs/semconv/gen-ai/`, `github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/registry/attributes/gen-ai.md`, `github.com/open-telemetry/semantic-conventions-genai/releases`. Uji lokal `uv run python -W error::DeprecationWarning -c "..."` tidak melempar exception.
 
-**Commit:** *(lihat Task 11a)*
+**Commit:** `746301a` — `feat(milestone-1.1): skrip verifikasi span/metric dummy dan kunci versi genai semconv`
 
 ---
 
@@ -229,7 +229,7 @@ Modul stabil (`opentelemetry.semconv.attributes`, tanpa `_incubating`) tidak pun
 
 **Hasil Verifikasi:** *(digabung dengan Task 11)*
 
-**Commit:** *(lihat Task 11a)*
+**Commit:** `746301a` — `feat(milestone-1.1): skrip verifikasi span/metric dummy dan kunci versi genai semconv`
 
 ---
 
@@ -247,7 +247,7 @@ Karena `genai_semconv.py` bukan bagian dari paket ter-install (dan struktur `src
 
 **Hasil Verifikasi:** *(lihat Task 11)*
 
-**Commit:** *(lihat Task 11a)*
+**Commit:** `746301a` — `feat(milestone-1.1): skrip verifikasi span/metric dummy dan kunci versi genai semconv`
 
 ---
 
@@ -264,7 +264,7 @@ Karena `genai_semconv.py` bukan bagian dari paket ter-install (dan struktur `src
 
 Kedua bukti di atas membuktikan Kriteria Keberhasilan sumber #1 dan #3 (span dummy terlihat di Jaeger dengan atribut benar; versi GenAI semconv terkunci eksplisit di kode).
 
-**Commit:** *(lihat Task 11a)*
+**Commit:** `746301a` — `feat(milestone-1.1): skrip verifikasi span/metric dummy dan kunci versi genai semconv`
 
 ---
 
@@ -278,7 +278,7 @@ Entri Checkpoint 3 di atas ditulis (Task 8-11 digabung penulisannya karena salin
 **Hasil Verifikasi**
 `git status --short` dicek sebelum staging.
 
-**Commit:** *(diisi setelah commit dieksekusi)*
+**Commit:** `746301a` — `feat(milestone-1.1): skrip verifikasi span/metric dummy dan kunci versi genai semconv`
 
 ---
 

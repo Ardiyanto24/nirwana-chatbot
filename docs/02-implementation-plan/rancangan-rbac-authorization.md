@@ -6,7 +6,7 @@
 |---|---|
 | **Pemilik pekerjaan** | 1 orang (PIC RBAC & Authorization) |
 | **Dokumen induk** | `arsitektur-ai-chatbot-rbac.md` (Bagian 2, 5), `rancangan-observability-ai-chatbot.md` (Bagian 2) |
-| **Dokumen rujukan kebutuhan** | `rancangan-rbac-ai-chatbot.md` (19 role × 10 domain, `role_permissions`; **Bagian 1 dan 2 dokumen ini merinci sampai level KOLOM untuk pemisahan `guests_pii`/`guests_profile` — bukan cuma level domain**, wajib dibaca detail sebelum Milestone 2.1, bukan sekadar direferensikan), `katalog-data-chatbot.md` (definisi 67 view, termasuk penanda domain "bocor" lewat kolom turunan dan view kategori performa individu), `api-chatbot.md` (kontrak `chatbot_api`, Lapis 2 RBAC yang sudah selesai dan independen dari pekerjaan ini) |
+| **Dokumen rujukan kebutuhan** | `rancangan-rbac-ai-chatbot.md` (20 role × 10 domain, `role_permissions`; **Bagian 1 dan 2 dokumen ini merinci sampai level KOLOM untuk pemisahan `guests_pii`/`guests_profile` — bukan cuma level domain**, wajib dibaca detail sebelum Milestone 2.1, bukan sekadar direferensikan), `katalog-data-chatbot.md` (definisi 67 view, termasuk penanda domain "bocor" lewat kolom turunan dan view kategori performa individu), `api-chatbot.md` (kontrak `chatbot_api`, Lapis 2 RBAC yang sudah selesai dan independen dari pekerjaan ini) |
 | **Cakupan pekerjaan** | Domain Gate (identifikasi domain, verifikasi titik buta, pemeriksaan otorisasi, deteksi constraint cakupan-individu) dan Verification Gate (validasi bentuk request statis, kepatuhan sumber, penegakan constraint, verifikasi kelengkapan) |
 | **Tidak termasuk** | Penegakan RBAC row-level untuk `property_id` — itu sepenuhnya didelegasikan ke `chatbot_api` (Lapis 2), sudah selesai dan terverifikasi independen, tidak dibangun ulang di sini; pemilihan `view_name` dan penyusunan isi request (lihat `rancangan-retrieval-query.md`); pemanggilan `chatbot_api` yang sesungguhnya (lihat `rancangan-execution-interpretation.md`) |
 | **Status dokumen** | Rancangan implementasi kerja — bukan dokumen arsitektur |
@@ -56,7 +56,7 @@ Dua mekanisme berurutan (dua pemanggilan model AI): satu untuk identifikasi doma
 ## Milestone 2.2 — Membangun Pemeriksaan Otorisasi
 
 ### Lingkup
-Membangun mekanisme yang mencocokkan daftar domain hasil Milestone 2.1 terhadap `role_title` pemanggil, merujuk langsung ke tabel `role_permissions` (19 role × 10 domain) yang sudah final dan teraudit di dokumen rujukan kebutuhan. Ini murni pencocokan aturan berbasis lookup — bukan pemanggilan model AI — karena seluruh ruang kemungkinan hasilnya (role mana boleh domain apa) sudah terdaftar lengkap dan tertutup, tidak ada ambiguitas bahasa yang perlu ditafsirkan di titik ini.
+Membangun mekanisme yang mencocokkan daftar domain hasil Milestone 2.1 terhadap `role_title` pemanggil, merujuk langsung ke tabel `role_permissions` (20 role × 10 domain) yang sudah final dan teraudit di dokumen rujukan kebutuhan. Ini murni pencocokan aturan berbasis lookup — bukan pemanggilan model AI — karena seluruh ruang kemungkinan hasilnya (role mana boleh domain apa) sudah terdaftar lengkap dan tertutup, tidak ada ambiguitas bahasa yang perlu ditafsirkan di titik ini.
 
 ### Kenapa Ini Jadi Milestone Terpisah
 Berbeda sifat sepenuhnya dari Milestone 2.1 — satu soal pemahaman bahasa (LLM), satu soal pencocokan aturan tertutup (deterministik). Memisahkan keduanya menjaga agar bagian yang seharusnya cepat dan pasti tidak tercampur dengan bagian yang inherently melibatkan model AI.

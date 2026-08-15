@@ -1,9 +1,16 @@
 """Konfigurasi provider LLM (OpenRouter) untuk pemanggilan model AI proyek.
 
-Provider dan model dipilih user untuk Milestone 1.3 (pemanggilan LLM pertama
-proyek): OpenRouter, model DeepSeek V4 Flash 0731 - eksplisit untuk keperluan
-testing (lihat milestones/1.3-pemetaan-ketergantungan-turn/decisions.md).
-Konstanta diisolasi di sini supaya gampang diganti tanpa menyentuh logic layer.
+Provider dipilih user untuk Milestone 1.3 (pemanggilan LLM pertama proyek):
+OpenRouter. Model dipilih per-langkah (boleh beda kalau kebutuhannya beda,
+lihat CLAUDE.md "Status Saat Ini") - konstanta diisolasi di sini supaya
+gampang diganti tanpa menyentuh logic layer.
+
+- OPENROUTER_MODEL: DeepSeek V4 Flash 0731, dipakai turn_dependency.py (M1.3),
+  eksplisit untuk keperluan testing (lihat
+  milestones/1.3-pemetaan-ketergantungan-turn/decisions.md).
+- OPENROUTER_MODEL_REWRITE: Qwen3-32B, dipakai rewrite.py (M1.4) - dipilih
+  atas bukti benchmark Bahasa Indonesia langsung (SEA-HELM), lihat
+  milestones/1.4-rewrite-mandiri/decisions.md Keputusan 1.
 """
 
 import os
@@ -13,6 +20,7 @@ from openai import OpenAI
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_MODEL = "deepseek/deepseek-v4-flash-0731"
+OPENROUTER_MODEL_REWRITE = "qwen/qwen3-32b"
 
 load_dotenv()
 

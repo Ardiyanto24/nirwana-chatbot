@@ -20,6 +20,7 @@ from openai import APIError
 from pydantic import BaseModel, ValidationError
 
 from src.config.llm import OPENROUTER_MODEL_MATCHING, get_openrouter_client
+from src.layers.context_resolution.session_memory import store_session_memory
 from src.observability.genai_semconv import (
     GEN_AI_OPERATION_NAME,
     GEN_AI_REQUEST_MODEL,
@@ -191,3 +192,51 @@ def match_atomic_intents(
         span.set_attribute("intent.unmatched_count", len(results) - matched_count)
 
         return results
+
+
+def _sumber_arsip(paket_lama: SessionMemoryPackage) -> str:
+    """Tentukan nilai `sumber` baris arsip. Kalau paket lama ITU SENDIRI hasil
+    eksekusi asli ("eksekusi_baru"), sumber baris arsip dibangun jadi
+    "session_memory (turn N)" dengan N = turn_index paket lama (turn asal
+    fakta ini pertama kali dihitung). Kalau paket lama SUDAH berupa arsip
+    sebelumnya ("session_memory (turn N)", hasil match/arsip turn lain
+    sebelum ini - kasus rantai transitif), nilai itu dipertahankan UTUH TANPA
+    PERUBAHAN - N tetap merujuk turn PALING ASAL, bukan turn_index paket lama
+    (yang di kasus ini adalah turn arsip perantara, bukan turn asal
+    sebenarnya). Lihat decisions.md Keputusan 7."""
+    if paket_lama.sumber == "eksekusi_baru":
+        return f"session_memory (turn {paket_lama.turn_index})"
+    return paket_lama.sumber
+
+
+def archive_matched_packages(
+    matches: list[AtomicIntentMatch], session_id: str, turn_index: int
+) -> None:
+    """Untuk tiap match berstatus SELESAI, simpan ULANG paketnya sebagai
+    baris arsip baru di bawah `turn_index` (turn SAAT INI, bukan turn asal).
+    `atomic_intent_id`/`teks_kebutuhan`/`label_bentuk_jawaban`/`nilai_hasil`/
+    `catatan_interpretasi`/`status` disalin UTUH dari paket lama; `sumber`
+    dihitung lewat `_sumber_arsip()` supaya rantai "turn asal sebenarnya"
+    tidak pernah putus lintas berapa pun kali paket ini diarsip ulang -
+    forced by komentar desain src/db/models.py, lihat decisions.md
+    Keputusan 7. Tanpa span baru (Keputusan 11 - mirror store_session_
+    memory() sendiri yang juga tanpa span, preseden Keputusan 6 M1.5)."""
+    for match in matches:
+        if match.status != MatchStatus.SELESAI:
+            continue
+
+        paket_lama = match.paket
+        assert paket_lama is not None  # dijamin validator AtomicIntentMatch
+
+        arsip = SessionMemoryPackage(
+            atomic_intent_id=paket_lama.atomic_intent_id,
+            session_id=session_id,
+            turn_index=turn_index,
+            teks_kebutuhan=paket_lama.teks_kebutuhan,
+            label_bentuk_jawaban=paket_lama.label_bentuk_jawaban,
+            nilai_hasil=paket_lama.nilai_hasil,
+            catatan_interpretasi=paket_lama.catatan_interpretasi,
+            status=paket_lama.status,
+            sumber=_sumber_arsip(paket_lama),
+        )
+        store_session_memory(arsip)

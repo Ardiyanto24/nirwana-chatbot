@@ -128,15 +128,19 @@ Tidak ada state "kandidat sudah dipakai" yang perlu dilacak lintas iterasi loop 
 
 ---
 
-## Keputusan 7 (Forced): Arsip Ulang Memakai `atomic_intent_id` Original, Field Lain Disalin Utuh
+## Keputusan 7 (Forced): Arsip Ulang Memakai `atomic_intent_id` Original, `sumber` Dihitung Bukan Disalin Buta
 
-**Sumber Paksaan:** Komentar eksplisit di kode `src/db/models.py` (`SessionMemoryPackageRow`, ditulis M1.5): *"Primary key sintetik (auto-increment), BUKAN atomic_intent_id - Milestone 1.7 nanti akan menyimpan ULANG paket yang sama (atomic_intent_id sama) sebagai baris arsip baru di bawah turn yang berjalan... jadi atomic_intent_id BUKAN unik per baris."* Diperkuat teks Lingkup M1.7 (`rancangan-context-decomposition.md`): "menyimpan ulang **paketnya**" (paket yang SAMA, bukan paket baru).
+**Sumber Paksaan:** Komentar eksplisit di kode `src/db/models.py` (`SessionMemoryPackageRow`, ditulis M1.5): *"Primary key sintetik (auto-increment), BUKAN atomic_intent_id - Milestone 1.7 nanti akan menyimpan ULANG paket yang sama (atomic_intent_id sama) sebagai baris arsip baru di bawah turn yang berjalan... jadi atomic_intent_id BUKAN unik per baris."* Diperkuat teks Lingkup M1.7 (`rancangan-context-decomposition.md`): "menyimpan ulang **paketnya**" (paket yang SAMA, bukan paket baru) dengan "penanda sumber 'session_memory (turn N)' tetap dipertahankan apa adanya", DAN skenario uji KK3 sendiri ("turn ketujuh merujuk hasil turn kelima, DI MANA HASIL ITU SENDIRI SEBENARNYA BERASAL DARI TURN KETIGA") — kalimat ini hanya bisa tercermin di data kalau `sumber` baris arsip turn 5 benar-benar menunjuk "turn 3", bukan menyalin apa adanya nilai `sumber` paket turn 3 yang aslinya `"eksekusi_baru"` (bukan format "session_memory (turn N)").
 
-**Keputusan yang Diikuti:** `archive_matched_packages()` membangun `SessionMemoryPackage` baru dengan `atomic_intent_id`/`teks_kebutuhan`/`label_bentuk_jawaban`/`nilai_hasil`/`catatan_interpretasi`/`status` disalin UTUH dari `paket` (hasil match, ASAL dari turn yang dirujuk M1.3) — BUKAN dari `atomic_intent_id` baru yang di-generate M1.6 untuk turn saat ini. Hanya `turn_index` yang diganti jadi turn SAAT INI. `sumber` TETAP nilai original ("session_memory (turn N)", N = turn asal), TIDAK ditimpa.
+**Keputusan yang Diikuti:** `archive_matched_packages()` membangun `SessionMemoryPackage` baru dengan `atomic_intent_id`/`teks_kebutuhan`/`label_bentuk_jawaban`/`nilai_hasil`/`catatan_interpretasi`/`status` disalin UTUH dari `paket` (hasil match) — BUKAN dari `atomic_intent_id` baru yang di-generate M1.6 untuk turn saat ini. `turn_index` diganti jadi turn SAAT INI. `sumber` dihitung lewat `_sumber_arsip()`, BUKAN disalin buta:
+- Kalau `paket.sumber == "eksekusi_baru"` (paket lama ITU SENDIRI eksekusi asli) → `sumber` baris arsip BARU dibangun jadi `f"session_memory (turn {paket.turn_index})"` — N = turn_index paket lama, turn asal fakta ini pertama kali dihitung.
+- Kalau `paket.sumber` SUDAH `"session_memory (turn N)"` (paket lama itu sendiri arsip dari match sebelumnya — kasus rantai transitif) → nilai itu dipertahankan UTUH TANPA PERUBAHAN, N tetap merujuk turn PALING ASAL (bukan `turn_index` paket lama, yang di kasus ini adalah turn arsip perantara).
 
-**Catatan Ketergantungan:** Ini yang membuat KK3 (rantai turn 7→5→3) bisa lolos — rantai `sumber` tidak pernah putus meski paket diarsipkan ulang berkali-kali lintas turn.
+**Catatan Ketergantungan:** Ini yang membuat KK3 (rantai turn 7→5→3) bisa lolos — rantai `sumber` selalu menunjuk turn PALING ASAL (turn 3), tidak pernah "menempel" ke turn arsip perantara (turn 5), berapa pun kali paket ini diarsipkan ulang lintas turn.
 
-**Opsi yang Dipertimbangkan tapi Ditolak:** Tidak ada — forced eksplisit oleh komentar desain M1.5 yang sudah mengantisipasi kebutuhan ini sebelum M1.7 dimulai.
+**Opsi yang Dipertimbangkan tapi Ditolak:**
+- **Salin `sumber` verbatim tanpa syarat** — desain awal penulis, BARU ditemukan keliru saat menulis smoke test Checkpoint 5 (kalau disalin verbatim, baris arsip turn 5 akan bersumber `"eksekusi_baru"`, bukan `"session_memory (turn 3)"` — tidak konsisten dengan skenario uji KK3 sumber sendiri). Diperbaiki sebelum smoke test dijalankan.
+- **Selalu bangun ulang jadi `f"session_memory (turn {paket.turn_index})"` tanpa syarat** — akan salah untuk kasus rantai transitif (turn 7 mengarsip ulang paket turn 5 yang sudah berupa arsip): `paket.turn_index` di situ adalah 5 (turn arsip perantara), bukan 3 (turn asal sebenarnya) — akan memutus rantai `sumber` di titik tengah.
 
 ---
 

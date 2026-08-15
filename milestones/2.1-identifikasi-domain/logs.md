@@ -15,7 +15,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 7 | `91abe27` | `feat(milestone-2.1): orkestrator identifikasi domain gate` |
 | 8 | `73c5c78` | `docs(milestone-2.1): verifikasi span nyata` |
 | 9 | `d34c8b6` | `docs(evals): rancangan pengujian identifikasi domain` |
-| 10 | *(commit ini)* | `fix(config): timeout eksplisit client OpenRouter` + `test(evals): eksekusi skenario pengujian identifikasi domain + payload mentah` |
+| 10 | `2a63db2`, `df31d39` | `fix(config): timeout eksplisit client OpenRouter` + `test(evals): eksekusi skenario pengujian identifikasi domain + payload mentah` |
+| 11 | *(commit ini)* | `docs(evals): audit hasil pengujian identifikasi domain` |
 
 ---
 
@@ -252,6 +253,27 @@ Diagnosis parsial (bukan root cause definitif): `get_openrouter_client()` (`src/
 
 **Catatan kejujuran keterbatasan**: masalah hang ini TIDAK sepenuhnya diselesaikan dengan pemahaman akar masalah yang lengkap - dicatat eksplisit sebagai keterbatasan operasional (kandidat entri baru `docs/keterbatasan-diterima.md`, diputuskan di Checkpoint 11 setelah audit lengkap), bukan diklaim "sudah diperbaiki" tanpa dasar penuh.
 
-**Commit:** `2a63db2` (fix timeout) + *(pending — commit eksekusi eval setelah entri ini ditulis)*
+**Commit:** `2a63db2` (fix timeout) + `df31d39` (eksekusi eval)
+
+---
+
+## Checkpoint 11 — Audit Hasil Eval
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 11 — `evals/2.1-identifikasi-domain/audit.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Analisis seluruh 10 skenario dari payload mentah. Ditemukan 2 temuan nyata (bukan artefak alat ukur): (1) over-triggering verifikasi titik buta — S04 replikasi PERSIS temuan Checkpoint 8 (reservation ditambahkan lagi untuk pertanyaan nationality mix, 2x kejadian independen), pola serupa S08 (financial ditambahkan di kontrol multi-domain eksplisit); (2) domain tambahan employees_directory di S02/S09 dibedakan eksplisit dari pola over-triggering — justified langsung oleh teks (resolusi identitas karyawan), bukan kategori temuan yang sama. Ditambahkan 2 entri baru `docs/keterbatasan-diterima.md` (#6 over-triggering verifikasi titik buta, #7 hang panggilan LLM operasional).
+
+**Temuan**
+Tidak ada temuan tambahan di luar yang sudah dicatat di `audit.md` sendiri.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Commit:** *(pending — commit setelah entri ini ditulis)*
 
 ---

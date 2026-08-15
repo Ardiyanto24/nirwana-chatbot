@@ -31,3 +31,17 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 **Dampak + mitigasi:** Sesi yang sangat panjang (puluhan turn) akan mengirim payload besar tiap request, berpotensi memperlambat request atau menyentuh limit ukuran body HTTP/context window LLM di langkah-langkah yang memprosesnya (M1.3 dan seterusnya). Mitigasi saat ini: tidak ada mekanisme aktif — diterima sebagai keterbatasan awal desain.
 
 **Pemicu peninjauan ulang:** (a) begitu ada payload sungguhan dari frontend nyata dengan sesi yang cukup panjang untuk diukur, evaluasi apakah ukuran payload benar-benar jadi masalah; (b) kalau context window model LLM manapun yang dipakai di Context Resolution (M1.3/1.4/1.7) mulai terlampaui oleh histori panjang, revisi mendesak diperlukan (mis. ringkasan histori lama, atau batasi ke N-turn + fallback ke session memory untuk turn yang lebih tua — catatan: opsi terakhir ini butuh Session Memory, M1.5, sudah tersedia).
+
+---
+
+## 3. Recency Bias Model LLM pada Kasus Rujukan Ambigu-Multi-Kandidat
+
+**Ditemukan di:** Milestone 1.3 (`evals/1.3-.../audit.md` S07, 2026-08-15) dan terulang di Milestone 1.4 (`evals/1.4-.../audit.md` S07, 2026-08-15), lintas model (DeepSeek V4 Flash 0731 dan Qwen3-32B) dan lintas tugas (deteksi ketergantungan turn dan rewrite mandiri).
+
+**Konteks penemuan:** Skenario uji dengan dua atau lebih kandidat turn yang topiknya sama-sama defensible untuk dirujuk (mis. "bandingkan dengan bulan sebelumnya" saat ada dua turn occupancy di histori) — pada kedua milestone, model malah salah menangkap turn yang **paling akhir/terdekat secara posisi** meski topiknya sebenarnya tidak koheren untuk dirujuk (mis. topik rekrutmen staff yang cuma py satu data point, tidak punya "bulan sebelumnya" untuk dibandingkan), alih-alih turn yang topiknya benar-benar cocok. Pola berulang persis di dua model dan dua tugas berbeda mengindikasikan ini kemungkinan karakteristik umum LLM pada resolusi rujukan ambigu, bukan kelemahan satu model spesifik.
+
+**Kenapa diterima (bukan diperbaiki):** Baru 2 data point (satu per milestone) — belum cukup bukti untuk merancang mitigasi spesifik (mis. instruksi system prompt tambahan) tanpa risiko overfit ke skenario yang kebetulan sudah diuji. Kedua milestone (M1.3, M1.4) sudah eksplisit menandai model yang dipakai sebagai "untuk testing", bukan klaim final produksi — perbaikan prompt/model idealnya dilakukan sekali dengan model final, bukan berulang tiap kali model testing berganti.
+
+**Dampak + mitigasi:** Pada kasus genuinely ambigu (bukan mayoritas kasus — skenario non-ambigu lain di kedua eval lolos bersih), sistem berisiko meresolusi rujukan ke turn yang salah. Mitigasi saat ini: tidak ada perbaikan prompt aktif; kedua milestone sudah membuktikan mekanisme dasarnya bekerja benar di luar kasus ambigu ini (M1.3: 11/12, M1.4: 11/12 skenario benar).
+
+**Pemicu peninjauan ulang:** (a) sebelum Milestone 1.6 (Decomposition)/1.7 (Pencocokan) mulai — keduanya juga berurusan dengan resolusi/pencocokan rujukan, evaluasi apakah pola ini relevan untuk desain mekanismenya; (b) kalau model produksi final (menggantikan model testing M1.3/M1.4) menunjukkan pola sama di eval ulang, pertimbangkan penguatan system prompt eksplisit ("abaikan kedekatan posisi, fokus ke topik yang benar-benar cocok untuk dibandingkan") sebagai mitigasi lintas-langkah.

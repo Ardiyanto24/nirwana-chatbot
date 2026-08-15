@@ -20,6 +20,11 @@ gampang diganti tanpa menyentuh logic layer.
   verifikasi.py (M1.6, Langkah 6) - model berbeda dari Langkah 4-5 untuk
   keragaman peran verifier independen, lihat
   milestones/1.6-decomposition/decisions.md Keputusan 2.
+- OPENROUTER_MODEL_MATCHING: Qwen3-32B (reuse M1.4/M1.6), dipakai
+  matching.py (M1.7) - tanpa verifier independen kedua (Keputusan 2 M1.7),
+  argumen keragaman model M1.6 Langkah 6 tidak berlaku. Konstanta terisolasi
+  sendiri meski nilainya kebetulan sama, lihat
+  milestones/1.7-pencocokan-atomic-intent/decisions.md Keputusan 3 dan 9.
 """
 
 import os
@@ -32,6 +37,7 @@ OPENROUTER_MODEL = "deepseek/deepseek-v4-flash-0731"
 OPENROUTER_MODEL_REWRITE = "qwen/qwen3-32b"
 OPENROUTER_MODEL_DECOMPOSITION = "qwen/qwen3-32b"
 OPENROUTER_MODEL_DECOMPOSITION_VERIFIKASI = "deepseek/deepseek-v4-pro"
+OPENROUTER_MODEL_MATCHING = "qwen/qwen3-32b"
 
 load_dotenv()
 

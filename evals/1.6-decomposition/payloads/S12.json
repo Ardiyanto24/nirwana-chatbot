@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S12",
+  "deskripsi": "Stress test volume (4+ kebutuhan independen)",
+  "timestamp": "2026-08-15T07:59:11.679279+00:00",
+  "question": "Berapa occupancy rate, revenue F&B, jumlah komplain housekeeping, dan jumlah staff aktif bulan ini?",
+  "result": {
+    "klasifikasi": "majemuk_independen",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "eab723d7-f231-491d-8ebb-69ed992eb3bf",
+        "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "5d96f555-52eb-4d4b-adfa-6ec977bec7f8",
+        "teks_kebutuhan": "Berapa revenue F&B bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "fa0eb037-389b-4297-9587-aaac4588cca2",
+        "teks_kebutuhan": "Berapa jumlah komplain housekeeping bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "d37b78c1-8d7f-43b8-aecd-dabce2a99559",
+        "teks_kebutuhan": "Berapa jumlah staff aktif bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      }
+    ],
+    "verifikasi_valid": true,
+    "verifikasi_alasan": null,
+    "retry_count": 0
+  },
+  "match": true,
+  "toleransi": null
+}

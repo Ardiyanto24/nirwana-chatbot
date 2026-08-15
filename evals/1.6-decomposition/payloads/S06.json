@@ -1,0 +1,64 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Retry benar-benar terpicu",
+  "timestamp": "2026-08-15T07:36:54.089152+00:00",
+  "question": "Bandingkan rata-rata rating kepuasan tamu Front Office dengan rata-rata rating kepuasan tamu Housekeeping untuk periode yang sama, dengan tren 3 bulan terakhir masing-masing.",
+  "result": {
+    "klasifikasi": "majemuk_bergantung",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "19b36456-bc30-473d-b31d-5e7d4d0d919d",
+        "teks_kebutuhan": "Berapa rata-rata rating kepuasan tamu Front Office?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "7f895e78-dcd7-492a-8cac-a55eb02b2860",
+        "teks_kebutuhan": "Berapa rata-rata rating kepuasan tamu Housekeeping?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "850bb237-5231-4527-8251-f7675842d20f",
+        "teks_kebutuhan": "Apa tren 3 bulan terakhir rating kepuasan tamu Front Office?",
+        "label_bentuk_jawaban": "tren",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "bb706887-f222-48f6-b46d-f480b8eddd9a",
+        "teks_kebutuhan": "Apa tren 3 bulan terakhir rating kepuasan tamu Housekeeping?",
+        "label_bentuk_jawaban": "tren",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "d9c45490-9850-4775-a702-bee7b52e890b",
+        "teks_kebutuhan": "Bandingkan rata-rata rating FO vs HK",
+        "label_bentuk_jawaban": "perbandingan",
+        "relasi": "bergantung",
+        "bergantung_pada": [
+          "19b36456-bc30-473d-b31d-5e7d4d0d919d",
+          "7f895e78-dcd7-492a-8cac-a55eb02b2860"
+        ]
+      },
+      {
+        "atomic_intent_id": "eda89026-a0a2-4b7c-9b2d-26b3ebc2b4e0",
+        "teks_kebutuhan": "Bandingkan tren 3 bulan terakhir FO vs HK",
+        "label_bentuk_jawaban": "perbandingan",
+        "relasi": "bergantung",
+        "bergantung_pada": [
+          "850bb237-5231-4527-8251-f7675842d20f",
+          "bb706887-f222-48f6-b46d-f480b8eddd9a"
+        ]
+      }
+    ],
+    "verifikasi_valid": false,
+    "verifikasi_alasan": "Kebutuhan 6 'Bandingkan tren 3 bulan terakhir FO vs HK' tidak diminta oleh pertanyaan asli, sehingga pemecahan berlebihan dan tidak sesuai dengan pertanyaan.",
+    "retry_count": 2
+  },
+  "match": false,
+  "toleransi": "retry_count boleh 0 - dicatat sebagai temuan (retry terpicu atau tidak), bukan pass/fail"
+}

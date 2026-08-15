@@ -1,0 +1,40 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "Majemuk bergantung, 2 kebutuhan",
+  "timestamp": "2026-08-15T07:20:07.558094+00:00",
+  "question": "Bandingkan occupancy rate April 2026 dengan Maret 2026.",
+  "result": {
+    "klasifikasi": "majemuk_bergantung",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "ed888784-90e9-4995-baa7-79eefa4c1b78",
+        "teks_kebutuhan": "Berapa occupancy rate April 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "53d13a3b-70ad-490a-ac92-f5c136aac034",
+        "teks_kebutuhan": "Berapa occupancy rate Maret 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "f8159a45-d386-4c89-94ec-9d9886f0b8d3",
+        "teks_kebutuhan": "Bandingkan occupancy rate April 2026 dengan Maret 2026",
+        "label_bentuk_jawaban": "perbandingan",
+        "relasi": "bergantung",
+        "bergantung_pada": [
+          "ed888784-90e9-4995-baa7-79eefa4c1b78",
+          "53d13a3b-70ad-490a-ac92-f5c136aac034"
+        ]
+      }
+    ],
+    "verifikasi_valid": true,
+    "verifikasi_alasan": null,
+    "retry_count": 0
+  },
+  "match": true,
+  "toleransi": null
+}

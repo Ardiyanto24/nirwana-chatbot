@@ -1,0 +1,37 @@
+{
+  "scenario_id": "S11",
+  "deskripsi": "Verifikasi menangkap kesalahan subtil (label+relasi keliru, bukan hilang)",
+  "timestamp": "2026-08-15T08:08:06.080729+00:00",
+  "question": "Bandingkan revenue reservasi Maret 2026 dengan Februari 2026.",
+  "hasil_keliru_injected": {
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "248f5993-31d1-4898-8c50-d15d1ac0cfed",
+        "teks_kebutuhan": "Berapa revenue reservasi Maret 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "e9672a83-9215-4b52-8379-cb00448d99f0",
+        "teks_kebutuhan": "Berapa revenue reservasi Februari 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "7ba2ad9a-28f0-4790-b6b6-d301f020e4af",
+        "teks_kebutuhan": "Bandingkan revenue reservasi Maret 2026 dengan Februari 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      }
+    ]
+  },
+  "result": {
+    "valid": false,
+    "alasan": "Kebutuhan 3 (Bandingkan revenue reservasi Maret 2026 dengan Februari 2026) memerlukan hasil dari kebutuhan 1 dan 2, sehingga relasinya seharusnya 'bergantung', bukan 'independen'."
+  },
+  "match": true,
+  "toleransi": null
+}

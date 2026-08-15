@@ -1,0 +1,105 @@
+{
+  "scenario_id": "S13",
+  "deskripsi": "Retry exhausted (usaha replikasi terkontrol, eksploratif)",
+  "timestamp": "2026-08-15T08:02:43.196302+00:00",
+  "question": "Bandingkan performa keseluruhan Front Office, Housekeeping, dan F&B bulan ini berdasarkan rating kepuasan tamu, jumlah komplain, dan kontribusi revenue masing-masing, lalu urutkan dari yang terbaik.",
+  "result": {
+    "klasifikasi": "majemuk_bergantung",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "f74935bd-e054-48a8-b323-742d720c1c49",
+        "teks_kebutuhan": "Apa rating kepuasan tamu Front Office bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "414ae8e6-f429-48cc-87ed-6b0a8530e747",
+        "teks_kebutuhan": "Berapa jumlah komplain Front Office bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "662417b6-3b81-4395-b297-371c952e4d2f",
+        "teks_kebutuhan": "Berapa kontribusi revenue Front Office bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "f7c6f14c-1c5c-4a3a-938b-fa31186c8a75",
+        "teks_kebutuhan": "Apa rating kepuasan tamu Housekeeping bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "36b4cd8d-5d69-449e-9494-0a366ab4490f",
+        "teks_kebutuhan": "Berapa jumlah komplain Housekeeping bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "3b6e5771-0643-42bd-a154-8fadb0fc970a",
+        "teks_kebutuhan": "Berapa kontribusi revenue Housekeeping bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "50e7f81f-0444-4665-a00a-0c7ae7507381",
+        "teks_kebutuhan": "Apa rating kepuasan tamu F&B bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "f072923d-b7d5-45c8-a327-4a5c59cdb979",
+        "teks_kebutuhan": "Berapa jumlah komplain F&B bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "14c5842c-cf51-41e5-8256-21c7a666194e",
+        "teks_kebutuhan": "Berapa kontribusi revenue F&B bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "8558ebd2-ef6d-4985-841f-0cdf4c701b56",
+        "teks_kebutuhan": "Bandingkan performa Front Office, Housekeeping, dan F&B berdasarkan rating kepuasan tamu, jumlah komplain, dan kontribusi revenue",
+        "label_bentuk_jawaban": "perbandingan",
+        "relasi": "bergantung",
+        "bergantung_pada": [
+          "f74935bd-e054-48a8-b323-742d720c1c49",
+          "414ae8e6-f429-48cc-87ed-6b0a8530e747",
+          "662417b6-3b81-4395-b297-371c952e4d2f",
+          "f7c6f14c-1c5c-4a3a-938b-fa31186c8a75",
+          "36b4cd8d-5d69-449e-9494-0a366ab4490f",
+          "3b6e5771-0643-42bd-a154-8fadb0fc970a",
+          "50e7f81f-0444-4665-a00a-0c7ae7507381",
+          "f072923d-b7d5-45c8-a327-4a5c59cdb979",
+          "14c5842c-cf51-41e5-8256-21c7a666194e"
+        ]
+      },
+      {
+        "atomic_intent_id": "a68743d9-d782-4dc1-a42a-3819681b37b9",
+        "teks_kebutuhan": "Urutkan Front Office, Housekeeping, dan F&B dari yang terbaik berdasarkan perbandingan performa",
+        "label_bentuk_jawaban": "peringkat",
+        "relasi": "bergantung",
+        "bergantung_pada": [
+          "8558ebd2-ef6d-4985-841f-0cdf4c701b56"
+        ]
+      }
+    ],
+    "verifikasi_valid": true,
+    "verifikasi_alasan": null,
+    "retry_count": 0
+  },
+  "match": null,
+  "toleransi": "eksploratif - dicatat apa adanya (retry_count, exhausted atau tidak), boleh gagal direplikasi"
+}

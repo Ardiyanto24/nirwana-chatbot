@@ -1,0 +1,23 @@
+{
+  "scenario_id": "S09",
+  "deskripsi": "Label komposisi",
+  "timestamp": "2026-08-15T07:57:14.779358+00:00",
+  "question": "Bagaimana breakdown revenue bulan ini per departemen?",
+  "result": {
+    "klasifikasi": "tunggal",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "1b034dbe-d53d-4e10-9487-dd41eb5143cc",
+        "teks_kebutuhan": "Bagaimana breakdown revenue bulan ini per departemen?",
+        "label_bentuk_jawaban": "komposisi",
+        "relasi": "independen",
+        "bergantung_pada": null
+      }
+    ],
+    "verifikasi_valid": true,
+    "verifikasi_alasan": null,
+    "retry_count": 0
+  },
+  "match": true,
+  "toleransi": null
+}

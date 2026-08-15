@@ -1,0 +1,23 @@
+{
+  "scenario_id": "S08",
+  "deskripsi": "Label peringkat",
+  "timestamp": "2026-08-15T07:56:06.633030+00:00",
+  "question": "Siapa 5 staff dengan rating kepuasan tamu tertinggi bulan ini?",
+  "result": {
+    "klasifikasi": "tunggal",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "6ca845b1-777b-424e-96d1-5ecdbdd7186d",
+        "teks_kebutuhan": "Siapa 5 staff dengan rating kepuasan tamu tertinggi bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      }
+    ],
+    "verifikasi_valid": false,
+    "verifikasi_alasan": "Label bentuk jawaban tidak sesuai: pertanyaan meminta 5 staff (daftar nama), bukan nilai tunggal. Seharusnya label 'daftar' atau 'list'.",
+    "retry_count": 2
+  },
+  "match": false,
+  "toleransi": null
+}

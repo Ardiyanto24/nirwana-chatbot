@@ -1,0 +1,23 @@
+{
+  "scenario_id": "S14",
+  "deskripsi": "Klasifikasi anti false-positive (kalimat panjang tapi sebenarnya tunggal)",
+  "timestamp": "2026-08-15T08:07:48.759162+00:00",
+  "question": "Berapa total revenue seluruh departemen (F&B, Housekeeping, Spa, dan Reservasi) yang digabung jadi satu angka bulan ini?",
+  "result": {
+    "klasifikasi": "majemuk_independen",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "00c8b7c0-e711-4bd0-83d7-fe29af75038c",
+        "teks_kebutuhan": "Berapa total revenue seluruh departemen (F&B, Housekeeping, Spa, dan Reservasi) yang digabung jadi satu angka bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      }
+    ],
+    "verifikasi_valid": false,
+    "verifikasi_alasan": "Kebutuhan tidak atomik karena total revenue gabungan memerlukan data revenue per departemen terlebih dahulu. Seharusnya dipecah menjadi kebutuhan atomik untuk revenue F&B, Housekeeping, Spa, Reservasi, dan kebutuhan penjumlahan yang bergantung pada keempatnya.",
+    "retry_count": 2
+  },
+  "match": false,
+  "toleransi": "label_bentuk_jawaban spesifik (nilai_tunggal vs komposisi) tidak dipatok, tapi klasifikasi WAJIB tunggal"
+}

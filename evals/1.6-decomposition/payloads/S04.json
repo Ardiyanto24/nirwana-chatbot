@@ -1,0 +1,48 @@
+{
+  "scenario_id": "S04",
+  "deskripsi": "Majemuk bergantung berlapis (3 kebutuhan dasar + 1 gabungan)",
+  "timestamp": "2026-08-15T07:21:46.774778+00:00",
+  "question": "Bandingkan revenue reservasi Januari, Februari, dan Maret 2026.",
+  "result": {
+    "klasifikasi": "majemuk_bergantung",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "232b3d65-7327-4896-aab5-d7416be9fb38",
+        "teks_kebutuhan": "Berapa revenue reservasi Januari 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "accba40e-d7e0-417b-bd9b-1d3afa0f5270",
+        "teks_kebutuhan": "Berapa revenue reservasi Februari 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "10da47a0-e9a0-40b3-b58f-e537a175217b",
+        "teks_kebutuhan": "Berapa revenue reservasi Maret 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "048da483-0e05-4d01-b147-7ff822c70b99",
+        "teks_kebutuhan": "Bandingkan revenue reservasi Januari, Februari, dan Maret 2026",
+        "label_bentuk_jawaban": "perbandingan",
+        "relasi": "bergantung",
+        "bergantung_pada": [
+          "232b3d65-7327-4896-aab5-d7416be9fb38",
+          "accba40e-d7e0-417b-bd9b-1d3afa0f5270",
+          "10da47a0-e9a0-40b3-b58f-e537a175217b"
+        ]
+      }
+    ],
+    "verifikasi_valid": true,
+    "verifikasi_alasan": null,
+    "retry_count": 0
+  },
+  "match": true,
+  "toleransi": null
+}

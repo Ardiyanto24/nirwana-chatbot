@@ -1,0 +1,30 @@
+{
+  "scenario_id": "S02",
+  "deskripsi": "Majemuk independen murni (anti false-positive relasi)",
+  "timestamp": "2026-08-15T07:18:36.294250+00:00",
+  "question": "Berapa revenue F&B bulan ini dan berapa jumlah staff Housekeeping yang aktif?",
+  "result": {
+    "klasifikasi": "majemuk_independen",
+    "atomic_intents": [
+      {
+        "atomic_intent_id": "905c3689-df75-4354-9610-b0bdfd8519b8",
+        "teks_kebutuhan": "Berapa revenue F&B bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      {
+        "atomic_intent_id": "fcb80c16-5dd2-4c68-b8ae-e7c89d994707",
+        "teks_kebutuhan": "Berapa jumlah staff Housekeeping yang aktif?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      }
+    ],
+    "verifikasi_valid": true,
+    "verifikasi_alasan": null,
+    "retry_count": 0
+  },
+  "match": true,
+  "toleransi": null
+}

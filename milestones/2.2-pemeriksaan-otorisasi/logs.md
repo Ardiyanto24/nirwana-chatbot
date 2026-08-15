@@ -10,7 +10,9 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 2 | `12e2c67` | `feat(milestone-2.2): skema data otorisasi` |
 | 3 | `5321e33`, `a164fe2` | `feat(milestone-2.2): tabel role_permissions` + `chore(milestone-2.2): seed matriks role_permissions` |
 | 4 | `b1cf77a`, `b654f03` | `feat(milestone-2.2): mekanisme lookup otorisasi` + `test(milestone-2.2): verifikasi exhaustive 200 kombinasi role-domain` |
-| 5 | *(commit ini)* | `feat(milestone-2.2): orkestrator periksa otorisasi + observability` + `test(milestone-2.2): skenario multi-domain campuran` |
+| 5 | `d74729a`, `df8913a` | `feat(milestone-2.2): orkestrator periksa otorisasi + observability` + `test(milestone-2.2): skenario multi-domain campuran` |
+| 6 | `20e2a75` | `docs(milestone-2.2): verifikasi span nyata` |
+| 7 | *(commit ini)* | `docs(milestone-2.2): logs, report` |
 
 ---
 
@@ -182,6 +184,34 @@ Tidak ada.
 **Hasil Verifikasi**
 Trace (`trace_id=450aefbb4416a3bd7ae9d47eafb237b0`) — span `invoke_agent` (session.id, turn.index) → `domain_gate.periksa_otorisasi_semua` (`intent.count=1`, `authorization.ditolak_count=1`) → 2× span `authorization.check`: (1) `rbac.domain=reservation`, `rbac.decision=allow`, tanpa `error.type`; (2) `rbac.domain=financial`, `rbac.decision=deny`, `error.type=ditolak_otorisasi`. Seluruh atribut terkonfirmasi ADA dan benar sesuai kontrak Bagian 2 `rancangan-observability-ai-chatbot.md` baris 38.
 
-**Commit:** *(pending — commit setelah entri ini ditulis, hanya logs.md - tidak ada file kode baru sesuai plan)*
+**Commit:** `20e2a75`
+
+---
+
+## Checkpoint 7 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 11 — `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Kedua Kriteria Keberhasilan sumber dikonfirmasi ulang terpenuhi dengan bukti nyata (218 unit test + span Jaeger). Satu penyimpangan minor dari plan (urutan penulisan kode internal Checkpoint 4, bukan hasil) didokumentasikan eksplisit. Entri baru `docs/keterbatasan-diterima.md` #8 (risiko drift salinan matriks) ditambahkan, dengan analisis eksplisit dampak keamanan RENDAH karena Lapis 2 (`chatbot_api`) tetap independen menegakkan otorisasi sesungguhnya (defense in depth).
+
+### Task 12 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+"Status Saat Ini" diperbarui: ringkasan M2.2 ditambahkan, urutan pengerjaan diarahkan ke M2.3, jumlah keterbatasan diterima diperbarui 7→8. Tabel Struktur Repository diperbarui (`src/config/role_permissions.py`, `milestones/2.2-.../seed_role_permissions.py` disebutkan pada baris yang relevan).
+
+**Temuan**
+Tidak ada temuan baru.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Commit:** *(pending — commit setelah entri ini ditulis)*
 
 ---

@@ -44,4 +44,32 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 
 **Dampak + mitigasi:** Pada kasus genuinely ambigu (bukan mayoritas kasus — skenario non-ambigu lain di kedua eval lolos bersih), sistem berisiko meresolusi rujukan ke turn yang salah. Mitigasi saat ini: tidak ada perbaikan prompt aktif; kedua milestone sudah membuktikan mekanisme dasarnya bekerja benar di luar kasus ambigu ini (M1.3: 11/12, M1.4: 11/12 skenario benar).
 
+---
+
+## 4. Taksonomi `label_bentuk_jawaban` (5 Nilai) Punya Gap untuk Kebutuhan Deskriptif/Multi-Nilai
+
+**Ditemukan di:** Milestone 1.6 (`evals/1.6-decomposition/audit.md` S05, S07, 2026-08-15).
+
+**Konteks penemuan:** `label_bentuk_jawaban` (`nilai_tunggal`/`tren`/`perbandingan`/`peringkat`/`komposisi`) dikunci `arsitektur-ai-chatbot-rbac.md` §7 sebagai kontrak bersama PIC 1 (Decomposition, Session Memory) dan PIC 4 (Execution/Interpretation). Eval Milestone 1.6 menemukan dua kelas kebutuhan yang tidak punya label cocok di antara kelima nilai itu: (a) pertanyaan deskriptif/naratif terbuka (skenario uji: "Bagaimana performa Front Office bulan ini?" — Verifikasi independen menolak `nilai_tunggal` karena "mengharapkan deskripsi atau ringkasan, bukan nilai tunggal", tidak ada label lain yang cocok); (b) kebutuhan pendukung multi-nilai yang jadi input untuk `tren` (skenario uji: "occupancy rate tiap bulan dalam 6 bulan terakhir" sebagai prasyarat sebelum menghitung trennya — Verifikasi eksplisit menyarankan label "nilai_berganda" atau "deret_waktu", KEDUANYA tidak ada dalam taksonomi 5-nilai). Di kedua kasus, Pemecahan (Qwen3-32B) memilih `nilai_tunggal` sebagai pendekatan terdekat yang tersedia, tapi Verifikasi independen (DeepSeek V4 Pro) konsisten menolaknya di seluruh 3 percobaan retry — bukan kesalahan Pemecahan, murni keterbatasan pilihan yang tersedia.
+
+**Kenapa diterima (bukan diperbaiki):** `label_bentuk_jawaban` adalah kontrak bersama PIC 1/PIC 4 yang dikunci dokumen arsitektur — Milestone 1.6 (atau agen mana pun yang mengerjakannya sendirian) tidak berwenang mengubahnya sepihak (`CLAUDE.md` Prinsip Arsitektur eksplisit: "perubahan wajib disepakati kedua pemilik"). Baru 2 data point dari 1 milestone — perlu dikonfirmasi dulu apakah PIC 4 (konsumen berikutnya, mulai Milestone 4.5) juga menemukan gap yang sama sebelum mengajukan perubahan taksonomi bersama.
+
+**Dampak + mitigasi:** Kebutuhan atomik dengan bentuk jawaban deskriptif/multi-nilai akan terus gagal verifikasi (retry exhausted) di Milestone 1.6 sampai taksonomi direvisi atau `_SYSTEM_PROMPT` Pemecahan/Verifikasi disesuaikan untuk menerima `nilai_tunggal` sebagai pendekatan yang cukup pada kasus ini. Mitigasi saat ini: tidak ada — `verifikasi_valid=False` yang exhausted tetap diteruskan apa adanya ke pemanggil (Milestone 1.7), jujur soal keterbatasannya, tidak disamarkan.
+
+**Pemicu peninjauan ulang:** (a) sebelum Milestone 4.5 (Execution/Interpretation, konsumen `label_bentuk_jawaban` berikutnya untuk penyusunan visualisasi) mulai — cek apakah gap yang sama relevan untuk kebutuhan visualisasi; (b) kalau eval milestone LLM berikutnya yang juga memakai `label_bentuk_jawaban` menemukan pola gap serupa, ajukan revisi taksonomi ke pemilik kontrak (bukan diputuskan sepihak satu milestone).
+
+---
+
+## 5. Mekanisme Retry-dengan-Feedback (Milestone 1.6) Belum Menunjukkan Bukti Perbaikan
+
+**Ditemukan di:** Milestone 1.6 (`evals/1.6-decomposition/audit.md`, 2026-08-15).
+
+**Konteks penemuan:** `decompose_question()` retry Pemecahan+Verifikasi maksimal 3 kali kalau Verifikasi menilai hasil invalid, dengan alasan invalid disisipkan sebagai feedback ke percobaan berikutnya (Keputusan 3, keputusan eksplisit user). Eval 14 skenario menemukan: di SELURUH 13 skenario yang menjalankan `decompose_question()`, `retry_count` cuma bernilai 0 (langsung benar di percobaan pertama, 8 skenario) atau tepat 2/exhausted (gagal di ketiga percobaan tanpa perbaikan sama sekali, 5 skenario) — TIDAK ADA satu pun kasus yang membaik di percobaan kedua meski feedback alasan invalid disisipkan eksplisit ke prompt retry.
+
+**Kenapa diterima (bukan diperbaiki):** Baru 5 data point kegagalan dari 1 milestone — belum cukup untuk menyimpulkan mekanisme retry genuinely tidak berguna (bisa jadi kebetulan kelima kasus itu representasi masalah yang butuh perubahan struktural, bukan sekadar penjelasan ulang, sehingga feedback prosa tidak cukup). Kebijakan retry adalah keputusan eksplisit user yang baru saja diputuskan (`milestones/1.6-decomposition/decisions.md` Keputusan 3) — mengubahnya sekarang berdasar 5 data point berisiko premature.
+
+**Dampak + mitigasi:** Setiap kasus yang gagal verifikasi di percobaan pertama kemungkinan besar akan tetap gagal setelah 2 retry (menghabiskan token 3x lipat tanpa manfaat nyata yang teramati) — biaya tanpa hasil untuk kelas kegagalan tertentu. Mitigasi saat ini: tidak ada perubahan kebijakan; hasil akhir tetap jujur (tidak disamarkan) apa pun hasilnya.
+
+**Pemicu peninjauan ulang:** Kalau milestone LLM berikutnya yang juga punya mekanisme retry serupa menemukan pola sama (retry tidak pernah membaik di tengah), pertimbangkan bersama user: (a) redesign feedback jadi lebih terstruktur/actionable (bukan cuma prosa alasan), atau (b) evaluasi ulang apakah retry benar-benar menambah nilai dibanding flag-and-pass-through (opsi yang sebelumnya ditolak user di M1.6).
+
 **Pemicu peninjauan ulang:** (a) sebelum Milestone 1.6 (Decomposition)/1.7 (Pencocokan) mulai — keduanya juga berurusan dengan resolusi/pencocokan rujukan, evaluasi apakah pola ini relevan untuk desain mekanismenya; (b) kalau model produksi final (menggantikan model testing M1.3/M1.4) menunjukkan pola sama di eval ulang, pertimbangkan penguatan system prompt eksplisit ("abaikan kedekatan posisi, fokus ke topik yang benar-benar cocok untuk dibandingkan") sebagai mitigasi lintas-langkah.

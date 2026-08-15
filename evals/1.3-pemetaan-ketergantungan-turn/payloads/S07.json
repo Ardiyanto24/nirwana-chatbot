@@ -1,0 +1,30 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "Ambigu: topik sama muncul di 2 turn berbeda",
+  "timestamp": "2026-08-15T01:49:39.730998+00:00",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "request": {
+    "system": "Anda adalah komponen sistem yang mendeteksi apakah pertanyaan terakhir dalam sebuah sesi percakapan bergantung pada (merujuk balik ke) pertanyaan/jawaban di turn LAIN dalam sesi yang sama. Anda TIDAK menjawab pertanyaannya - tugas Anda murni mendeteksi ketergantungan linguistik.\n\nBalas HANYA dengan JSON persis berbentuk:\n{\"is_dependent\": true atau false, \"referenced_turn_index\": <nomor turn yang dirujuk, atau null kalau tidak bergantung>}\n\nAturan:\n- is_dependent=true HANYA kalau pertanyaan terakhir jelas merujuk balik ke sesuatu yang dibahas di turn lain (mis. \"bandingkan dengan itu\", \"seperti yang tadi\", rujukan eksplisit ke topik/angka yang muncul di turn sebelumnya).\n- Kalau pertanyaan terakhir bisa dipahami penuh berdiri sendiri tanpa histori, is_dependent=false dan referenced_turn_index=null.\n- referenced_turn_index HARUS salah satu nomor turn yang benar-benar ada di histori yang diberikan - JANGAN mengarang nomor turn yang tidak ada di histori.\n- Rujukan bisa ke turn manapun dalam histori, tidak harus turn tepat sebelumnya.",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa occupancy rate bulan April 2026? | A: Occupancy April 2026 mencapai 78%.\n- Turn 2: Q: Bagaimana dengan revenue F&B bulan yang sama? | A: Revenue F&B April 2026 Rp 450 juta.\n- Turn 3: Q: Berapa occupancy rate bulan Mei 2026? | A: Occupancy Mei 2026 mencapai 82%.\n- Turn 4: Q: Berapa banyak staff baru direkrut bulan ini? | A: 5 staff baru direkrut bulan ini.\n\nPertanyaan turn terakhir (turn 5): Bandingkan dengan bulan sebelumnya."
+  },
+  "raw_response_content": "{\"is_dependent\": true, \"referenced_turn_index\": 4}",
+  "usage": {
+    "input_tokens": 504,
+    "output_tokens": 194
+  },
+  "parsed_result": {
+    "is_dependent": true,
+    "referenced_turn_index": 4
+  },
+  "forced_independent_reason": null,
+  "expected": {
+    "is_dependent": true,
+    "referenced_turn_index": 3
+  },
+  "acceptable_referenced_turn_index": [
+    1,
+    3
+  ],
+  "toleransi": "ambigu - 1 ATAU 3 diterima, is_dependent=True wajib",
+  "match": false
+}

@@ -1,0 +1,29 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Dependent eksplisit, turn jauh + distractor",
+  "timestamp": "2026-08-15T01:49:32.521958+00:00",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "request": {
+    "system": "Anda adalah komponen sistem yang mendeteksi apakah pertanyaan terakhir dalam sebuah sesi percakapan bergantung pada (merujuk balik ke) pertanyaan/jawaban di turn LAIN dalam sesi yang sama. Anda TIDAK menjawab pertanyaannya - tugas Anda murni mendeteksi ketergantungan linguistik.\n\nBalas HANYA dengan JSON persis berbentuk:\n{\"is_dependent\": true atau false, \"referenced_turn_index\": <nomor turn yang dirujuk, atau null kalau tidak bergantung>}\n\nAturan:\n- is_dependent=true HANYA kalau pertanyaan terakhir jelas merujuk balik ke sesuatu yang dibahas di turn lain (mis. \"bandingkan dengan itu\", \"seperti yang tadi\", rujukan eksplisit ke topik/angka yang muncul di turn sebelumnya).\n- Kalau pertanyaan terakhir bisa dipahami penuh berdiri sendiri tanpa histori, is_dependent=false dan referenced_turn_index=null.\n- referenced_turn_index HARUS salah satu nomor turn yang benar-benar ada di histori yang diberikan - JANGAN mengarang nomor turn yang tidak ada di histori.\n- Rujukan bisa ke turn manapun dalam histori, tidak harus turn tepat sebelumnya.",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa jumlah komplain yang diterima Front Office bulan ini? | A: Front Office menerima 7 komplain bulan ini, mayoritas soal waktu check-in.\n- Turn 2: Q: Bagaimana kondisi kolam renang? | A: Kolam renang beroperasi normal, terakhir dibersihkan kemarin.\n- Turn 3: Q: Berapa revenue spa minggu ini? | A: Revenue spa minggu ini Rp 32 juta.\n- Turn 4: Q: Siapa yang bertugas shift malam hari ini? | A: Shift malam dipegang oleh 3 staff Front Office dan 2 staff Housekeeping.\n- Turn 5: Q: Berapa kamar yang sedang dalam maintenance? | A: 5 kamar sedang dalam maintenance, estimasi selesai 3 hari.\n\nPertanyaan turn terakhir (turn 6): Balik lagi ke soal komplain Front Office tadi, sudah ada tindak lanjutnya?"
+  },
+  "raw_response_content": "{\"is_dependent\": true, \"referenced_turn_index\": 1}",
+  "usage": {
+    "input_tokens": 576,
+    "output_tokens": 81
+  },
+  "parsed_result": {
+    "is_dependent": true,
+    "referenced_turn_index": 1
+  },
+  "forced_independent_reason": null,
+  "expected": {
+    "is_dependent": true,
+    "referenced_turn_index": 1
+  },
+  "acceptable_referenced_turn_index": [
+    1
+  ],
+  "toleransi": null,
+  "match": true
+}

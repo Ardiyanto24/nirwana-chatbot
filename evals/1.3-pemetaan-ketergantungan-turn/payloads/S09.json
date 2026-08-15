@@ -1,0 +1,27 @@
+{
+  "scenario_id": "S09",
+  "deskripsi": "Sesi panjang (10 turn histori), tanpa dependency",
+  "timestamp": "2026-08-15T01:49:57.456366+00:00",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "request": {
+    "system": "Anda adalah komponen sistem yang mendeteksi apakah pertanyaan terakhir dalam sebuah sesi percakapan bergantung pada (merujuk balik ke) pertanyaan/jawaban di turn LAIN dalam sesi yang sama. Anda TIDAK menjawab pertanyaannya - tugas Anda murni mendeteksi ketergantungan linguistik.\n\nBalas HANYA dengan JSON persis berbentuk:\n{\"is_dependent\": true atau false, \"referenced_turn_index\": <nomor turn yang dirujuk, atau null kalau tidak bergantung>}\n\nAturan:\n- is_dependent=true HANYA kalau pertanyaan terakhir jelas merujuk balik ke sesuatu yang dibahas di turn lain (mis. \"bandingkan dengan itu\", \"seperti yang tadi\", rujukan eksplisit ke topik/angka yang muncul di turn sebelumnya).\n- Kalau pertanyaan terakhir bisa dipahami penuh berdiri sendiri tanpa histori, is_dependent=false dan referenced_turn_index=null.\n- referenced_turn_index HARUS salah satu nomor turn yang benar-benar ada di histori yang diberikan - JANGAN mengarang nomor turn yang tidak ada di histori.\n- Rujukan bisa ke turn manapun dalam histori, tidak harus turn tepat sebelumnya.",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa occupancy rate April 2026? | A: 78%.\n- Turn 2: Q: Revenue F&B bulan ini? | A: Rp 450 juta.\n- Turn 3: Q: Komplain housekeeping bulan ini? | A: 12 komplain.\n- Turn 4: Q: Kondisi maintenance AC lantai 3? | A: 3 unit diperbaiki.\n- Turn 5: Q: Booking spa minggu ini? | A: 45 booking.\n- Turn 6: Q: Staff terbaik bulan ini? | A: Sari dari Front Office.\n- Turn 7: Q: Staff HR aktif? | A: 8 staff.\n- Turn 8: Q: Revenue financial Q1 2026? | A: Rp 2.1 miliar.\n- Turn 9: Q: Ada komplain tamu VIP? | A: 1 komplain, sudah ditangani GM.\n- Turn 10: Q: Revenue reservasi bulan lalu? | A: Rp 800 juta.\n\nPertanyaan turn terakhir (turn 11): Berapa jumlah kamar tipe suite yang tersedia?"
+  },
+  "raw_response_content": "{\"is_dependent\": false, \"referenced_turn_index\": null}",
+  "usage": {
+    "input_tokens": 633,
+    "output_tokens": 104
+  },
+  "parsed_result": {
+    "is_dependent": false,
+    "referenced_turn_index": null
+  },
+  "forced_independent_reason": null,
+  "expected": {
+    "is_dependent": false,
+    "referenced_turn_index": null
+  },
+  "acceptable_referenced_turn_index": null,
+  "toleransi": null,
+  "match": true
+}

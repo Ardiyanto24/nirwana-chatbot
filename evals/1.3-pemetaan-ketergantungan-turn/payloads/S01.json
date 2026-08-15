@@ -1,0 +1,27 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "Baseline: independen tanpa histori sama sekali",
+  "timestamp": "2026-08-15T01:49:23.126073+00:00",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "request": {
+    "system": "Anda adalah komponen sistem yang mendeteksi apakah pertanyaan terakhir dalam sebuah sesi percakapan bergantung pada (merujuk balik ke) pertanyaan/jawaban di turn LAIN dalam sesi yang sama. Anda TIDAK menjawab pertanyaannya - tugas Anda murni mendeteksi ketergantungan linguistik.\n\nBalas HANYA dengan JSON persis berbentuk:\n{\"is_dependent\": true atau false, \"referenced_turn_index\": <nomor turn yang dirujuk, atau null kalau tidak bergantung>}\n\nAturan:\n- is_dependent=true HANYA kalau pertanyaan terakhir jelas merujuk balik ke sesuatu yang dibahas di turn lain (mis. \"bandingkan dengan itu\", \"seperti yang tadi\", rujukan eksplisit ke topik/angka yang muncul di turn sebelumnya).\n- Kalau pertanyaan terakhir bisa dipahami penuh berdiri sendiri tanpa histori, is_dependent=false dan referenced_turn_index=null.\n- referenced_turn_index HARUS salah satu nomor turn yang benar-benar ada di histori yang diberikan - JANGAN mengarang nomor turn yang tidak ada di histori.\n- Rujukan bisa ke turn manapun dalam histori, tidak harus turn tepat sebelumnya.",
+    "user": "Tidak ada histori - ini turn pertama dalam sesi.\n\nPertanyaan turn terakhir (turn 1): Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "raw_response_content": "{\"is_dependent\": false, \"referenced_turn_index\": null}",
+  "usage": {
+    "input_tokens": 409,
+    "output_tokens": 125
+  },
+  "parsed_result": {
+    "is_dependent": false,
+    "referenced_turn_index": null
+  },
+  "forced_independent_reason": null,
+  "expected": {
+    "is_dependent": false,
+    "referenced_turn_index": null
+  },
+  "acceptable_referenced_turn_index": null,
+  "toleransi": null,
+  "match": true
+}

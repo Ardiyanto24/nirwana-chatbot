@@ -1,0 +1,29 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Dependent implisit, turn jauh + distractor",
+  "timestamp": "2026-08-15T01:49:36.047020+00:00",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "request": {
+    "system": "Anda adalah komponen sistem yang mendeteksi apakah pertanyaan terakhir dalam sebuah sesi percakapan bergantung pada (merujuk balik ke) pertanyaan/jawaban di turn LAIN dalam sesi yang sama. Anda TIDAK menjawab pertanyaannya - tugas Anda murni mendeteksi ketergantungan linguistik.\n\nBalas HANYA dengan JSON persis berbentuk:\n{\"is_dependent\": true atau false, \"referenced_turn_index\": <nomor turn yang dirujuk, atau null kalau tidak bergantung>}\n\nAturan:\n- is_dependent=true HANYA kalau pertanyaan terakhir jelas merujuk balik ke sesuatu yang dibahas di turn lain (mis. \"bandingkan dengan itu\", \"seperti yang tadi\", rujukan eksplisit ke topik/angka yang muncul di turn sebelumnya).\n- Kalau pertanyaan terakhir bisa dipahami penuh berdiri sendiri tanpa histori, is_dependent=false dan referenced_turn_index=null.\n- referenced_turn_index HARUS salah satu nomor turn yang benar-benar ada di histori yang diberikan - JANGAN mengarang nomor turn yang tidak ada di histori.\n- Rujukan bisa ke turn manapun dalam histori, tidak harus turn tepat sebelumnya.",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa booking spa yang masuk minggu ini? | A: Spa menerima 45 booking minggu ini.\n- Turn 2: Q: Bagaimana revenue F&B bulan ini? | A: Revenue F&B bulan ini Rp 450 juta.\n- Turn 3: Q: Berapa unit AC yang rusak di lantai 3? | A: 3 unit AC di lantai 3 sedang dalam perbaikan.\n\nPertanyaan turn terakhir (turn 4): Naik atau turun dibanding minggu sebelumnya?"
+  },
+  "raw_response_content": "{\"is_dependent\": true, \"referenced_turn_index\": 1}",
+  "usage": {
+    "input_tokens": 503,
+    "output_tokens": 198
+  },
+  "parsed_result": {
+    "is_dependent": true,
+    "referenced_turn_index": 1
+  },
+  "forced_independent_reason": null,
+  "expected": {
+    "is_dependent": true,
+    "referenced_turn_index": 1
+  },
+  "acceptable_referenced_turn_index": [
+    1
+  ],
+  "toleransi": "implisit jauh - False atau referenced_turn_index lain diterima sebagai keterbatasan model, tapi tetap harus dalam himpunan histori valid {1,2,3} (bounds-check tidak boleh gagal)",
+  "match": true
+}

@@ -158,6 +158,30 @@ Tidak ada.
 **Hasil Verifikasi**
 `uv run pytest tests/layers/domain_gate/ -v -k "not kelompok"` — **218/218 PASSED** (200 exhaustive + 1 sanity + 2 test baru Checkpoint 5 dari `test_otorisasi.py`, + 15 test pure-function M2.1 tanpa regresi) dalam 6.23s. **KK2 terbukti langsung**: hasil `domain_decisions` benar per domain (`reservation`=diizinkan, `financial`=ditolak) dalam satu `AtomicIntentAuthorization`, bukan keputusan tunggal yang menyamaratakan.
 
-**Commit:** *(pending — commit setelah entri ini ditulis)*
+**Commit:** `d74729a`, `df8913a`
+
+---
+
+## Checkpoint 6 — Verifikasi Span Nyata
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 10 — Verifikasi span di Jaeger
+
+**Kesesuaian dengan plan:** Sesuai plan. Docker/Jaeger dari Milestone 2.1 masih berjalan (tidak perlu restart).
+
+**Apa yang dilakukan**
+Skrip verifikasi one-off (scratchpad, TIDAK di-commit) memanggil `setup_tracing()` + `periksa_otorisasi_semua()` nyata untuk skenario campuran (Front Office Staff: `reservation`+`financial`, hanya `reservation` yang diizinkan), dibungkus span `invoke_agent`. Trace di-query langsung lewat Jaeger API.
+
+**Temuan**
+Span pertama (`authorization.check` untuk `reservation`) memakan ~1.09 detik — jauh lebih lama dari span kedua (`financial`, 452 mikrodetik). Ini bukan anomali, melainkan `load_role_permissions()` (`@lru_cache`) melakukan query DB nyata pertama kali dipanggil (cold start), setelahnya seluruh pemanggilan berikutnya murni in-memory — perilaku sesuai desain.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Trace (`trace_id=450aefbb4416a3bd7ae9d47eafb237b0`) — span `invoke_agent` (session.id, turn.index) → `domain_gate.periksa_otorisasi_semua` (`intent.count=1`, `authorization.ditolak_count=1`) → 2× span `authorization.check`: (1) `rbac.domain=reservation`, `rbac.decision=allow`, tanpa `error.type`; (2) `rbac.domain=financial`, `rbac.decision=deny`, `error.type=ditolak_otorisasi`. Seluruh atribut terkonfirmasi ADA dan benar sesuai kontrak Bagian 2 `rancangan-observability-ai-chatbot.md` baris 38.
+
+**Commit:** *(pending — commit setelah entri ini ditulis, hanya logs.md - tidak ada file kode baru sesuai plan)*
 
 ---

@@ -1,0 +1,29 @@
+{
+  "scenario_id": "S12",
+  "deskripsi": "Jebakan overlap leksikal: entitas mirip kata, domain berbeda (PALING KRITIS)",
+  "timestamp": "2026-08-15T04:42:43.660821+00:00",
+  "model": "qwen/qwen3-32b",
+  "request": {
+    "system": "Anda adalah komponen sistem yang menulis ulang pertanyaan terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda murni menulis ulang secara linguistik.\n\nAturan:\n- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \"dibanding itu\", \"yang tadi\", \"sama seperti sebelumnya\", \"itu sudah...\") menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, berdasarkan histori percakapan yang diberikan.\n- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.\n- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.\n- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan tambahan, tanpa tanda kutip, tanpa awalan seperti \"Kalimat mandiri:\".",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa revenue F&B bulan April 2026? | A: Revenue F&B April 2026 sebesar Rp 450 juta.\n\nPertanyaan turn terakhir (turn 2): Berapa revenue reservasi bulan April 2026 tahun ini?"
+  },
+  "rewritten_question": "Berapa revenue reservasi bulan April 2026?",
+  "usage": {
+    "input_tokens": 384,
+    "output_tokens": 297
+  },
+  "required_phrases": [
+    "reservasi",
+    "april",
+    "2026"
+  ],
+  "forbidden_phrases": [
+    "f&b",
+    "450"
+  ],
+  "required_missing": [],
+  "forbidden_present": [],
+  "residual_reference_phrases": [],
+  "toleransi": null,
+  "match": true
+}

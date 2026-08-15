@@ -1,0 +1,28 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Elipsis implisit, turn jauh + distractor",
+  "timestamp": "2026-08-15T04:39:21.191366+00:00",
+  "model": "qwen/qwen3-32b",
+  "request": {
+    "system": "Anda adalah komponen sistem yang menulis ulang pertanyaan terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda murni menulis ulang secara linguistik.\n\nAturan:\n- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \"dibanding itu\", \"yang tadi\", \"sama seperti sebelumnya\", \"itu sudah...\") menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, berdasarkan histori percakapan yang diberikan.\n- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.\n- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.\n- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan tambahan, tanpa tanda kutip, tanpa awalan seperti \"Kalimat mandiri:\".",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa booking spa yang masuk minggu ini? | A: Spa menerima 45 booking minggu ini.\n- Turn 2: Q: Bagaimana revenue F&B bulan ini? | A: Revenue F&B bulan ini Rp 450 juta.\n- Turn 3: Q: Berapa unit AC yang rusak di lantai 3? | A: 3 unit AC di lantai 3 sedang dalam perbaikan.\n\nPertanyaan turn terakhir (turn 4): Naik atau turun dibanding minggu sebelumnya?"
+  },
+  "rewritten_question": "Booking spa minggu ini naik atau turun dibanding jumlah booking spa minggu sebelumnya?",
+  "usage": {
+    "input_tokens": 444,
+    "output_tokens": 304
+  },
+  "required_phrases": [
+    "spa"
+  ],
+  "forbidden_phrases": [
+    "f&b",
+    "ac",
+    "lantai 3"
+  ],
+  "required_missing": [],
+  "forbidden_present": [],
+  "residual_reference_phrases": [],
+  "toleransi": "implisit jauh - tidak menyebut kata 'booking' eksplisit diterima, selama tetap 'spa' dan tidak salah tangkap (forbidden tetap wajib)",
+  "match": true
+}

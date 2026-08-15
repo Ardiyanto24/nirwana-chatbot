@@ -1,0 +1,27 @@
+{
+  "scenario_id": "S11",
+  "deskripsi": "Kalimat majemuk campuran elipsis + non-elipsis",
+  "timestamp": "2026-08-15T04:42:23.385159+00:00",
+  "model": "qwen/qwen3-32b",
+  "request": {
+    "system": "Anda adalah komponen sistem yang menulis ulang pertanyaan terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda murni menulis ulang secara linguistik.\n\nAturan:\n- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \"dibanding itu\", \"yang tadi\", \"sama seperti sebelumnya\", \"itu sudah...\") menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, berdasarkan histori percakapan yang diberikan.\n- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.\n- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.\n- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan tambahan, tanpa tanda kutip, tanpa awalan seperti \"Kalimat mandiri:\".",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa revenue reservasi bulan Maret 2026? | A: Revenue reservasi Maret 2026 sebesar Rp 800 juta.\n\nPertanyaan turn terakhir (turn 2): Bandingkan dengan bulan sebelumnya, dan juga berapa jumlah staff Front Office yang aktif sekarang?"
+  },
+  "rewritten_question": "Bandingkan revenue reservasi Maret 2026 dengan Februari 2026, dan berapa jumlah staff Front Office yang aktif saat ini?",
+  "usage": {
+    "input_tokens": 395,
+    "output_tokens": 636
+  },
+  "required_phrases": [
+    "februari",
+    "2026",
+    "front office",
+    "staff"
+  ],
+  "forbidden_phrases": [],
+  "required_missing": [],
+  "forbidden_present": [],
+  "residual_reference_phrases": [],
+  "toleransi": null,
+  "match": true
+}

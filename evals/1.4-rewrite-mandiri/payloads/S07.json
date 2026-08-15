@@ -1,0 +1,31 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "Ambigu: topik sama muncul di 2 turn berbeda",
+  "timestamp": "2026-08-15T04:40:22.090808+00:00",
+  "model": "qwen/qwen3-32b",
+  "request": {
+    "system": "Anda adalah komponen sistem yang menulis ulang pertanyaan terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda murni menulis ulang secara linguistik.\n\nAturan:\n- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \"dibanding itu\", \"yang tadi\", \"sama seperti sebelumnya\", \"itu sudah...\") menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, berdasarkan histori percakapan yang diberikan.\n- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.\n- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.\n- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan tambahan, tanpa tanda kutip, tanpa awalan seperti \"Kalimat mandiri:\".",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa occupancy rate bulan April 2026? | A: Occupancy April 2026 mencapai 78%.\n- Turn 2: Q: Bagaimana dengan revenue F&B bulan yang sama? | A: Revenue F&B April 2026 Rp 450 juta.\n- Turn 3: Q: Berapa occupancy rate bulan Mei 2026? | A: Occupancy Mei 2026 mencapai 82%.\n- Turn 4: Q: Berapa banyak staff baru direkrut bulan ini? | A: 5 staff baru direkrut bulan ini.\n\nPertanyaan turn terakhir (turn 5): Bandingkan dengan bulan sebelumnya."
+  },
+  "rewritten_question": "Berapa banyak staff baru direkrut di bulan Mei 2026 dibandingkan dengan bulan April 2026?",
+  "usage": {
+    "input_tokens": 484,
+    "output_tokens": 537
+  },
+  "required_phrases": [
+    "occupancy"
+  ],
+  "forbidden_phrases": [
+    "staff baru",
+    "f&b"
+  ],
+  "required_missing": [
+    "occupancy"
+  ],
+  "forbidden_present": [
+    "staff baru"
+  ],
+  "residual_reference_phrases": [],
+  "toleransi": "ambigu - bulan spesifik yang dirujuk (April/Maret/lainnya) tidak dipaksa satu jawaban, dicatat di audit",
+  "match": false
+}

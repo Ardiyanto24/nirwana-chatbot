@@ -1,0 +1,28 @@
+{
+  "scenario_id": "S02",
+  "deskripsi": "Sudah mandiri meski histori ada tapi tidak relevan",
+  "timestamp": "2026-08-15T04:37:47.329396+00:00",
+  "model": "qwen/qwen3-32b",
+  "request": {
+    "system": "Anda adalah komponen sistem yang menulis ulang pertanyaan terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda murni menulis ulang secara linguistik.\n\nAturan:\n- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \"dibanding itu\", \"yang tadi\", \"sama seperti sebelumnya\", \"itu sudah...\") menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, berdasarkan histori percakapan yang diberikan.\n- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.\n- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.\n- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan tambahan, tanpa tanda kutip, tanpa awalan seperti \"Kalimat mandiri:\".",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa jumlah staff aktif di departemen HR? | A: Departemen HR memiliki 8 staff aktif.\n\nPertanyaan turn terakhir (turn 2): Apa saja fasilitas yang tersedia di area spa?"
+  },
+  "rewritten_question": "Apa saja fasilitas yang tersedia di area spa?",
+  "usage": {
+    "input_tokens": 368,
+    "output_tokens": 266
+  },
+  "required_phrases": [
+    "spa",
+    "fasilitas"
+  ],
+  "forbidden_phrases": [
+    "hr",
+    "8 staff"
+  ],
+  "required_missing": [],
+  "forbidden_present": [],
+  "residual_reference_phrases": [],
+  "toleransi": null,
+  "match": true
+}

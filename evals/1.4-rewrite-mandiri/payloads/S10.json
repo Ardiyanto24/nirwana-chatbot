@@ -1,0 +1,25 @@
+{
+  "scenario_id": "S10",
+  "deskripsi": "Rujukan pronoun/deiksis ('itu') tanpa penyebutan ulang topik",
+  "timestamp": "2026-08-15T04:42:05.648888+00:00",
+  "model": "qwen/qwen3-32b",
+  "request": {
+    "system": "Anda adalah komponen sistem yang menulis ulang pertanyaan terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda murni menulis ulang secara linguistik.\n\nAturan:\n- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \"dibanding itu\", \"yang tadi\", \"sama seperti sebelumnya\", \"itu sudah...\") menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, berdasarkan histori percakapan yang diberikan.\n- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.\n- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.\n- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan tambahan, tanpa tanda kutip, tanpa awalan seperti \"Kalimat mandiri:\".",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa banyak komplain yang diterima housekeeping bulan ini? | A: Housekeeping menerima 12 komplain bulan ini, mayoritas soal kebersihan kamar.\n\nPertanyaan turn terakhir (turn 2): Itu sudah ditindaklanjuti belum?"
+  },
+  "rewritten_question": "Apakah 12 komplain yang diterima housekeeping bulan ini sudah ditindaklanjuti?",
+  "usage": {
+    "input_tokens": 383,
+    "output_tokens": 316
+  },
+  "required_phrases": [
+    "housekeeping",
+    "komplain"
+  ],
+  "forbidden_phrases": [],
+  "required_missing": [],
+  "forbidden_present": [],
+  "residual_reference_phrases": [],
+  "toleransi": null,
+  "match": true
+}

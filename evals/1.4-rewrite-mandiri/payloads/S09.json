@@ -1,0 +1,33 @@
+{
+  "scenario_id": "S09",
+  "deskripsi": "Sesi panjang (10 turn histori), tanpa elipsis apa pun",
+  "timestamp": "2026-08-15T04:41:38.533167+00:00",
+  "model": "qwen/qwen3-32b",
+  "request": {
+    "system": "Anda adalah komponen sistem yang menulis ulang pertanyaan terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda murni menulis ulang secara linguistik.\n\nAturan:\n- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \"dibanding itu\", \"yang tadi\", \"sama seperti sebelumnya\", \"itu sudah...\") menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, berdasarkan histori percakapan yang diberikan.\n- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.\n- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.\n- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan tambahan, tanpa tanda kutip, tanpa awalan seperti \"Kalimat mandiri:\".",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa occupancy rate April 2026? | A: 78%.\n- Turn 2: Q: Revenue F&B bulan ini? | A: Rp 450 juta.\n- Turn 3: Q: Komplain housekeeping bulan ini? | A: 12 komplain.\n- Turn 4: Q: Kondisi maintenance AC lantai 3? | A: 3 unit diperbaiki.\n- Turn 5: Q: Booking spa minggu ini? | A: 45 booking.\n- Turn 6: Q: Staff terbaik bulan ini? | A: Sari dari Front Office.\n- Turn 7: Q: Staff HR aktif? | A: 8 staff.\n- Turn 8: Q: Revenue financial Q1 2026? | A: Rp 2.1 miliar.\n- Turn 9: Q: Ada komplain tamu VIP? | A: 1 komplain, sudah ditangani GM.\n- Turn 10: Q: Revenue reservasi bulan lalu? | A: Rp 800 juta.\n\nPertanyaan turn terakhir (turn 11): Berapa jumlah kamar tipe suite yang tersedia?"
+  },
+  "rewritten_question": "Berapa jumlah kamar tipe suite yang tersedia?",
+  "usage": {
+    "input_tokens": 588,
+    "output_tokens": 283
+  },
+  "required_phrases": [
+    "suite",
+    "kamar"
+  ],
+  "forbidden_phrases": [
+    "occupancy",
+    "f&b",
+    "housekeeping",
+    "spa",
+    "hr",
+    "vip",
+    "reservasi"
+  ],
+  "required_missing": [],
+  "forbidden_present": [],
+  "residual_reference_phrases": [],
+  "toleransi": null,
+  "match": true
+}

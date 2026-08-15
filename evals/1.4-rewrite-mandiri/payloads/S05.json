@@ -1,0 +1,29 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Elipsis eksplisit, turn jauh + distractor",
+  "timestamp": "2026-08-15T04:39:01.536192+00:00",
+  "model": "qwen/qwen3-32b",
+  "request": {
+    "system": "Anda adalah komponen sistem yang menulis ulang pertanyaan terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda murni menulis ulang secara linguistik.\n\nAturan:\n- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \"dibanding itu\", \"yang tadi\", \"sama seperti sebelumnya\", \"itu sudah...\") menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, berdasarkan histori percakapan yang diberikan.\n- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.\n- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.\n- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan tambahan, tanpa tanda kutip, tanpa awalan seperti \"Kalimat mandiri:\".",
+    "user": "Histori percakapan dalam sesi ini:\n- Turn 1: Q: Berapa jumlah komplain yang diterima Front Office bulan ini? | A: Front Office menerima 7 komplain bulan ini, mayoritas soal waktu check-in.\n- Turn 2: Q: Bagaimana kondisi kolam renang? | A: Kolam renang beroperasi normal, terakhir dibersihkan kemarin.\n- Turn 3: Q: Berapa revenue spa minggu ini? | A: Revenue spa minggu ini Rp 32 juta.\n- Turn 4: Q: Siapa yang bertugas shift malam hari ini? | A: Shift malam dipegang oleh 3 staff Front Office dan 2 staff Housekeeping.\n- Turn 5: Q: Berapa kamar yang sedang dalam maintenance? | A: 5 kamar sedang dalam maintenance, estimasi selesai 3 hari.\n\nPertanyaan turn terakhir (turn 6): Balik lagi ke komplain yang di awal tadi, apa sudah ada tindak lanjutnya?"
+  },
+  "rewritten_question": "Apa sudah ada tindak lanjut terhadap 7 komplain Front Office bulan ini yang mayoritas soal waktu check-in?",
+  "usage": {
+    "input_tokens": 538,
+    "output_tokens": 348
+  },
+  "required_phrases": [
+    "front office",
+    "komplain"
+  ],
+  "forbidden_phrases": [
+    "kolam renang",
+    "maintenance",
+    "shift malam"
+  ],
+  "required_missing": [],
+  "forbidden_present": [],
+  "residual_reference_phrases": [],
+  "toleransi": null,
+  "match": true
+}

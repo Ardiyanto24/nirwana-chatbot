@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Filter kandidat: status=sebagian, topik identik",
+  "timestamp": "2026-08-15T09:40:21.886701+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "d1592fe0-0f1f-4838-bd0d-807a3d9a4e25",
+      "teks_kebutuhan": "occupancy rate bulan April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "candidates": [
+    {
+      "atomic_intent_id": "bd9fe0f2-6595-4317-86a0-472a2fc9d6b5",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate bulan April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "sebagian",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "results": [
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "d1592fe0-0f1f-4838-bd0d-807a3d9a4e25",
+        "teks_kebutuhan": "occupancy rate bulan April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "perlu_eksekusi",
+      "paket": null
+    }
+  ],
+  "match": true,
+  "toleransi": null
+}

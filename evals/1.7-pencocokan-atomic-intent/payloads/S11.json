@@ -1,0 +1,86 @@
+{
+  "scenario_id": "S11",
+  "deskripsi": "Non-eksklusivitas (retest, paraphrase tidak ambigu)",
+  "timestamp": "2026-08-15T09:45:44.634653+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "57f9fa80-0967-473e-b0ab-03421fd20f74",
+      "teks_kebutuhan": "berapa occupancy April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "fcb6c10e-6cd7-4045-b55f-e349eabe5455",
+      "teks_kebutuhan": "nilai occupancy rate untuk periode April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "candidates": [
+    {
+      "atomic_intent_id": "d01c72c7-408f-4894-80f5-391e3b436f9c",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate bulan April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "results": [
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "57f9fa80-0967-473e-b0ab-03421fd20f74",
+        "teks_kebutuhan": "berapa occupancy April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "selesai",
+      "paket": {
+        "atomic_intent_id": "d01c72c7-408f-4894-80f5-391e3b436f9c",
+        "session_id": "eval-m17",
+        "turn_index": 1,
+        "teks_kebutuhan": "occupancy rate bulan April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "value": 1
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    },
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "fcb6c10e-6cd7-4045-b55f-e349eabe5455",
+        "teks_kebutuhan": "nilai occupancy rate untuk periode April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "selesai",
+      "paket": {
+        "atomic_intent_id": "d01c72c7-408f-4894-80f5-391e3b436f9c",
+        "session_id": "eval-m17",
+        "turn_index": 1,
+        "teks_kebutuhan": "occupancy rate bulan April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "value": 1
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    }
+  ],
+  "match": true,
+  "toleransi": null
+}

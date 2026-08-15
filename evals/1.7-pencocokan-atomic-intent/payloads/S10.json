@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S10",
+  "deskripsi": "label_bentuk_jawaban beda meski topik sama",
+  "timestamp": "2026-08-15T09:44:39.924866+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "841ab70c-14b6-4a96-8cf7-a5e37e5a32f5",
+      "teks_kebutuhan": "bagaimana tren occupancy rate 6 bulan terakhir",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "candidates": [
+    {
+      "atomic_intent_id": "217fe08f-db8d-4f3b-8b02-14e88f7cf67e",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate bulan Januari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "results": [
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "841ab70c-14b6-4a96-8cf7-a5e37e5a32f5",
+        "teks_kebutuhan": "bagaimana tren occupancy rate 6 bulan terakhir",
+        "label_bentuk_jawaban": "tren",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "perlu_eksekusi",
+      "paket": null
+    }
+  ],
+  "match": true,
+  "toleransi": null
+}

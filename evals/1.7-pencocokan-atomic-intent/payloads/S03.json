@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "Entitas kunci beda: metrik berbeda, domain sama",
+  "timestamp": "2026-08-15T09:40:21.747869+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "35afe71d-1bd6-402b-9600-f4848f37302b",
+      "teks_kebutuhan": "revenue F&B bulan Maret 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "candidates": [
+    {
+      "atomic_intent_id": "c4780c60-e3ee-499e-9821-e743e42de25c",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "jumlah komplain tamu F&B bulan Maret 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "results": [
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "35afe71d-1bd6-402b-9600-f4848f37302b",
+        "teks_kebutuhan": "revenue F&B bulan Maret 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "perlu_eksekusi",
+      "paket": null
+    }
+  ],
+  "match": true,
+  "toleransi": null
+}

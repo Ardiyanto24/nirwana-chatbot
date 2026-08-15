@@ -1,0 +1,95 @@
+{
+  "scenario_id": "S08",
+  "deskripsi": "Pool kandidat besar, presisi pemilihan index yang benar",
+  "timestamp": "2026-08-15T09:42:41.841827+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "6c60ef34-0ad1-403a-a7f9-21a74961cf3b",
+      "teks_kebutuhan": "berapa occupancy Maret 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "candidates": [
+    {
+      "atomic_intent_id": "5d740d47-2712-4789-bac2-4fe2c4cce995",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate Januari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "7916a232-8c42-49da-81b9-ab4148c2c3d9",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate Februari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "4276880b-1d17-4aac-982f-ab902b83f204",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate Maret 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "cbcd4d65-20c9-4378-93b8-34208f6f5c44",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "results": [
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "6c60ef34-0ad1-403a-a7f9-21a74961cf3b",
+        "teks_kebutuhan": "berapa occupancy Maret 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "selesai",
+      "paket": {
+        "atomic_intent_id": "4276880b-1d17-4aac-982f-ab902b83f204",
+        "session_id": "eval-m17",
+        "turn_index": 1,
+        "teks_kebutuhan": "occupancy rate Maret 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "value": 1
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    }
+  ],
+  "match": true,
+  "toleransi": null
+}

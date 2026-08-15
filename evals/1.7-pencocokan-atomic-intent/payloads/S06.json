@@ -1,0 +1,74 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Mixed match dalam satu turn",
+  "timestamp": "2026-08-15T09:41:34.112936+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "5dddaaaf-c236-4b96-a3b4-ef052511b3b3",
+      "teks_kebutuhan": "berapa occupancy April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "00ded2cc-fd33-448b-8577-815bba686ec6",
+      "teks_kebutuhan": "berapa jumlah staff yang resign bulan Juni 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "candidates": [
+    {
+      "atomic_intent_id": "ca2736c0-b062-468b-9570-fc9ec8e9186a",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate bulan April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "results": [
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "5dddaaaf-c236-4b96-a3b4-ef052511b3b3",
+        "teks_kebutuhan": "berapa occupancy April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "selesai",
+      "paket": {
+        "atomic_intent_id": "ca2736c0-b062-468b-9570-fc9ec8e9186a",
+        "session_id": "eval-m17",
+        "turn_index": 1,
+        "teks_kebutuhan": "occupancy rate bulan April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "value": 1
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    },
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "00ded2cc-fd33-448b-8577-815bba686ec6",
+        "teks_kebutuhan": "berapa jumlah staff yang resign bulan Juni 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "perlu_eksekusi",
+      "paket": null
+    }
+  ],
+  "match": true,
+  "toleransi": null
+}

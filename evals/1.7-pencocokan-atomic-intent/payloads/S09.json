@@ -1,0 +1,70 @@
+{
+  "scenario_id": "S09",
+  "deskripsi": "Recency bias (posisi kandidat vs kebenaran makna)",
+  "timestamp": "2026-08-15T09:44:17.461689+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "e6db696a-0587-409b-8b80-777817a4efa0",
+      "teks_kebutuhan": "berapa occupancy Februari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "candidates": [
+    {
+      "atomic_intent_id": "82d0c031-2368-42f1-9034-b8228649805c",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate Februari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "a5563f64-eb84-4242-9bd2-7109d3b0e79f",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "revenue F&B Maret 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "6840c2cd-4256-460a-8f89-2ef6b2ccb1bd",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "results": [
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "e6db696a-0587-409b-8b80-777817a4efa0",
+        "teks_kebutuhan": "berapa occupancy Februari 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "perlu_eksekusi",
+      "paket": null
+    }
+  ],
+  "match": false,
+  "toleransi": "kalau salah pilih index 2 (posisi akhir), dicatat sebagai temuan pola recency bias (docs/keterbatasan-diterima.md #3), bukan otomatis fail keras"
+}

@@ -1,0 +1,74 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "Non-eksklusivitas (dua atomic intent baru cocok ke kandidat sama)",
+  "timestamp": "2026-08-15T09:42:23.086502+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "2b201540-f16b-4702-a28f-d83063850003",
+      "teks_kebutuhan": "berapa occupancy April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "ea759cd3-0070-4c48-b27b-57e0a802ce98",
+      "teks_kebutuhan": "occupancy rate bulan April kemarin",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "candidates": [
+    {
+      "atomic_intent_id": "7638904d-fef0-4acc-b02c-a0323523100e",
+      "session_id": "eval-m17",
+      "turn_index": 1,
+      "teks_kebutuhan": "occupancy rate bulan April 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "value": 1
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "results": [
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "2b201540-f16b-4702-a28f-d83063850003",
+        "teks_kebutuhan": "berapa occupancy April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "selesai",
+      "paket": {
+        "atomic_intent_id": "7638904d-fef0-4acc-b02c-a0323523100e",
+        "session_id": "eval-m17",
+        "turn_index": 1,
+        "teks_kebutuhan": "occupancy rate bulan April 2026",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "value": 1
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    },
+    {
+      "atomic_intent": {
+        "atomic_intent_id": "ea759cd3-0070-4c48-b27b-57e0a802ce98",
+        "teks_kebutuhan": "occupancy rate bulan April kemarin",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "relasi": "independen",
+        "bergantung_pada": null
+      },
+      "status": "perlu_eksekusi",
+      "paket": null
+    }
+  ],
+  "match": false,
+  "toleransi": null
+}

@@ -6,7 +6,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 
 | Checkpoint | Commit | Pesan |
 |---|---|---|
-| 1 | *(commit ini)* | `docs(milestone-2.2): decisions` |
+| 1 | `e6e2170` | `docs(milestone-2.2): decisions` |
+| 2 | *(commit ini)* | `feat(milestone-2.2): skema data otorisasi` |
 
 ---
 
@@ -26,6 +27,30 @@ Dikonfirmasi lewat `api-chatbot.md` baris 29-30: kredensial `chatbot_authz_reade
 
 **Error/Kegagalan (jika ada)**
 Tidak ada.
+
+**Commit:** `e6e2170`
+
+---
+
+## Checkpoint 2 — Skema Data
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 2 — `src/schemas/authorization.py`
+
+**Kesesuaian dengan plan:** Sesuai plan — unit test dedicated ditunda ke `tests/layers/domain_gate/test_otorisasi.py` (Checkpoint 4-5), sesuai opsi eksplisit yang sudah disebut plan sendiri ("mirror preseden M2.1 Checkpoint 2"). Sanity check manual dijalankan langsung (4 kasus: true/alasan-none valid, false/alasan-terisi valid, false/alasan-none ditolak, true/alasan-terisi ditolak) untuk konfirmasi cepat sebelum lanjut, bukan pengganti unit test formal.
+
+**Apa yang dilakukan**
+`DomainAuthorization` (`domain: Domain` reuse M2.1, `diizinkan: bool`, `alasan: str | None`) dengan validator `alasan_konsisten_dengan_diizinkan`, dan `AtomicIntentAuthorization` (`atomic_intent`, `domain_decisions: list[DomainAuthorization]`).
+
+**Temuan**
+Tidak ada temuan baru.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Sanity check manual (`uv run python -c "..."`) — 4/4 kasus validator berperilaku benar (2 valid diterima, 2 invalid ditolak `ValidationError`).
 
 **Commit:** *(pending — commit setelah entri ini ditulis)*
 

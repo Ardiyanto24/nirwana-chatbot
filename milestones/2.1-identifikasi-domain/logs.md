@@ -6,7 +6,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 
 | Checkpoint | Commit | Pesan |
 |---|---|---|
-| 1 | *(pending)* | `docs(milestone-2.1): decisions` |
+| 1 | `11c0db7` | `docs(milestone-2.1): decisions` |
+| 2 | *(commit ini)* | `feat(milestone-2.1): skema data identifikasi domain` |
 
 ---
 
@@ -23,6 +24,27 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 
 **Temuan**
 Katalog 67 view (`katalog-data-chatbot.md`) hanya menandai SATU view eksplisit "Cross-domain" (`v_reservation_gop_impact_monthly`) di seluruh dokumen — dikonfirmasi lewat pencarian string literal, bukan sampel. Juga ditemukan `CLAUDE.md` menulis "19 role" padahal `rancangan-rbac-authorization.md`/`rancangan-rbac-ai-chatbot.md` keduanya konsisten menyebut 20 role — dijadwalkan diperbaiki di Checkpoint 12 (tidak berdampak ke M2.1 karena M2.1 tidak menyentuh `role_permissions`).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Commit:** `11c0db7`
+
+---
+
+## Checkpoint 2 — Skema Data
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 2 — `src/schemas/domain_gate.py`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian eksplisit: unit test skema (validator `domains_konsisten_dengan_status`) TIDAK dibuat sebagai file terpisah `tests/schemas/test_domain_gate.py` — dicek `tests/` project tidak py preseden direktori `tests/schemas/` sama sekali (skema M1.7 `AtomicIntentMatch` juga tidak py test dedicated terpisah). Diikutkan ke `tests/layers/domain_gate/test_domain_gate.py` (Checkpoint 7) alih-alih, sesuai opsi eksplisit yang sudah disebut plan ("atau digabung ke test layer Checkpoint 8/7") — bukan penyimpangan tersembunyi.
+
+**Apa yang dilakukan**
+`Domain` (`StrEnum` 10 nilai persis Keputusan 4) dan `AtomicIntentDomains` (`atomic_intent`, `domains: list[Domain]`, `status: StatusEksekusi` reuse M1.5) dengan validator `domains_konsisten_dengan_status` — `GAGAL_TEKNIS` wajib `domains` kosong, selain itu wajib non-kosong.
+
+**Temuan**
+Tidak ada temuan baru.
 
 **Error/Kegagalan (jika ada)**
 Tidak ada.

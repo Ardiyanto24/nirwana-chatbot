@@ -166,6 +166,29 @@ User memilih migrasi untuk admin terpusat — satu tempat mengelola seluruh data
 
 ---
 
+## Keputusan 12 (Forced): Normalisasi Dialect `postgresql+psycopg://` + Wajib Pakai Connection Pooler Supabase
+
+**Status:** Ditemukan di tengah implementasi pada Checkpoint 3, Task 4.
+
+**Latar Belakang**
+Dua temuan berurutan saat verifikasi koneksi nyata: (1) SQLAlchemy default me-resolve skema URL `postgresql://`/`postgres://` ke driver `psycopg2` (tidak diinstal — proyek ini sengaja pakai `psycopg` v3, Keputusan 2), menyebabkan `ModuleNotFoundError`. (2) Setelah dialect diperbaiki, koneksi ke hostname *direct connection* Supabase (`db.<project-ref>.supabase.co`) gagal dengan `failed to resolve host` — dikonfirmasi lewat `nslookup` bahwa hostname itu **hanya punya alamat IPv6**, sementara jaringan lokal tidak mendukung IPv6. Ini keterbatasan Supabase yang sudah dikenal luas (bukan bug proyek ini) — direct connection Supabase memang IPv6-only, solusi resminya pakai Connection Pooler (Supavisor) yang IPv4-compatible.
+
+**Keputusan yang Diikuti**
+- `get_engine()` (`src/config/database.py`) menormalisasi skema URL apa pun yang diawali `postgresql://`/`postgres://` jadi `postgresql+psycopg://` secara eksplisit, sebelum diteruskan ke `create_engine()`.
+- `DATABASE_URL` di `.env` **wajib** pakai connection string dari mode **Transaction pooler** (port 6543) atau **Session pooler** (port 5432) Supabase Dashboard — BUKAN "Direct connection".
+
+**Alasan**
+Satu-satunya perbaikan yang mengatasi akar masalah (bukan workaround) — normalisasi dialect memastikan driver yang benar-benar terinstal (Keputusan 2) yang dipakai; pooler mengatasi keterbatasan IPv6-only direct connection tanpa perlu proyek ini mengatur IPv6 di level jaringan (di luar kendali proyek).
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Tambah `psycopg2-binary` sebagai dependency kedua** — ditolak, bertentangan dengan Keputusan 2 yang eksplisit memilih psycopg3, dan menambah dependency ganda untuk fungsi yang sama.
+- **Setup IPv6 di level jaringan/OS** — di luar kendali dan cakupan proyek ini, jauh lebih rumit dari sekadar ganti connection string ke pooler yang memang disediakan resmi oleh Supabase untuk kasus ini.
+
+**Dampak**
+Perlu dicatat jelas di `.env.example`/dokumentasi supaya siapa pun (termasuk sesi kerja berikutnya) tidak mengulang jebakan yang sama — connection string Supabase yang benar untuk proyek ini SELALU dari mode pooler, tidak pernah direct connection.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -181,3 +204,4 @@ User memilih migrasi untuk admin terpusat — satu tempat mengelola seluruh data
 | 9 | `roles.yaml` dihapus setelah verifikasi ganda | B | Checkpoint 10 |
 | 10 | Kredensial `.env`, tanpa `evals/`, tanpa TTL, tidak wired HTTP | B | Plan |
 | 11 | `decisions.md` sebagai Task pertama | B | Plan |
+| 12 | Normalisasi dialect psycopg3 + wajib pakai Connection Pooler Supabase | B | Checkpoint 3 |

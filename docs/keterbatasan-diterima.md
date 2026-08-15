@@ -46,6 +46,20 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 
 ---
 
+### Tambahan (Milestone 1.7, 2026-08-15): Distractor Confusion + Non-Determinisme `temperature=0`
+
+**Ditemukan di:** Milestone 1.7 (`evals/1.7-pencocokan-atomic-intent/audit.md` S09, 2026-08-15) — mekanisme berbeda (`match_atomic_intents()`, LLM semantik satu-panggilan-per-item, Qwen3-32B) dari dua data point sebelumnya (deteksi ketergantungan turn M1.3, rewrite mandiri M1.4).
+
+**Konteks penemuan:** Skenario uji dengan 3 kandidat — 1 BENAR secara makna (index 1), 1 pengisi topik lain (index 2), 1 SALAH bulan tapi topik sama persis dan di posisi PALING AKHIR (index 3). Run pertama: model memilih index 1 dengan benar (tidak terjadi recency bias klasik). Run KEDUA (prompt+kandidat identik persis, `temperature=0`): model gagal mencocokkan SAMA SEKALI (`perlu_eksekusi`), bahkan terhadap kandidat index 1 yang objektif tidak ambigu — BUKAN salah pilih ke index 3 (arah aman, bukan false-positive). Ini menunjukkan dua hal: (a) `temperature=0` TIDAK menjamin determinisme penuh untuk `qwen/qwen3-32b` via OpenRouter; (b) mode kegagalan lebih halus dari sekadar "pilih yang posisinya paling akhir" — kehadiran distractor topikal (bukan cuma posisi) bisa memicu ketidakpastian model bahkan pada kasus yang seharusnya jelas.
+
+**Kenapa diterima (bukan diperbaiki):** Sama seperti entri asli — baru 1 data point tambahan (3 total lintas M1.3/M1.4/M1.7). Fallback M1.7 sendiri sudah aman-by-design (Keputusan 2 `milestones/1.7-.../decisions.md`: prompt konservatif + fallback `perlu_eksekusi`), jadi dampak langsungnya rendah (efisiensi berkurang, bukan korektnes).
+
+**Dampak + mitigasi:** Sama seperti dampak asli, plus: debugging/re-run eval TIDAK selalu bisa mengasumsikan hasil identik meski `temperature=0` — relevan untuk seluruh milestone LLM proyek (M1.3, M1.4, M1.6 juga memakai `temperature=0`). Mitigasi saat ini: tidak ada perubahan prompt/kebijakan; M1.7 sudah gagal ke arah aman di kedua kasus (recency M1.3/M1.4 dan distractor confusion M1.7).
+
+**Pemicu peninjauan ulang tambahan:** Kalau pola non-determinisme `temperature=0` terbukti memengaruhi Kriteria Keberhasilan formal manapun (bukan cuma eval eksploratif), revisi mendesak diperlukan (mis. beberapa kali sampling + majority vote, atau terima non-determinisme sebagai sifat sistem dan desain ulang test agar toleran terhadapnya).
+
+---
+
 ## 4. Taksonomi `label_bentuk_jawaban` (5 Nilai) Punya Gap untuk Kebutuhan Deskriptif/Multi-Nilai
 
 **Ditemukan di:** Milestone 1.6 (`evals/1.6-decomposition/audit.md` S05, S07, 2026-08-15).

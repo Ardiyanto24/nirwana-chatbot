@@ -69,7 +69,7 @@ Empat penyimpangan dari plan, semuanya koreksi/penyesuaian teknis di tempat (tid
 
 - **Payload histori penuh bisa membesar untuk sesi sangat panjang** — sudah tercatat di `docs/keterbatasan-diterima.md` #2 (entri baru milestone ini). Belum ada mekanisme ringkasan/pemangkasan; pemicu peninjauan: begitu ada payload sungguhan dari sesi panjang, atau context window model manapun mulai terlampaui.
 - **Model DeepSeek V4 Flash 0731 eksplisit untuk testing** — bukan klaim final produksi (dicatat di `decisions.md` Keputusan 3). Ganti model nanti tidak menyentuh logic `turn_dependency.py`, cukup `src/config/llm.py`.
-- **`response_format json_object` (bukan `json_schema` strict)** — bergantung pada validasi Pydantic defensif + prompt yang eksplisit menjelaskan bentuk JSON, bukan garansi struktural dari provider. Terbukti bekerja di seluruh skenario uji, tapi robustness jangka panjang terhadap variasi output model belum teruji ekstensif (baru 5 pemanggilan API nyata total sepanjang milestone ini: 2 smoke test + 3 test suite + 1 verifikasi span).
+- **`response_format json_object` (bukan `json_schema` strict)** — bergantung pada validasi Pydantic defensif + prompt yang eksplisit menjelaskan bentuk JSON, bukan garansi struktural dari provider. Terbukti bekerja di seluruh skenario uji, tapi robustness jangka panjang terhadap variasi output model belum teruji ekstensif (baru 6 pemanggilan API nyata total sepanjang milestone ini: 2 smoke test + 3 test suite + 1 verifikasi span).
 - **Belum wired ke endpoint HTTP manapun** — `detect_turn_dependency()` berdiri sendiri, dipanggil langsung (bukan lewat `POST /v1/turns`), sesuai Batasan Mengikat plan. Pipeline penuh (9 layer tersambung) adalah pekerjaan milestone mendatang.
 
 ## Bagian 6 — Follow-up

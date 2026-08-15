@@ -16,7 +16,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 8 | `73c5c78` | `docs(milestone-2.1): verifikasi span nyata` |
 | 9 | `d34c8b6` | `docs(evals): rancangan pengujian identifikasi domain` |
 | 10 | `2a63db2`, `df31d39` | `fix(config): timeout eksplisit client OpenRouter` + `test(evals): eksekusi skenario pengujian identifikasi domain + payload mentah` |
-| 11 | *(commit ini)* | `docs(evals): audit hasil pengujian identifikasi domain` |
+| 11 | `e8ef3a5` | `docs(evals): audit hasil pengujian identifikasi domain` |
+| 12 | *(commit ini)* | `docs(milestone-2.1): logs, report` |
 
 ---
 
@@ -270,6 +271,38 @@ Analisis seluruh 10 skenario dari payload mentah. Ditemukan 2 temuan nyata (buka
 
 **Temuan**
 Tidak ada temuan tambahan di luar yang sudah dicatat di `audit.md` sendiri.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Commit:** `e8ef3a5`
+
+---
+
+## Checkpoint 12 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 12 — `logs.md` (dokumen ini)
+
+**Kesesuaian dengan plan:** Sesuai plan — ditulis inkremental per checkpoint sepanjang milestone (bukan ditumpuk di akhir), konsisten `feedback-checkpoint-commit-order`.
+
+### Task 13 — `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ketiga Kriteria Keberhasilan sumber dikonfirmasi ulang terpenuhi dengan bukti nyata (unit test LLM sungguhan + span Jaeger + eval). Perubahan dari plan (2 penyimpangan: pola test tanpa mock, strategi eksekusi eval per-skenario) didokumentasikan eksplisit. Keterbatasan/item provisional dicatat termasuk status Serah Terima yang BELUM bisa dikonfirmasi penuh (M2.2 belum dikerjakan).
+
+### Task 14 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+"Status Saat Ini" diperbarui: ringkasan M2.1 ditambahkan, urutan pengerjaan diarahkan ke M2.2, jumlah keterbatasan diterima diperbarui 5→7, model per langkah M2.1 dicatat. Tabel Struktur Repository diperbarui (`src/layers/domain_gate/`, `tests/layers/domain_gate/`, `evals/2.1-identifikasi-domain/` ditambahkan ke baris yang sudah ada). Typo "19 role" → "20 role" diperbaiki di dua tempat (Dokumen Sumber Kebenaran item 9, dan baris tabel `docs/03-domain-source/`). `CLAUDE.md` dan `AGENT.md` dikonfirmasi identik (`diff` exit 0) setelah pembaruan — TIDAK di-commit ke git (preseden Milestone 1.1, file ini sengaja tidak di-track).
+
+**Temuan**
+Tidak ada temuan baru.
 
 **Error/Kegagalan (jika ada)**
 Tidak ada.

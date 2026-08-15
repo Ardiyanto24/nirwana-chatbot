@@ -13,16 +13,39 @@ test_input_layer.py.
 """
 
 import os
+import uuid
 
 import pytest
 
-from src.layers.domain_gate.otorisasi import periksa_domain
-from src.schemas.domain_gate import Domain
+from src.layers.domain_gate.otorisasi import (
+    periksa_domain,
+    periksa_otorisasi_atomic_intent,
+    periksa_otorisasi_semua,
+)
+from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
+from src.schemas.domain_gate import AtomicIntentDomains, Domain
+from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("DATABASE_URL"),
     reason="DATABASE_URL tidak diset - skip test yang butuh koneksi database nyata",
 )
+
+
+def _buat_atomic_intent_domains(
+    domains: list[Domain], status: StatusEksekusi = StatusEksekusi.BERHASIL
+) -> AtomicIntentDomains:
+    return AtomicIntentDomains(
+        atomic_intent=AtomicIntent(
+            atomic_intent_id=str(uuid.uuid4()),
+            teks_kebutuhan="kebutuhan uji",
+            label_bentuk_jawaban=LabelBentukJawaban.NILAI_TUNGGAL,
+            relasi=RelasiKebutuhan.INDEPENDEN,
+            bergantung_pada=None,
+        ),
+        domains=domains,
+        status=status,
+    )
 
 _ALL_ROLES = [
     "CEO",
@@ -121,3 +144,35 @@ def test_exhaustive_200_kombinasi_role_domain(domain: Domain, role_title: str):
     )
     if not seharusnya_diizinkan:
         assert hasil.alasan is not None
+
+
+# --- KK2: multi-domain campuran izin/tolak ----------------------------------
+
+
+def test_kk2_multi_domain_sebagian_diizinkan_sebagian_ditolak():
+    """Front Office Staff: reservation DIIZINKAN, financial DITOLAK -
+    hasil harus benar PER DOMAIN, bukan satu keputusan tunggal untuk
+    seluruh atomic intent."""
+    aid = _buat_atomic_intent_domains([Domain.RESERVATION, Domain.FINANCIAL])
+    hasil = periksa_otorisasi_atomic_intent(aid, "Front Office Staff")
+
+    assert len(hasil.domain_decisions) == 2
+    by_domain = {d.domain: d for d in hasil.domain_decisions}
+
+    assert by_domain[Domain.RESERVATION].diizinkan is True
+    assert by_domain[Domain.RESERVATION].alasan is None
+
+    assert by_domain[Domain.FINANCIAL].diizinkan is False
+    assert by_domain[Domain.FINANCIAL].alasan is not None
+
+
+def test_periksa_otorisasi_semua_melewati_gagal_teknis():
+    """Entri status=GAGAL_TEKNIS (domain kosong) dilewati, tidak
+    menghasilkan AtomicIntentAuthorization apa pun."""
+    gagal = _buat_atomic_intent_domains([], status=StatusEksekusi.GAGAL_TEKNIS)
+    berhasil = _buat_atomic_intent_domains([Domain.HR])
+
+    hasil = periksa_otorisasi_semua([gagal, berhasil], "HR Staff")
+
+    assert len(hasil) == 1
+    assert hasil[0].atomic_intent.atomic_intent_id == berhasil.atomic_intent.atomic_intent_id

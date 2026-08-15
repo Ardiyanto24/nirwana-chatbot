@@ -9,7 +9,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 1 | `e6e2170` | `docs(milestone-2.2): decisions` |
 | 2 | `12e2c67` | `feat(milestone-2.2): skema data otorisasi` |
 | 3 | `5321e33`, `a164fe2` | `feat(milestone-2.2): tabel role_permissions` + `chore(milestone-2.2): seed matriks role_permissions` |
-| 4 | *(commit ini)* | `feat(milestone-2.2): mekanisme lookup otorisasi` + `test(milestone-2.2): verifikasi exhaustive 200 kombinasi role-domain` |
+| 4 | `b1cf77a`, `b654f03` | `feat(milestone-2.2): mekanisme lookup otorisasi` + `test(milestone-2.2): verifikasi exhaustive 200 kombinasi role-domain` |
+| 5 | *(commit ini)* | `feat(milestone-2.2): orkestrator periksa otorisasi + observability` + `test(milestone-2.2): skenario multi-domain campuran` |
 
 ---
 
@@ -125,6 +126,37 @@ Tidak ada.
 
 **Hasil Verifikasi**
 `uv run pytest tests/layers/domain_gate/test_otorisasi.py -v` — **201/201 PASSED** (200 kombinasi role×domain + 1 sanity check total baris) dalam 4.06s. **KK1 terbukti langsung**: "Seluruh kombinasi role × domain yang tercatat di `role_permissions` diuji sistematis (bukan sampel), dan hasil izin/tolaknya cocok persis dengan tabel rujukan."
+
+**Commit:** `b1cf77a`, `b654f03`
+
+---
+
+## Checkpoint 5 — Orkestrator + Observability
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 8 — `periksa_otorisasi_atomic_intent()`/`periksa_otorisasi_semua()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`periksa_otorisasi_atomic_intent()` — span `authorization.check` PER domain (atribut `rbac.domain`, `rbac.decision`, `error.type=ditolak_otorisasi` bila ditolak). `periksa_otorisasi_semua()` — filter lewati `GAGAL_TEKNIS`, span pembungkus agregat `domain_gate.periksa_otorisasi_semua` (`intent.count`, `authorization.ditolak_count`).
+
+### Task 9 — Unit Test KK2
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`test_kk2_multi_domain_sebagian_diizinkan_sebagian_ditolak` (Front Office Staff: `reservation` diizinkan, `financial` ditolak, dalam SATU pemanggilan) dan `test_periksa_otorisasi_semua_melewati_gagal_teknis` (entri `GAGAL_TEKNIS` tidak menghasilkan `AtomicIntentAuthorization`).
+
+**Temuan**
+Tidak ada temuan baru.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`uv run pytest tests/layers/domain_gate/ -v -k "not kelompok"` — **218/218 PASSED** (200 exhaustive + 1 sanity + 2 test baru Checkpoint 5 dari `test_otorisasi.py`, + 15 test pure-function M2.1 tanpa regresi) dalam 6.23s. **KK2 terbukti langsung**: hasil `domain_decisions` benar per domain (`reservation`=diizinkan, `financial`=ditolak) dalam satu `AtomicIntentAuthorization`, bukan keputusan tunggal yang menyamaratakan.
 
 **Commit:** *(pending — commit setelah entri ini ditulis)*
 

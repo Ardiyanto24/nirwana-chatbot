@@ -16,6 +16,12 @@ ini:
   ditentukan sama sekali (domains WAJIB kosong).
 DITOLAK_OTORISASI (milik Milestone 2.2) dan TERBLOKIR_KETERGANTUNGAN
 (tidak relevan konteks ini) TIDAK PERNAH dipakai di sini.
+
+`IdentifikasiDomainResult`/`VerifikasiTitikButaResult` adalah hasil
+ANTARA per-langkah (dikonsumsi orkestrator domain_gate.py) - mirror pola
+PemecahanResult/VerifikasiResult di schemas/decomposition.py (M1.6), yang
+juga menaruh tipe hasil antara di modul schemas/, bukan lokal di file
+layer.
 """
 
 from enum import Enum
@@ -38,6 +44,16 @@ class Domain(str, Enum):
     EMPLOYEES_DIRECTORY = "employees_directory"
     GUESTS_PII = "guests_pii"
     GUESTS_PROFILE = "guests_profile"
+
+
+class IdentifikasiDomainResult(BaseModel):
+    domains: list[Domain]
+    gagal: bool = False
+
+
+class VerifikasiTitikButaResult(BaseModel):
+    domain_tambahan: list[Domain]
+    gagal: bool = False
 
 
 class AtomicIntentDomains(BaseModel):

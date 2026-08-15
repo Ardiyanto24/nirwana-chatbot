@@ -9,7 +9,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 1 | `11c0db7` | `docs(milestone-2.1): decisions` |
 | 2 | `0d06870` | `feat(milestone-2.1): skema data identifikasi domain` |
 | 3 | `15e39bd` | `chore(milestone-2.1): konstanta model identifikasi domain` |
-| 4 | *(commit ini)* | `feat(milestone-2.1): konteks grounding domain` |
+| 4 | `f84980f` | `feat(milestone-2.1): konteks grounding domain` |
+| 5 | *(commit ini)* | `feat(milestone-2.1): mekanisme identifikasi domain awal` |
 
 ---
 
@@ -95,6 +96,34 @@ Tidak ada.
 
 **Hasil Verifikasi**
 `uv run pytest tests/layers/domain_gate/test_konteks_domain.py -v` — 3/3 PASSED.
+
+**Commit:** `f84980f`
+
+---
+
+## Checkpoint 5 — Mekanisme Identifikasi Awal
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 5 — `src/layers/domain_gate/identifikasi.py`
+
+**Kesesuaian dengan plan:** Menyimpang dari plan pada pendekatan test — plan menyebut "unit test dengan LLM di-mock". Setelah cek preseden nyata (`tests/layers/context_resolution/test_matching.py`, `tests/layers/decomposition/test_decompose.py`), ditemukan project TIDAK PERNAH memakai mock untuk panggilan LLM di `tests/` — konvensi nyata adalah panggilan LLM SUNGGUHAN, di-skip otomatis kalau `OPENROUTER_API_KEY` tidak diset. Diikuti pola preseden ini, bukan pola "mock" yang disebut plan: (a) fungsi pure (`bounds_check_domains`, `_parse_and_decide`) diuji langsung dengan string buatan tangan (deterministik, tanpa API, tanpa mock) untuk kasus hallucinated/parse-error, (b) `identifikasi_domain()` end-to-end diuji dengan panggilan LLM nyata untuk skenario KK1/KK3/baseline.
+
+**Apa yang dilakukan**
+`identifikasi_domain()` (span `chat`, model `OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI`), `_call_llm()` (mentah, dipisah untuk reuse eval), `bounds_check_domains()` + `_parse_and_decide()` (pure, deterministik). `IdentifikasiDomainResult` ditambahkan ke `src/schemas/domain_gate.py` (mirror pola `PemecahanResult`/`VerifikasiResult` M1.6 - hasil antara di schemas/, bukan lokal di file layer).
+
+**Temuan**
+Bug nyata ditemukan lewat panggilan LLM sungguhan (bukan mock) pada skenario `guests_profile`/nationality-mix: respons OpenRouter kembali dengan `response.choices` bernilai `None` (bukan exception `APIError`), menyebabkan `TypeError: 'NoneType' object is not subscriptable` saat mengakses `response.choices[0]`. Kode awal tidak menjaga kasus ini.
+
+**Error/Kegagalan (jika ada)**
+`TypeError: 'NoneType' object is not subscriptable` di `identifikasi_domain()`, dipicu test `test_kelompok_c_guests_profile_nationality_mix` (run pertama, 433s untuk 4 test - lihat Diagnosis).
+
+**Diagnosis dan Perbaikan**
+Root cause: `response.choices` bisa `None` pada respons yang secara teknis valid (bukan exception) tapi tidak berisi hasil apa pun (kemungkinan provider-side hiccup/moderasi/timeout parsial di sisi OpenRouter). Perbaikan: tambah guard eksplisit `if not response.choices:` sebelum indexing, dipetakan ke jalur fallback aman yang sama dengan `APIError` (`gagal=True`, span attribute `domain_gate.identifikasi.forced_fallback_reason="empty_choices"`) alih-alih crash.
+
+**Hasil Verifikasi**
+Sebelum fix: `pytest -k kelompok -s` — 3/4 PASSED (gop_margin leakage, guests_pii kontak, baseline domain tunggal), 1 FAILED (`TypeError`, guests_profile) dalam 433.30s.
+Setelah fix: `pytest test_identifikasi.py::test_kelompok_c_guests_profile_nationality_mix -v -s` dijalankan ulang sendiri — PASSED dalam 33.91s (deteksi domain `guests_profile` tepat, `guests_pii` tidak ikut, konsisten KK3). `pytest tests/layers/domain_gate/ -k "not kelompok"` (7 test pure-function domain_gate + 3 test konteks_domain) — 10/10 PASSED setelah fix, memastikan tidak ada regresi di jalur parsing. Catatan kejujuran: 3 test real-LLM yang sudah PASSED sebelum fix (`kelompok_a`/`kelompok_b`/`kelompok_d`) TIDAK di-run-ulang penuh setelah fix (perubahan hanya menambah guard baru yang tidak tersentuh jalur respons normal) - keputusan sadar menghindari pemborosan panggilan API berbayar untuk kode yang tidak berubah perilakunya di jalur itu.
 
 **Commit:** *(pending — commit setelah entri ini ditulis)*
 

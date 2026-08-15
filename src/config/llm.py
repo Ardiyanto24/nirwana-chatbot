@@ -33,6 +33,19 @@ gampang diganti tanpa menyentuh logic layer.
   peran verifier independen, karena risiko M2.1 asimetris ke arah domain
   terlewat (beda dari M1.7 yang asimetris ke arah aman). Lihat
   milestones/2.1-identifikasi-domain/decisions.md Keputusan 7 dan 9.
+
+Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
+get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
+- ditemukan panggilan yang hang sangat lama tanpa exception di titik
+acak sepanjang beberapa kali percobaan nyata (root cause pasti TIDAK
+berhasil diisolasi penuh dalam waktu yang wajar - dicatat sebagai
+keterbatasan operasional, lihat logs.md Checkpoint 10 dan
+docs/keterbatasan-diterima.md). Batas atas per panggilan sekarang
+~90s x (1+max_retries) = ~180s terburuk, gagal ke jalur fallback aman
+(gagal=True) yang SUDAH ada di tiap layer, bukan berpotensi hang tanpa
+batas. Perubahan murni menambah batas atas (tidak mengubah perilaku
+panggilan yang selesai normal), berlaku untuk SELURUH konsumen fungsi
+ini (M1.3-M1.7 turut terdampak, bukan cakupan sengaja diperluas).
 """
 
 import os
@@ -59,4 +72,9 @@ def get_openrouter_client() -> OpenAI:
             "OPENROUTER_API_KEY tidak diset. Salin .env.example ke .env dan isi "
             "nilai asli (dapatkan dari https://openrouter.ai/keys)."
         )
-    return OpenAI(api_key=api_key, base_url=OPENROUTER_BASE_URL)
+    return OpenAI(
+        api_key=api_key,
+        base_url=OPENROUTER_BASE_URL,
+        timeout=90.0,
+        max_retries=1,
+    )

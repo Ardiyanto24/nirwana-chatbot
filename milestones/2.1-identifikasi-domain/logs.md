@@ -12,7 +12,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 4 | `f84980f` | `feat(milestone-2.1): konteks grounding domain` |
 | 5 | `b9daa52` | `feat(milestone-2.1): mekanisme identifikasi domain awal` |
 | 6 | `541820f` | `feat(milestone-2.1): mekanisme verifikasi titik buta` |
-| 7 | *(commit ini)* | `feat(milestone-2.1): orkestrator identifikasi domain gate` |
+| 7 | `91abe27` | `feat(milestone-2.1): orkestrator identifikasi domain gate` |
+| 8 | *(commit ini)* | `docs(milestone-2.1): verifikasi span nyata` |
 
 ---
 
@@ -175,6 +176,30 @@ Tidak ada.
 **Hasil Verifikasi**
 Deterministik (tanpa LLM): `test_filter_perlu_eksekusi_kosong_kalau_semua_selesai` — PASSED (2.12s), membuktikan jalur pintas filter bekerja tanpa satu pun panggilan LLM. Panggilan LLM nyata: `test_kelompok_a_union_domain_berhasil` (union `reservation`+`financial` benar, tanpa duplikat, `status=BERHASIL`) dan `test_kelompok_b_filter_campuran_selesai_dan_perlu_eksekusi` (hanya entri `PERLU_EKSEKUSI` yang diproses) — 2/2 PASSED dalam 161.93s.
 
-**Commit:** *(pending — commit setelah entri ini ditulis)*
+**Commit:** `91abe27`
+
+---
+
+## Checkpoint 8 — Verifikasi Span Nyata
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 8 — Verifikasi span di Jaeger
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian eksplisit: skrip verifikasi awal mencoba 3 atomic intent sekaligus (gop_margin + guests_pii + guests_profile dalam satu `identifikasi_domain_semua()` call, hingga 6 panggilan LLM berantai) - dihentikan paksa setelah ~25 menit tanpa output karena disangka macet, ternyata proses masih hidup (CPU tumbuh lambat, wajar untuk I/O-bound menunggu respons LLM bergiliran, BUKAN deadlock). Diganti pendekatan: 1 atomic intent per run (2 panggilan LLM), dijalankan 2 kali terpisah untuk KK1 dan KK3 - lebih cepat dapat sinyal, dan cukup untuk tujuan checkpoint ini (membuktikan jalur ekspor span, bukan menguji ulang kualitas identifikasi - itu sudah dibuktikan Checkpoint 5-7, dan akan diuji lebih luas lagi di eval Checkpoint 9-11).
+
+**Apa yang dilakukan**
+Docker Desktop dimulai (belum jalan sebelumnya), `docker compose up -d` di `infra/observability/` (Jaeger+Collector+Prometheus, 3 container sehat). Skrip verifikasi one-off (scratchpad, TIDAK di-commit) memanggil `setup_tracing()` + `identifikasi_domain_semua()` nyata, dibungkus span `invoke_agent`, untuk skenario KK1 (`gop_margin`) dan KK3 (`nationality mix` -> `guests_profile`). Trace di-query langsung lewat Jaeger API (`curl http://localhost:16686/api/traces/<trace_id>`), bukan asumsi dari kode.
+
+**Temuan**
+(1) Latensi panggilan LLM signifikan lebih tinggi dari M1.6/M1.7 - Qwen3-32B tercatat 25-38 detik per panggilan, DeepSeek V4 Pro (`reasoning=high`) 14-16 detik, jauh dari perkiraan awal (kemungkinan beban/antrian provider saat ini, bukan karakteristik model tetap - butuh observasi lanjut, bukan kesimpulan final). (2) Trace KK3 (`nationality mix`) menunjukkan Langkah 1 (identifikasi) BENAR hanya mengenali `guests_profile` (persis KK3, `guests_pii` TIDAK ikut) - tapi Langkah 2 (verifikasi titik buta) menambahkan `reservation` sebagai `domain_tambahan` yang tidak jelas dasarnya untuk pertanyaan murni demografis tamu ("bulan ini" kemungkinan diasosiasikan verifier dengan konteks booking/reservasi). Ini POTENSI over-triggering blind-spot yang sudah diantisipasi sebagai risiko di plan ("Verifikasi titik buta... berisiko over-triggering") - sekarang punya satu data point nyata, bukan cuma hipotetis. Belum cukup bukti untuk kesimpulan (baru 1 kejadian) - didorong jadi fokus skenario eval Checkpoint 9-11, bukan diperbaiki prematur di sini.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada error teknis - satu-satunya "kegagalan" adalah keputusan operasional membunuh proses run-3-intent yang disangka macet (lihat Kesesuaian dengan plan), bukan bug kode.
+
+**Hasil Verifikasi**
+Trace KK1 (`trace_id=ed0a755f60696aaaf3148458d510060a`): span `invoke_agent` (session.id, turn.index) -> `domain_gate.identifikasi_semua` (`intent.count=1`, `gagal_teknis_count=0`, `sebagian_count=0`) -> 2x span `chat` (Langkah 1: `qwen/qwen3-32b`, `domains_found=reservation,financial`, token usage terisi; Langkah 2: `deepseek/deepseek-v4-pro`, `domain_tambahan_count=1`) - **KK1 terbukti langsung**: `gop_margin` mengenali `reservation` DAN `financial`. Trace KK3 (`trace_id=6fed6752842c1f6f2ea9c7345046be40`): struktur span identik, Langkah 1 `domains_found=guests_profile` (persis, `guests_pii` tidak ikut) - **KK3 terbukti langsung**. Seluruh atribut `gen_ai.*` (operation.name, request.model, usage.input/output_tokens) dan atribut kustom (`domain_gate.identifikasi.domains_found`, `domain_gate.verifikasi_titik_buta.domain_tambahan_count`, `domain_gate.gagal_teknis_count`, `domain_gate.sebagian_count`, `intent.count`) terkonfirmasi ADA dan berisi nilai benar di Jaeger - sesuai kontrak Bagian 2 `rancangan-observability-ai-chatbot.md` (cakupan M2.1: span `chat` identifikasi+verifikasi titik buta; span lookup otorisasi bukan cakupan di sini, lihat decisions.md Keputusan 8).
+
+**Commit:** *(pending — commit setelah entri ini ditulis, hanya perubahan logs.md - tidak ada file kode baru sesuai plan)*
 
 ---

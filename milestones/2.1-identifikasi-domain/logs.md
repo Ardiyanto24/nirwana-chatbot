@@ -13,7 +13,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 5 | `b9daa52` | `feat(milestone-2.1): mekanisme identifikasi domain awal` |
 | 6 | `541820f` | `feat(milestone-2.1): mekanisme verifikasi titik buta` |
 | 7 | `91abe27` | `feat(milestone-2.1): orkestrator identifikasi domain gate` |
-| 8 | *(commit ini)* | `docs(milestone-2.1): verifikasi span nyata` |
+| 8 | `73c5c78` | `docs(milestone-2.1): verifikasi span nyata` |
+| 9 | *(commit ini)* | `docs(evals): rancangan pengujian identifikasi domain` |
 
 ---
 
@@ -200,6 +201,27 @@ Tidak ada error teknis - satu-satunya "kegagalan" adalah keputusan operasional m
 **Hasil Verifikasi**
 Trace KK1 (`trace_id=ed0a755f60696aaaf3148458d510060a`): span `invoke_agent` (session.id, turn.index) -> `domain_gate.identifikasi_semua` (`intent.count=1`, `gagal_teknis_count=0`, `sebagian_count=0`) -> 2x span `chat` (Langkah 1: `qwen/qwen3-32b`, `domains_found=reservation,financial`, token usage terisi; Langkah 2: `deepseek/deepseek-v4-pro`, `domain_tambahan_count=1`) - **KK1 terbukti langsung**: `gop_margin` mengenali `reservation` DAN `financial`. Trace KK3 (`trace_id=6fed6752842c1f6f2ea9c7345046be40`): struktur span identik, Langkah 1 `domains_found=guests_profile` (persis, `guests_pii` tidak ikut) - **KK3 terbukti langsung**. Seluruh atribut `gen_ai.*` (operation.name, request.model, usage.input/output_tokens) dan atribut kustom (`domain_gate.identifikasi.domains_found`, `domain_gate.verifikasi_titik_buta.domain_tambahan_count`, `domain_gate.gagal_teknis_count`, `domain_gate.sebagian_count`, `intent.count`) terkonfirmasi ADA dan berisi nilai benar di Jaeger - sesuai kontrak Bagian 2 `rancangan-observability-ai-chatbot.md` (cakupan M2.1: span `chat` identifikasi+verifikasi titik buta; span lookup otorisasi bukan cakupan di sini, lihat decisions.md Keputusan 8).
 
-**Commit:** *(pending — commit setelah entri ini ditulis, hanya perubahan logs.md - tidak ada file kode baru sesuai plan)*
+**Commit:** `73c5c78`
+
+---
+
+## Checkpoint 9 — Rancangan Eval
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 9 — `evals/2.1-identifikasi-domain/rancangan.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+10 skenario (S01-S10) fokus ke dimensi BELUM tercakup `tests/` (KK1-3 sudah teruji nyata di Checkpoint 5-8): generalisasi pola cross-domain kasus baru (S01), fokus terlalu sempit pola umum (S02), `guests_pii`+`guests_profile` gabungan (S03), retest temuan over-triggering Checkpoint 8 (S04), baseline `financial` murni (S05), guard anti-false-positive `hr` (S06), domain minor `properties_ref` (S07), multi-domain eksplisit kontrol (S08), `employees_directory`+`hr` (S09), jebakan payroll `financial` vs `hr` (S10).
+
+**Temuan**
+Tidak ada temuan baru.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Commit:** *(pending — commit setelah entri ini ditulis)*
 
 ---

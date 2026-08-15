@@ -1,0 +1,43 @@
+"""Tabel SQLModel (persistence, table=True) - Milestone 1.5.
+
+Dipisah dari src/schemas/session_memory.py (bentuk publik Pydantic murni)
+supaya row DB tidak bocor sebagai objek ORM ke business logic. Lihat
+decisions.md Keputusan 8.
+
+Nama tabel (`session_memory_packages`, `roles`) sengaja tidak bertabrakan
+dengan `traces`/`spans` yang sudah "dipesan" untuk skema observability
+Milestone 5.x/6.x di project Supabase yang sama (Keputusan 1 dan 5).
+"""
+
+from sqlalchemy import JSON, Column
+from sqlmodel import Field, SQLModel
+
+from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
+
+
+class SessionMemoryPackageRow(SQLModel, table=True):
+    __tablename__ = "session_memory_packages"
+
+    # Primary key sintetik (auto-increment), BUKAN atomic_intent_id - Milestone
+    # 1.7 nanti akan menyimpan ULANG paket yang sama (atomic_intent_id sama)
+    # sebagai baris arsip baru di bawah turn yang berjalan (lihat Lingkup M1.7
+    # rancangan-context-decomposition.md), jadi atomic_intent_id BUKAN unik
+    # per baris.
+    id: int | None = Field(default=None, primary_key=True)
+
+    atomic_intent_id: str = Field(index=True)
+    session_id: str = Field(index=True)
+    turn_index: int = Field(index=True)
+    teks_kebutuhan: str
+    label_bentuk_jawaban: LabelBentukJawaban
+    nilai_hasil: dict = Field(sa_column=Column(JSON))
+    catatan_interpretasi: list[str] = Field(sa_column=Column(JSON))
+    status: StatusEksekusi
+    sumber: str
+
+
+class RoleRow(SQLModel, table=True):
+    __tablename__ = "roles"
+
+    id: int | None = Field(default=None, primary_key=True)
+    role_title: str = Field(unique=True, index=True)

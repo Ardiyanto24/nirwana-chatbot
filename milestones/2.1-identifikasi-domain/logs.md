@@ -10,7 +10,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 2 | `0d06870` | `feat(milestone-2.1): skema data identifikasi domain` |
 | 3 | `15e39bd` | `chore(milestone-2.1): konstanta model identifikasi domain` |
 | 4 | `f84980f` | `feat(milestone-2.1): konteks grounding domain` |
-| 5 | *(commit ini)* | `feat(milestone-2.1): mekanisme identifikasi domain awal` |
+| 5 | `b9daa52` | `feat(milestone-2.1): mekanisme identifikasi domain awal` |
+| 6 | *(commit ini)* | `feat(milestone-2.1): mekanisme verifikasi titik buta` |
 
 ---
 
@@ -124,6 +125,30 @@ Root cause: `response.choices` bisa `None` pada respons yang secara teknis valid
 **Hasil Verifikasi**
 Sebelum fix: `pytest -k kelompok -s` — 3/4 PASSED (gop_margin leakage, guests_pii kontak, baseline domain tunggal), 1 FAILED (`TypeError`, guests_profile) dalam 433.30s.
 Setelah fix: `pytest test_identifikasi.py::test_kelompok_c_guests_profile_nationality_mix -v -s` dijalankan ulang sendiri — PASSED dalam 33.91s (deteksi domain `guests_profile` tepat, `guests_pii` tidak ikut, konsisten KK3). `pytest tests/layers/domain_gate/ -k "not kelompok"` (7 test pure-function domain_gate + 3 test konteks_domain) — 10/10 PASSED setelah fix, memastikan tidak ada regresi di jalur parsing. Catatan kejujuran: 3 test real-LLM yang sudah PASSED sebelum fix (`kelompok_a`/`kelompok_b`/`kelompok_d`) TIDAK di-run-ulang penuh setelah fix (perubahan hanya menambah guard baru yang tidak tersentuh jalur respons normal) - keputusan sadar menghindari pemborosan panggilan API berbayar untuk kode yang tidak berubah perilakunya di jalur itu.
+
+**Commit:** `b9daa52`
+
+---
+
+## Checkpoint 6 — Mekanisme Verifikasi Titik Buta
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 6 — `src/layers/domain_gate/verifikasi_titik_buta.py`
+
+**Kesesuaian dengan plan:** Sesuai plan setelah penyesuaian pendekatan test (sudah dicatat di Checkpoint 5, berlaku sama di sini — pure-function + panggilan LLM nyata, bukan mock). Satu detail teknis: parameter `reasoning="high"` OpenRouter TIDAK dikirim langsung sebagai kwarg (bukan parameter native SDK OpenAI) — dikirim lewat `extra_body={"reasoning": {"effort": "high"}}`, dicek dari kode nyata `src/layers/decomposition/verifikasi.py` (M1.6) supaya format persis konsisten, bukan menebak.
+
+**Apa yang dilakukan**
+`verifikasi_titik_buta()` (span `chat`, model `OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA`, `reasoning="high"`), `_call_llm()` (mentah, reuse `bounds_check_domains()` dari `identifikasi.py`), `_parse_and_decide()` (pure — domain_tambahan kosong genuinely BUKAN dianggap anomali, beda dari `identifikasi.py` yang memaksa `gagal=True` kalau domain kosong). Guard `empty_choices` (preventif, mengantisipasi bug yang sama seperti ditemukan Checkpoint 5) langsung disertakan sejak awal, tidak menunggu ditemukan ulang.
+
+**Temuan**
+Tidak ada bug baru ditemukan (guard `empty_choices` preventif tidak pernah ter-trigger di test run ini).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Pure-function: `pytest test_verifikasi_titik_buta.py -k "not kelompok"` — 4/4 PASSED (1.82s). Panggilan LLM nyata: `pytest test_verifikasi_titik_buta.py -k kelompok -s` — 2/2 PASSED (33.51s) — **membuktikan KK2 langsung**: `test_kelompok_a_kk2_menangkap_domain_sengaja_dihilangkan` memberi `domain_awal=[reservation]` yang sengaja tidak lengkap untuk pertanyaan `gop_margin`, verifikasi titik buta berhasil menangkap `financial` sebagai `domain_tambahan`. `test_kelompok_b_guard_anti_false_positive...` mengonfirmasi tidak ada tambahan palsu saat `domain_awal` sudah lengkap.
 
 **Commit:** *(pending — commit setelah entri ini ditulis)*
 

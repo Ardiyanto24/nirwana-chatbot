@@ -121,6 +121,10 @@ def rewrite_to_standalone(payload: TurnPayload) -> RewriteResult:
                 GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
             )
 
+        if not response.choices:
+            span.set_attribute("rewrite.forced_fallback_reason", "no_choices_in_response")
+            return RewriteResult(rewritten_question=payload.question)
+
         raw_content = (response.choices[0].message.content or "").strip()
         if not raw_content:
             span.set_attribute("rewrite.forced_fallback_reason", "empty_response")

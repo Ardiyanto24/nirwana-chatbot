@@ -189,6 +189,27 @@ Perlu dicatat jelas di `.env.example`/dokumentasi supaya siapa pun (termasuk ses
 
 ---
 
+## Keputusan 13 (Forced): `label_bentuk_jawaban`/`status` Disimpan `str` Polos, Bukan Kolom Enum Native Postgres
+
+**Status:** Ditemukan di tengah implementasi pada Checkpoint 5 (smoke test `store_session_memory()`).
+
+**Latar Belakang**
+Skema tabel awal (Checkpoint 4) mentipekan `label_bentuk_jawaban: LabelBentukJawaban` dan `status: StatusEksekusi` langsung sebagai Python Enum, membuat SQLModel/SQLAlchemy otomatis membuat kolom ENUM native Postgres. Smoke test menemukan nilai yang tersimpan adalah **nama member Python** (`"NILAI_TUNGGAL"`, `"BERHASIL"`), BUKAN **value string** yang dikunci arsitektur SS7 (`"nilai_tunggal"`, `"berhasil"`) — perilaku default SQLAlchemy Enum native yang menyimpan `.name`, bukan `.value`, kecuali dikonfigurasi eksplisit `values_callable`.
+
+**Keputusan yang Diikuti**
+Kolom `label_bentuk_jawaban`/`status` diubah jadi `str` polos di `src/db/models.py` (bukan kolom Enum native Postgres). Validasi/tipe Enum tetap dipertahankan penuh di level Pydantic (`src/schemas/session_memory.py`) — `store_session_memory()` memakai `package.model_dump(mode="json")` yang menyerialisasi `StrEnum` ke `.value` dengan benar; `retrieve_session_memory()` mengandalkan Pydantic mengoersi string DB kembali jadi member Enum yang tepat saat membangun `SessionMemoryPackage`.
+
+**Alasan**
+Menghindari kerumitan mengelola tipe ENUM native Postgres (evolusi nilai butuh `ALTER TYPE ... ADD VALUE`, lebih rumit tanpa Alembic — Keputusan 8) untuk manfaat yang marginal, mengingat validasi bentuk data yang sesungguhnya penting sudah terjadi di batas Pydantic (`SessionMemoryPackage`) sebelum data pernah menyentuh DB sama sekali — konsisten pola `sumber` yang juga `str` polos di level DB.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Kolom Enum native Postgres + `values_callable` eksplisit** — teknis bisa menyelesaikan masalah value vs name, tapi tetap mewarisi kerumitan evolusi tipe ENUM native Postgres tanpa Alembic untuk manfaat yang tidak terbukti dibutuhkan proyek ini saat ini.
+
+**Dampak**
+Tabel `session_memory_packages` di Supabase perlu dibuat ulang (drop+recreate) karena perubahan tipe kolom — dilakukan sebelum ada data produksi nyata (hanya data smoke test), jadi tanpa risiko kehilangan data penting. **Catatan insiden terkait** (dicatat detail di `logs.md`): proses pembersihan tipe ENUM lama sempat menjalankan query yang tidak di-scope ke schema `public`, sempat berisiko menyentuh tipe internal Supabase sendiri (`auth.*`, `storage.*`, `realtime.*`) — dikonfirmasi TIDAK ada kerusakan nyata (query `DROP TYPE IF EXISTS` tanpa schema-qualifier + `search_path` default `public` membuat drop ke schema lain jadi no-op), tapi tetap dicatat sebagai near-miss yang harus dihindari (query administratif ke Supabase wajib schema-qualified eksplisit sejak sekarang).
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -205,3 +226,4 @@ Perlu dicatat jelas di `.env.example`/dokumentasi supaya siapa pun (termasuk ses
 | 10 | Kredensial `.env`, tanpa `evals/`, tanpa TTL, tidak wired HTTP | B | Plan |
 | 11 | `decisions.md` sebagai Task pertama | B | Plan |
 | 12 | Normalisasi dialect psycopg3 + wajib pakai Connection Pooler Supabase | B | Checkpoint 3 |
+| 13 | `label_bentuk_jawaban`/`status` str polos, bukan Enum native Postgres | B | Checkpoint 5 |

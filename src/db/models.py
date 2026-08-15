@@ -12,8 +12,6 @@ Milestone 5.x/6.x di project Supabase yang sama (Keputusan 1 dan 5).
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
-from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
-
 
 class SessionMemoryPackageRow(SQLModel, table=True):
     __tablename__ = "session_memory_packages"
@@ -29,10 +27,16 @@ class SessionMemoryPackageRow(SQLModel, table=True):
     session_id: str = Field(index=True)
     turn_index: int = Field(index=True)
     teks_kebutuhan: str
-    label_bentuk_jawaban: LabelBentukJawaban
+    # label_bentuk_jawaban/status disimpan str polos (BUKAN kolom Enum native
+    # Postgres) - SQLAlchemy Enum native default menyimpan .name member Python
+    # ("NILAI_TUNGGAL"), bukan .value ("nilai_tunggal") yang dikunci arsitektur
+    # SS7, kecuali dikonfigurasi values_callable eksplisit. Str polos + validasi
+    # Enum di src/schemas/session_memory.py (Pydantic) lebih sederhana - tidak
+    # perlu kelola tipe ENUM native Postgres tanpa Alembic (Keputusan 8).
+    label_bentuk_jawaban: str
     nilai_hasil: dict = Field(sa_column=Column(JSON))
     catatan_interpretasi: list[str] = Field(sa_column=Column(JSON))
-    status: StatusEksekusi
+    status: str
     sumber: str
 
 

@@ -62,22 +62,52 @@ def _build_user_prompt(payload: TurnPayload) -> str:
     return "\n".join(lines)
 
 
+def _call_llm(payload: TurnPayload):
+    """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah dari
+    `detect_turn_dependency()` supaya bisa dipakai ulang oleh skrip eval
+    (`evals/`) untuk inspeksi payload lengkap tanpa memanggil API dua kali
+    atau menduplikasi logic pembentukan request."""
+    client = get_openrouter_client()
+    return client.chat.completions.create(
+        model=OPENROUTER_MODEL,
+        messages=[
+            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "user", "content": _build_user_prompt(payload)},
+        ],
+        response_format={"type": "json_object"},
+        temperature=0,
+    )
+
+
+def _parse_and_validate(
+    raw_content: str, valid_turn_indices: set[int]
+) -> tuple[TurnDependencyResult, str | None]:
+    """Parse + bounds-check hasil LLM. Mengembalikan (result, alasan) - alasan
+    diisi kalau hasil dipaksa jadi independent (parse gagal atau referenced_
+    turn_index di luar histori valid), None kalau tidak."""
+    try:
+        data = json.loads(raw_content)
+        result = TurnDependencyResult.model_validate(data)
+    except (json.JSONDecodeError, ValidationError) as exc:
+        return TurnDependencyResult(is_dependent=False), f"parse_error: {exc}"
+
+    if result.is_dependent and result.referenced_turn_index not in valid_turn_indices:
+        reason = (
+            f"referenced_turn_index {result.referenced_turn_index} di luar "
+            f"histori valid {sorted(valid_turn_indices)}"
+        )
+        return TurnDependencyResult(is_dependent=False), reason
+
+    return result, None
+
+
 def detect_turn_dependency(payload: TurnPayload) -> TurnDependencyResult:
     tracer = get_tracer(_TRACER_NAME)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL)
 
-        client = get_openrouter_client()
-        response = client.chat.completions.create(
-            model=OPENROUTER_MODEL,
-            messages=[
-                {"role": "system", "content": _SYSTEM_PROMPT},
-                {"role": "user", "content": _build_user_prompt(payload)},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0,
-        )
+        response = _call_llm(payload)
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
@@ -87,22 +117,10 @@ def detect_turn_dependency(payload: TurnPayload) -> TurnDependencyResult:
 
         raw_content = response.choices[0].message.content or ""
         valid_turn_indices = {h.turn_index for h in payload.history}
+        result, forced_reason = _parse_and_validate(raw_content, valid_turn_indices)
 
-        try:
-            data = json.loads(raw_content)
-            result = TurnDependencyResult.model_validate(data)
-        except (json.JSONDecodeError, ValidationError) as exc:
-            span.set_attribute("dependency.forced_independent_reason", f"parse_error: {exc}")
-            return TurnDependencyResult(is_dependent=False)
-
-        if result.is_dependent and result.referenced_turn_index not in valid_turn_indices:
-            span.set_attribute(
-                "dependency.forced_independent_reason",
-                f"referenced_turn_index {result.referenced_turn_index} di luar "
-                f"histori valid {sorted(valid_turn_indices)}",
-            )
-            return TurnDependencyResult(is_dependent=False)
-
+        if forced_reason:
+            span.set_attribute("dependency.forced_independent_reason", forced_reason)
         if result.is_dependent:
             span.set_attribute("dependency.referenced_turn_index", result.referenced_turn_index)
 

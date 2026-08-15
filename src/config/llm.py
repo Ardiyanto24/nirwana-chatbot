@@ -25,6 +25,14 @@ gampang diganti tanpa menyentuh logic layer.
   argumen keragaman model M1.6 Langkah 6 tidak berlaku. Konstanta terisolasi
   sendiri meski nilainya kebetulan sama, lihat
   milestones/1.7-pencocokan-atomic-intent/decisions.md Keputusan 3 dan 9.
+- OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI: Qwen3-32B (reuse), dipakai
+  identifikasi.py (M2.1, Domain Gate) untuk identifikasi domain awal.
+- OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA: DeepSeek V4 Pro (reuse
+  pola M1.6 Langkah 6), dipakai verifikasi_titik_buta.py (M2.1) dengan
+  reasoning="high" - model berbeda dari identifikasi awal untuk keragaman
+  peran verifier independen, karena risiko M2.1 asimetris ke arah domain
+  terlewat (beda dari M1.7 yang asimetris ke arah aman). Lihat
+  milestones/2.1-identifikasi-domain/decisions.md Keputusan 7 dan 9.
 """
 
 import os
@@ -38,6 +46,8 @@ OPENROUTER_MODEL_REWRITE = "qwen/qwen3-32b"
 OPENROUTER_MODEL_DECOMPOSITION = "qwen/qwen3-32b"
 OPENROUTER_MODEL_DECOMPOSITION_VERIFIKASI = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_MATCHING = "qwen/qwen3-32b"
+OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI = "qwen/qwen3-32b"
+OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA = "deepseek/deepseek-v4-pro"
 
 load_dotenv()
 

@@ -7,7 +7,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | Checkpoint | Commit | Pesan |
 |---|---|---|
 | 1 | `11c0db7` | `docs(milestone-2.1): decisions` |
-| 2 | *(commit ini)* | `feat(milestone-2.1): skema data identifikasi domain` |
+| 2 | `0d06870` | `feat(milestone-2.1): skema data identifikasi domain` |
+| 3 | *(commit ini)* | `chore(milestone-2.1): konstanta model identifikasi domain` |
 
 ---
 
@@ -42,6 +43,27 @@ Tidak ada.
 
 **Apa yang dilakukan**
 `Domain` (`StrEnum` 10 nilai persis Keputusan 4) dan `AtomicIntentDomains` (`atomic_intent`, `domains: list[Domain]`, `status: StatusEksekusi` reuse M1.5) dengan validator `domains_konsisten_dengan_status` — `GAGAL_TEKNIS` wajib `domains` kosong, selain itu wajib non-kosong.
+
+**Temuan**
+Tidak ada temuan baru.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Commit:** `0d06870`
+
+---
+
+## Checkpoint 3 — Konstanta Model
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 3 — `src/config/llm.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI` (`qwen/qwen3-32b`) dan `OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA` (`deepseek/deepseek-v4-pro`) ditambahkan, terisolasi dari konstanta M1.6 meski nilai identifikasi kebetulan sama (Keputusan 7).
 
 **Temuan**
 Tidak ada temuan baru.

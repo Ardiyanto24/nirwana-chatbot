@@ -4,9 +4,12 @@ Dipisah dari src/schemas/session_memory.py (bentuk publik Pydantic murni)
 supaya row DB tidak bocor sebagai objek ORM ke business logic. Lihat
 decisions.md Keputusan 8.
 
-Nama tabel (`session_memory_packages`, `roles`) sengaja tidak bertabrakan
-dengan `traces`/`spans` yang sudah "dipesan" untuk skema observability
-Milestone 5.x/6.x di project Supabase yang sama (Keputusan 1 dan 5).
+Nama tabel (`session_memory_packages`, `roles`, `role_permissions`) sengaja
+tidak bertabrakan dengan `traces`/`spans` yang sudah "dipesan" untuk skema
+observability Milestone 5.x/6.x di project Supabase yang sama (Keputusan 1
+dan 5). `role_permissions` (Milestone 2.2) adalah salinan Lapis-1 milik
+proyek ini sendiri - BUKAN tabel produksi `mart_cleaned.role_permissions`,
+lihat docstring `RolePermissionRow`.
 """
 
 from sqlalchemy import JSON, Column
@@ -45,3 +48,19 @@ class RoleRow(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     role_title: str = Field(unique=True, index=True)
+
+
+class RolePermissionRow(SQLModel, table=True):
+    """Salinan Lapis-1 (Milestone 2.2) atas matriks otorisasi 20 role x 10
+    domain, di project Supabase milik proyek ini SENDIRI - BUKAN tabel
+    `mart_cleaned.role_permissions` produksi (beda database, beda kredensial,
+    beda tujuan; kredensial `chatbot_authz_reader` untuk tabel produksi itu
+    eksklusif milik Milestone 4.4/Lapis 2). Satu baris = satu izin
+    (role_title, domain) yang granted; ketiadaan baris = ditolak. Lihat
+    decisions.md M2.2 Keputusan 1 dan 10."""
+
+    __tablename__ = "role_permissions"
+
+    id: int | None = Field(default=None, primary_key=True)
+    role_title: str = Field(index=True)
+    domain: str = Field(index=True)

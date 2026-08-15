@@ -240,3 +240,17 @@ def archive_matched_packages(
             sumber=_sumber_arsip(paket_lama),
         )
         store_session_memory(arsip)
+
+
+def match_and_archive(
+    atomic_intents: list[AtomicIntent],
+    candidates: list[SessionMemoryPackage],
+    session_id: str,
+    turn_index: int,
+) -> list[AtomicIntentMatch]:
+    """Orkestrator tipis: `match_atomic_intents()` lalu `archive_matched_
+    packages()` untuk hasilnya. Titik masuk tunggal yang nanti dipanggil
+    pipeline penuh (`src/main.py`, belum dirangkai)."""
+    matches = match_atomic_intents(atomic_intents, candidates)
+    archive_matched_packages(matches, session_id, turn_index)
+    return matches

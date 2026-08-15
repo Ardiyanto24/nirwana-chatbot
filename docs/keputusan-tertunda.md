@@ -4,7 +4,9 @@ Dokumen ini mencatat keputusan teknis yang genuinely terbuka tapi **belum saatny
 
 ---
 
-## 1. Database untuk Proyek Ini (Session Memory + Kemungkinan Migrasi Daftar Role)
+## 1. Database untuk Proyek Ini (Session Memory + Kemungkinan Migrasi Daftar Role) — ✅ SELESAI (M1.5)
+
+**Status:** SELESAI di Milestone 1.5 (2026-08-15). Keputusan final: **Supabase** (Postgres terkelola, project sama dengan rencana dashboard observability M5.x/M6.x) diakses lewat **SQLModel**; `src/config/roles.yaml` **dimigrasi penuh** ke tabel `roles` di database yang sama (file YAML dihapus). Detail lengkap + opsi yang dipertimbangkan tapi ditolak: `milestones/1.5-tarik-session-memory/decisions.md` Keputusan 1-3, 9.
 
 **Muncul di:** Milestone 1.2 (Input Layer), saat mendiskusikan penyimpanan daftar 20 `role_title` untuk validasi struktural (2026-08-14).
 

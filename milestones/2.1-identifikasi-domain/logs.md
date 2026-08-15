@@ -11,7 +11,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 3 | `15e39bd` | `chore(milestone-2.1): konstanta model identifikasi domain` |
 | 4 | `f84980f` | `feat(milestone-2.1): konteks grounding domain` |
 | 5 | `b9daa52` | `feat(milestone-2.1): mekanisme identifikasi domain awal` |
-| 6 | *(commit ini)* | `feat(milestone-2.1): mekanisme verifikasi titik buta` |
+| 6 | `541820f` | `feat(milestone-2.1): mekanisme verifikasi titik buta` |
+| 7 | *(commit ini)* | `feat(milestone-2.1): orkestrator identifikasi domain gate` |
 
 ---
 
@@ -149,6 +150,30 @@ Tidak ada.
 
 **Hasil Verifikasi**
 Pure-function: `pytest test_verifikasi_titik_buta.py -k "not kelompok"` — 4/4 PASSED (1.82s). Panggilan LLM nyata: `pytest test_verifikasi_titik_buta.py -k kelompok -s` — 2/2 PASSED (33.51s) — **membuktikan KK2 langsung**: `test_kelompok_a_kk2_menangkap_domain_sengaja_dihilangkan` memberi `domain_awal=[reservation]` yang sengaja tidak lengkap untuk pertanyaan `gop_margin`, verifikasi titik buta berhasil menangkap `financial` sebagai `domain_tambahan`. `test_kelompok_b_guard_anti_false_positive...` mengonfirmasi tidak ada tambahan palsu saat `domain_awal` sudah lengkap.
+
+**Commit:** `541820f`
+
+---
+
+## Checkpoint 7 — Orkestrator
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 7 — `src/layers/domain_gate/domain_gate.py`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan catatan kejujuran verifikasi eksplisit: cabang status `GAGAL_TEKNIS`/`SEBAGIAN` (pemetaan `hasil_awal.gagal`/`hasil_verifikasi.gagal`) TIDAK diuji lewat kegagalan API yang dipaksa nyata — project tidak pernah mock panggilan LLM, dan kegagalan API tidak bisa dipicu deterministik on-demand. Divalidasi lewat review kode (pemetaan if/else langsung dari flag `gagal` yang SUDAH teruji di level `identifikasi.py`/`verifikasi_titik_buta.py` via pure-function test Checkpoint 5-6) — dicatat eksplisit sebagai keterbatasan verifikasi, bukan diklaim teruji end-to-end.
+
+**Apa yang dilakukan**
+`identifikasi_domain_atomic_intent()` (gabung Langkah 1+2, union dedupe, verifikasi titik buta TIDAK dipanggil kalau identifikasi awal gagal) dan `identifikasi_domain_semua()` (filter `PERLU_EKSEKUSI`, span pembungkus `domain_gate.identifikasi_semua`).
+
+**Temuan**
+Tidak ada temuan baru.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Deterministik (tanpa LLM): `test_filter_perlu_eksekusi_kosong_kalau_semua_selesai` — PASSED (2.12s), membuktikan jalur pintas filter bekerja tanpa satu pun panggilan LLM. Panggilan LLM nyata: `test_kelompok_a_union_domain_berhasil` (union `reservation`+`financial` benar, tanpa duplikat, `status=BERHASIL`) dan `test_kelompok_b_filter_campuran_selesai_dan_perlu_eksekusi` (hanya entri `PERLU_EKSEKUSI` yang diproses) — 2/2 PASSED dalam 161.93s.
 
 **Commit:** *(pending — commit setelah entri ini ditulis)*
 

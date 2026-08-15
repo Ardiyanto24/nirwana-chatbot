@@ -1,0 +1,27 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Baseline domain tunggal: financial murni",
+  "timestamp": "2026-08-15T15:48:30.025933+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "671dd36e-adb9-459c-a8f0-5862d8c64b25",
+    "teks_kebutuhan": "Berapa total revenue seluruh properti bulan ini?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "671dd36e-adb9-459c-a8f0-5862d8c64b25",
+      "teks_kebutuhan": "Berapa total revenue seluruh properti bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "financial"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

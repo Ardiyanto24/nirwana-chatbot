@@ -1,0 +1,28 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "guests_pii DAN guests_profile genuinely dibutuhkan sekaligus",
+  "timestamp": "2026-08-15T15:40:58.802470+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "70222b51-418b-4a43-8f8e-6fdd0e519ff9",
+    "teks_kebutuhan": "Siapkan laporan tamu VIP: nama, email, dan tingkat loyalitas mereka.",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "70222b51-418b-4a43-8f8e-6fdd0e519ff9",
+      "teks_kebutuhan": "Siapkan laporan tamu VIP: nama, email, dan tingkat loyalitas mereka.",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "guests_pii",
+      "guests_profile"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

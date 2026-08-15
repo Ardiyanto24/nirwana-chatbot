@@ -1,0 +1,28 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "Generalisasi pola cross-domain (kasus baru, bukan gop_margin)",
+  "timestamp": "2026-08-15T15:24:27.509892+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "efc1b1ee-9bd1-4821-9027-dd7c5b7f118c",
+    "teks_kebutuhan": "Bagaimana margin keuntungan F&B dibandingkan dengan revenue F&B bulan ini?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "efc1b1ee-9bd1-4821-9027-dd7c5b7f118c",
+      "teks_kebutuhan": "Bagaimana margin keuntungan F&B dibandingkan dengan revenue F&B bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "fnb",
+      "financial"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

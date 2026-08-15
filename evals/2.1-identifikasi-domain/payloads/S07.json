@@ -1,0 +1,27 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "Domain minor: properties_ref",
+  "timestamp": "2026-08-15T15:49:37.911198+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "8c95500c-0c87-4849-b8b0-3a8d66a65f75",
+    "teks_kebutuhan": "Sebutkan nama-nama hotel yang sudah beroperasi lebih dari 5 tahun.",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "8c95500c-0c87-4849-b8b0-3a8d66a65f75",
+      "teks_kebutuhan": "Sebutkan nama-nama hotel yang sudah beroperasi lebih dari 5 tahun.",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "properties_ref"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

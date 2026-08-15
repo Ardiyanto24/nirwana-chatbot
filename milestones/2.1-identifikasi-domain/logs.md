@@ -14,7 +14,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 6 | `541820f` | `feat(milestone-2.1): mekanisme verifikasi titik buta` |
 | 7 | `91abe27` | `feat(milestone-2.1): orkestrator identifikasi domain gate` |
 | 8 | `73c5c78` | `docs(milestone-2.1): verifikasi span nyata` |
-| 9 | *(commit ini)* | `docs(evals): rancangan pengujian identifikasi domain` |
+| 9 | `d34c8b6` | `docs(evals): rancangan pengujian identifikasi domain` |
+| 10 | *(commit ini)* | `fix(config): timeout eksplisit client OpenRouter` + `test(evals): eksekusi skenario pengujian identifikasi domain + payload mentah` |
 
 ---
 
@@ -222,6 +223,35 @@ Tidak ada temuan baru.
 **Error/Kegagalan (jika ada)**
 Tidak ada.
 
-**Commit:** *(pending — commit setelah entri ini ditulis)*
+**Commit:** `d34c8b6`
+
+---
+
+## Checkpoint 10 — Eksekusi Eval
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 10 — `evals/2.1-identifikasi-domain/run_eval.py`
+
+**Kesesuaian dengan plan:** Menyimpang signifikan dari plan pada cara eksekusi (bukan hasil) - dijalankan per-skenario (proses Python terpisah per `SXX`, `run_eval.py <ID>`) alih-alih satu proses tunggal 10 skenario berurutan seperti dibayangkan plan. Hasil akhir tetap identik (10 payload lengkap tersimpan di `payloads/`), fungsi produksi tetap direuse langsung tanpa duplikasi logic.
+
+**Apa yang dilakukan**
+`run_eval.py` (10 fungsi skenario S01-S10, reuse `identifikasi_domain_atomic_intent()` langsung), dieksekusi satu-per-satu lewat CLI filter (`sys.argv[1]`, ditambahkan khusus untuk eksekusi ini - lihat Diagnosis). Payload lengkap (atomic intent + `AtomicIntentDomains`) tersimpan `payloads/S01.json` s.d. `S10.json`.
+
+**Temuan**
+(1) **Hasil eval: 10/10 skenario match (LOLOS)** - termasuk S01 (generalisasi pola cross-domain KE KASUS BARU, bukan cuma `gop_margin` - `fnb`+`financial` terdeteksi tepat, memvalidasi Keputusan 11), S10 (jebakan payroll `financial` murni tanpa `hr` terhindar tepat). (2) **Temuan over-triggering verifikasi titik buta TERKONFIRMASI ULANG dan lebih kuat dari perkiraan**: S04 (retest identik skenario Checkpoint 8) kembali menghasilkan `reservation` selain `guests_profile` - ini REPLIKASI KEDUA (Checkpoint 8 + S04 di sini), bukan kejadian tunggal, meningkatkan keyakinan ini pola nyata bukan noise acak. S08 (kontrol multi-domain eksplisit) juga menunjukkan `financial` ikut ditambahkan di luar `fnb`+`reservation` yang diminta eksplisit - pola serupa (verifikasi titik buta cenderung inklusif untuk pertanyaan bertema "revenue"/"bulan ini"). Sebaliknya S05/S06/S07/S10 (baseline/guard) menghasilkan domain BERSIH tanpa tambahan sama sekali - pola over-triggering TIDAK universal, tampak spesifik ke kombinasi kata tertentu (revenue, bulan ini, mix).
+
+**Error/Kegagalan (jika ada)**
+**Masalah operasional signifikan selama eksekusi**: beberapa kali panggilan LLM (khususnya kombinasi `identifikasi_domain()`+`verifikasi_titik_buta()` berurutan) mengalami hang tanpa exception - proses tetap hidup (`Responding=True`, CPU nyaris nol, konsisten I/O-bound blocking) tapi tidak selesai selama puluhan menit, jauh melebihi latensi normal yang teramati Checkpoint 5-8 (14-38 detik). Terjadi berulang di titik yang tidak konsisten (kadang skenario ke-2 dalam proses yang sama, kadang skenario tunggal terisolasi) - root cause pasti TIDAK berhasil diisolasi penuh dalam waktu wajar (dicoba: raw `_call_llm()` isolasi berhasil cepat 12s; `identifikasi_domain()` wrapped isolasi berhasil cepat 14s; `verifikasi_titik_buta()` isolasi berhasil cepat 21s; test koneksi langsung `curl` ke endpoint chat completions berhasil cepat 17.8s - semua komponen individual TERBUKTI bekerja normal saat diuji terisolasi, tapi kombinasi tertentu tetap kadang hang).
+
+**Diagnosis dan Perbaikan**
+Diagnosis parsial (bukan root cause definitif): `get_openrouter_client()` (`src/config/llm.py`) sebelumnya TANPA timeout eksplisit sama sekali (mengandalkan default SDK openai==3.0.0) - float `timeout=120.0` yang pertama dicoba TERBUKTI TIDAK cukup memaksa resolusi pada beberapa kejadian (proses tetap hang jauh melebihi 120s+retry). Perbaikan yang diterapkan: `timeout=90.0, max_retries=1` eksplisit (batas atas deterministik ~180s terburuk per panggilan) - **bukan solusi yang membuktikan penyebab hang ditemukan**, melainkan mitigasi defensif supaya kegagalan (kalau terulang) jatuh ke jalur fallback aman (`gagal=True`) yang SUDAH ada di tiap layer (Checkpoint 5-6), bukan hang tak terbatas tanpa kontrol. Strategi eksekusi juga diubah ke per-skenario/proses-terisolasi (bukan satu proses 10 skenario berurutan) sebagai mitigasi tambahan - pola ini terbukti lebih andal secara empiris (9/9 skenario setelah S01 berhasil dieksekusi individual tanpa hang berulang, dibanding percobaan proses tunggal yang berulang kali macet).
+
+**Hasil Verifikasi**
+10/10 payload tersimpan lengkap di `evals/2.1-identifikasi-domain/payloads/`, seluruhnya `status=berhasil` (tidak ada `gagal_teknis`/`sebagian` di hasil akhir yang tersimpan - kegagalan yang teramati adalah kegagalan PROSES/infrastruktur sebelum hasil tercatat, bukan kegagalan mekanisme `identifikasi_domain_atomic_intent()` itu sendiri).
+
+**Catatan kejujuran keterbatasan**: masalah hang ini TIDAK sepenuhnya diselesaikan dengan pemahaman akar masalah yang lengkap - dicatat eksplisit sebagai keterbatasan operasional (kandidat entri baru `docs/keterbatasan-diterima.md`, diputuskan di Checkpoint 11 setelah audit lengkap), bukan diklaim "sudah diperbaiki" tanpa dasar penuh.
+
+**Commit:** `2a63db2` (fix timeout) + *(pending — commit eksekusi eval setelah entri ini ditulis)*
 
 ---

@@ -1,0 +1,28 @@
+{
+  "scenario_id": "S09",
+  "deskripsi": "employees_directory + hr gabungan",
+  "timestamp": "2026-08-15T15:51:41.509273+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "a0653246-26d1-4728-8b89-f426a0b01553",
+    "teks_kebutuhan": "Siapa saja karyawan departemen HR yang performanya menurun bulan ini?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "a0653246-26d1-4728-8b89-f426a0b01553",
+      "teks_kebutuhan": "Siapa saja karyawan departemen HR yang performanya menurun bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "hr",
+      "employees_directory"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": "employees_directory diharapkan tapi tidak wajib - dicatat sebagai observasi, bukan fail otomatis kalau tidak muncul"
+}

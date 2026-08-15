@@ -1,0 +1,27 @@
+{
+  "scenario_id": "S10",
+  "deskripsi": "Jebakan payroll: financial MURNI, bukan hr",
+  "timestamp": "2026-08-15T15:52:17.279882+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "e2a9c1be-e72b-46a3-807a-4ded3ccd2012",
+    "teks_kebutuhan": "Berapa total payroll yang dibayarkan bulan ini?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "e2a9c1be-e72b-46a3-807a-4ded3ccd2012",
+      "teks_kebutuhan": "Berapa total payroll yang dibayarkan bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "financial"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

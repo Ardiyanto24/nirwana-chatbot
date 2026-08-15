@@ -1,0 +1,28 @@
+{
+  "scenario_id": "S04",
+  "deskripsi": "Retest temuan Checkpoint 8 (potensi over-triggering reservation)",
+  "timestamp": "2026-08-15T15:41:41.701607+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "56a45561-9177-4871-9ced-4568942512fe",
+    "teks_kebutuhan": "Berapa nationality mix tamu bulan ini?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "56a45561-9177-4871-9ced-4568942512fe",
+      "teks_kebutuhan": "Berapa nationality mix tamu bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "guests_profile",
+      "reservation"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": "kalau domain 'reservation' ikut muncul, itu mereplikasi temuan over-triggering Checkpoint 8 - dicatat sebagai temuan pola, BUKAN fail keras"
+}

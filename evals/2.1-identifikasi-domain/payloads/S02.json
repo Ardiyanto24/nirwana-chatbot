@@ -1,0 +1,29 @@
+{
+  "scenario_id": "S02",
+  "deskripsi": "Fokus terlalu sempit (pola umum, bukan leakage kolom)",
+  "timestamp": "2026-08-15T15:40:15.769423+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "5e72a6cd-a568-48a7-ae7d-09d898cdb779",
+    "teks_kebutuhan": "Siapa staff yang menangani housekeeping hari ini, dan berapa okupansi hotel saat itu?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "5e72a6cd-a568-48a7-ae7d-09d898cdb779",
+      "teks_kebutuhan": "Siapa staff yang menangani housekeeping hari ini, dan berapa okupansi hotel saat itu?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "employees_directory",
+      "reservation",
+      "facility"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

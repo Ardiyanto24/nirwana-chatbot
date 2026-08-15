@@ -1,0 +1,29 @@
+{
+  "scenario_id": "S08",
+  "deskripsi": "Multi-domain eksplisit (bukan leakage - keduanya disebut jelas)",
+  "timestamp": "2026-08-15T15:50:29.514023+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "f6f437e1-af78-4651-b044-18d8722b0267",
+    "teks_kebutuhan": "Bandingkan revenue F&B dengan tingkat okupansi kamar bulan ini.",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "f6f437e1-af78-4651-b044-18d8722b0267",
+      "teks_kebutuhan": "Bandingkan revenue F&B dengan tingkat okupansi kamar bulan ini.",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "financial",
+      "reservation",
+      "fnb"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

@@ -1,0 +1,27 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Guard anti-false-positive: hr murni",
+  "timestamp": "2026-08-15T15:49:06.997549+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "7029ff8c-2295-40f5-9490-0fddd805b586",
+    "teks_kebutuhan": "Berapa tingkat turnover karyawan bulan ini?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "7029ff8c-2295-40f5-9490-0fddd805b586",
+      "teks_kebutuhan": "Berapa tingkat turnover karyawan bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domains": [
+      "hr"
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

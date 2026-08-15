@@ -8,7 +8,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 |---|---|---|
 | 1 | `11c0db7` | `docs(milestone-2.1): decisions` |
 | 2 | `0d06870` | `feat(milestone-2.1): skema data identifikasi domain` |
-| 3 | *(commit ini)* | `chore(milestone-2.1): konstanta model identifikasi domain` |
+| 3 | `15e39bd` | `chore(milestone-2.1): konstanta model identifikasi domain` |
+| 4 | *(commit ini)* | `feat(milestone-2.1): konteks grounding domain` |
 
 ---
 
@@ -70,6 +71,30 @@ Tidak ada temuan baru.
 
 **Error/Kegagalan (jika ada)**
 Tidak ada.
+
+**Commit:** `15e39bd`
+
+---
+
+## Checkpoint 4 — Konteks Grounding Domain
+
+**Mulai:** 2026-08-15 · **Selesai:** 2026-08-15
+
+### Task 4 — `src/layers/domain_gate/konteks_domain.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`DESKRIPSI_DOMAIN` (dict 10 domain, deskripsi dikutip dari kolom "Isi" tabel Ringkasan 10 Domain `katalog-data-chatbot.md` baris 45-54) dan `CATATAN_POLA_JEBAKAN` (3 pola: kebocoran kolom turunan + contoh `gop_margin`/`v_reservation_gop_impact_monthly`, fokus terlalu sempit, pemisahan kolom `guests_pii`/`guests_profile` verbatim `rancangan-rbac-ai-chatbot.md` Bagian 1). Unit test regression: `DESKRIPSI_DOMAIN` cocok 1:1 dengan `Domain` Enum, tidak kosong, dan menyebut kedua kasus terdokumentasi.
+
+**Temuan**
+Tidak ada temuan baru.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`uv run pytest tests/layers/domain_gate/test_konteks_domain.py -v` — 3/3 PASSED.
 
 **Commit:** *(pending — commit setelah entri ini ditulis)*
 

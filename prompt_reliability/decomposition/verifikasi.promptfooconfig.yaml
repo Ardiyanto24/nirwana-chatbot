@@ -1,0 +1,38 @@
+description: "Reliability testing - decomposition.verifikasi (M1.6 Langkah 6)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: decomposition.verifikasi
+      model: deepseek/deepseek-v4-pro
+      response_format: { type: json_object }
+      extra_body: { reasoning: { effort: high } }
+
+tests:
+  - description: S_pemecahan_benar_diloloskan
+    vars:
+      user_prompt: |
+        Pertanyaan asli: Berapa revenue reservasi bulan Maret 2026?
+
+        Hasil pemecahan:
+        1. Berapa revenue reservasi bulan Maret 2026? [label_bentuk_jawaban=nilai_tunggal, relasi=independen]
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).valid === true"
+
+  - description: S_relasi_keliru_bergantung_ditandai_independen_tertangkap
+    vars:
+      user_prompt: |
+        Pertanyaan asli: Bandingkan revenue reservasi Maret 2026 dengan Februari 2026.
+
+        Hasil pemecahan:
+        1. Berapa revenue reservasi Maret 2026? [label_bentuk_jawaban=nilai_tunggal, relasi=independen]
+        2. Berapa revenue reservasi Februari 2026? [label_bentuk_jawaban=nilai_tunggal, relasi=independen]
+    assert:
+      - type: is-json
+      - type: javascript
+        # Perbandingan yang diminta tidak dipecah sama sekali - kebutuhan
+        # "perbandingan" itu sendiri hilang total dari hasil pemecahan.
+        # Verifier wajib menangkap ini sebagai tidak lengkap/tidak valid.
+        value: "JSON.parse(output).valid === false"

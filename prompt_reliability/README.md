@@ -28,16 +28,20 @@ prompt_reliability/
 │   └── verifikasi.promptfooconfig.yaml
 └── domain_gate/
     ├── identifikasi.promptfooconfig.yaml
-    └── verifikasi_titik_buta.promptfooconfig.yaml
+    ├── verifikasi_titik_buta.promptfooconfig.yaml
+    ├── deteksi_cakupan_individu.promptfooconfig.yaml
+    └── verifikasi_cakupan_individu.promptfooconfig.yaml
 ```
 
 ## Kapan Dipakai
 
-Setiap kali prompt di `src/prompts/**/*.md` berubah (bump `version` di frontmatter), sebelum commit di-push — supaya reviewer prompt punya bukti konkret dampak perubahan (skenario yang tadinya lolos jadi gagal, atau sebaliknya), bukan hanya membaca teks prompt baru dan menebak dampaknya. Wajib terutama untuk prompt Domain Gate (`identifikasi.md`, `verifikasi_titik_buta.md`) mengingat sensitivitas RBAC-nya (lihat Prinsip 1, `rancangan-manajemen-prompt.md`).
+Setiap kali prompt di `src/prompts/**/*.md` berubah (bump `version` di frontmatter), sebelum commit di-push — supaya reviewer prompt punya bukti konkret dampak perubahan (skenario yang tadinya lolos jadi gagal, atau sebaliknya), bukan hanya membaca teks prompt baru dan menebak dampaknya. Wajib terutama untuk prompt RBAC-sensitif (Domain Gate: `identifikasi.md`/`verifikasi_titik_buta.md`/`deteksi_cakupan_individu.md`/`verifikasi_cakupan_individu.md`) mengingat sensitivitasnya (lihat Prinsip 1, `rancangan-manajemen-prompt.md`).
+
+**Menjalankan Promptfoo lokal**: provider Python (`provider.py`) butuh dependency proyek (`opentelemetry-exporter-otlp-proto-grpc`, dll.) yang hanya terpasang di virtualenv `uv` (`.venv/`), bukan Python sistem yang dipakai Promptfoo secara default. Set `PROMPTFOO_PYTHON` ke interpreter venv sebelum `npx promptfoo eval`, mis. (PowerShell): `$env:PROMPTFOO_PYTHON = "$(Resolve-Path ../../.venv/Scripts/python.exe)"`.
 
 ## Status
 
-Skeleton — isi `promptfooconfig.yaml` per prompt dan skrip push hasil ke Supabase (`push_results.py`) menyusul di Fase 2, bersamaan retrofit tiap call site dari `_SYSTEM_PROMPT` hardcode ke `src/prompts/`.
+Terisi penuh — seluruh 8 prompt M1.3-M2.1 (`config` per call site, Fase 2) + 2 prompt M2.3 (`deteksi_cakupan_individu`/`verifikasi_cakupan_individu`, dibangun natif sejak awal milestone, bukan retrofit — lihat `milestones/2.3-deteksi-cakupan-individu/decisions.md` Keputusan 11). `push_results.py` reuse untuk seluruh config.
 
 ## Referensi
 

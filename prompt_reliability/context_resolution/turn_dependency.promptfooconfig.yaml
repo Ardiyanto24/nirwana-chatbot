@@ -1,0 +1,93 @@
+description: "Reliability testing - context_resolution.turn_dependency (M1.3)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: context_resolution.turn_dependency
+      model: deepseek/deepseek-v4-flash-0731
+      response_format: { type: json_object }
+
+tests:
+  - description: S01_baseline_independen_tanpa_histori
+    vars:
+      user_prompt: |
+        Tidak ada histori - ini turn pertama dalam sesi.
+
+        Pertanyaan turn terakhir (turn 1): Berapa occupancy rate properti kita bulan Juni 2026?
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).is_dependent === false"
+
+  - description: S03_dependent_eksplisit_turn_N_minus_1
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa revenue reservasi bulan Maret 2026? | A: Revenue reservasi Maret 2026 sebesar Rp 800 juta.
+
+        Pertanyaan turn terakhir (turn 2): Bandingkan dengan bulan sebelumnya.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).is_dependent === true && JSON.parse(output).referenced_turn_index === 1"
+
+  - description: S05_dependent_eksplisit_turn_jauh_distractor
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa jumlah komplain yang diterima Front Office bulan ini? | A: Front Office menerima 7 komplain bulan ini, mayoritas soal waktu check-in.
+        - Turn 2: Q: Bagaimana kondisi kolam renang? | A: Kolam renang beroperasi normal, terakhir dibersihkan kemarin.
+        - Turn 3: Q: Berapa revenue spa minggu ini? | A: Revenue spa minggu ini Rp 32 juta.
+        - Turn 4: Q: Siapa yang bertugas shift malam hari ini? | A: Shift malam dipegang oleh 3 staff Front Office dan 2 staff Housekeeping.
+        - Turn 5: Q: Berapa kamar yang sedang dalam maintenance? | A: 5 kamar sedang dalam maintenance, estimasi selesai 3 hari.
+
+        Pertanyaan turn terakhir (turn 6): Balik lagi ke soal komplain Front Office tadi, sudah ada tindak lanjutnya?
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).is_dependent === true && JSON.parse(output).referenced_turn_index === 1"
+
+  - description: S08_negasi_eksplisit
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa revenue reservasi bulan Maret 2026? | A: Revenue reservasi Maret 2026 sebesar Rp 800 juta.
+
+        Pertanyaan turn terakhir (turn 2): Ini pertanyaan baru, tidak ada hubungannya dengan tadi: berapa staff maintenance yang aktif sekarang?
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).is_dependent === false"
+
+  - description: S09_sesi_panjang_tanpa_dependency
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa occupancy rate April 2026? | A: 78%.
+        - Turn 2: Q: Revenue F&B bulan ini? | A: Rp 450 juta.
+        - Turn 3: Q: Komplain housekeeping bulan ini? | A: 12 komplain.
+        - Turn 4: Q: Kondisi maintenance AC lantai 3? | A: 3 unit diperbaiki.
+        - Turn 5: Q: Booking spa minggu ini? | A: 45 booking.
+        - Turn 6: Q: Staff terbaik bulan ini? | A: Sari dari Front Office.
+        - Turn 7: Q: Staff HR aktif? | A: 8 staff.
+        - Turn 8: Q: Revenue financial Q1 2026? | A: Rp 2.1 miliar.
+        - Turn 9: Q: Ada komplain tamu VIP? | A: 1 komplain, sudah ditangani GM.
+        - Turn 10: Q: Revenue reservasi bulan lalu? | A: Rp 800 juta.
+
+        Pertanyaan turn terakhir (turn 11): Berapa jumlah kamar tipe suite yang tersedia?
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).is_dependent === false"
+
+  - description: S12_jebakan_false_positive_overlap_leksikal
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa revenue F&B bulan April 2026? | A: Revenue F&B April 2026 sebesar Rp 450 juta.
+
+        Pertanyaan turn terakhir (turn 2): Berapa revenue reservasi bulan April 2026?
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).is_dependent === false"

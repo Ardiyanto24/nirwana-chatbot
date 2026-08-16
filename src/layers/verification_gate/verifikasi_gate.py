@@ -28,3 +28,17 @@ def verifikasi_bentuk_request_statis(request: QueryEngineRequest) -> tuple[bool,
         return False, f"limit {limit} melebihi batas maksimum {LIMIT_MAKSIMUM}"
 
     return True, None
+
+
+def verifikasi_kepatuhan_sumber(
+    request: QueryEngineRequest, view_name_tervalidasi_retriever: str
+) -> tuple[bool, str | None]:
+    """Cek 2: view_name yang akan dikirim benar-benar sama dengan yang
+    divalidasi Retriever (M3.1-3.3) - diterima sebagai parameter, BUKAN
+    query M3.x langsung (belum dibangun)."""
+    if request.view_name != view_name_tervalidasi_retriever:
+        return False, (
+            f"view_name request ('{request.view_name}') tidak sesuai dengan "
+            f"view_name yang divalidasi Retriever ('{view_name_tervalidasi_retriever}')"
+        )
+    return True, None

@@ -1,0 +1,85 @@
+employee_id,property_id,property_name,full_name,role_title,department,access_level,hire_date,status
+E0013,P01,Nirwana Beach Resort Bali,Kamila Pranowo,F&B Manager,F&B,manager,2023-06-12,active
+E0011,P01,Nirwana Beach Resort Bali,Yance Utami,F&B Staff,F&B,staff,2021-03-13,active
+E0039,P01,Nirwana Beach Resort Bali,Lanjar Puspasari,Finance Manager,Finance,manager,2024-10-27,active
+E0014,P01,Nirwana Beach Resort Bali,Humaira Uyainah,Finance Staff,Finance,staff,2015-07-03,active
+E0004,P01,Nirwana Beach Resort Bali,Daruna Mayasari,Front Office Staff,Revenue,staff,2021-03-19,active
+E0001,P01,Nirwana Beach Resort Bali,Darmana Mandala,General Manager,Corporate,manager,2022-04-28,active
+E0060,P01,Nirwana Beach Resort Bali,Asirwanda Padmasari,HR Manager,HR,manager,2020-10-12,active
+E0062,P01,Nirwana Beach Resort Bali,Asmianto Melani,HR Staff,HR,staff,2022-07-24,active
+E0064,P01,Nirwana Beach Resort Bali,Legawa Hidayat,Housekeeping Manager,Housekeeping ,manager,2021-07-08,active
+E0002,P01,Nirwana Beach Resort Bali,Lantar Anggraini,Housekeeping Staff,Housekeeping,staff,2015-12-21,active
+E0010,P01,Nirwana Beach Resort Bali,Cindy Puspasari,Maintenance Manager,Facility,manager,2025-08-17,active
+E0003,P01,Nirwana Beach Resort Bali,Among Iswahyudi,Maintenance Staff,Facility,staff,2020-03-15,active
+E0008,P01,Nirwana Beach Resort Bali,Eva Pratama,Revenue Manager,Revenue,manager,2023-05-07,active
+E0141,P01,Nirwana Beach Resort Bali,Asirwanda Rajata,Spa & Event Manager,Spa&Event,manager,2018-05-14,active
+E0006,P01,Nirwana Beach Resort Bali,Ikin Rahmawati,Spa & Event Staff,Spa&Event,staff,2023-01-27,active
+E0245,P02,Nirwana Grand Jakarta,Harsanto Hasanah,F&B Manager,F&B,manager,2023-06-22,active
+E0168,P02,Nirwana Grand Jakarta,Tami Mahendra,F&B Staff,F&B,staff,2015-07-03,active
+E0756,P02,Nirwana Grand Jakarta,Wulandari Kusuma,Finance Manager,Finance,manager,2025-02-10,active
+E0181,P02,Nirwana Grand Jakarta,  Ade Wasita,Finance Staff,Finance,staff,2023-02-08,active
+E0176,P02,Nirwana Grand Jakarta,Mila Handayani,Front Office Staff,Revenue,staff,2021-10-01,active
+E0166,P02,Nirwana Grand Jakarta,Gada Budiman,General Manager,Corporate,manager,2022-05-14,active
+E0255,P02,Nirwana Grand Jakarta,Mujur Prabowo,HR Manager,HR,manager,2022-10-26,active
+E0218,P02,Nirwana Grand Jakarta,Pangeran Iswahyudi,HR Staff,HR,staff,2017-01-11,active
+E0170,P02,Nirwana Grand Jakarta,Aslijan Ramadan,Housekeeping Manager,Housekeeping,manager,2025-03-04,active
+E0167,P02,Nirwana Grand Jakarta,Asmadi Puspasari,Housekeeping Staff,Housekeeping,staff,2015-07-03,active
+E0193,P02,Nirwana Grand Jakarta,Indah Najmudin,Maintenance Manager,Facility,manager,2024-01-04,active
+E0173,P02,Nirwana Grand Jakarta,Chelsea Prayoga,Maintenance Staff,Facility,staff,2022-08-28,active
+E0177,P02,Nirwana Grand Jakarta,Zelda Rahmawati,Revenue Manager,Revenue,manager,2023-05-13,active
+E0169,P02,Nirwana Grand Jakarta,Maida Siregar,Spa & Event Manager,Spa&Event,manager,2022-10-09,active
+E0174,P02,Nirwana Grand Jakarta,Kalim Agustina,Spa & Event Staff,Spa&Event,staff,2023-05-27,active
+E0450,P03,Nirwana Heritage Yogyakarta,Ulva Kuswandari,F&B Manager,F&B,manager,2022-09-01,active
+E0442,P03,Nirwana Heritage Yogyakarta,Patricia Siregar,F&B Staff,F&B,staff,2023-06-14,active
+E0452,P03,Nirwana Heritage Yogyakarta,Putri Saputra,Finance Manager,Finance,manager,2020-07-06,active
+E0444,P03,Nirwana Heritage Yogyakarta,Puti Salahudin,Finance Staff,Finance,staff,2020-08-15,active
+E0449,P03,Nirwana Heritage Yogyakarta,Maimunah Yolanda,Front Office Staff,Revenue,staff,2019-04-14,active
+E0436,P03,Nirwana Heritage Yogyakarta,Restu Samosir,General Manager,Corporate,manager,2017-01-10,active
+E0469,P03,Nirwana Heritage Yogyakarta,Syahrini Palastri,HR Manager,HR,manager,2024-03-16,active
+E0459,P03,Nirwana Heritage Yogyakarta,Yoga Pudjiastuti,HR Staff,HR,staff,2020-01-09,active
+E0463,P03,Nirwana Heritage Yogyakarta,Irma Yuliarti,Housekeeping Manager,Housekeeping,manager,2022-05-02,active
+E0437,P03,Nirwana Heritage Yogyakarta,Karna Usamah,Housekeeping Staff,Housekeeping,staff,2017-08-08,active
+E0455,P03,Nirwana Heritage Yogyakarta,Makuta Pradipta,Maintenance Manager,Facility,manager,2020-03-05,active
+E0438,P03,Nirwana Heritage Yogyakarta,Iriana Andriani,Maintenance Staff,Facility,staff,2022-12-14,active
+E0461,P03,Nirwana Heritage Yogyakarta,Natalia Yulianti,Revenue Manager,Revenue,manager,2017-01-10,active
+E0532,P03,Nirwana Heritage Yogyakarta,Sakura Laksita,Spa & Event Manager,Spa&Event,manager,2022-04-25,active
+E0465,P03,Nirwana Heritage Yogyakarta,Zalindra Nugroho,Spa & Event Staff,Spa&Event,staff,2025-11-23,active
+E0617,P04,Nirwana Hills Bandung,Rahman Winarno,F&B Manager,F&B,manager,2022-04-19,active
+E0564,P04,Nirwana Hills Bandung,Victoria Hutasoit,F&B Staff,F&B,staff,2021-08-15,active
+E0639,P04,Nirwana Hills Bandung,Hasna Sinaga,Finance Manager,Finance,manager,2021-12-31,active
+E0578,P04,Nirwana Hills Bandung,Yuliana Wijaya,Finance Staff,Finance,staff,2019-08-20,active
+E0572,P04,Nirwana Hills Bandung,Juli  Safitri,Front Office Staff,Revenue,staff,2021-12-24,active
+E0551,P04,Nirwana Hills Bandung,Rahmi Susanti,General Manager,Corporate,manager,2022-04-28,active
+E0757,P04,Nirwana Hills Bandung,Bramantyo Wicaksana,HR Manager,HR,manager,2025-06-18,active
+E0586,P04,Nirwana Hills Bandung,Restu Wacana,HR Staff,HR,staff,2022-05-28,active
+E0600,P04,Nirwana Hills Bandung,Malika Pradipta,Housekeeping Manager,Housekeeping,manager,2019-08-20,active
+E0553,P04,Nirwana Hills Bandung,Prasetyo Safitri,Housekeeping Staff,Housekeeping,staff,20/08/2019,active
+E0558,P04,Nirwana Hills Bandung,Adhiarja Samosir,Maintenance Manager,Facility,manager,2019-08-20,active
+E0552,P04,Nirwana Hills Bandung,Mahesa Saputra,Maintenance Staff,Facility,staff,2022-08-27,active
+E0577,P04,Nirwana Hills Bandung,Jamalia Siregar,Revenue Manager,Revenue,manager,2022-09-02,active
+E0563,P04,Nirwana Hills Bandung,Puspa Iswahyudi,Spa & Event Manager,Spa&Event,manager,2026-04-05,active
+E0554,P04,Nirwana Hills Bandung,Wirda Prayoga,Spa & Event Staff,Spa&Event ,staff,2022-11-11,active
+E0758,P05,Nirwana Lombok Escape,Cahyaning Prasasti,F&B Manager,F&B,manager,2025-09-01,active
+E0655,P05,Nirwana Lombok Escape,Iriana Mandala,F&B Staff,F&B,staff,2021-06-27,active
+E0658,P05,Nirwana Lombok Escape,Victoria Dongoran,Finance Manager,Finance,manager,2023-12-01,active
+E0673,P05,Nirwana Lombok Escape,Bakianto Fujiati,Finance Staff,Finance,staff,2022-06-05,active
+E0662,P05,Nirwana Lombok Escape,Karsana Budiman,Front Office Staff,Revenue,staff,2020-11-05,active
+E0651,P05,Nirwana Lombok Escape,Harjo Irawan,General Manager,Corporate,manager,2020-11-05,active
+E0690,P05,Nirwana Lombok Escape,Xanana Wacana,HR Manager,HR,manager,2025-07-23,active
+E0652,P05,Nirwana Lombok Escape,Kartika Salahudin,HR Staff,HR,staff,2024-03-24,active
+E0669,P05,Nirwana Lombok Escape,Estiawan Hutasoit,Housekeeping Manager,Housekeeping,manager,2021-04-08,active
+E0656,P05,Nirwana Lombok Escape,Enteng Yuliarti,Housekeeping Staff,Housekeeping ,staff,2021-06-09,active
+E0759,P05,Nirwana Lombok Escape,Baskoro Wirapati,Maintenance Manager,Facility,manager,2025-11-14,active
+E0675,P05,Nirwana Lombok Escape,Cut Ira Widiastuti,Maintenance Staff,Facility,staff,2020-11-05,active
+E0657,P05,Nirwana Lombok Escape,Drajat Puspasari,Revenue Manager,Revenue,manager,2020-11-05,active
+E0688,P05,Nirwana Lombok Escape,Yunita Hutagalung,Spa & Event Manager,Spa&Event,manager,2021-10-19,active
+E0670,P05,Nirwana Lombok Escape,Cindy Melani,Spa & Event Staff,Spa&Event,staff,2022-04-02,active
+E0736,P06,Nirwana Corporate Office,Kiandra Mandala,CEO,Corporate,corporate,2020-01-18,active
+E0738,P06,Nirwana Corporate Office,Elvina Dongoran,Corporate Finance Director,Corporate,corporate,2022-11-28,active
+E0739,P06,Nirwana Corporate Office,Rina Prasetya,Corporate HR Director,corporate,corporate,2025-01-11,active
+E0740,P06,Nirwana Corporate Office,Umar Setiawan,Corporate Operations Director,Corporate,corporate,2024-12-21,active
+E0737,P06,Nirwana Corporate Office,Farah Yuniar,Corporate Revenue Director,Corporate,corporate,2022-12-26,active
+E0750,P06,Nirwana Corporate Office,Karsa Kuswandari,Finance Manager,Finance,manager,2017-11-09,active
+E0741,P06,Nirwana Corporate Office,Rusman Halimah,Finance Staff,Finance,staff,2022-05-04,active
+E0743,P06,Nirwana Corporate Office,Maryadi Permadi,HR Manager,HR,manager,2021-02-01,active
+E0747,P06,Nirwana Corporate Office,Raihan Lailasari,HR Staff,HR,staff,2023-05-27,resigned

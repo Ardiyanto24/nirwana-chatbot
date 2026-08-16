@@ -30,21 +30,21 @@ Span dibungkus satu span induk `invoke_agent` per turn (operasi orkestrasi kesel
 | Layer | `gen_ai.operation.name` / jenis span | Atribut kunci |
 |---|---|---|
 | Input Layer | `input.validate` (non-LLM) | `session.id`, `turn.index` |
-| Context Resolution — Langkah 2 (Pemetaan Ketergantungan) | `chat` | `gen_ai.request.model`, `gen_ai.usage.input_tokens`/`output_tokens`, `gen_ai.prompt.id`/`gen_ai.prompt.version`, referensi `{session_id, turn_index}` yang dirujuk (bila ada) |
+| Context Resolution — Langkah 2 (Pemetaan Ketergantungan) | `chat` | `gen_ai.request.model`, `gen_ai.usage.input_tokens`/`output_tokens`, `prompt.id`/`prompt.version`, referensi `{session_id, turn_index}` yang dirujuk (bila ada) |
 | Context Resolution — Langkah 3a (Rewrite) | `chat` | sama seperti di atas |
 | Context Resolution — Langkah 3b (Tarik Session Memory) | `memory.retrieve` (non-LLM) | `session.id`, `turn.index` yang diquery, jumlah atomic intent ditemukan |
-| Context Resolution — Langkah 7 (Pencocokan) | custom, non-LLM atau `chat` (tergantung mekanisme final — lihat status KERANGKA AWAL di dokumen induk) | jumlah atomic intent cocok/tidak cocok; `gen_ai.prompt.id`/`gen_ai.prompt.version` bila jalur `chat` yang dipakai |
-| Decomposition (Klasifikasi, Pemecahan, Verifikasi) | `chat` ×3 | + `intent.count`, `intent.relation_type`, `gen_ai.prompt.id`/`gen_ai.prompt.version` |
-| Domain Gate | `chat` (identifikasi + verifikasi titik buta) + span non-LLM (lookup otorisasi) | + `rbac.domain`, `rbac.decision` (`allow`/`deny`), `error.type=ditolak_otorisasi` bila ditolak, penanda constraint cakupan-individu bila terdeteksi, `gen_ai.prompt.id`/`gen_ai.prompt.version` pada kedua span `chat` |
-| Retriever | `chat` (kecocokan makna) + span pencarian (`gen_ai.retrieval.documents`) | + `retrieval.candidates_count`, `retrieval.selected_view`, `gen_ai.prompt.id`/`gen_ai.prompt.version` |
-| Query Engine (Langkah 1 & 2) | `chat` ×2 | + `request.domain`, `request.view_name`, `gen_ai.prompt.id`/`gen_ai.prompt.version` |
+| Context Resolution — Langkah 7 (Pencocokan) | custom, non-LLM atau `chat` (tergantung mekanisme final — lihat status KERANGKA AWAL di dokumen induk) | jumlah atomic intent cocok/tidak cocok; `prompt.id`/`prompt.version` bila jalur `chat` yang dipakai |
+| Decomposition (Klasifikasi, Pemecahan, Verifikasi) | `chat` ×3 | + `intent.count`, `intent.relation_type`, `prompt.id`/`prompt.version` |
+| Domain Gate | `chat` (identifikasi + verifikasi titik buta) + span non-LLM (lookup otorisasi) | + `rbac.domain`, `rbac.decision` (`allow`/`deny`), `error.type=ditolak_otorisasi` bila ditolak, penanda constraint cakupan-individu bila terdeteksi, `prompt.id`/`prompt.version` pada kedua span `chat` |
+| Retriever | `chat` (kecocokan makna) + span pencarian (`gen_ai.retrieval.documents`) | + `retrieval.candidates_count`, `retrieval.selected_view`, `prompt.id`/`prompt.version` |
+| Query Engine (Langkah 1 & 2) | `chat` ×2 | + `request.domain`, `request.view_name`, `prompt.id`/`prompt.version` |
 | Verification Gate | span non-LLM (deterministik) | `error.type` bila gagal, `verification.check_name` |
 | Execution | `execute_tool` | `http.response.status_code`, `error.type` (`400`/`403`/`404`/`5xx`/timeout), retry count |
-| Interpretation (Narasi, Verifikasi Kesetiaan) | `chat` ×2 | `gen_ai.usage.*`, `narrative.turn_reference` (mengacu field `sumber` dari paket Session Memory), `gen_ai.prompt.id`/`gen_ai.prompt.version` |
+| Interpretation (Narasi, Verifikasi Kesetiaan) | `chat` ×2 | `gen_ai.usage.*`, `narrative.turn_reference` (mengacu field `sumber` dari paket Session Memory), `prompt.id`/`prompt.version` |
 
 **Prinsip pengisian `error.type`**: nilainya mengikuti skema `status` yang sudah dikunci di dokumen arsitektur induk (`berhasil`/`sebagian`/`ditolak_otorisasi`/`gagal_teknis`/`terblokir_ketergantungan`) — satu kosakata yang sama dipakai baik di paket Session Memory maupun di span, supaya tidak ada dua "bahasa status" berbeda di sistem yang sama.
 
-**Atribut `gen_ai.prompt.id`/`gen_ai.prompt.version`**: identitas dan versi system prompt (dari frontmatter file `src/prompts/`) yang dipakai pada pemanggilan `chat` tersebut — metadata terstruktur saja, **bukan isi prompt**, konsisten Prinsip 3 di atas. Kontrak penuh mekanisme penyimpanan/versioning prompt ada di `rancangan-manajemen-prompt.md`.
+**Atribut `prompt.id`/`prompt.version`**: identitas dan versi system prompt (dari frontmatter file `src/prompts/`) yang dipakai pada pemanggilan `chat` tersebut — metadata terstruktur saja, **bukan isi prompt**, konsisten Prinsip 3 di atas. Tanpa prefix `gen_ai.` karena bukan bagian OpenTelemetry GenAI Semantic Conventions resmi (beda dari `gen_ai.request.model` dkk. di atas) — mengikuti pola atribut custom lain di tabel ini (`rbac.domain`, `request.domain`, dst.). Kontrak penuh mekanisme penyimpanan/versioning prompt ada di `rancangan-manajemen-prompt.md`.
 
 ---
 

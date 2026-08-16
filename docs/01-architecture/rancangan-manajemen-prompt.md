@@ -53,7 +53,7 @@ description: "Identifikasi domain awal dari kebutuhan atomik"
 
 | Field | Tipe | Keterangan |
 |---|---|---|
-| `id` | string | Dot-separated, mirror path modul Python (mis. `domain_gate.identifikasi_awal`) — dipakai sebagai key lookup di loader dan sebagai nilai `gen_ai.prompt.id` di span |
+| `id` | string | Dot-separated, mirror path modul Python (mis. `domain_gate.identifikasi_awal`) — dipakai sebagai key lookup di loader dan sebagai nilai `prompt.id` di span |
 | `version` | integer | Naik 1 setiap perubahan material pada isi prompt (bukan whitespace/typo). Bukan semver — prompt bukan API publik dengan konsumen eksternal yang butuh makna major/minor/patch |
 | `milestone` | string | Milestone asal (mis. `"2.1"`) — jejak audit ke dokumen `rancangan-*.md` sumber |
 | `model_compat` | list[string] | Konstanta model (dari `src/config/llm.py`) yang dimaksudkan kompatibel dengan prompt ini |
@@ -144,7 +144,7 @@ prompt_reliability/
 
 ## 7. Integrasi Observability
 
-Identitas dan versi prompt yang dipakai pada satu pemanggilan LLM direkam sebagai atribut span **metadata terstruktur saja** (bukan isi prompt), konsisten Prinsip 3 di atas: `gen_ai.prompt.id`, `gen_ai.prompt.version`. Kontrak lengkapnya ada di addendum `rancangan-observability-ai-chatbot.md` Bagian 2 (ditambahkan bersamaan dengan dokumen ini) — atribut ini memungkinkan korelasi trace production ke versi prompt spesifik yang menghasilkannya, melengkapi (bukan menggantikan) `prompt_eval_runs` di Bagian 6 yang mencatat hasil pengujian pre-deployment.
+Identitas dan versi prompt yang dipakai pada satu pemanggilan LLM direkam sebagai atribut span **metadata terstruktur saja** (bukan isi prompt), konsisten Prinsip 3 di atas: `prompt.id`, `prompt.version` — tanpa prefix `gen_ai.` karena bukan bagian OpenTelemetry GenAI Semantic Conventions resmi (`src/observability/genai_semconv.py` mengekspos `GEN_AI_*` hanya untuk atribut yang benar-benar ada di paket resmi; `PROMPT_ID`/`PROMPT_VERSION` ditulis tangan sebagai konstanta project-custom, mengikuti pola atribut custom lain seperti `rbac.domain`). Kontrak lengkapnya ada di addendum `rancangan-observability-ai-chatbot.md` Bagian 2 (ditambahkan bersamaan dengan dokumen ini) — atribut ini memungkinkan korelasi trace production ke versi prompt spesifik yang menghasilkannya, melengkapi (bukan menggantikan) `prompt_eval_runs` di Bagian 6 yang mencatat hasil pengujian pre-deployment.
 
 ---
 

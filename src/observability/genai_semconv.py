@@ -36,3 +36,10 @@ GEN_AI_REQUEST_MODEL = _gen_ai.GEN_AI_REQUEST_MODEL
 GEN_AI_CONVERSATION_ID = _gen_ai.GEN_AI_CONVERSATION_ID
 GEN_AI_USAGE_INPUT_TOKENS = _gen_ai.GEN_AI_USAGE_INPUT_TOKENS
 GEN_AI_USAGE_OUTPUT_TOKENS = _gen_ai.GEN_AI_USAGE_OUTPUT_TOKENS
+
+# Project-custom, BUKAN dari paket resmi opentelemetry-semantic-conventions -
+# identitas/versi prompt (Manajemen Prompt Fase 2) tidak ada di GenAI Semantic
+# Conventions, jadi ditulis tangan tanpa prefix gen_ai., mengikuti pola atribut
+# custom lain di kontrak span (rbac.domain, request.domain, dst.).
+PROMPT_ID = "prompt.id"
+PROMPT_VERSION = "prompt.version"

@@ -23,29 +23,16 @@ from src.observability.genai_semconv import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_USAGE_INPUT_TOKENS,
     GEN_AI_USAGE_OUTPUT_TOKENS,
+    PROMPT_ID,
+    PROMPT_VERSION,
 )
 from src.observability.tracing import get_tracer
+from src.prompts.loader import load_prompt
 from src.schemas.rewrite import RewriteResult
 from src.schemas.turn_payload import TurnPayload
 
 _TRACER_NAME = "context_resolution.rewrite"
-
-_SYSTEM_PROMPT = """Anda adalah komponen sistem yang menulis ulang pertanyaan \
-terakhir dalam sebuah sesi percakapan menjadi kalimat yang bisa dipahami \
-sepenuhnya berdiri sendiri, tanpa perlu tahu apa-apa soal percakapan \
-sebelumnya untuk memahaminya. Anda TIDAK menjawab pertanyaannya - tugas Anda \
-murni menulis ulang secara linguistik.
-
-Aturan:
-- Ubah segala bentuk elipsis atau koreferensi bahasa sehari-hari (mis. \
-"dibanding itu", "yang tadi", "sama seperti sebelumnya", "itu sudah...") \
-menjadi penyebutan eksplisit terhadap entitas/nilai/periode yang dimaksud, \
-berdasarkan histori percakapan yang diberikan.
-- Kalau pertanyaan sudah sepenuhnya mandiri (tidak mengandung rujukan apa \
-pun ke percakapan sebelumnya), kembalikan APA ADANYA tanpa mengubah makna.
-- JANGAN mengarang entitas/nilai yang tidak ada di histori yang diberikan.
-- Balas HANYA dengan satu kalimat hasil penulisan ulang - tanpa penjelasan \
-tambahan, tanpa tanda kutip, tanpa awalan seperti "Kalimat mandiri:"."""
+_PROMPT_ID = "context_resolution.rewrite"
 
 _RESIDUAL_REFERENCE_PHRASES = [
     "dibanding itu",
@@ -83,10 +70,11 @@ def _call_llm(payload: TurnPayload):
     (`evals/`) untuk inspeksi payload lengkap tanpa memanggil API dua kali
     atau menduplikasi logic pembentukan request."""
     client = get_openrouter_client()
+    system_prompt = load_prompt(_PROMPT_ID).render()
     return client.chat.completions.create(
         model=OPENROUTER_MODEL_REWRITE,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": _build_user_prompt(payload)},
         ],
         temperature=0,
@@ -105,9 +93,12 @@ def _detect_residual_reference(text: str) -> list[str]:
 
 def rewrite_to_standalone(payload: TurnPayload) -> RewriteResult:
     tracer = get_tracer(_TRACER_NAME)
+    prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_REWRITE)
+        span.set_attribute(PROMPT_ID, prompt.id)
+        span.set_attribute(PROMPT_VERSION, prompt.version)
 
         try:
             response = _call_llm(payload)

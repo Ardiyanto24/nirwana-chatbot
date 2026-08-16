@@ -26,34 +26,17 @@ from src.observability.genai_semconv import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_USAGE_INPUT_TOKENS,
     GEN_AI_USAGE_OUTPUT_TOKENS,
+    PROMPT_ID,
+    PROMPT_VERSION,
 )
 from src.observability.tracing import get_tracer
+from src.prompts.loader import load_prompt
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.matching import AtomicIntentMatch, MatchStatus
 from src.schemas.session_memory import SessionMemoryPackage, StatusEksekusi
 
 _TRACER_NAME = "context_resolution.matching"
-
-_SYSTEM_PROMPT = """Anda adalah komponen sistem yang menilai apakah sebuah \
-kebutuhan (atomic intent) pada pertanyaan turn ini SUDAH punya jawabannya di \
-antara daftar kandidat yang sudah pernah dihitung dan tersimpan di turn \
-sebelumnya. Anda TIDAK menjawab kebutuhannya - tugas Anda murni menilai \
-kesesuaian MAKNA.
-
-Balas HANYA dengan JSON persis berbentuk:
-{"matched": true atau false, "candidate_index": <nomor index kandidat yang \
-cocok, atau null kalau tidak ada>}
-
-Aturan:
-- matched=true HANYA kalau kebutuhan ini benar-benar merepresentasikan hal \
-yang SAMA PERSIS dengan salah satu kandidat (entitas/waktu/metrik yang \
-sama) - BUKAN sekadar topik yang mirip atau berkaitan.
-- Kalau ragu, atau kandidat membahas entitas/waktu/metrik yang BERBEDA \
-(meski topiknya mirip, mis. bulan berbeda atau metrik berbeda), \
-matched=false. Lebih aman mengatakan tidak cocok daripada memaksakan \
-kecocokan yang keliru.
-- candidate_index HARUS salah satu index yang benar-benar ada di daftar \
-kandidat yang diberikan - JANGAN mengarang index yang tidak ada di daftar."""
+_PROMPT_ID = "context_resolution.matching"
 
 
 class _RawMatchResult(BaseModel):
@@ -81,10 +64,11 @@ def _call_llm(atomic_intent: AtomicIntent, candidates: list[SessionMemoryPackage
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`)."""
     client = get_openrouter_client()
+    system_prompt = load_prompt(_PROMPT_ID).render()
     return client.chat.completions.create(
         model=OPENROUTER_MODEL_MATCHING,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": _build_user_prompt(atomic_intent, candidates)},
         ],
         response_format={"type": "json_object"},
@@ -137,9 +121,12 @@ def _match_single(
     atomic_intent: AtomicIntent, candidates: list[SessionMemoryPackage]
 ) -> AtomicIntentMatch:
     tracer = get_tracer(_TRACER_NAME)
+    prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_MATCHING)
+        span.set_attribute(PROMPT_ID, prompt.id)
+        span.set_attribute(PROMPT_VERSION, prompt.version)
 
         try:
             response = _call_llm(atomic_intent, candidates)

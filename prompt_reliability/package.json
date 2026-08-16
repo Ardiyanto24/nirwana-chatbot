@@ -1,0 +1,8 @@
+{
+  "name": "nirwana-chatbot-prompt-reliability",
+  "private": true,
+  "description": "Reliability testing prompt (Promptfoo) untuk nirwana-chatbot - lihat README.md",
+  "devDependencies": {
+    "promptfoo": "^0.122.0"
+  }
+}

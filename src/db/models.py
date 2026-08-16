@@ -12,6 +12,9 @@ proyek ini sendiri - BUKAN tabel produksi `mart_cleaned.role_permissions`,
 lihat docstring `RolePermissionRow`.
 """
 
+import uuid
+from datetime import datetime, timezone
+
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
@@ -64,3 +67,24 @@ class RolePermissionRow(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     role_title: str = Field(index=True)
     domain: str = Field(index=True)
+
+
+class PromptEvalRunRow(SQLModel, table=True):
+    """Hasil reliability testing (Promptfoo) per skenario - Manajemen Prompt
+    Fase 2, append-only, payload penuh. Disimpan di Supabase (bukan git)
+    supaya repo tidak membengkak seiring iterasi prompt berkelanjutan yang
+    berjalan terus-menerus (beda dari evals/ yang sekali per milestone).
+    Lihat rancangan-manajemen-prompt.md Bagian 6."""
+
+    __tablename__ = "prompt_eval_runs"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    prompt_id: str = Field(index=True)
+    prompt_version: int
+    git_commit_hash: str
+    scenario_id: str
+    input_payload: dict = Field(sa_column=Column(JSON))
+    output_payload: dict = Field(sa_column=Column(JSON))
+    verdict: str
+    model: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

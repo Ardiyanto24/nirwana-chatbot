@@ -1,0 +1,18 @@
+{
+  "results": {
+    "results": [
+      {
+        "description": "skenario_dummy_lolos",
+        "vars": { "pertanyaan": "contoh input dummy 1" },
+        "response": { "output": "contoh output dummy 1" },
+        "success": true
+      },
+      {
+        "description": "skenario_dummy_gagal",
+        "vars": { "pertanyaan": "contoh input dummy 2" },
+        "response": { "output": "contoh output dummy 2, tidak sesuai ekspektasi" },
+        "success": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "Kehadiran individu by name (hr)",
+  "timestamp": "2026-08-16T10:16:38.678081+00:00",
+  "role_title": "HR Staff",
+  "atomic_intent_authorization": {
+    "atomic_intent": {
+      "atomic_intent_id": "3d4aa330-23c4-4f89-baeb-07932e3db309",
+      "teks_kebutuhan": "Apakah Budi sudah absen hari ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_decisions": [
+      {
+        "domain": "hr",
+        "diizinkan": true,
+        "alasan": null
+      }
+    ]
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "3d4aa330-23c4-4f89-baeb-07932e3db309",
+      "teks_kebutuhan": "Apakah Budi sudah absen hari ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_decisions": [
+      {
+        "domain": "hr",
+        "diizinkan": true,
+        "alasan": null
+      }
+    ],
+    "constraint": {
+      "terdeteksi": true,
+      "alasan": "kebutuhan menyentuh kategori data performa individu staf"
+    }
+  },
+  "match": true,
+  "toleransi": null
+}

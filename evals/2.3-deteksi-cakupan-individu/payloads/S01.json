@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "Review kinerja individu by name (hr)",
+  "timestamp": "2026-08-16T10:12:03.785581+00:00",
+  "role_title": "HR Staff",
+  "atomic_intent_authorization": {
+    "atomic_intent": {
+      "atomic_intent_id": "04360b63-0b75-4fbe-8981-f8514cb5ffd1",
+      "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_decisions": [
+      {
+        "domain": "hr",
+        "diizinkan": true,
+        "alasan": null
+      }
+    ]
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "04360b63-0b75-4fbe-8981-f8514cb5ffd1",
+      "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_decisions": [
+      {
+        "domain": "hr",
+        "diizinkan": true,
+        "alasan": null
+      }
+    ],
+    "constraint": {
+      "terdeteksi": true,
+      "alasan": "kebutuhan menyentuh kategori data performa individu staf"
+    }
+  },
+  "match": true,
+  "toleransi": null
+}

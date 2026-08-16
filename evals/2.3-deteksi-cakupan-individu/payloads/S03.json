@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "Distractor: jumlah cuti agregat (hr)",
+  "timestamp": "2026-08-16T10:13:44.545279+00:00",
+  "role_title": "HR Staff",
+  "atomic_intent_authorization": {
+    "atomic_intent": {
+      "atomic_intent_id": "ced6967a-158b-48e8-b6ab-92683ff8f8a3",
+      "teks_kebutuhan": "Berapa banyak staf yang mengambil cuti bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_decisions": [
+      {
+        "domain": "hr",
+        "diizinkan": true,
+        "alasan": null
+      }
+    ]
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "ced6967a-158b-48e8-b6ab-92683ff8f8a3",
+      "teks_kebutuhan": "Berapa banyak staf yang mengambil cuti bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_decisions": [
+      {
+        "domain": "hr",
+        "diizinkan": true,
+        "alasan": null
+      }
+    ],
+    "constraint": {
+      "terdeteksi": false,
+      "alasan": null
+    }
+  },
+  "match": true,
+  "toleransi": null
+}

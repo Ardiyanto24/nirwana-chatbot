@@ -1,0 +1,49 @@
+{
+  "scenario_id": "S08",
+  "deskripsi": "Generalisasi role-differentiation ke teks baru",
+  "timestamp": "2026-08-16T10:17:21.344301+00:00",
+  "role_a": "Maintenance Staff",
+  "role_b": "Maintenance Manager",
+  "hasil_a": {
+    "atomic_intent": {
+      "atomic_intent_id": "5573686b-ed8e-47eb-97f7-a9308ac0f531",
+      "teks_kebutuhan": "Teknisi mana yang paling sering menangani perbaikan AC bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_decisions": [
+      {
+        "domain": "facility",
+        "diizinkan": true,
+        "alasan": null
+      }
+    ],
+    "constraint": {
+      "terdeteksi": true,
+      "alasan": "kebutuhan menyentuh kategori data performa individu staf"
+    }
+  },
+  "hasil_b": {
+    "atomic_intent": {
+      "atomic_intent_id": "5573686b-ed8e-47eb-97f7-a9308ac0f531",
+      "teks_kebutuhan": "Teknisi mana yang paling sering menangani perbaikan AC bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_decisions": [
+      {
+        "domain": "facility",
+        "diizinkan": true,
+        "alasan": null
+      }
+    ],
+    "constraint": {
+      "terdeteksi": false,
+      "alasan": null
+    }
+  },
+  "match": true,
+  "toleransi": null
+}

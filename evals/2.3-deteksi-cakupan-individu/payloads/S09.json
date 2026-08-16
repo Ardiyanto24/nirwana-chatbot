@@ -1,0 +1,19 @@
+{
+  "scenario_id": "S09",
+  "deskripsi": "Titik-buta phrasing berbeda (retest, bukan teks tests/)",
+  "timestamp": "2026-08-16T10:17:47.304942+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "eeca29fc-7c8e-4678-97c9-d59a24205189",
+    "teks_kebutuhan": "Bandingkan kecepatan kerja tiap staf housekeeping minggu ini.",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "terdeteksi_awal_dipaksa": false,
+  "result": {
+    "terdeteksi_tambahan": true,
+    "gagal": false
+  },
+  "match": true,
+  "toleransi": null
+}

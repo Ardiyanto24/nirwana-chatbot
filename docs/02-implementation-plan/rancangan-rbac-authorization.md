@@ -79,7 +79,7 @@ Membangun kemampuan mengenali kebutuhan atomik yang menyentuh kategori view sens
 Ini gap yang secara sengaja tidak dijamin oleh Lapis 2 RBAC (`chatbot_api`), sehingga perlu penanganan eksplisit di Lapis 1. Memisahkan deteksi (di sini) dari penegakan (Milestone 2.4) mengikuti pola yang sama dengan pemisahan generate-verify di seluruh sistem: deteksi butuh pemahaman konteks (cocok untuk model AI), sementara penegakan murni soal kepatuhan terhadap catatan yang sudah ada (cocok deterministik, tanpa model AI).
 
 ### Output
-Mekanisme yang, untuk kebutuhan atomik yang lolos Milestone 2.2, memeriksa apakah kebutuhan itu menyentuh kategori view performa individu, dan jika role pemanggilnya Staff, menempelkan catatan constraint eksplisit ke kebutuhan tersebut. Kebutuhan dari role Manager/Corporate tidak mendapat constraint tambahan ini. Span ter-emit sesuai kontrak observability, mencatat penanda constraint bila terdeteksi.
+Mekanisme yang, untuk kebutuhan atomik yang lolos Milestone 2.2, memeriksa apakah kebutuhan itu menyentuh kategori view performa individu, dan jika role pemanggilnya Staff, menempelkan catatan constraint eksplisit ke kebutuhan tersebut. Kebutuhan dari role Manager/Corporate tidak mendapat constraint tambahan ini. Span ter-emit sesuai kontrak observability, mencatat penanda constraint bila terdeteksi. Bila mekanisme deteksi ini memakai pemanggilan model AI, system prompt-nya mengikuti konvensi storage/versioning/reliability testing di `rancangan-manajemen-prompt.md`.
 
 ### Kriteria Keberhasilan
 - Kebutuhan dari role Staff yang menyentuh view kategori performa individu (skenario uji: "siapa staf tercepat bulan ini") menghasilkan catatan constraint yang eksplisit dan bisa ditelusuri.

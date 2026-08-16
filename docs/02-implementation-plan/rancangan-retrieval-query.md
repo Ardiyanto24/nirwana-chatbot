@@ -55,7 +55,7 @@ Membangun mekanisme yang menilai kandidat hasil Milestone 3.1 satu per satu terh
 Pengumpulan kandidat secara luas (Milestone 3.1) dan penilaian kecocokan mendalam (di sini) adalah dua tugas dengan sifat berbeda — satu soal cakupan yang luas, satu soal ketelitian terhadap detail definisi. Memisahkannya menjaga agar penilaian yang teliti tidak terburu-buru dilakukan bersamaan dengan pencarian yang masih longgar.
 
 ### Output
-Mekanisme (pemanggilan model AI) yang menerima kandidat `view_name` beserta definisi lengkapnya, mengembalikan label kecocokan untuk masing-masing kandidat beserta alasan singkat, terutama untuk kasus yang tampak cocok di permukaan tapi ternyata tidak (grain berbeda, atau kolom yang dibutuhkan ternyata hasil join dari sumber lain yang berpotensi tidak selalu terisi). Span `chat` ter-emit sesuai kontrak observability.
+Mekanisme (pemanggilan model AI) yang menerima kandidat `view_name` beserta definisi lengkapnya, mengembalikan label kecocokan untuk masing-masing kandidat beserta alasan singkat, terutama untuk kasus yang tampak cocok di permukaan tapi ternyata tidak (grain berbeda, atau kolom yang dibutuhkan ternyata hasil join dari sumber lain yang berpotensi tidak selalu terisi). Span `chat` ter-emit sesuai kontrak observability. System prompt-nya mengikuti konvensi storage/versioning/reliability testing di `rancangan-manajemen-prompt.md`.
 
 ### Kriteria Keberhasilan
 - Kandidat yang namanya terdengar cocok tapi grain-nya sebenarnya berbeda dari yang dibutuhkan (skenario uji: kebutuhan butuh breakdown per tipe kamar, kandidat yang tersedia hanya ringkasan per properti) diberi label yang tepat (sebagian atau tidak ditemukan), bukan disamaratakan sebagai cocok penuh.
@@ -90,7 +90,7 @@ Membangun mekanisme yang menyusun bentuk permintaan akhir — `{domain, view_nam
 Ini langkah "menghasilkan" dalam pola generate-verify yang dipertahankan di seluruh sistem — dipisah dari langkah verifikasinya (Milestone 3.5) agar keduanya independen satu sama lain, konsisten dengan prinsip yang sama diterapkan di seluruh layer lain.
 
 ### Output
-Mekanisme (pemanggilan model AI, berupa ekstraksi parameter terstruktur) yang menghasilkan objek request lengkap `{domain, view_name, params}` siap diverifikasi. Span `chat` ter-emit sesuai kontrak observability, dengan atribut `request.domain` dan `request.view_name`.
+Mekanisme (pemanggilan model AI, berupa ekstraksi parameter terstruktur) yang menghasilkan objek request lengkap `{domain, view_name, params}` siap diverifikasi. Span `chat` ter-emit sesuai kontrak observability, dengan atribut `request.domain` dan `request.view_name`. System prompt-nya mengikuti konvensi storage/versioning/reliability testing di `rancangan-manajemen-prompt.md`.
 
 ### Kriteria Keberhasilan
 - Kebutuhan dengan rentang waktu relatif dalam bahasa sehari-hari (skenario uji: "bulan lalu", "tiga bulan terakhir") diterjemahkan menjadi rentang tanggal konkret yang benar di parameter, bukan diteruskan sebagai teks mentah.
@@ -107,7 +107,7 @@ Membangun mekanisme yang menilai ulang hasil Milestone 3.4 secara independen —
 Melengkapi pola generate-verify yang dipertahankan dari Milestone 3.4 — independensi antara langkah penyusunan dan langkah penilaian ulang ini mencegah bias "membenarkan diri sendiri" yang muncul kalau proses yang sama diminta menilai hasilnya sendiri.
 
 ### Output
-Mekanisme (pemanggilan model AI) yang menerima request hasil Milestone 3.4 beserta teks kebutuhan asli, mengembalikan keputusan lolos atau perlu revisi dengan alasan spesifik untuk kasus revisi. Span `chat` ter-emit sesuai kontrak observability.
+Mekanisme (pemanggilan model AI) yang menerima request hasil Milestone 3.4 beserta teks kebutuhan asli, mengembalikan keputusan lolos atau perlu revisi dengan alasan spesifik untuk kasus revisi. Span `chat` ter-emit sesuai kontrak observability. System prompt-nya mengikuti konvensi storage/versioning/reliability testing di `rancangan-manajemen-prompt.md`.
 
 ### Kriteria Keberhasilan
 - Request dengan `view_name` yang sengaja dibuat tidak sesuai hasil Retriever (skenario uji terkontrol) berhasil ditangkap dan ditolak oleh verifikasi ini.

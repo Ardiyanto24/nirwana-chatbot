@@ -91,7 +91,7 @@ Membangun mekanisme yang menyusun jawaban akhir dalam bahasa natural dari campur
 Ini langkah "menghasilkan" dalam pola generate-verify — dipisah dari langkah verifikasinya (Milestone 4.5) agar keduanya independen satu sama lain, konsisten dengan prinsip yang sama diterapkan di seluruh sistem.
 
 ### Output
-Mekanisme (pemanggilan model AI) yang menerima kumpulan paket data (dari kedua sumber) beserta relasi antar-atomic-intent dari Decomposition, menghasilkan narasi jawaban yang koheren dan jujur. Span `chat` ter-emit sesuai kontrak observability.
+Mekanisme (pemanggilan model AI) yang menerima kumpulan paket data (dari kedua sumber) beserta relasi antar-atomic-intent dari Decomposition, menghasilkan narasi jawaban yang koheren dan jujur. Span `chat` ter-emit sesuai kontrak observability. System prompt-nya mengikuti konvensi storage/versioning/reliability testing di `rancangan-manajemen-prompt.md`.
 
 ### Kriteria Keberhasilan
 - Jawaban yang mencampur hasil baru dan hasil dari turn sebelumnya (skenario uji: pertanyaan lanjutan yang merujuk balik ke turn lain) secara eksplisit menyebutkan mana yang baru dihitung dan mana yang merujuk hasil sebelumnya, bukan menyajikan keduanya seolah dihitung bersamaan.
@@ -108,7 +108,7 @@ Membangun langkah penilaian ulang narasi hasil Milestone 4.4 secara independen �
 Sebagai layer terakhir sebelum jawaban sampai ke user tanpa ada gerbang lagi setelahnya, langkah verifikasi ini menanggung bobot yang lebih besar dibanding verifikasi di layer-layer sebelumnya — layak diuji secara eksplisit dan terpisah dari proses penyusunan narasi itu sendiri.
 
 ### Output
-Mekanisme (pemanggilan model AI) yang menilai narasi hasil Milestone 4.4 dan mengembalikan keputusan lolos atau perlu revisi dengan alasan spesifik. Untuk narasi yang lolos, dilanjutkan dengan penyusunan data terstruktur (bukan model AI) yang siap dikonsumsi frontend untuk ditampilkan sebagai grafik atau tabel sesuai label bentuk jawabannya. Span `chat` (verifikasi) ter-emit sesuai kontrak observability.
+Mekanisme (pemanggilan model AI) yang menilai narasi hasil Milestone 4.4 dan mengembalikan keputusan lolos atau perlu revisi dengan alasan spesifik. Untuk narasi yang lolos, dilanjutkan dengan penyusunan data terstruktur (bukan model AI) yang siap dikonsumsi frontend untuk ditampilkan sebagai grafik atau tabel sesuai label bentuk jawabannya. Span `chat` (verifikasi) ter-emit sesuai kontrak observability. System prompt-nya mengikuti konvensi storage/versioning/reliability testing di `rancangan-manajemen-prompt.md`.
 
 ### Kriteria Keberhasilan
 - Narasi yang sengaja dibuat mengandung klaim sebab-akibat tidak berdasar dari data deskriptif (skenario uji terkontrol) berhasil ditangkap dan ditolak oleh verifikasi ini.

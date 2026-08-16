@@ -7,7 +7,10 @@ File ini dibangun bertahap lintas checkpoint (preseden pola M2.2/M2.3):
 - Checkpoint 8 (Task 13-14): orkestrator + KK1-3 end-to-end.
 """
 
-from src.layers.verification_gate.verifikasi_gate import verifikasi_bentuk_request_statis
+from src.layers.verification_gate.verifikasi_gate import (
+    verifikasi_bentuk_request_statis,
+    verifikasi_kepatuhan_sumber,
+)
 from src.schemas.domain_gate import Domain
 from src.schemas.verification_gate import QueryEngineRequest
 
@@ -61,3 +64,28 @@ def test_cek1_tanpa_limit_lolos():
     request = _buat_request(params={"employee_id": "E0002"})
     lolos, alasan = verifikasi_bentuk_request_statis(request)
     assert lolos is True
+
+
+# --- Cek 2: Kepatuhan Sumber (KK2) -------------------------------------------
+
+
+def test_cek2_kk2_view_name_sengaja_tidak_cocok_ditolak():
+    """KK2: view_name request SENGAJA dibuat tidak cocok dengan yang
+    divalidasi Retriever - harus ditolak, alasan menyebut ketidaksesuaian."""
+    request = _buat_request(view_name="v_housekeeping_staff_daily")
+    lolos, alasan = verifikasi_kepatuhan_sumber(
+        request, view_name_tervalidasi_retriever="v_maintenance_technician_daily"
+    )
+    assert lolos is False
+    assert alasan is not None
+    assert "v_housekeeping_staff_daily" in alasan
+    assert "v_maintenance_technician_daily" in alasan
+
+
+def test_cek2_view_name_cocok_lolos():
+    request = _buat_request(view_name="v_housekeeping_staff_daily")
+    lolos, alasan = verifikasi_kepatuhan_sumber(
+        request, view_name_tervalidasi_retriever="v_housekeeping_staff_daily"
+    )
+    assert lolos is True
+    assert alasan is None

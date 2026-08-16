@@ -1,0 +1,95 @@
+description: "Reliability testing - context_resolution.rewrite (M1.4)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: context_resolution.rewrite
+      model: qwen/qwen3-32b
+
+tests:
+  - description: S01_baseline_mandiri_tanpa_histori
+    vars:
+      user_prompt: |
+        Tidak ada histori - ini turn pertama dalam sesi.
+
+        Pertanyaan turn terakhir (turn 1): Berapa occupancy rate properti kita bulan Juni 2026?
+    assert:
+      - type: icontains
+        value: "juni"
+      - type: icontains
+        value: "2026"
+      - type: javascript
+        # "occupancy" boleh diterjemahkan jadi padanan Bahasa Indonesia yang sah
+        # (mis. "tingkat keterisian") - temuan sudah dianalisis di
+        # evals/1.4-rewrite-mandiri/audit.md S01, bukan false-negative alat ukur baru
+        value: "['occupancy', 'keterisian', 'okupansi'].some(w => output.toLowerCase().includes(w))"
+
+  - description: S02_mandiri_histori_tidak_relevan
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa jumlah staff aktif di departemen HR? | A: Departemen HR memiliki 8 staff aktif.
+
+        Pertanyaan turn terakhir (turn 2): Apa saja fasilitas yang tersedia di area spa?
+    assert:
+      - type: icontains
+        value: "spa"
+      - type: icontains
+        value: "fasilitas"
+      - type: not-icontains
+        value: "hr"
+      - type: not-icontains
+        value: "8 staff"
+
+  - description: S03_elipsis_eksplisit_turn_N_minus_1
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa revenue reservasi bulan Maret 2026? | A: Revenue reservasi Maret 2026 sebesar Rp 800 juta.
+
+        Pertanyaan turn terakhir (turn 2): Bandingkan dengan bulan sebelumnya.
+    assert:
+      - type: icontains
+        value: "februari"
+      - type: icontains
+        value: "2026"
+      - type: icontains
+        value: "reservasi"
+
+  - description: S08_negasi_eksplisit
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa revenue reservasi bulan Maret 2026? | A: Revenue reservasi Maret 2026 sebesar Rp 800 juta.
+
+        Pertanyaan turn terakhir (turn 2): Ini pertanyaan baru, tidak ada hubungannya dengan tadi: berapa staff maintenance yang aktif sekarang?
+    assert:
+      - type: icontains
+        value: "staff"
+      - type: icontains
+        value: "maintenance"
+      - type: not-icontains
+        value: "reservasi"
+      - type: not-icontains
+        value: "maret"
+      - type: not-icontains
+        value: "800 juta"
+
+  - description: S12_jebakan_overlap_leksikal
+    vars:
+      user_prompt: |
+        Histori percakapan dalam sesi ini:
+        - Turn 1: Q: Berapa revenue F&B bulan April 2026? | A: Revenue F&B April 2026 sebesar Rp 450 juta.
+
+        Pertanyaan turn terakhir (turn 2): Berapa revenue reservasi bulan April 2026 tahun ini?
+    assert:
+      - type: icontains
+        value: "reservasi"
+      - type: icontains
+        value: "april"
+      - type: icontains
+        value: "2026"
+      - type: not-icontains
+        value: "f&b"
+      - type: not-icontains
+        value: "450"

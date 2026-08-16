@@ -1,0 +1,53 @@
+description: "Reliability testing - decomposition.pemecahan (M1.6 Langkah 5)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: decomposition.pemecahan
+      model: qwen/qwen3-32b
+      response_format: { type: json_object }
+
+tests:
+  # Percobaan pertama (tanpa feedback) - klasifikasi dari langkah sebelumnya
+  # disuplai apa adanya di user_prompt, mirror _build_user_prompt() tanpa
+  # blok feedback (logic kondisional itu tetap di Python, bukan di system
+  # prompt ini - lihat catatan di src/layers/decomposition/pemecahan.py).
+  - description: S01_tunggal_satu_entri
+    vars:
+      user_prompt: |
+        Klasifikasi kebutuhan (dari langkah sebelumnya): tunggal
+
+        Pertanyaan: Berapa occupancy rate bulan Juni 2026?
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).kebutuhan.length === 1 && JSON.parse(output).kebutuhan[0].relasi === 'independen'"
+
+  - description: S03_majemuk_bergantung_perbandingan
+    vars:
+      user_prompt: |
+        Klasifikasi kebutuhan (dari langkah sebelumnya): majemuk_bergantung
+
+        Pertanyaan: Bandingkan occupancy rate April 2026 dengan Maret 2026.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          return data.kebutuhan.length >= 2 && data.kebutuhan.some(k => k.relasi === 'bergantung' && k.label_bentuk_jawaban === 'perbandingan');
+
+  # Percobaan retry (DENGAN feedback) - membuktikan blok PERHATIAN di
+  # _build_user_prompt() (Python, bukan Jinja2) tetap berfungsi setelah
+  # retrofit - system prompt yang dimuat dari file sama persis untuk kedua
+  # kasus, hanya user message yang berbeda.
+  - description: S_retry_dengan_feedback_memperbaiki_periode_hilang
+    vars:
+      user_prompt: |
+        Klasifikasi kebutuhan (dari langkah sebelumnya): tunggal
+
+        PERHATIAN: percobaan pemecahan sebelumnya dinilai KELIRU oleh proses verifikasi independen, dengan alasan: periode waktu tidak disebutkan eksplisit
+        Perbaiki pemecahan berikut berdasarkan alasan ini.
+
+        Pertanyaan: Berapa revenue reservasi?
+    assert:
+      - type: is-json

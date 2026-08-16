@@ -8,10 +8,12 @@ di domain yang dinyatakan, dan limit tidak melebihi batas chatbot_api.
 """
 
 from src.layers.verification_gate.katalog_view import DAFTAR_VIEW_PER_DOMAIN
+from src.observability.tracing import get_tracer
 from src.schemas.cakupan_individu import ConstraintCakupanIndividu
-from src.schemas.verification_gate import QueryEngineRequest
+from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
 LIMIT_MAKSIMUM = 1000
+_TRACER_NAME = "verification_gate.verifikasi_gate"
 
 
 def verifikasi_bentuk_request_statis(request: QueryEngineRequest) -> tuple[bool, str | None]:
@@ -79,3 +81,64 @@ def verifikasi_kelengkapan_penegakan(
             f"caller ({employee_id!r}) setelah penegakan"
         )
     return True, None
+
+
+def _tolak(span, check_name: str, alasan: str, terkoreksi: bool = False) -> HasilVerifikasiGate:
+    span.set_attribute("verification.check_name", check_name)
+    span.set_attribute("error.type", "gagal_teknis")
+    return HasilVerifikasiGate(
+        request_final=None, lolos=False, terkoreksi=terkoreksi, alasan_penolakan=alasan
+    )
+
+
+def verifikasi_gate(
+    request: QueryEngineRequest,
+    constraint: ConstraintCakupanIndividu,
+    employee_id: str,
+    view_name_tervalidasi_retriever: str,
+) -> HasilVerifikasiGate:
+    """Orkestrator: cek 1->2 (early-exit tolak kalau gagal salah satu),
+    lalu cek 3->4 kalau lolos keduanya. Span verification_gate.check per
+    cek (verification.check_name, error.type bila gagal), span pembungkus
+    verification_gate.verifikasi_gate."""
+    tracer = get_tracer(_TRACER_NAME)
+
+    with tracer.start_as_current_span("verification_gate.verifikasi_gate") as span_wrap:
+        with tracer.start_as_current_span("verification_gate.check") as span:
+            lolos, alasan = verifikasi_bentuk_request_statis(request)
+            span.set_attribute("verification.check_name", "bentuk_request_statis")
+            if not lolos:
+                hasil = _tolak(span, "bentuk_request_statis", alasan)
+                span_wrap.set_attribute("verification_gate.lolos", False)
+                return hasil
+
+        with tracer.start_as_current_span("verification_gate.check") as span:
+            lolos, alasan = verifikasi_kepatuhan_sumber(request, view_name_tervalidasi_retriever)
+            span.set_attribute("verification.check_name", "kepatuhan_sumber")
+            if not lolos:
+                hasil = _tolak(span, "kepatuhan_sumber", alasan)
+                span_wrap.set_attribute("verification_gate.lolos", False)
+                return hasil
+
+        with tracer.start_as_current_span("verification_gate.check") as span:
+            span.set_attribute("verification.check_name", "constraint_cakupan_individu")
+            request_terkoreksi, terkoreksi = tegakkan_constraint_cakupan_individu(
+                request, constraint, employee_id
+            )
+            span.set_attribute("verification.terkoreksi", terkoreksi)
+
+        with tracer.start_as_current_span("verification_gate.check") as span:
+            lolos, alasan = verifikasi_kelengkapan_penegakan(
+                request_terkoreksi, constraint, employee_id
+            )
+            span.set_attribute("verification.check_name", "kelengkapan_penegakan")
+            if not lolos:
+                hasil = _tolak(span, "kelengkapan_penegakan", alasan, terkoreksi=terkoreksi)
+                span_wrap.set_attribute("verification_gate.lolos", False)
+                return hasil
+
+        span_wrap.set_attribute("verification_gate.lolos", True)
+        span_wrap.set_attribute("verification_gate.terkoreksi", terkoreksi)
+        return HasilVerifikasiGate(
+            request_final=request_terkoreksi, lolos=True, terkoreksi=terkoreksi
+        )

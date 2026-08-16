@@ -24,8 +24,11 @@ from src.observability.genai_semconv import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_USAGE_INPUT_TOKENS,
     GEN_AI_USAGE_OUTPUT_TOKENS,
+    PROMPT_ID,
+    PROMPT_VERSION,
 )
 from src.observability.tracing import get_tracer
+from src.prompts.loader import load_prompt
 from src.schemas.decomposition import (
     AtomicIntent,
     KlasifikasiKebutuhan,
@@ -35,36 +38,7 @@ from src.schemas.decomposition import (
 from src.schemas.session_memory import LabelBentukJawaban
 
 _TRACER_NAME = "decomposition.pemecahan"
-
-_SYSTEM_PROMPT = """Anda adalah komponen sistem yang memecah sebuah \
-pertanyaan menjadi daftar kebutuhan atomik (atomic intent) - unit informasi \
-terkecil yang masing-masing bisa dijawab sendiri.
-
-Untuk setiap kebutuhan atomik, tentukan:
-- index: nomor urut kebutuhan ini dalam daftar (mulai dari 1).
-- teks_kebutuhan: kalimat pertanyaan spesifik untuk kebutuhan ini saja.
-- label_bentuk_jawaban: salah satu dari lima nilai berikut sesuai bentuk \
-jawaban yang diharapkan:
-  - nilai_tunggal: jawaban berupa satu angka/nilai.
-  - tren: jawaban berupa deret nilai dari waktu ke waktu.
-  - perbandingan: jawaban berupa perbandingan dua nilai atau lebih.
-  - peringkat: jawaban berupa urutan/ranking.
-  - komposisi: jawaban berupa breakdown/pembagian suatu total ke \
-bagian-bagiannya.
-- relasi: "independen" (bisa dijawab sendiri, tidak butuh kebutuhan lain \
-dalam daftar ini) atau "bergantung" (butuh jawaban dari kebutuhan lain \
-dalam daftar ini lebih dulu).
-- bergantung_pada_index: HANYA diisi kalau relasi="bergantung" - daftar \
-nomor index kebutuhan lain (dari daftar yang sama) yang perlu diketahui \
-dulu. Kalau relasi="independen", isi null.
-
-Kalau pertanyaan berisi SATU kebutuhan saja, hasilkan HANYA SATU entri \
-dengan relasi="independen".
-
-Balas HANYA dengan JSON persis berbentuk:
-{"kebutuhan": [{"index": 1, "teks_kebutuhan": "...", \
-"label_bentuk_jawaban": "...", "relasi": "...", \
-"bergantung_pada_index": [..] atau null}, ...]}"""
+_PROMPT_ID = "decomposition.pemecahan"
 
 _FALLBACK_LABEL = LabelBentukJawaban.NILAI_TUNGGAL
 
@@ -95,10 +69,11 @@ def _call_llm(question: str, klasifikasi: KlasifikasiKebutuhan, feedback: str | 
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`)."""
     client = get_openrouter_client()
+    system_prompt = load_prompt(_PROMPT_ID).render()
     return client.chat.completions.create(
         model=OPENROUTER_MODEL_DECOMPOSITION,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": _build_user_prompt(question, klasifikasi, feedback)},
         ],
         response_format={"type": "json_object"},
@@ -184,9 +159,12 @@ def pecah_atomik(
     feedback: str | None = None,
 ) -> PemecahanResult:
     tracer = get_tracer(_TRACER_NAME)
+    prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_DECOMPOSITION)
+        span.set_attribute(PROMPT_ID, prompt.id)
+        span.set_attribute(PROMPT_VERSION, prompt.version)
 
         try:
             response = _call_llm(question, klasifikasi, feedback)

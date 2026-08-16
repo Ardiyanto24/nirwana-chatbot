@@ -63,5 +63,9 @@ def load_prompt(prompt_id: str) -> PromptTemplate:
         milestone=str(meta.get("milestone", "")),
         model_compat=meta.get("model_compat", []),
         description=meta.get("description", ""),
-        _jinja_template=Template(body),
+        # trim_blocks+lstrip_blocks: baris {% for %}/{% endfor %} sendiri tidak
+        # ikut menyisakan baris kosong di output - perlu supaya prompt yang
+        # py loop (mis. domain_gate) tetap byte-identik dengan versi hardcode
+        # f-string lama, bukan cuma "kelihatan mirip".
+        _jinja_template=Template(body, trim_blocks=True, lstrip_blocks=True),
     )

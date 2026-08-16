@@ -11,12 +11,19 @@ Konfigurasi per prompt (lewat `config:` di YAML):
     model: konstanta model OpenRouter (wajib)
     response_format: dict, opsional (mis. {"type": "json_object"})
     extra_body: dict, opsional (mis. {"reasoning": {"effort": "high"}})
+    render_context: dotted-path opsional ke fungsi Python tanpa argumen yang
+        mengembalikan dict variabel tambahan untuk `.render()` - WAJIB diisi
+        untuk prompt yang py variabel Jinja2 di luar `user_prompt` (mis.
+        domain_gate.identifikasi butuh `daftar_domain`/`catatan_pola_jebakan`).
+        Reuse fungsi yang SAMA dipakai kode produksi (bukan re-derive context
+        terpisah) - lihat `_render_context()` di masing-masing modul terkait.
 
 Variabel per skenario (lewat `vars:` di tiap test case):
     user_prompt: teks user message persis seperti yang dihasilkan
         `_build_user_prompt()` call site terkait.
 """
 
+import importlib
 import sys
 from pathlib import Path
 
@@ -26,12 +33,22 @@ from src.config.llm import get_openrouter_client
 from src.prompts.loader import load_prompt
 
 
+def _resolve_render_context(dotted_path: str) -> dict:
+    module_path, func_name = dotted_path.rsplit(".", 1)
+    module = importlib.import_module(module_path)
+    return getattr(module, func_name)()
+
+
 def call_api(prompt, options, context):
     config = options.get("config", {})
     prompt_id = config["prompt_id"]
     model = config["model"]
 
-    system_prompt = load_prompt(prompt_id).render()
+    render_kwargs = {}
+    if "render_context" in config:
+        render_kwargs = _resolve_render_context(config["render_context"])
+
+    system_prompt = load_prompt(prompt_id).render(**render_kwargs)
     user_prompt = context["vars"]["user_prompt"]
 
     client = get_openrouter_client()

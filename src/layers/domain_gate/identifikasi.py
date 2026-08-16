@@ -23,38 +23,30 @@ from src.observability.genai_semconv import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_USAGE_INPUT_TOKENS,
     GEN_AI_USAGE_OUTPUT_TOKENS,
+    PROMPT_ID,
+    PROMPT_VERSION,
 )
 from src.observability.tracing import get_tracer
+from src.prompts.loader import load_prompt
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.domain_gate import Domain, IdentifikasiDomainResult
 
 _TRACER_NAME = "domain_gate.identifikasi"
+_PROMPT_ID = "domain_gate.identifikasi"
 
-_DAFTAR_DOMAIN_TEXT = "\n".join(
-    f"- {domain.value}: {deskripsi}" for domain, deskripsi in DESKRIPSI_DOMAIN.items()
-)
+_DAFTAR_DOMAIN = [(domain.value, deskripsi) for domain, deskripsi in DESKRIPSI_DOMAIN.items()]
 
-_SYSTEM_PROMPT = f"""Anda adalah komponen sistem yang mengidentifikasi domain data \
-apa saja yang tersentuh oleh sebuah kebutuhan (atomic intent) dari pertanyaan \
-pengguna. Anda TIDAK menjawab kebutuhannya - tugas Anda murni menentukan domain \
-data yang relevan.
 
-Daftar 10 domain yang valid (HANYA boleh memilih dari daftar ini):
-{_DAFTAR_DOMAIN_TEXT}
+def _render_context() -> dict:
+    """Variabel render prompt ini - dipakai kode produksi (`_render_system_
+    prompt()`) DAN provider Promptfoo (`prompt_reliability/provider.py`,
+    config `render_context`) supaya reliability testing selalu memakai
+    context identik dengan yang benar-benar dikirim saat runtime."""
+    return {"daftar_domain": _DAFTAR_DOMAIN, "catatan_pola_jebakan": CATATAN_POLA_JEBAKAN}
 
-{CATATAN_POLA_JEBAKAN}
 
-Balas HANYA dengan JSON persis berbentuk:
-{{"domains": ["<nama domain 1>", "<nama domain 2>", ...]}}
-
-Aturan:
-- Setiap nilai di "domains" HARUS persis salah satu dari 10 nama domain di atas \
-(huruf kecil semua, sesuai persis) - JANGAN mengarang nama domain lain.
-- Sebutkan SEMUA domain yang genuinely tersentuh, termasuk lewat kolom turunan \
-lintas-domain (pola 1) dan pemisahan guests_pii/guests_profile (pola 3) - jangan \
-hanya domain yang disebut eksplisit di kata-kata pertanyaan.
-- Minimal satu domain wajib teridentifikasi - setiap kebutuhan data pasti \
-menyentuh domain data tertentu."""
+def _render_system_prompt() -> str:
+    return load_prompt(_PROMPT_ID).render(**_render_context())
 
 
 class _RawIdentifikasiResult(BaseModel):
@@ -68,7 +60,7 @@ def _call_llm(atomic_intent: AtomicIntent):
     return client.chat.completions.create(
         model=OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": _render_system_prompt()},
             {"role": "user", "content": atomic_intent.teks_kebutuhan},
         ],
         response_format={"type": "json_object"},
@@ -113,9 +105,12 @@ def _parse_and_decide(raw_content: str) -> tuple[IdentifikasiDomainResult, str |
 
 def identifikasi_domain(atomic_intent: AtomicIntent) -> IdentifikasiDomainResult:
     tracer = get_tracer(_TRACER_NAME)
+    prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI)
+        span.set_attribute(PROMPT_ID, prompt.id)
+        span.set_attribute(PROMPT_VERSION, prompt.version)
 
         try:
             response = _call_llm(atomic_intent)

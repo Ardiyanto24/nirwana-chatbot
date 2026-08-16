@@ -1,0 +1,109 @@
+description: "Reliability testing - domain_gate.identifikasi (M2.1 Langkah 1) - RBAC-sensitif, seluruh 10 skenario evals/2.1-identifikasi-domain/"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: domain_gate.identifikasi
+      model: qwen/qwen3-32b
+      response_format: { type: json_object }
+      render_context: src.layers.domain_gate.identifikasi._render_context
+
+tests:
+  - description: S01_generalisasi_cross_domain_kasus_baru
+    vars:
+      user_prompt: "Bagaimana margin keuntungan F&B dibandingkan dengan revenue F&B bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domains;
+          return d.includes('fnb') && d.includes('financial');
+
+  - description: S02_fokus_terlalu_sempit_pola_umum
+    vars:
+      user_prompt: "Siapa staff yang menangani housekeeping hari ini, dan berapa okupansi hotel saat itu?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domains;
+          return d.includes('facility') && d.includes('reservation');
+
+  - description: S03_guests_pii_dan_guests_profile_sekaligus
+    vars:
+      user_prompt: "Siapkan laporan tamu VIP: nama, email, dan tingkat loyalitas mereka."
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domains;
+          return d.includes('guests_pii') && d.includes('guests_profile');
+
+  - description: S04_retest_over_triggering_nationality_mix
+    vars:
+      user_prompt: "Berapa nationality mix tamu bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        # reservation TIDAK wajib absen (toleransi eksplisit di rancangan.md -
+        # over-triggering verifikasi titik buta bukan fail keras, dicatat
+        # sebagai observasi). guests_profile tetap wajib ada.
+        value: "JSON.parse(output).domains.includes('guests_profile')"
+
+  - description: S05_baseline_financial_murni
+    vars:
+      user_prompt: "Berapa total revenue seluruh properti bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domains;
+          return d.includes('financial') && !d.includes('reservation') && !d.includes('fnb');
+
+  - description: S06_guard_anti_false_positive_hr_murni
+    vars:
+      user_prompt: "Berapa tingkat turnover karyawan bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domains;
+          return d.includes('hr') && !d.includes('employees_directory') && !d.includes('financial');
+
+  - description: S07_domain_minor_properties_ref
+    vars:
+      user_prompt: "Sebutkan nama-nama hotel yang sudah beroperasi lebih dari 5 tahun."
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).domains.includes('properties_ref')"
+
+  - description: S08_multi_domain_eksplisit_kasus_kontrol
+    vars:
+      user_prompt: "Bandingkan revenue F&B dengan tingkat okupansi kamar bulan ini."
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domains;
+          return d.includes('fnb') && d.includes('reservation');
+
+  - description: S09_employees_directory_hr_gabungan
+    vars:
+      user_prompt: "Siapa saja karyawan departemen HR yang performanya menurun bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        # employees_directory diharapkan tapi TIDAK wajib keras (toleransi
+        # eksplisit di rancangan.md) - hanya hr yang wajib.
+        value: "JSON.parse(output).domains.includes('hr')"
+
+  - description: S10_jebakan_payroll_financial_murni
+    vars:
+      user_prompt: "Berapa total payroll yang dibayarkan bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domains;
+          return d.includes('financial') && !d.includes('hr');

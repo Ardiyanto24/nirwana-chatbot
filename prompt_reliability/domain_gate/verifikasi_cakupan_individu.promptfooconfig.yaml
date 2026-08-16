@@ -1,0 +1,116 @@
+description: "Reliability testing - domain_gate.verifikasi_cakupan_individu (M2.3 Langkah 2) - RBAC-sensitif, seluruh 10 skenario evals/2.3-deteksi-cakupan-individu/"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: domain_gate.verifikasi_cakupan_individu
+      model: deepseek/deepseek-v4-pro
+      response_format: { type: json_object }
+      extra_body: { reasoning: { effort: high } }
+      render_context: src.layers.domain_gate.verifikasi_cakupan_individu._render_context
+
+tests:
+  # Kesimpulan Langkah 1 disuplai SENGAJA "tidak terdeteksi" untuk skenario
+  # genuinely individu (menguji Langkah 2 menangkap titik buta - mirror KK2
+  # M2.1) dan "tidak terdeteksi" untuk skenario genuinely agregat (menguji
+  # guard anti-false-positive - tidak memaksakan true yang tidak relevan).
+
+  - description: S01_titik_buta_review_kinerja_individu_hr
+    vars:
+      user_prompt: |
+        Kebutuhan: Bagaimana hasil review kinerja Budi semester ini?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === true"
+
+  - description: S02_titik_buta_beban_kerja_teknisi_facility
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa banyak tiket yang ditangani teknisi Andi bulan ini?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === true"
+
+  - description: S03_guard_distractor_cuti_agregat_hr
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa banyak staf yang mengambil cuti bulan ini?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === false"
+
+  - description: S04_guard_agregat_facility_tanpa_kata_staf
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa rata-rata durasi pembersihan kamar tipe Villa dibanding baseline?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === false"
+
+  - description: S05_titik_buta_ranking_tanpa_kata_kunci
+    vars:
+      user_prompt: |
+        Kebutuhan: Siapa yang paling banyak menangani tiket maintenance bulan ini?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === true"
+
+  - description: S06_titik_buta_watchlist_individu_hr
+    vars:
+      user_prompt: |
+        Kebutuhan: Karyawan mana saja yang pola absensinya menyimpang jauh dari kebiasaan pribadinya bulan ini?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === true"
+
+  - description: S07_titik_buta_kehadiran_individu_hr
+    vars:
+      user_prompt: |
+        Kebutuhan: Apakah Budi sudah absen hari ini?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === true"
+
+  - description: S08_titik_buta_teknisi_ac_facility
+    vars:
+      user_prompt: |
+        Kebutuhan: Teknisi mana yang paling sering menangani perbaikan AC bulan ini?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === true"
+
+  - description: S09_titik_buta_kecepatan_kerja_phrasing_baru
+    vars:
+      user_prompt: |
+        Kebutuhan: Bandingkan kecepatan kerja tiap staf housekeeping minggu ini.
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi_tambahan === true"
+
+  - description: S10_guard_distractor_durasi_waktu_agregat
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa rata-rata waktu penyelesaian tiket maintenance bulan ini, dan apakah melebihi SLA?
+        Kesimpulan Langkah 1: tidak terdeteksi
+    assert:
+      # toleransi eksplisit (rancangan.md evals/2.3) - kalau terdeteksi_tambahan
+      # true (over-triggering), bukan fail keras, tapi tetap diperiksa is-json.
+      - type: is-json

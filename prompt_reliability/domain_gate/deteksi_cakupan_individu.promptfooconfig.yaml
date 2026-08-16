@@ -1,0 +1,90 @@
+description: "Reliability testing - domain_gate.deteksi_cakupan_individu (M2.3 Langkah 1) - RBAC-sensitif, seluruh 10 skenario evals/2.3-deteksi-cakupan-individu/"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: domain_gate.deteksi_cakupan_individu
+      model: qwen/qwen3-32b
+      response_format: { type: json_object }
+      render_context: src.layers.domain_gate.deteksi_cakupan_individu._render_context
+
+tests:
+  - description: S01_review_kinerja_individu_by_name_hr
+    vars:
+      user_prompt: "Bagaimana hasil review kinerja Budi semester ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === true"
+
+  - description: S02_beban_kerja_teknisi_by_name_facility
+    vars:
+      user_prompt: "Berapa banyak tiket yang ditangani teknisi Andi bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === true"
+
+  - description: S03_distractor_jumlah_cuti_agregat_hr
+    vars:
+      user_prompt: "Berapa banyak staf yang mengambil cuti bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === false"
+
+  - description: S04_agregat_facility_tanpa_kata_staf
+    vars:
+      user_prompt: "Berapa rata-rata durasi pembersihan kamar tipe Villa dibanding baseline?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === false"
+
+  - description: S05_ranking_individu_tanpa_kata_kunci
+    vars:
+      user_prompt: "Siapa yang paling banyak menangani tiket maintenance bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === true"
+
+  - description: S06_watchlist_individu_hr
+    vars:
+      user_prompt: "Karyawan mana saja yang pola absensinya menyimpang jauh dari kebiasaan pribadinya bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === true"
+
+  - description: S07_kehadiran_individu_by_name_hr
+    vars:
+      user_prompt: "Apakah Budi sudah absen hari ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === true"
+
+  - description: S08_teknisi_ac_individu_facility
+    vars:
+      user_prompt: "Teknisi mana yang paling sering menangani perbaikan AC bulan ini?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === true"
+
+  - description: S09_perbandingan_kecepatan_kerja_individu_facility
+    vars:
+      user_prompt: "Bandingkan kecepatan kerja tiap staf housekeeping minggu ini."
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).terdeteksi === true"
+
+  - description: S10_distractor_durasi_waktu_agregat_facility
+    vars:
+      user_prompt: "Berapa rata-rata waktu penyelesaian tiket maintenance bulan ini, dan apakah melebihi SLA?"
+    assert:
+      # toleransi eksplisit (rancangan.md evals/2.3) - kalau terdeteksi=true
+      # (over-triggering), bukan fail keras, tapi tetap diperiksa is-json.
+      - type: is-json

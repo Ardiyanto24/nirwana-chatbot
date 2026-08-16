@@ -69,6 +69,34 @@ class RolePermissionRow(SQLModel, table=True):
     domain: str = Field(index=True)
 
 
+class EmployeeRow(SQLModel, table=True):
+    """Salinan direktori karyawan (Milestone 2.4) - HANYA dipakai sebagai
+    fixture test yang realistis untuk Verification Gate (employee_id/
+    role_title/property_id nyata, bukan karangan). Logic produksi
+    verifikasi_gate() TIDAK PERNAH query tabel ini - employee_id caller
+    sudah tersedia sejak TurnPayload (M1.2). Diseed dari
+    employees_deduped.csv, lihat milestones/2.4-verification-gate/
+    decisions.md Keputusan 2 dan 8.
+
+    hire_date disimpan str polos (bukan tipe date) - satu baris CSV
+    sumber berformat DD/MM/YYYY sementara baris lain YYYY-MM-DD, field
+    ini tidak dipakai logic apa pun sehingga normalisasi paksa tidak
+    sepadan (Keputusan 8)."""
+
+    __tablename__ = "employees"
+
+    id: int | None = Field(default=None, primary_key=True)
+    employee_id: str = Field(unique=True, index=True)
+    property_id: str
+    property_name: str
+    full_name: str
+    role_title: str = Field(index=True)
+    department: str
+    access_level: str
+    hire_date: str
+    status: str
+
+
 class PromptEvalRunRow(SQLModel, table=True):
     """Hasil reliability testing (Promptfoo) per skenario - Manajemen Prompt
     Fase 2, append-only, payload penuh. Disimpan di Supabase (bukan git)

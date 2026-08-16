@@ -8,6 +8,7 @@ File ini dibangun bertahap lintas checkpoint (preseden pola M2.2 CP4->CP5):
 - Checkpoint 7 (Task 12): test KK1-3 real LLM - ditambahkan nanti.
 """
 
+import os
 import uuid
 
 import pytest
@@ -148,3 +149,54 @@ def test_pre_filter_domain_ditolak_tidak_dianggap_relevan(monkeypatch):
     hasil = deteksi_constraint_atomic_intent(aia, "HR Staff")
 
     assert hasil.constraint.terdeteksi is False
+
+
+# --- Checkpoint 7: Verifikasi KK1-3 (real LLM) ------------------------------
+
+pytestmark_llm = pytest.mark.skipif(
+    not os.environ.get("OPENROUTER_API_KEY"),
+    reason="OPENROUTER_API_KEY tidak diset - skip test yang butuh panggilan LLM nyata",
+)
+
+
+@pytestmark_llm
+def test_kk1_staff_kebutuhan_individu_menghasilkan_constraint_eksplisit():
+    """KK1: role Staff + kebutuhan menyentuh performa individu -> constraint
+    eksplisit dan bisa ditelusuri (alasan terisi)."""
+    aia = _buat_atomic_intent_authorization(
+        "Siapa staf tercepat bulan ini?",
+        [DomainAuthorization(domain=Domain.FACILITY, diizinkan=True)],
+    )
+    hasil = deteksi_constraint_atomic_intent(aia, "Housekeeping Staff")
+
+    assert hasil.constraint.terdeteksi is True
+    assert hasil.constraint.alasan is not None
+
+
+@pytestmark_llm
+def test_kk2_manager_kebutuhan_sama_tidak_menghasilkan_constraint():
+    """KK2: kebutuhan SAMA seperti KK1, role Manager -> tidak menghasilkan
+    constraint tambahan apa pun (dari pre-filter role, bukan kebetulan LLM)."""
+    aia = _buat_atomic_intent_authorization(
+        "Siapa staf tercepat bulan ini?",
+        [DomainAuthorization(domain=Domain.FACILITY, diizinkan=True)],
+    )
+    hasil = deteksi_constraint_atomic_intent(aia, "Housekeeping Manager")
+
+    assert hasil.constraint.terdeteksi is False
+    assert hasil.constraint.alasan is None
+
+
+@pytestmark_llm
+def test_kk3_kebutuhan_tidak_menyentuh_kategori_tidak_mendapat_constraint():
+    """KK3: kebutuhan di domain facility (relevan, lolos pre-filter) tapi
+    genuinely tidak menyentuh kategori performa individu -> tidak mendapat
+    constraint (dibuktikan lewat LLM nyata, bukan pre-filter)."""
+    aia = _buat_atomic_intent_authorization(
+        "Berapa jumlah kamar yang sedang out-of-order hari ini?",
+        [DomainAuthorization(domain=Domain.FACILITY, diizinkan=True)],
+    )
+    hasil = deteksi_constraint_atomic_intent(aia, "Housekeeping Staff")
+
+    assert hasil.constraint.terdeteksi is False
+    assert hasil.constraint.alasan is None

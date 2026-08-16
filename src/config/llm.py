@@ -33,6 +33,14 @@ gampang diganti tanpa menyentuh logic layer.
   peran verifier independen, karena risiko M2.1 asimetris ke arah domain
   terlewat (beda dari M1.7 yang asimetris ke arah aman). Lihat
   milestones/2.1-identifikasi-domain/decisions.md Keputusan 7 dan 9.
+- OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI: Qwen3-32B (reuse nilai,
+  konstanta terisolasi sendiri), dipakai deteksi_cakupan_individu.py
+  (M2.3, Domain Gate) untuk deteksi awal constraint cakupan-individu.
+- OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI: DeepSeek V4 Pro (reuse
+  nilai, pola sama M2.1 Langkah 2), dipakai verifikasi_cakupan_individu.py
+  (M2.3) dengan reasoning="high" - asimetri risiko M2.3 sama arah dengan
+  M2.1 (false-negative = constraint terlewat = potensi kebocoran). Lihat
+  milestones/2.3-deteksi-cakupan-individu/decisions.md Keputusan 2 dan 8.
 
 Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
 get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
@@ -61,6 +69,8 @@ OPENROUTER_MODEL_DECOMPOSITION_VERIFIKASI = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_MATCHING = "qwen/qwen3-32b"
 OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI = "qwen/qwen3-32b"
 OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA = "deepseek/deepseek-v4-pro"
+OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI = "qwen/qwen3-32b"
+OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI = "deepseek/deepseek-v4-pro"
 
 load_dotenv()
 

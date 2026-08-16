@@ -8,6 +8,7 @@ di domain yang dinyatakan, dan limit tidak melebihi batas chatbot_api.
 """
 
 from src.layers.verification_gate.katalog_view import DAFTAR_VIEW_PER_DOMAIN
+from src.schemas.cakupan_individu import ConstraintCakupanIndividu
 from src.schemas.verification_gate import QueryEngineRequest
 
 LIMIT_MAKSIMUM = 1000
@@ -40,5 +41,41 @@ def verifikasi_kepatuhan_sumber(
         return False, (
             f"view_name request ('{request.view_name}') tidak sesuai dengan "
             f"view_name yang divalidasi Retriever ('{view_name_tervalidasi_retriever}')"
+        )
+    return True, None
+
+
+def tegakkan_constraint_cakupan_individu(
+    request: QueryEngineRequest, constraint: ConstraintCakupanIndividu, employee_id: str
+) -> tuple[QueryEngineRequest, bool]:
+    """Cek 3: kalau constraint.terdeteksi=True dan params["employee_id"]
+    belum sama dengan employee_id caller, TIMPA PAKSA (bukan tolak) -
+    lihat decisions.md Keputusan 1 (konvensi employee_id, PROVISIONAL).
+    Mengembalikan (request_terkoreksi, terkoreksi)."""
+    if not constraint.terdeteksi:
+        return request, False
+
+    if request.params.get("employee_id") == employee_id:
+        return request, False
+
+    params_terkoreksi = dict(request.params)
+    params_terkoreksi["employee_id"] = employee_id
+    return request.model_copy(update={"params": params_terkoreksi}), True
+
+
+def verifikasi_kelengkapan_penegakan(
+    request: QueryEngineRequest, constraint: ConstraintCakupanIndividu, employee_id: str
+) -> tuple[bool, str | None]:
+    """Cek 4: re-cek hasil cek 3 benar-benar konsisten - defensif,
+    menangkap bug internal kalau tegakkan_constraint_cakupan_individu()
+    gagal menerapkan koreksinya sendiri."""
+    if not constraint.terdeteksi:
+        return True, None
+
+    if request.params.get("employee_id") != employee_id:
+        return False, (
+            "constraint cakupan-individu terdeteksi tapi params['employee_id'] "
+            f"({request.params.get('employee_id')!r}) tidak sama dengan employee_id "
+            f"caller ({employee_id!r}) setelah penegakan"
         )
     return True, None

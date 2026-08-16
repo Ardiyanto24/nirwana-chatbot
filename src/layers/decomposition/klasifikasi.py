@@ -16,27 +16,15 @@ from src.observability.genai_semconv import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_USAGE_INPUT_TOKENS,
     GEN_AI_USAGE_OUTPUT_TOKENS,
+    PROMPT_ID,
+    PROMPT_VERSION,
 )
 from src.observability.tracing import get_tracer
+from src.prompts.loader import load_prompt
 from src.schemas.decomposition import KlasifikasiKebutuhan
 
 _TRACER_NAME = "decomposition.klasifikasi"
-
-_SYSTEM_PROMPT = """Anda adalah komponen sistem yang mengklasifikasikan sebuah \
-pertanyaan menjadi salah satu dari tiga kategori kebutuhan:
-
-- tunggal: pertanyaan berisi satu kebutuhan informasi saja.
-- majemuk_independen: pertanyaan berisi lebih dari satu kebutuhan informasi, \
-tapi masing-masing bisa dijawab sendiri-sendiri TANPA bergantung pada \
-jawaban kebutuhan lain.
-- majemuk_bergantung: pertanyaan berisi lebih dari satu kebutuhan informasi, \
-di mana salah satu kebutuhan butuh jawaban dari kebutuhan lain lebih dulu \
-sebelum bisa diselesaikan (mis. perbandingan - kedua nilai yang \
-dibandingkan perlu diketahui dulu).
-
-Balas HANYA dengan salah satu dari tiga kata ini, tanpa penjelasan \
-tambahan, tanpa tanda kutip: tunggal / majemuk_independen / \
-majemuk_bergantung"""
+_PROMPT_ID = "decomposition.klasifikasi"
 
 _FALLBACK = KlasifikasiKebutuhan.MAJEMUK_BERGANTUNG
 
@@ -45,10 +33,11 @@ def _call_llm(question: str):
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`)."""
     client = get_openrouter_client()
+    system_prompt = load_prompt(_PROMPT_ID).render()
     return client.chat.completions.create(
         model=OPENROUTER_MODEL_DECOMPOSITION,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": question},
         ],
         temperature=0,
@@ -57,9 +46,12 @@ def _call_llm(question: str):
 
 def klasifikasi_kebutuhan(question: str) -> KlasifikasiKebutuhan:
     tracer = get_tracer(_TRACER_NAME)
+    prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_DECOMPOSITION)
+        span.set_attribute(PROMPT_ID, prompt.id)
+        span.set_attribute(PROMPT_VERSION, prompt.version)
 
         try:
             response = _call_llm(question)

@@ -1,0 +1,78 @@
+description: "Reliability testing - context_resolution.matching (M1.7)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: context_resolution.matching
+      model: qwen/qwen3-32b
+      response_format: { type: json_object }
+
+tests:
+  - description: S01_paraphrase_kata_berbeda_makna_sama
+    vars:
+      user_prompt: |
+        Kebutuhan yang dinilai: pendapatan reservasi bulan Maret 2026 (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat yang sudah tersimpan:
+        - Index 1: revenue reservasi Maret 2026 (bentuk jawaban: nilai_tunggal)
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).matched === true && JSON.parse(output).candidate_index === 1"
+
+  - description: S02_entitas_beda_bulan_berbeda_kritis
+    vars:
+      user_prompt: |
+        Kebutuhan yang dinilai: occupancy rate Mei 2026 (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat yang sudah tersimpan:
+        - Index 1: occupancy rate bulan April 2026 (bentuk jawaban: nilai_tunggal)
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).matched === false"
+
+  - description: S03_entitas_beda_metrik_berbeda_domain_sama
+    vars:
+      user_prompt: |
+        Kebutuhan yang dinilai: revenue F&B bulan Maret 2026 (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat yang sudah tersimpan:
+        - Index 1: jumlah komplain tamu F&B bulan Maret 2026 (bentuk jawaban: nilai_tunggal)
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).matched === false"
+
+  - description: S08_pool_kandidat_besar_presisi_pemilihan
+    vars:
+      user_prompt: |
+        Kebutuhan yang dinilai: berapa occupancy Maret 2026 (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat yang sudah tersimpan:
+        - Index 1: occupancy rate Januari 2026 (bentuk jawaban: nilai_tunggal)
+        - Index 2: occupancy rate Februari 2026 (bentuk jawaban: nilai_tunggal)
+        - Index 3: occupancy rate Maret 2026 (bentuk jawaban: nilai_tunggal)
+        - Index 4: occupancy rate April 2026 (bentuk jawaban: nilai_tunggal)
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).matched === true && JSON.parse(output).candidate_index === 3"
+
+  - description: S09_recency_bias_posisi_vs_kebenaran_makna
+    vars:
+      user_prompt: |
+        Kebutuhan yang dinilai: berapa occupancy Februari 2026 (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat yang sudah tersimpan:
+        - Index 1: occupancy rate Februari 2026 (bentuk jawaban: nilai_tunggal)
+        - Index 2: revenue F&B Maret 2026 (bentuk jawaban: nilai_tunggal)
+        - Index 3: occupancy rate April 2026 (bentuk jawaban: nilai_tunggal)
+    assert:
+      # Kandidat 3 sengaja diletakkan di posisi terakhir untuk memancing
+      # recency bias (docs/keterbatasan-diterima.md #3, sudah teramati
+      # lintas M1.3/M1.4). Jawaban benar tetap index 1 - kegagalan di sini
+      # adalah temuan nyata yang wajib terlihat, bukan ditoleransi/dilonggarkan.
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).matched === true && JSON.parse(output).candidate_index === 1"

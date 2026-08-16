@@ -188,9 +188,15 @@ Identitas dan versi prompt yang dipakai pada satu pemanggilan LLM direkam sebaga
 
 ## 9. Bagian yang Masih Terbuka
 
-Didefer ke Fase 2 (eksekusi retrofit ke 8 call site yang sudah ada), bukan diputuskan sekarang:
+Item 1-3 **SELESAI di Fase 2** (retrofit 8 call site, lihat commit `11824bf`..`3e0819c`):
 
-1. **Mekanisme exact skrip push Promptfoo → Supabase** (`prompt_reliability/push_results.py`) — format parsing output JSON Promptfoo, penanganan error saat insert gagal.
-2. **Urutan retrofit 8 call site** — apakah per-milestone (M1.3 dulu, dst.) atau dikelompokkan cara lain; belum diputuskan, akan diajukan ke user saat Fase 2 dimulai.
-3. **Isi konkret `promptfooconfig.yaml` per prompt** (skenario, assertion) — kerangka folder saja yang disiapkan Fase 1, isinya menyusul bersamaan retrofit tiap call site.
-4. **Integrasi CI** (Bagian 5) — proyek ini belum py remote/CI aktif; keputusan pindah ke CI penuh ditunda sampai relevan.
+1. ~~Mekanisme exact skrip push Promptfoo → Supabase~~ — **SELESAI**: `prompt_reliability/push_results.py` (parse `results.results[]`, `testCase.description` sebagai `scenario_id` — ditemukan lewat verifikasi nyata terhadap output Promptfoo sungguhan, bukan diasumsikan dari dokumentasi resmi).
+2. ~~Urutan retrofit 8 call site~~ — **SELESAI**: kronologis sederhana→kompleks (M1.3 → M1.4 → M1.6 klasifikasi→pemecahan→verifikasi → M1.7 → M2.1 identifikasi→verifikasi_titik_buta), dikonfirmasi user sebelum Fase 2 dimulai.
+3. ~~Isi konkret `promptfooconfig.yaml` per prompt~~ — **SELESAI**: seluruh 8 prompt py config nyata, skenario direuse dari `evals/` masing-masing milestone; kedua prompt Domain Gate (RBAC-sensitif) diuji dengan seluruh 10 skenario `evals/2.1-identifikasi-domain/`, bukan subset.
+4. **Integrasi CI** — masih terbuka, proyek ini belum py remote/CI aktif; keputusan pindah ke CI penuh ditunda sampai relevan.
+
+**Temuan Fase 2 yang mengubah desain Fase 1** (dicatat di sini karena mengoreksi isi dokumen ini sendiri, bukan sekadar implementasi):
+
+- **Bug penamaan atribut span** — Bagian 6-7 dokumen ini semula menulis `gen_ai.prompt.id`/`gen_ai.prompt.version`. Dikoreksi jadi `prompt.id`/`prompt.version` (tanpa prefix `gen_ai.`) begitu Fase 2 dimulai — atribut ini bukan bagian resmi OpenTelemetry GenAI Semantic Conventions, dan `src/observability/genai_semconv.py` hanya mengekspos nama yang benar-benar ada di paket resmi. Lihat commit `3c9f14e`.
+- **Contoh Jinja2 kondisional di Bagian 3 tidak akurat** — dokumen ini semula mencontohkan `pemecahan.py` (M1.6) sebagai kandidat blok `{% if feedback %}` di system prompt. Retrofit nyata (Checkpoint 7) menemukan blok `feedback` itu ada di **user prompt** (`_build_user_prompt()`, Python biasa), bukan system prompt — `pemecahan.md` ternyata statis seperti prompt lain. Satu-satunya pemakaian nyata fitur Jinja2 (loop, bukan kondisional) ada di `domain_gate/identifikasi.md` dan `verifikasi_titik_buta.md` (Checkpoint 10-11), untuk daftar 10 domain.
+- **`loader.py` perlu `trim_blocks=True, lstrip_blocks=True`** — ditemukan saat retrofit prompt Domain Gate (loop pertama), supaya baris `{% for %}`/`{% endfor %}` tidak menyisakan baris kosong di output — perlu untuk byte-identik dengan versi f-string hardcode lama.

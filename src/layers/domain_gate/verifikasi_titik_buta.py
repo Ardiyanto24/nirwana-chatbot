@@ -27,41 +27,30 @@ from src.observability.genai_semconv import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_USAGE_INPUT_TOKENS,
     GEN_AI_USAGE_OUTPUT_TOKENS,
+    PROMPT_ID,
+    PROMPT_VERSION,
 )
 from src.observability.tracing import get_tracer
+from src.prompts.loader import load_prompt
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.domain_gate import Domain, VerifikasiTitikButaResult
 
 _TRACER_NAME = "domain_gate.verifikasi_titik_buta"
+_PROMPT_ID = "domain_gate.verifikasi_titik_buta"
 
-_DAFTAR_DOMAIN_TEXT = "\n".join(
-    f"- {domain.value}: {deskripsi}" for domain, deskripsi in DESKRIPSI_DOMAIN.items()
-)
+_DAFTAR_DOMAIN = [(domain.value, deskripsi) for domain, deskripsi in DESKRIPSI_DOMAIN.items()]
 
-_SYSTEM_PROMPT = f"""Anda adalah komponen sistem yang mencari TITIK BUTA - domain data \
-yang MUNGKIN TERLEWAT oleh proses identifikasi sebelumnya untuk sebuah kebutuhan \
-(atomic intent). Anda BUKAN menilai ulang apakah domain yang sudah ditemukan itu \
-benar atau salah - tugas Anda murni mencari domain TAMBAHAN yang genuinely relevan \
-tapi belum ada di daftar yang sudah ditemukan. Bertindaklah sebagai pemeriksa \
-independen dengan sudut pandang baru, bukan melanjutkan penalaran proses \
-sebelumnya.
 
-Daftar 10 domain yang valid (HANYA boleh memilih dari daftar ini):
-{_DAFTAR_DOMAIN_TEXT}
+def _render_context() -> dict:
+    """Variabel render prompt ini - dipakai kode produksi DAN provider
+    Promptfoo (`prompt_reliability/provider.py`, config `render_context`)
+    supaya reliability testing selalu memakai context identik dengan yang
+    benar-benar dikirim saat runtime."""
+    return {"daftar_domain": _DAFTAR_DOMAIN, "catatan_pola_jebakan": CATATAN_POLA_JEBAKAN}
 
-{CATATAN_POLA_JEBAKAN}
 
-Balas HANYA dengan JSON persis berbentuk:
-{{"domain_tambahan": ["<nama domain>", ...]}}
-
-Aturan:
-- HANYA sebutkan domain yang BELUM ada di "Domain yang sudah ditemukan" (lihat \
-pesan pengguna) tapi genuinely relevan - JANGAN mengulang domain yang sudah ada.
-- Setiap nilai HARUS persis salah satu dari 10 nama domain di atas (huruf kecil \
-semua, sesuai persis) - JANGAN mengarang nama domain lain.
-- Kalau setelah pemeriksaan cermat memang TIDAK ADA domain yang terlewat, balas \
-{{"domain_tambahan": []}} - JANGAN memaksakan tambahan yang sebenarnya tidak \
-relevan hanya supaya terlihat menemukan sesuatu."""
+def _render_system_prompt() -> str:
+    return load_prompt(_PROMPT_ID).render(**_render_context())
 
 
 class _RawVerifikasiTitikButaResult(BaseModel):
@@ -83,7 +72,7 @@ def _call_llm(atomic_intent: AtomicIntent, domain_awal: list[Domain]):
     return client.chat.completions.create(
         model=OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": _render_system_prompt()},
             {"role": "user", "content": _build_user_prompt(atomic_intent, domain_awal)},
         ],
         response_format={"type": "json_object"},
@@ -112,9 +101,12 @@ def verifikasi_titik_buta(
     atomic_intent: AtomicIntent, domain_awal: list[Domain]
 ) -> VerifikasiTitikButaResult:
     tracer = get_tracer(_TRACER_NAME)
+    prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA)
+        span.set_attribute(PROMPT_ID, prompt.id)
+        span.set_attribute(PROMPT_VERSION, prompt.version)
 
         try:
             response = _call_llm(atomic_intent, domain_awal)

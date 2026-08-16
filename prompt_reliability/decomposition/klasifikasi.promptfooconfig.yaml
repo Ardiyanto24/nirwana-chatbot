@@ -1,0 +1,47 @@
+description: "Reliability testing - decomposition.klasifikasi (M1.6 Langkah 4)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: decomposition.klasifikasi
+      model: qwen/qwen3-32b
+
+tests:
+  - description: S01_tunggal_murni
+    vars:
+      user_prompt: "Berapa occupancy rate bulan Juni 2026?"
+    assert:
+      - type: equals
+        value: "tunggal"
+
+  - description: S02_majemuk_independen_murni
+    vars:
+      user_prompt: "Berapa revenue F&B bulan ini dan berapa jumlah staff Housekeeping yang aktif?"
+    assert:
+      - type: equals
+        value: "majemuk_independen"
+
+  - description: S03_majemuk_bergantung_perbandingan
+    vars:
+      user_prompt: "Bandingkan occupancy rate April 2026 dengan Maret 2026."
+    assert:
+      - type: equals
+        value: "majemuk_bergantung"
+
+  - description: S10_jebakan_overlap_leksikal_paling_kritis
+    vars:
+      user_prompt: "Berapa revenue F&B bulan ini, dan berapa revenue reservasi bulan ini?"
+    assert:
+      - type: equals
+        value: "majemuk_independen"
+
+  - description: S14_disagreement_filosofi_atomicity_ambigu_bertoleransi
+    vars:
+      user_prompt: "Berapa total revenue seluruh departemen (F&B, Housekeeping, Spa, dan Reservasi) yang digabung jadi satu angka bulan ini?"
+    assert:
+      # Genuinely area abu-abu, sudah dianalisis di evals/1.6-decomposition/audit.md
+      # S14: "bukan kesalahan yang jelas salah di salah satu sisi" - user minta satu
+      # angka gabungan (mendukung tunggal), tapi nilai gabungan secara logis berasal
+      # dari beberapa sumber (mendukung majemuk_bergantung). Keduanya defensible.
+      - type: javascript
+        value: "['tunggal', 'majemuk_bergantung'].includes(output.trim())"

@@ -7,9 +7,15 @@ File ini dibangun bertahap lintas checkpoint (preseden pola M2.2/M2.3):
 - Checkpoint 8 (Task 13-14): orkestrator + KK1-3 end-to-end.
 """
 
+import os
+
+import pytest
+
+from src.config.employees import load_employees
 from src.layers.verification_gate.verifikasi_gate import (
     tegakkan_constraint_cakupan_individu,
     verifikasi_bentuk_request_statis,
+    verifikasi_gate,
     verifikasi_kelengkapan_penegakan,
     verifikasi_kepatuhan_sumber,
 )
@@ -145,3 +151,90 @@ def test_constraint_tidak_terdeteksi_params_tidak_diubah_sama_sekali():
         request_terkoreksi, constraint, employee_id="E0002"
     )
     assert lolos is True
+
+
+# --- Orkestrator: KK1-3 End-to-End (fixture nyata tabel employees) ---------
+
+pytestmark_db = pytest.mark.skipif(
+    not os.environ.get("DATABASE_URL"),
+    reason="DATABASE_URL tidak diset - skip test yang butuh koneksi database nyata",
+)
+
+
+def _ambil_employee(role_title: str):
+    kandidat = [e for e in load_employees() if e.role_title == role_title]
+    assert kandidat, f"Tidak ada fixture employee dengan role_title={role_title!r}"
+    return kandidat[0]
+
+
+@pytestmark_db
+def test_orkestrator_kk1_constraint_terdeteksi_dikoreksi_paksa():
+    """KK1: request membawa catatan constraint dari M2.3 tapi belum
+    menyertakan filter yang sesuai - berhasil dikoreksi paksa, BUKAN
+    ditolak."""
+    employee = _ambil_employee("Housekeeping Staff")
+    request = _buat_request(
+        domain=Domain.FACILITY, view_name="v_housekeeping_staff_daily", params={}
+    )
+    constraint = ConstraintCakupanIndividu(terdeteksi=True, alasan="performa individu")
+
+    hasil = verifikasi_gate(
+        request,
+        constraint,
+        employee_id=employee.employee_id,
+        view_name_tervalidasi_retriever="v_housekeeping_staff_daily",
+    )
+
+    assert hasil.lolos is True
+    assert hasil.terkoreksi is True
+    assert hasil.request_final is not None
+    assert hasil.request_final.params["employee_id"] == employee.employee_id
+
+
+@pytestmark_db
+def test_orkestrator_kk2_view_name_tidak_sesuai_ditolak():
+    """KK2: view_name request tidak sesuai dengan yang divalidasi
+    Retriever - ditolak dengan alasan spesifik menyebut ketidaksesuaian."""
+    employee = _ambil_employee("Maintenance Staff")
+    request = _buat_request(
+        domain=Domain.FACILITY, view_name="v_maintenance_technician_daily", params={}
+    )
+    constraint = ConstraintCakupanIndividu(terdeteksi=False)
+
+    hasil = verifikasi_gate(
+        request,
+        constraint,
+        employee_id=employee.employee_id,
+        view_name_tervalidasi_retriever="v_lookup_maintenance_tickets",
+    )
+
+    assert hasil.lolos is False
+    assert hasil.request_final is None
+    assert hasil.alasan_penolakan is not None
+    assert "v_maintenance_technician_daily" in hasil.alasan_penolakan
+    assert "v_lookup_maintenance_tickets" in hasil.alasan_penolakan
+
+
+@pytestmark_db
+def test_orkestrator_kk3_request_sudah_benar_lolos_tanpa_perubahan():
+    """KK3: request sudah benar sepenuhnya (tanpa pelanggaran struktural,
+    constraint sudah ditegakkan dengan benar) - lolos TANPA perubahan
+    apa pun."""
+    employee = _ambil_employee("HR Staff")
+    params_asli = {"limit": 50, "employee_id": employee.employee_id}
+    request = _buat_request(
+        domain=Domain.HR, view_name="v_hr_watchlist_monthly", params=params_asli
+    )
+    constraint = ConstraintCakupanIndividu(terdeteksi=True, alasan="performa individu")
+
+    hasil = verifikasi_gate(
+        request,
+        constraint,
+        employee_id=employee.employee_id,
+        view_name_tervalidasi_retriever="v_hr_watchlist_monthly",
+    )
+
+    assert hasil.lolos is True
+    assert hasil.terkoreksi is False
+    assert hasil.request_final is not None
+    assert hasil.request_final.params == params_asli

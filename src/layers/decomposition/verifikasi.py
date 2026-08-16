@@ -25,33 +25,15 @@ from src.observability.genai_semconv import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_USAGE_INPUT_TOKENS,
     GEN_AI_USAGE_OUTPUT_TOKENS,
+    PROMPT_ID,
+    PROMPT_VERSION,
 )
 from src.observability.tracing import get_tracer
+from src.prompts.loader import load_prompt
 from src.schemas.decomposition import PemecahanResult, VerifikasiResult
 
 _TRACER_NAME = "decomposition.verifikasi"
-
-_SYSTEM_PROMPT = """Anda adalah verifikator independen yang menilai APAKAH \
-sebuah pemecahan pertanyaan menjadi daftar kebutuhan atomik sudah BENAR - \
-Anda TIDAK melihat proses berpikir yang menghasilkan pemecahan itu, murni \
-menilai ulang dari hasil akhirnya secara independen.
-
-Periksa dengan teliti:
-1. Apakah SELURUH kebutuhan yang tersirat dalam pertanyaan asli benar-benar \
-tercakup (tidak ada yang terlewat)?
-2. Apakah setiap kebutuhan atomik benar-benar atomik (tidak masih majemuk, \
-tidak bisa dipecah lebih lanjut)?
-3. Apakah relasi (independen/bergantung) antar kebutuhan sudah benar - \
-terutama, apakah kebutuhan yang SEHARUSNYA bergantung pada kebutuhan lain \
-(mis. perbandingan yang butuh kedua nilai diketahui lebih dulu) sudah \
-ditandai "bergantung", BUKAN keliru ditandai "independen"?
-4. Apakah label_bentuk_jawaban tiap kebutuhan sudah sesuai dengan bentuk \
-jawaban yang sebenarnya diharapkan pertanyaan itu?
-
-Balas HANYA dengan JSON persis berbentuk:
-{"valid": true atau false, "alasan": "penjelasan singkat kenapa \
-valid/tidak valid, sebutkan kebutuhan mana yang bermasalah kalau tidak \
-valid" atau null kalau valid}"""
+_PROMPT_ID = "decomposition.verifikasi"
 
 
 def _build_user_prompt(question: str, hasil: PemecahanResult) -> str:
@@ -70,10 +52,11 @@ def _call_llm(question: str, hasil: PemecahanResult):
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`)."""
     client = get_openrouter_client()
+    system_prompt = load_prompt(_PROMPT_ID).render()
     return client.chat.completions.create(
         model=OPENROUTER_MODEL_DECOMPOSITION_VERIFIKASI,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": _build_user_prompt(question, hasil)},
         ],
         response_format={"type": "json_object"},
@@ -84,9 +67,12 @@ def _call_llm(question: str, hasil: PemecahanResult):
 
 def verifikasi_pemecahan(question: str, hasil: PemecahanResult) -> VerifikasiResult:
     tracer = get_tracer(_TRACER_NAME)
+    prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_DECOMPOSITION_VERIFIKASI)
+        span.set_attribute(PROMPT_ID, prompt.id)
+        span.set_attribute(PROMPT_VERSION, prompt.version)
 
         try:
             response = _call_llm(question, hasil)

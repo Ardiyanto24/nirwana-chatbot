@@ -13,7 +13,10 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 5 | `3821933`, `880d046`, `8f8c91c` | `feat(milestone-2.3): prompt verifikasi titik buta cakupan-individu` + `feat(milestone-2.3): langkah 2 verifikasi titik buta cakupan-individu` + `test(milestone-2.3): verifikasi titik buta cakupan-individu` |
 | 6 | `3895fed`, `497a00f` | `feat(milestone-2.3): orkestrator deteksi constraint + observability` + `test(milestone-2.3): pre-filter role dan domain cakupan-individu` |
 | 7 | `cbf616a` | `test(milestone-2.3): verifikasi KK1-3 real LLM` |
-| 8 | *(menyusul)* | `docs(milestone-2.3): verifikasi span nyata` |
+| 8 | `3864cdc` | `docs(milestone-2.3): verifikasi span nyata` |
+| 9 | `404affa`, `f723f99` | `test(evals): skenario deteksi cakupan-individu` + `docs(evals): audit hasil deteksi cakupan-individu` |
+| 10 | `822a0fc`, `4f055e1` | `chore(prompt-reliability): config deteksi+verifikasi cakupan-individu` + `docs(prompt-reliability): perbarui README - config M2.3 + status akurat` |
+| 11 | `294bb85`, *(status project)* | `docs(milestone-2.3): report` + `docs: perbarui status project` |
 
 ---
 
@@ -229,4 +232,95 @@ Trace `b97a12808ac5d23186a61cb53fbd220a` berisi 5 span dengan hierarki benar: `i
 **Error/Kegagalan (jika ada)**
 Tidak ada (di luar Docker Desktop yang perlu dinyalakan manual sebelum verifikasi, bukan bug kode).
 
-**Commit:** *(commit ini, docs saja - tidak ada file kode baru)*
+**Commit:** `3864cdc`
+
+---
+
+## Checkpoint 9 — Eval Milestone
+
+**Mulai:** 2026-08-16 · **Selesai:** 2026-08-16
+
+### Task 14 — Skenario eval (10 skenario)
+
+**Kesesuaian dengan plan:** Sesuai plan — dieksekusi satu per satu (`run_eval.py <ID>`) mengikuti mitigasi hang M2.1 Checkpoint 10, meski kali ini tidak ada hang yang terjadi.
+
+**Apa yang dilakukan**
+`rancangan.md` (10 skenario menutup dimensi belum tercakup `tests/`: 4 view baru, distractor 2 arah, generalisasi role-differentiation, titik-buta phrasing baru, retest over-triggering), `run_eval.py` (reuse `deteksi_constraint_atomic_intent()`/`verifikasi_cakupan_individu()` produksi langsung).
+
+**Hasil Verifikasi**
+Seluruh 10 skenario dijalankan nyata satu per satu — **10/10 LOLOS**, payload lengkap di `payloads/`.
+
+**Commit:** `404affa`
+
+### Task 15 — Jalankan nyata + `audit.md`
+
+**Apa yang dilakukan**
+Analisis per skenario di `audit.md`. Temuan utama: S05 (ranking individu tanpa kata kunci "staf") lolos — bukti prompt mengajarkan pemahaman makna, bukan cocok kata literal. S10 (distractor over-triggering mirip pola M2.1 keterbatasan #6) TIDAK over-trigger kali ini — dicatat sebagai observasi untuk pemantauan berkelanjutan (Checkpoint 10), BUKAN entri baru `docs/keterbatasan-diterima.md` (satu temuan positif belum cukup bukti pola, beda dari kriteria M2.1 yang butuh konsistensi berulang sebelum dicatat).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Commit:** `f723f99`
+
+---
+
+## Checkpoint 10 — Reliability Testing (Promptfoo, Natif)
+
+**Mulai:** 2026-08-16 · **Selesai:** 2026-08-16
+
+### Task 16 — Config Promptfoo
+
+**Kesesuaian dengan plan:** Sesuai plan — dibangun natif di dalam milestone ini (Keputusan 11), bukan retrofit terpisah seperti pola M1.3-M2.1.
+
+**Apa yang dilakukan**
+`deteksi_cakupan_individu.promptfooconfig.yaml` + `verifikasi_cakupan_individu.promptfooconfig.yaml` (`prompt_reliability/domain_gate/`), reuse `provider.py` generik yang sudah ada, reuse seluruh 10 skenario `evals/2.3-.../rancangan.md` (RBAC-sensitif -> seluruh skenario, bukan subset, sesuai kontrak Bagian 5).
+
+**Commit:** `822a0fc`
+
+### Task 17 — Jalankan nyata + push ke `prompt_eval_runs`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu temuan operasional baru (dicatat di bawah).
+
+**Temuan**
+`npx promptfoo eval` awalnya gagal 10/10 dengan `ModuleNotFoundError: No module named 'opentelemetry.exporter.otlp.proto.grpc'` — Promptfoo menjalankan provider Python lewat interpreter Python SISTEM (`C:\Users\LENOVO\...\Python313\python.exe`), bukan virtualenv `uv` (`.venv/`) tempat dependency proyek benar-benar terpasang. Diperbaiki dengan set `PROMPTFOO_PYTHON` mengarah ke `.venv/Scripts/python.exe` sebelum menjalankan eval. Dicatat di `prompt_reliability/README.md` supaya tidak perlu didiagnosis ulang untuk config berikutnya.
+
+**Apa yang dilakukan**
+`npx promptfoo eval` dijalankan nyata untuk kedua config (dengan `PROMPTFOO_PYTHON` benar) — **20/20 lolos** (10 `deteksi_cakupan_individu` + 10 `verifikasi_cakupan_individu`), termasuk S10 (distractor over-triggering) tetap tidak over-trigger di KEDUA config, mengonfirmasi temuan `evals/2.3-.../audit.md`. Hasil di-push ke `prompt_eval_runs` lewat `push_results.py` (reuse, tanpa modifikasi) — 10+10=20 baris.
+
+**Hasil Verifikasi**
+Query Supabase langsung (`SELECT` `PromptEvalRunRow` filter `prompt_id` kedua prompt M2.3) — 20 baris terkonfirmasi, seluruhnya `verdict=lolos`.
+
+**Error/Kegagalan (jika ada)**
+Lihat Temuan di atas — resolved, bukan bug kode produksi (murni konfigurasi environment Promptfoo lokal).
+
+**Commit:** `822a0fc` (config), `4f055e1` (README)
+
+---
+
+## Checkpoint 11 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-16 · **Selesai:** 2026-08-16
+
+### Task 18 — `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Bagian 1-6 lengkap: ringkasan hasil, KK1-3 vs bukti nyata (tabel dengan Task pembuktinya), cara kerja + diagram Mermaid, satu deviasi administratif kecil (Checkpoint 3), keterbatasan (termasuk entri baru `docs/keterbatasan-diterima.md` #9), follow-up ke M2.4/M3.x.
+
+**Commit:** `294bb85`
+
+### Task 19 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan temuan tambahan: `AGENT.md` ternyata SUDAH tertinggal dari `CLAUDE.md` sejak SEBELUM sesi ini dimulai (pembaruan Manajemen Prompt Fase 1-2 tidak pernah diterapkan ke `AGENT.md`) — bukan hanya butuh update M2.3, tapi juga perlu disinkronkan ulang dari kondisi drift yang sudah ada.
+
+**Apa yang dilakukan**
+Struktur Repository (baris `docs/keterbatasan-diterima.md`, `milestones/`, `src/`, `src/prompts/`, `tests/`, `evals/`, `prompt_reliability/` — seluruhnya diperbarui dengan file/hasil M2.3), Status Saat Ini (entri M2.3 baru, urutan pengerjaan diarahkan ke M2.4, area terbuka dikurangi jadi hanya fallback PIC 6, jumlah keterbatasan 8→9, model routing M2.3 ditambahkan). `AGENT.md` ditulis ulang penuh menyalin `CLAUDE.md` (bukan cuma diff M2.3) untuk memperbaiki drift pra-sesi sekaligus.
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` — IDENTICAL. Kedua file TIDAK di-track git (preseden M1.1), tidak ada commit untuk perubahan ini.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada — drift `AGENT.md` yang ditemukan bukan kegagalan pekerjaan ini, melainkan utang dari inisiatif Manajemen Prompt sebelumnya yang tidak eksplisit menyebut pembaruan `AGENT.md`.
+
+**Commit:** Tidak ada (file tidak di-track git). `report.md`/`decisions.md` M2.3 dan pembaruan `docs/keterbatasan-diterima.md` sudah dicommit; sisa working tree (`docs/CLAUDE.md` yang terhapus sejak sebelum sesi ini, dan 7 file `milestones/1.x-*/report.md` yang termodifikasi sebelum sesi ini) TIDAK disentuh — di luar cakupan M2.3.

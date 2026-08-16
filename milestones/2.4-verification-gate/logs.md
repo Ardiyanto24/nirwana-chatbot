@@ -14,7 +14,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 6 | `02527e7`, `f802d3b` | `feat(milestone-2.4): cek 2 kepatuhan sumber` + `test(milestone-2.4): verifikasi KK2 kepatuhan sumber` |
 | 7 | `fed65fe`, `820349f` | `feat(milestone-2.4): cek 3-4 penegakan constraint + kelengkapan` + `test(milestone-2.4): verifikasi KK1 penegakan constraint` |
 | 8 | `3982b7e`, `ff3c5bf`, `d3dafef` | `feat(milestone-2.4): loader tabel employees` + `feat(milestone-2.4): orkestrator verifikasi_gate + observability` + `test(milestone-2.4): verifikasi KK1-3 end-to-end` |
-| 9 | *(menyusul)* | `docs(milestone-2.4): verifikasi span nyata` |
+| 9 | `0cb7edf` | `docs(milestone-2.4): verifikasi span nyata` |
+| 10 | `4b9c8fb`, *(status project)* | `docs(milestone-2.4): report` + `docs: perbarui status project` |
 
 ---
 
@@ -215,4 +216,32 @@ Trace `60fa05fa279e8af1736aa27097cbc9a6` berisi 6 span dengan hierarki benar: `i
 **Error/Kegagalan (jika ada)**
 Tidak ada.
 
-**Commit:** *(commit ini, docs saja)*
+**Commit:** `0cb7edf`
+
+---
+
+## Checkpoint 10 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-16 · **Selesai:** 2026-08-16
+
+### Task 16 — `report.md`
+
+**Apa yang dilakukan**
+Bagian 1-6 lengkap: ringkasan hasil, KK1-3 vs bukti nyata (tabel), diagram Mermaid, keterbatasan (entri baru `docs/keterbatasan-diterima.md` #10, RISIKO TINGGI), follow-up eksplisit menegaskan verifikasi konvensi `employee_id` WAJIB sebelum M4.x.
+
+**Commit:** `4b9c8fb`
+
+### Task 17 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Struktur Repository (baris `docs/keterbatasan-diterima.md`, `milestones/`, `src/`, `src/prompts/`, `tests/`, `evals/` — seluruhnya diperbarui M2.4), Status Saat Ini (entri M2.4 baru, "PIC 2 SELESAI SEPENUHNYA", urutan pengerjaan diarahkan ke Milestone 3.1, area terbuka dipersempit ke fallback PIC 6 saja, jumlah keterbatasan 9→10, model routing menegaskan M2.4 juga murni deterministik). `AGENT.md` disalin penuh dari `CLAUDE.md` (konsisten pola M2.3 Checkpoint 11).
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` — IDENTICAL. Kedua file TIDAK di-track git, tidak ada commit untuk perubahan ini.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Commit:** Tidak ada (file tidak di-track git).

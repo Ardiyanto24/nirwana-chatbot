@@ -8,9 +8,12 @@ File ini dibangun bertahap lintas checkpoint (preseden pola M2.2/M2.3):
 """
 
 from src.layers.verification_gate.verifikasi_gate import (
+    tegakkan_constraint_cakupan_individu,
     verifikasi_bentuk_request_statis,
+    verifikasi_kelengkapan_penegakan,
     verifikasi_kepatuhan_sumber,
 )
+from src.schemas.cakupan_individu import ConstraintCakupanIndividu
 from src.schemas.domain_gate import Domain
 from src.schemas.verification_gate import QueryEngineRequest
 
@@ -89,3 +92,56 @@ def test_cek2_view_name_cocok_lolos():
     )
     assert lolos is True
     assert alasan is None
+
+
+# --- Cek 3-4: Penegakan Constraint + Kelengkapan (KK1) ----------------------
+
+
+def test_kk1_constraint_terdeteksi_params_belum_benar_dikoreksi_paksa():
+    """KK1: constraint terdeteksi, params BELUM menyertakan employee_id
+    caller yang benar - harus DIKOREKSI PAKSA, bukan ditolak."""
+    request = _buat_request(params={})
+    constraint = ConstraintCakupanIndividu(terdeteksi=True, alasan="performa individu")
+
+    request_terkoreksi, terkoreksi = tegakkan_constraint_cakupan_individu(
+        request, constraint, employee_id="E0002"
+    )
+
+    assert terkoreksi is True
+    assert request_terkoreksi.params["employee_id"] == "E0002"
+
+    lolos, alasan = verifikasi_kelengkapan_penegakan(
+        request_terkoreksi, constraint, employee_id="E0002"
+    )
+    assert lolos is True
+    assert alasan is None
+
+
+def test_kk1_constraint_terdeteksi_params_sudah_benar_tidak_dikoreksi_ulang():
+    request = _buat_request(params={"employee_id": "E0002"})
+    constraint = ConstraintCakupanIndividu(terdeteksi=True, alasan="performa individu")
+
+    request_terkoreksi, terkoreksi = tegakkan_constraint_cakupan_individu(
+        request, constraint, employee_id="E0002"
+    )
+
+    assert terkoreksi is False
+    assert request_terkoreksi.params["employee_id"] == "E0002"
+
+
+def test_constraint_tidak_terdeteksi_params_tidak_diubah_sama_sekali():
+    request = _buat_request(params={"limit": 50})
+    constraint = ConstraintCakupanIndividu(terdeteksi=False)
+
+    request_terkoreksi, terkoreksi = tegakkan_constraint_cakupan_individu(
+        request, constraint, employee_id="E0002"
+    )
+
+    assert terkoreksi is False
+    assert request_terkoreksi.params == {"limit": 50}
+    assert "employee_id" not in request_terkoreksi.params
+
+    lolos, alasan = verifikasi_kelengkapan_penegakan(
+        request_terkoreksi, constraint, employee_id="E0002"
+    )
+    assert lolos is True

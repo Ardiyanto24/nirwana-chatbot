@@ -47,7 +47,7 @@ def push_results(
             prompt_version=prompt_version,
             git_commit_hash=commit_hash,
             scenario_id=str(
-                result.get("description")
+                result.get("testCase", {}).get("description")
                 or result.get("vars", {}).get("scenario_id")
                 or "unknown"
             ),

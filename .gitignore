@@ -7,3 +7,10 @@ AGENT.md
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Manajemen Prompt Fase 2 (prompt_reliability/) - lihat rancangan-manajemen-prompt.md
+# Bagian 6: payload mentah hasil eval disimpan di Supabase (prompt_eval_runs),
+# BUKAN git, supaya repo tidak membengkak seiring iterasi berkelanjutan.
+prompt_reliability/node_modules/
+prompt_reliability/**/*_output.json
+prompt_reliability/.promptfoo/

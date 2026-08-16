@@ -21,31 +21,16 @@ from src.observability.genai_semconv import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_USAGE_INPUT_TOKENS,
     GEN_AI_USAGE_OUTPUT_TOKENS,
+    PROMPT_ID,
+    PROMPT_VERSION,
 )
 from src.observability.tracing import get_tracer
+from src.prompts.loader import load_prompt
 from src.schemas.turn_dependency import TurnDependencyResult
 from src.schemas.turn_payload import TurnPayload
 
 _TRACER_NAME = "context_resolution.turn_dependency"
-
-_SYSTEM_PROMPT = """Anda adalah komponen sistem yang mendeteksi apakah pertanyaan \
-terakhir dalam sebuah sesi percakapan bergantung pada (merujuk balik ke) \
-pertanyaan/jawaban di turn LAIN dalam sesi yang sama. Anda TIDAK menjawab \
-pertanyaannya - tugas Anda murni mendeteksi ketergantungan linguistik.
-
-Balas HANYA dengan JSON persis berbentuk:
-{"is_dependent": true atau false, "referenced_turn_index": <nomor turn yang \
-dirujuk, atau null kalau tidak bergantung>}
-
-Aturan:
-- is_dependent=true HANYA kalau pertanyaan terakhir jelas merujuk balik ke \
-sesuatu yang dibahas di turn lain (mis. "bandingkan dengan itu", "seperti yang \
-tadi", rujukan eksplisit ke topik/angka yang muncul di turn sebelumnya).
-- Kalau pertanyaan terakhir bisa dipahami penuh berdiri sendiri tanpa histori, \
-is_dependent=false dan referenced_turn_index=null.
-- referenced_turn_index HARUS salah satu nomor turn yang benar-benar ada di \
-histori yang diberikan - JANGAN mengarang nomor turn yang tidak ada di histori.
-- Rujukan bisa ke turn manapun dalam histori, tidak harus turn tepat sebelumnya."""
+_PROMPT_ID = "context_resolution.turn_dependency"
 
 
 def _build_user_prompt(payload: TurnPayload) -> str:
@@ -68,10 +53,11 @@ def _call_llm(payload: TurnPayload):
     (`evals/`) untuk inspeksi payload lengkap tanpa memanggil API dua kali
     atau menduplikasi logic pembentukan request."""
     client = get_openrouter_client()
+    system_prompt = load_prompt(_PROMPT_ID).render()
     return client.chat.completions.create(
         model=OPENROUTER_MODEL,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": _build_user_prompt(payload)},
         ],
         response_format={"type": "json_object"},
@@ -103,9 +89,12 @@ def _parse_and_validate(
 
 def detect_turn_dependency(payload: TurnPayload) -> TurnDependencyResult:
     tracer = get_tracer(_TRACER_NAME)
+    prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
         span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL)
+        span.set_attribute(PROMPT_ID, prompt.id)
+        span.set_attribute(PROMPT_VERSION, prompt.version)
 
         response = _call_llm(payload)
 

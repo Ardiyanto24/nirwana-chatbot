@@ -1,0 +1,125 @@
+description: "Reliability testing - domain_gate.verifikasi_titik_buta (M2.1 Langkah 2) - RBAC-sensitif, seluruh 10 skenario evals/2.1-identifikasi-domain/"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: domain_gate.verifikasi_titik_buta
+      model: deepseek/deepseek-v4-pro
+      response_format: { type: json_object }
+      extra_body: { reasoning: { effort: high } }
+      render_context: src.layers.domain_gate.verifikasi_titik_buta._render_context
+
+tests:
+  # domain_awal disuplai SENGAJA tidak lengkap (meniru hasil identifikasi.py
+  # Checkpoint 10 sebelum union) untuk menguji apakah Langkah 2 menemukan
+  # domain yang terlewat - mirror KK2 sumber. Skenario dengan domain_awal
+  # SUDAH lengkap menguji guard anti-false-positive (tidak memaksakan
+  # tambahan yang tidak relevan).
+
+  - description: S01_leakage_cross_domain_terlewat
+    vars:
+      user_prompt: |
+        Kebutuhan: Bagaimana margin keuntungan F&B dibandingkan dengan revenue F&B bulan ini?
+        Domain yang sudah ditemukan: fnb
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).domain_tambahan.includes('financial')"
+
+  - description: S02_fokus_sempit_reservation_terlewat
+    vars:
+      user_prompt: |
+        Kebutuhan: Siapa staff yang menangani housekeeping hari ini, dan berapa okupansi hotel saat itu?
+        Domain yang sudah ditemukan: facility
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).domain_tambahan.includes('reservation')"
+
+  - description: S03_guests_profile_terlewat
+    vars:
+      user_prompt: |
+        Kebutuhan: Siapkan laporan tamu VIP: nama, email, dan tingkat loyalitas mereka.
+        Domain yang sudah ditemukan: guests_pii
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).domain_tambahan.includes('guests_profile')"
+
+  - description: S04_retest_over_triggering_nationality_mix
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa nationality mix tamu bulan ini?
+        Domain yang sudah ditemukan: (tidak ada)
+    assert:
+      # guests_profile wajib ditemukan; reservation TIDAK wajib absen
+      # (toleransi eksplisit - over-triggering bukan fail keras, dicatat
+      # sebagai observasi, mirror Checkpoint 10).
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).domain_tambahan.includes('guests_profile')"
+
+  - description: S05_guard_financial_lengkap_tidak_menambah
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa total revenue seluruh properti bulan ini?
+        Domain yang sudah ditemukan: financial
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domain_tambahan;
+          return !d.includes('reservation') && !d.includes('fnb');
+
+  - description: S06_guard_hr_lengkap_tidak_menambah
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa tingkat turnover karyawan bulan ini?
+        Domain yang sudah ditemukan: hr
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output).domain_tambahan;
+          return !d.includes('employees_directory') && !d.includes('financial');
+
+  - description: S07_domain_minor_properties_ref_terlewat
+    vars:
+      user_prompt: |
+        Kebutuhan: Sebutkan nama-nama hotel yang sudah beroperasi lebih dari 5 tahun.
+        Domain yang sudah ditemukan: (tidak ada)
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).domain_tambahan.includes('properties_ref')"
+
+  - description: S08_kontrol_multi_domain_eksplisit_reservation_terlewat
+    vars:
+      user_prompt: |
+        Kebutuhan: Bandingkan revenue F&B dengan tingkat okupansi kamar bulan ini.
+        Domain yang sudah ditemukan: fnb
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).domain_tambahan.includes('reservation')"
+
+  - description: S09_guard_hr_lengkap_employees_directory_opsional
+    vars:
+      user_prompt: |
+        Kebutuhan: Siapa saja karyawan departemen HR yang performanya menurun bulan ini?
+        Domain yang sudah ditemukan: hr
+    assert:
+      # employees_directory diharapkan tapi TIDAK wajib (toleransi eksplisit,
+      # mirror Checkpoint 10) - assertion hanya memastikan JSON valid,
+      # keputusan tambah/tidak tambah sama-sama diterima.
+      - type: is-json
+
+  - description: S10_jebakan_payroll_tidak_menambah_hr
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa total payroll yang dibayarkan bulan ini?
+        Domain yang sudah ditemukan: financial
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "!JSON.parse(output).domain_tambahan.includes('hr')"

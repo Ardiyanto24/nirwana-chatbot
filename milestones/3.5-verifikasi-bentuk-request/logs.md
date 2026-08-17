@@ -124,3 +124,27 @@ Payload lengkap tersimpan `evals/3.5-verifikasi-bentuk-request/payloads/S01.json
 **Commit:** `941c069`
 
 ---
+
+## Checkpoint 6 — Reliability Testing Promptfoo (Native)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 13-14 — Config + Eksekusi
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`prompt_reliability/query_engine/verifikasi_bentuk_request.promptfooconfig.yaml` — 4 skenario native (S02-S05, `user_prompt` diambil PERSIS dari `_build_user_prompt()` nyata via skrip verifikasi sekali-pakai, dihapus setelah dipakai). S01 (pre-check gagal) SENGAJA TIDAK disertakan — tidak menyentuh prompt/LLM sama sekali, konsisten catatan Task 13 plan. Dijalankan `npx promptfoo eval` (Node.js, `PROMPTFOO_PYTHON` diarahkan ke `.venv/`) — **4/4 lolos di run pertama (100%)**, tanpa perlu revisi prompt (prompt tetap v1).
+
+**Temuan**
+Tidak ada temuan tooling baru (assertion JS ditulis langsung pakai `return` eksplisit sejak awal, belajar dari bug M3.3 Checkpoint 14/7). Hasil Promptfoo mengonfirmasi ULANG temuan eval Checkpoint 5 (S05 reasoning grain-mismatch, bukan sekadar nilai aneh) via jalur independen kedua — replikasi silang yang konsisten.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`push_results.py` → **`Berhasil push 4 baris ke prompt_eval_runs`** (Supabase), diverifikasi lewat output skrip langsung.
+
+**Commit:** `1ffb45d`
+
+---

@@ -110,7 +110,49 @@ Review manual — nilai konsisten dengan Keputusan 6 (mirror `_MAX_ATTEMPTS=3` M
 
 ---
 
-*(Checkpoint 3-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
+## Checkpoint 3 — Perluas Kontrak M3.4: Parameter Feedback Revisi
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 6 — Tambah Parameter `feedback`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian teknis kecil (dicatat di bawah).
+
+**Apa yang dilakukan**
+`_build_user_prompt()`, `_call_llm()`, dan `susun_request_atomic_intent()` (`src/layers/query_engine/penyusunan_request.py`) ditambah parameter `feedback: str | None = None`. Kalau terisi, blok "PERHATIAN: percobaan penyusunan parameter sebelumnya DITOLAK chatbot_api..." disisipkan ke user prompt, mirror persis pola `_build_user_prompt()` di `pecah_atomik.py` (M1.6).
+
+**Temuan**
+`_call_llm()` sekarang dipanggil dengan 4 argumen positional (termasuk `feedback`) dari `susun_request_atomic_intent()`, bukan 3 seperti sebelumnya. Ini berarti SELURUH mock `_call_llm` di `tests/layers/query_engine/test_penyusunan_request.py` yang sebelumnya bersignature `(ai, vn, tr)` (5 lokasi: 3 lambda, 2 fungsi `def`) perlu ditambah parameter `fb=None` supaya tetap bisa dipanggil - kalau tidak, seluruh test lama akan gagal dengan `TypeError: takes 3 positional arguments but 4 were given`. Ini PENYESUAIAN MEKANIS pada signature mock (supaya callable), BUKAN perubahan assertion/logic test - tetap konsisten dengan Acceptance Criteria plan ("tanpa perubahan assertion").
+
+**Error/Kegagalan (jika ada)**
+Tidak ada error nyata terjadi - penyesuaian mock dilakukan proaktif SEBELUM menjalankan test (diantisipasi dari membaca kode test terlebih dulu), bukan ditemukan lewat kegagalan test.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku (tidak ada error, murni penyesuaian proaktif).
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/query_engine/test_penyusunan_request.py -v` — **20/20 lolos** (16 test lama, assertion tidak berubah + 4 test baru: 2 untuk `_build_user_prompt` dengan/tanpa feedback, 2 untuk `susun_request_atomic_intent` meneruskan feedback ke `_call_llm` dengan benar).
+
+**Commit:** *(pending)*
+
+### Task 7 — Bump Prompt ke Versi 3
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`src/prompts/query_engine/penyusunan_request.md` — frontmatter `version: 2` → `3`, deskripsi diperbarui menyebut revisi berbasis feedback, tambah section "Aturan revisi" (baca alasan penolakan, perbaiki hanya parameter relevan, jangan mengulang parameter yang sudah ditolak).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual isi prompt + span `PROMPT_VERSION` di `susun_request_atomic_intent()` otomatis membaca versi terbaru dari `load_prompt()` (tidak perlu perubahan kode terpisah untuk propagasi versi).
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 4-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
 
 ---
 

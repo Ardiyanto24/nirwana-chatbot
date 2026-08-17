@@ -295,3 +295,103 @@ Satu kesalahan penulisan test (bukan bug kode produksi): draft awal `test_orkest
 **Commit:** `f63786e` — `test(milestone-3.3): skenario orkestrator per-item`
 
 ---
+
+## Checkpoint 7 (lanjutan) — Hasil Run Promptfoo Nyata
+
+**Percobaan 1** (4 skenario, `PROMPTFOO_PYTHON` diarahkan ke `.venv/`): **0/4 passed** — SELURUH assertion javascript gagal dengan error `Custom function must return a boolean, number, or GradingResult object. Got type undefined: undefined`. Root cause: replikasi PERSIS bug tooling M3.2 Checkpoint 14 — assertion `javascript` multi-baris Promptfoo TIDAK auto-return ekspresi terakhir (beda dari asumsi awal); body multi-baris dieksekusi APA ADANYA sebagai function body, butuh `return` eksplisit di baris terakhir. Diperbaiki: tambah `return` ke seluruh 6 assertion javascript di config.
+
+**Temuan tambahan (dari respons LLM nyata di percobaan 1, sebelum assertion diperbaiki)**: S03 asli (`v_facility_room_status_daily`, ditandai `(snapshot)` di katalog) dijawab model `cukup=true` dengan alasan "grain kamar x tanggal (snapshot) memungkinkan agregasi status out-of-order per periode, sehingga dapat menghasilkan deret waktu untuk tren" — BERTENTANGAN dengan klasifikasi `grain_view.py` (`punya_time_series=tidak`) hasil Checkpoint 2. Investigasi lanjutan (baca ulang `DEFINISI_LENGKAP_VIEW` penuh untuk `v_facility_room_status_daily`/`v_hr_headcount_status_daily`/`v_hr_turnover_snapshot`) menemukan: klasifikasi awal MENYAMARATAKAN penanda `(snapshot)` di grain sebagai selalu berarti "tidak ada tren", padahal hanya `v_hr_turnover_snapshot` yang teks Fungsi-nya EKSPLISIT menyatakan "snapshot, tidak ada tren historis (data sumber tidak punya tanggal resign)" — `v_facility_room_status_daily` dan `v_hr_headcount_status_daily` TIDAK punya pernyataan serupa, dan `period_date` yang berulang tiap hari (nama `_daily`, sumber `fact_..._daily`) genuinely bisa dibaca sebagai state-per-hari yang membentuk tren, sesuai argumen model. **Diperbaiki**: `grain_view.py` direvisi (`punya_time_series` `tidak` → `tidak_pasti` untuk kedua view tersebut, `v_hr_turnover_snapshot` TETAP `tidak`), `test_grain_view.py` disesuaikan, skenario S03 promptfoo diganti dari `v_facility_room_status_daily` (ternyata genuinely ambigu, bukan trap case yang baik) ke `v_hr_turnover_snapshot` (ground truth tegas dari katalog).
+
+**Percobaan 2** (setelah kedua perbaikan): dijalankan di background paralel dengan implementasi Checkpoint 8-10 (tidak memblokir kerja yang tidak bergantung padanya) — hasil dicatat di bawah begitu selesai.
+
+**Commit (perbaikan):** `936c9e5` — `fix(milestone-3.3): revisi klasifikasi grain snapshot berbasis bukti eval`; `d264aa6` — `fix(prompt-reliability): assertion js promptfoo butuh return eksplisit`.
+
+---
+
+## Checkpoint 9 — Refactor Span M3.1 (Ekstraksi Logic Murni)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 14 — Ekstraksi `_kumpulkan_kandidat()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Mengekstrak logic BM25+fallback embedding murni (TANPA span pembungkus) dari `cari_kandidat_view()` ke `_kumpulkan_kandidat()` baru di `src/layers/retriever/retriever.py` — span anak `retriever.pencarian_embedding_fallback` TETAP dibuka di dalam fungsi ini (masih tanggung jawab M3.1), otomatis jadi anak span apa pun yang aktif di context pemanggil (parent-child OTel via contextvars). Menambahkan `_atribut_span_dari_hasil()` (turunkan `retrieval.candidates_count`/`fallback_terpicu`/`sumber_utama` dari `HasilPencarianKandidat`, satu tempat dipakai baik wrapper standalone maupun orkestrator M3.3). `cari_kandidat_view()` publik jadi wrapper tipis: buka span `retriever.cari_kandidat_view` (nama/atribut identik sebelum refactor), panggil `_kumpulkan_kandidat()`, set atribut dari `_atribut_span_dari_hasil()`, tutup span, return.
+
+**Temuan**
+Tidak ada penyimpangan — refactor murni sesuai desain di decisions.md Keputusan 4.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Lihat Task 15.
+
+**Commit:** `73ec621` — `refactor(milestone-3.1): ekstraksi _kumpulkan_kandidat murni dari cari_kandidat_view`
+
+---
+
+### Task 15 — Regresi Penuh
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menjalankan `tests/layers/retriever/test_retriever.py` (5 test existing M3.1) TANPA menyentuh isinya sama sekali.
+
+**Temuan**
+`git diff --stat tests/layers/retriever/test_retriever.py` kosong (nol perubahan) — bukti murni refactor internal, bukan cuma klaim.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_retriever.py -v` → 5 passed, assertion identik sebelum/sesudah refactor. `pytest tests/layers/retriever/ tests/config/ -q` (regresi subpackage penuh) → 125 passed.
+
+**Commit:** *(verifikasi tanpa perubahan kode, tidak ada commit terpisah — lihat Task 14)*
+
+---
+
+## Checkpoint 10 — Orkestrator Penutup Pipeline (M3.1→M3.2→M3.3)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 16 — Implementasikan `proses_retrieval_atomic_intent()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan `proses_retrieval_atomic_intent()` ke `kecukupan_struktural.py`: membuka span `retriever.cari_kandidat_view` (tracer `retriever.retriever`, reuse `_TRACER_NAME` dari `retriever.py` via import supaya tidak drift) → panggil `_kumpulkan_kandidat()` (M3.1 pure) → set atribut via `_atribut_span_dari_hasil()` (reuse fungsi Task 14, bukan duplikasi logic) → panggil `nilai_kecocokan_makna_atomic_intent()` (M3.2) → panggil `evaluasi_kecukupan_struktural_atomic_intent()` (M3.3) → `span.set_attribute("retrieval.selected_view", view_name_final or "")` sebelum span ditutup (string kosong sebagai pengganti `None`, OTel span attribute tidak menerima `None`).
+
+**Temuan**
+Tidak ada penyimpangan dari plan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Lihat Task 17.
+
+**Commit:** `2f4f4e2` — `feat(milestone-3.3): orkestrator penutup pipeline retriever`
+
+---
+
+### Task 17 — Test Skenario Pipeline
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan 2 test ke `tests/layers/retriever/test_kecukupan_struktural.py`: urutan panggilan M3.1(pure)→M3.2→M3.3 dibuktikan lewat list `urutan_panggilan` yang di-assert persis `["m3.1", "m3.2", "m3.3"]`, plus assertion objek yang diteruskan antar tahap adalah objek fixture YANG SAMA (`is`, bukan `==`) sehingga tidak ada transformasi tersembunyi di antara panggilan; kasus `view_name_final=None` tidak menyebabkan exception saat span attribute diisi.
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada — kedua test lolos pada percobaan pertama.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_kecukupan_struktural.py -v` → 36 passed. `pytest tests/layers/retriever/ tests/config/ -q` (regresi penuh subpackage) → tetap hijau.
+
+**Commit:** `1b56a8b` — `test(milestone-3.3): skenario pipeline end-to-end`
+
+---

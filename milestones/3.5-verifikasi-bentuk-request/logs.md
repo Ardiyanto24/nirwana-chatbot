@@ -75,3 +75,28 @@ Menambahkan 10 test ke `tests/layers/query_engine/test_query_engine_schema.py` (
 **Commit:** `184c92d` (konstanta) + `85528df` (prompt)
 
 ---
+
+## Checkpoint 4 — Pre-Check + LLM Call + Orkestrator
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 6-8 — Implementasi `verifikasi_bentuk_request.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`src/layers/query_engine/verifikasi_bentuk_request.py` (baru): `_view_name_sesuai_retriever()` (pre-check Kriteria 1, string equality); `_call_llm()`+`_parse_response()` (Kriteria 2, DeepSeek V4 Pro `reasoning="high"`, parse `{"lolos": bool, "alasan": str|null}`, fallback alasan generik kalau LLM lupa mengisi saat `lolos=false`); `verifikasi_bentuk_request_atomic_intent()` (orkestrator single-item — pre-check dulu, short-circuit tanpa span `chat` kalau gagal, baru buka span+panggil LLM kalau lolos); `verifikasi_bentuk_request_semua()` (orkestrator batch, span pembungkus `query_engine.verifikasi_bentuk_request_semua`, statistik agregat `lolos_count`/`perlu_revisi_count`/`gagal_teknis_count`).
+
+### Task 9 — Unit Test
+
+**Apa yang dilakukan**
+`tests/layers/query_engine/test_verifikasi_bentuk_request.py` (baru, 16 test): pure function (`_view_name_sesuai_retriever`, `_build_user_prompt`, `_parse_response` — 5 test termasuk fallback alasan); orkestrator mocked LLM (pre-check gagal dengan `_call_llm` di-monkeypatch untuk `raise AssertionError` kalau terpanggil — MEMBUKTIKAN LLM benar-benar tidak dipanggil, mirror pola pembuktian pre-filter M2.3; pre-check lolos + lolos=True; pre-check lolos + lolos=False+alasan; API error/empty choices/JSON rusak → GAGAL_TEKNIS); `verifikasi_bentuk_request_semua()` statistik agregat untuk campuran 3 item (1 lolos, 1 perlu_revisi dari LLM, 1 perlu_revisi dari pre-check) — dibuktikan `_call_llm` cuma terpanggil 2x (item ke-3 short-circuit).
+
+**Temuan** Tidak ada temuan baru — desain sesuai plan tanpa penyesuaian. **Error/Kegagalan** Tidak ada — seluruh 16 test M3.5 lolos di percobaan pertama.
+
+**Hasil Verifikasi**
+`pytest tests/layers/query_engine/ -v` → **62 passed** (46 test M3.1-3.4 tanpa regresi + 16 test baru M3.5), nol network call nyata.
+
+**Commit:** `e47f92d` (implementasi) + `21d2fa2` (test)
+
+---

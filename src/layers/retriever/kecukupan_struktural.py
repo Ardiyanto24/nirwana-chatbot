@@ -24,7 +24,7 @@ from pydantic import BaseModel, ValidationError
 
 from src.config.llm import OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL, get_openrouter_client
 from src.layers.retriever.definisi_view import DEFINISI_LENGKAP_VIEW
-from src.layers.retriever.grain_view import KarakteristikGrain
+from src.layers.retriever.grain_view import GRAIN_STRUKTURAL_VIEW, KarakteristikGrain
 from src.observability.genai_semconv import (
     GEN_AI_OPERATION_NAME,
     GEN_AI_REQUEST_MODEL,
@@ -36,8 +36,15 @@ from src.observability.genai_semconv import (
 from src.observability.tracing import get_tracer
 from src.prompts.loader import load_prompt
 from src.schemas.decomposition import AtomicIntent
-from src.schemas.retriever import KecocokanKandidat, KecukupanKandidat, SumberKeputusanKecukupan
-from src.schemas.session_memory import LabelBentukJawaban
+from src.schemas.retriever import (
+    HasilKecocokanMakna,
+    HasilKecukupanStruktural,
+    KecocokanKandidat,
+    KecukupanKandidat,
+    LabelKecocokanMakna,
+    SumberKeputusanKecukupan,
+)
+from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 
 _TRACER_NAME = "retriever.kecukupan_struktural"
 _PROMPT_ID_FALLBACK = "retriever.kecukupan_struktural_fallback"
@@ -254,3 +261,85 @@ def _evaluasi_llm_fallback(
             sum(1 for k in hasil if k.cukup),
         )
         return hasil
+
+
+# --- Orkestrator per kebutuhan atomik + tie-break ---------------------------
+
+_URUTAN_LABEL_KECOCOKAN = {
+    LabelKecocokanMakna.DITEMUKAN: 0,
+    LabelKecocokanMakna.SEBAGIAN: 1,
+}
+
+
+def _pilih_view_name_final(kecukupan: list[KecukupanKandidat]) -> str | None:
+    """Tie-break decisions.md Keputusan 2 (dikonfirmasi user, sepakat
+    rekomendasi): di antara kandidat `cukup=True`, prioritaskan label M3.2
+    DITEMUKAN atas SEBAGIAN; dalam label sama, pilih skor `KandidatView`
+    (M3.1) tertinggi. `None` kalau tidak ada kandidat cukup sama sekali."""
+    kandidat_cukup = [k for k in kecukupan if k.cukup]
+    if not kandidat_cukup:
+        return None
+
+    terpilih = min(
+        kandidat_cukup,
+        key=lambda k: (_URUTAN_LABEL_KECOCOKAN.get(k.kecocokan_label, 99), -k.kandidat.skor),
+    )
+    return terpilih.kandidat.view_name
+
+
+def evaluasi_kecukupan_struktural_atomic_intent(
+    hasil_kecocokan: HasilKecocokanMakna,
+) -> HasilKecukupanStruktural:
+    """Untuk SATU kebutuhan atomik (`HasilKecocokanMakna`, output M3.2):
+    filter kandidat label ditemukan/sebagian (exclude tidak_ditemukan,
+    Keputusan 3); jalankan `_evaluasi_deterministik` per kandidat;
+    kumpulkan yang tidak_pasti, panggil `_evaluasi_llm_fallback` SEKALI
+    (batch, Keputusan 7); gabungkan seluruh `KecukupanKandidat`; terapkan
+    tie-break untuk memfinalkan `view_name_final`. `status` selalu
+    BERHASIL (Keputusan 9 - mekanisme ini tidak pernah gagal teknis di
+    level kebutuhan-atomik)."""
+    kandidat_dievaluasi = [
+        kk
+        for kk in hasil_kecocokan.kecocokan
+        if kk.label in (LabelKecocokanMakna.DITEMUKAN, LabelKecocokanMakna.SEBAGIAN)
+    ]
+
+    hasil_deterministik: list[KecukupanKandidat] = []
+    kandidat_tidak_pasti: list[KecocokanKandidat] = []
+
+    for kk in kandidat_dievaluasi:
+        grain = GRAIN_STRUKTURAL_VIEW.get(kk.kandidat.view_name)
+        if grain is None:
+            # Tidak pernah terjadi di jalur normal (67 view bijektif dengan
+            # taksonomi, dibuktikan test_grain_view.py) - fail-safe ke LLM
+            # kalau genuinely terjadi, bukan exception yang memblokir.
+            kandidat_tidak_pasti.append(kk)
+            continue
+
+        rule_hasil, alasan = _evaluasi_deterministik(
+            hasil_kecocokan.atomic_intent.label_bentuk_jawaban, grain
+        )
+        if rule_hasil == "tidak_pasti":
+            kandidat_tidak_pasti.append(kk)
+        else:
+            hasil_deterministik.append(
+                KecukupanKandidat(
+                    kandidat=kk.kandidat,
+                    kecocokan_label=kk.label,
+                    cukup=(rule_hasil == "cukup"),
+                    alasan=alasan,
+                    sumber_keputusan=SumberKeputusanKecukupan.DETERMINISTIK,
+                )
+            )
+
+    hasil_fallback = _evaluasi_llm_fallback(hasil_kecocokan.atomic_intent, kandidat_tidak_pasti)
+
+    seluruh_kecukupan = hasil_deterministik + hasil_fallback
+    view_name_final = _pilih_view_name_final(seluruh_kecukupan)
+
+    return HasilKecukupanStruktural(
+        atomic_intent=hasil_kecocokan.atomic_intent,
+        kecukupan=seluruh_kecukupan,
+        view_name_final=view_name_final,
+        status=StatusEksekusi.BERHASIL,
+    )

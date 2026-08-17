@@ -1,0 +1,73 @@
+# Logs — Milestone 3.3: Pemeriksaan Kecukupan Struktural
+
+Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dikelompokkan per checkpoint, lalu per task di dalamnya, mengikuti struktur yang sama dengan Checkpoint & Task Breakdown di plan.
+
+---
+
+## Checkpoint 1 — Keputusan Desain
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 1 — Tulis `decisions.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `milestones/3.3-kecukupan-struktural/decisions.md`: 10 keputusan (2 Jenis A hasil `AskUserQuestion` dalam sesi perencanaan — mekanisme hybrid deterministik+fallback LLM konservatif (user menolak rekomendasi awal deterministik-murni dengan argumen forward-looking soal taksonomi `label_bentuk_jawaban` yang akan bertambah kompleks), dan aturan tie-break `view_name_final` label-dulu-baru-skor; 8 Jenis B forced/preseden — termasuk refactor span M3.1 untuk memenuhi KK3 literal, fail-safe rule table ke LLM untuk label tak dikenal, satu panggilan LLM konservatif tanpa verifier kedua karena asimetri risiko, batching per kebutuhan atomik, status selalu BERHASIL).
+
+**Temuan**
+Tidak ada temuan baru di luar yang sudah tercatat di plan (Context "Temuan Penting").
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual — seluruh keputusan di plan yang disetujui (Keputusan Desain Turunan + Keputusan yang Ditanyakan ke User) punya entri `decisions.md` dengan "Opsi yang Dipertimbangkan tapi Ditolak", tidak ada yang diam-diam jadi asumsi implisit.
+
+**Commit:** `3535026` — `docs(milestone-3.3): decisions.md keputusan awal`
+
+---
+
+## Checkpoint 2 — Taksonomi Grain Terstruktur (67 View)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 2 — Bangun `grain_view.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Membaca seluruh 67 baris "Sumber" (grain) di `docs/03-domain-source/katalog-data-chatbot.md` (via `Grep` pola `^#### \`|^\*Sumber:` untuk mengekstrak pasangan view_name+grain sekaligus, menghindari baca manual satu-satu). Mengklasifikasi tiap view ke dua sinyal tri-state (`punya_time_series`, `punya_dimensi_pembanding`) + catatan rasional, ditulis ke `src/layers/retriever/grain_view.py` (`GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain]`, Pydantic `BaseModel` lokal ke modul ini — beda dari korpus/definisi M3.1/M3.2 yang `dict[str, str]` polos, karena di sini bentuknya struktur bukan teks).
+
+**Temuan**
+Klasifikasi row-level (`mart_cleaned`, "1 baris = 1 X") ternyata TIDAK seragam: sebagian py label periode eksplisit di grain-nya sendiri (`v_lookup_payroll` "1 baris = 1 karyawan × 1 bulan", `v_lookup_staff_shifts` "1 baris = 1 karyawan × 1 hari kerja") — ini diklasifikasi `ya`/`ya` (mirror `v_hr_employee_monthly`/`v_hr_attendance_daily`), BUKAN otomatis `tidak_pasti` hanya karena row-level. Sebaliknya, row-level TANPA label periode (`v_lookup_bookings` "1 baris = 1 reservasi", `v_lookup_fnb_transactions`, `v_lookup_housekeeping_log`, `v_lookup_maintenance_tickets`, `v_lookup_spa_bookings`, `v_lookup_event_bookings`) diklasifikasi `tidak_pasti` untuk kedua sinyal — genuinely ambigu apakah cukup untuk tren/perbandingan agregat. 3 tabel referensi murni tanpa metrik bisnis (`v_properties_ref`, `v_employees_directory`, `guests_contact_view`) diklasifikasi `tidak`/`tidak` (bukan ambigu — katalog eksplisit menyatakan isinya cuma nama/kontak, bukan metrik).
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Klasifikasi direview ulang sekali (baca kembali seluruh 67 baris grain dari hasil Grep, dicocokkan terhadap tabel akhir) sebelum lanjut ke Task 3.
+
+**Commit:** *(digabung dengan Task 3, lihat di bawah)*
+
+---
+
+### Task 3 — Test Taksonomi Grain
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `tests/layers/retriever/test_grain_view.py` — 10 test: bijektif dengan `DAFTAR_VIEW_PER_DOMAIN`, 67-count, seluruh entri bertipe `KarakteristikGrain` dengan nilai tri-state valid, spot-check kasus jelas (`v_reservation_room_type_daily` ya/ya, `v_facility_room_status_daily`/`v_hr_turnover_snapshot`/`v_hr_headcount_status_daily` snapshot→`tidak`, `v_properties_ref` tidak/tidak, `v_lookup_payroll` row-level-berlabel-periode→ya/ya), dan bukti jalur hybrid genuinely dipicu (minimal satu entri `tidak_pasti` per masing-masing sinyal, termasuk assert eksplisit `v_lookup_bookings` ada di daftar `tidak_pasti`).
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada — seluruh 10 test lolos pada percobaan pertama.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_grain_view.py -v` → 10 passed.
+
+**Commit:** *(lihat commit gabungan Task 2-3 di bawah)*
+
+---

@@ -1,0 +1,89 @@
+description: "Reliability testing - retriever.kecocokan_makna_verifikasi (M3.2 Langkah 2) - koreksi dua arah, skenario awal, akan diselaraskan penuh dengan evals/3.2-kecocokan-makna/ di Checkpoint 14"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: retriever.kecocokan_makna_verifikasi
+      model: deepseek/deepseek-v4-pro
+      response_format: { type: json_object }
+      extra_body: { reasoning: { effort: high } }
+      render_context: src.layers.retriever.kecocokan_makna._render_context_verifikasi
+
+tests:
+  # Setiap skenario menyuplai penilaian awal Langkah 1 yang SENGAJA salah
+  # arah (terlalu longgar / terlalu ragu) untuk menguji Langkah 2 benar-
+  # benar mengoreksi, bukan sekadar menyalin penilaian awal (anchoring).
+
+  - description: S01_koreksi_arah_turun_grain_mismatch_terlewat_langkah_1
+    vars:
+      user_prompt: |
+        Kebutuhan: Tampilkan breakdown okupansi per tipe kamar untuk properti Bali bulan ini (bentuk jawaban: komposisi)
+
+        Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+
+        ### v_reservation_property_daily
+        *Sumber: `fact_revenue_property_daily` + `dim_property` — grain: properti × tanggal.*
+        **Fungsi**: ringkasan performa harian 1 properti — lead time booking, pertumbuhan MoM/YoY, ranking dibanding 4 properti lain, tingkat tamu berulang.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id`, `property_name`, `region` | Identitas properti. |
+        | `period_date` | Tanggal. |
+        | `mom_occupancy_growth` / `yoy_occupancy_growth` | Pertumbuhan okupansi bulan-ke-bulan / tahun-ke-tahun. |
+
+        Penilaian awal (Langkah 1): label="ditemukan", alasan="sama-sama soal okupansi, jadi cocok"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_reservation_property_daily");
+          return p !== undefined && p.label !== "ditemukan";
+
+  - description: S02_koreksi_arah_naik_keraguan_tidak_berdasar
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa okupansi per tipe kamar di Bali bulan ini? (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+
+        ### v_reservation_room_type_daily
+        *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti × tipe kamar × tanggal.*
+        **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari — "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id` | Kode properti (P01–P05; P06 kantor pusat tidak punya kamar). |
+        | `room_type_name` | `Standard`, `Deluxe`, `Suite`, atau `Villa`. |
+        | `occupancy_rate` | `rooms_sold ÷ total_rooms_available`, rentang 0–1. |
+
+        Penilaian awal (Langkah 1): label="sebagian", alasan="kurang yakin apakah grain-nya benar-benar per tipe kamar"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_reservation_room_type_daily");
+          return p !== undefined && p.label === "ditemukan";
+
+  - description: S03_konfirmasi_penilaian_awal_sudah_benar
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa tingkat turnover karyawan departemen HR bulan ini? (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+
+        ### v_hr_turnover_snapshot
+        *Sumber: `fact_hr_turnover_snapshot` + `dim_property` + `dim_department` — grain: properti × departemen × tanggal (snapshot).*
+        **Fungsi**: tingkat turnover per departemen per properti — snapshot, tidak ada tren historis (data sumber tidak punya tanggal resign).
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `department_name` | Departemen. |
+        | `turnover_rate` | Rasio karyawan keluar (resigned/terminated) di departemen ini. |
+
+        Penilaian awal (Langkah 1): label="ditemukan", alasan="grain properti x departemen x snapshot sesuai kebutuhan nilai tunggal turnover HR"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_hr_turnover_snapshot");
+          return p !== undefined && p.label === "ditemukan";

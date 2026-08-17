@@ -252,3 +252,66 @@ Tidak ada.
 **Commit:** *(skrip verifikasi murni operasional di scratchpad, tidak di-commit — konsisten preseden M3.1/M3.3)*
 
 ---
+
+## Checkpoint 9 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 21 — Finalisasi `decisions.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditambahkan section "Addendum Checkpoint 6-7 (Eval + Reliability Testing): Prompt Berakhir di Versi 2" (bug "Nirwana" disalahartikan nama properti, replikasi silang eval manual + Promptfoo, perbaikan v1→v2) dan "Daftar Isi Keputusan" penutup (15 keputusan + addendum). Commit `1f45540`.
+
+**Temuan** Tidak ada temuan baru. **Error/Kegagalan** Tidak ada.
+
+**Hasil Verifikasi**
+Review manual — seluruh 15 keputusan + addendum tercantum di Daftar Isi, tidak ada yang terlewat.
+
+**Commit:** `1f45540` — `docs(milestone-3.4): addendum decisions - prompt v1->v2 + temuan eval`
+
+### Task 22 — Tulis `logs.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Dokumen ini sendiri — dibangun bertahap per checkpoint (bukan ditulis sekaligus di akhir), mengikuti aturan project "logs.md + commit per checkpoint, bukan dibatch di penutupan". Checkpoint 1-8 sudah tercatat sepanjang milestone berjalan (commit `87f93d3`, `6f84602`, `55d5fef`, `09b5c7e`, `868964d`); entri Checkpoint 9 ini melengkapi bagian penutup.
+
+**Hasil Verifikasi** Review manual — setiap checkpoint py entri Mulai/Selesai, Kesesuaian, Apa yang dilakukan, Temuan, Error, Hasil Verifikasi, Commit.
+
+**Commit:** *(bagian dari commit dokumentasi penutupan checkpoint ini, lihat di bawah)*
+
+### Task 23 — Tulis `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `milestones/3.4-penyusunan-request/report.md` — enam bagian: ringkasan, KK1-2 vs bukti nyata (eval + Promptfoo + Jaeger), keputusan final relevan (rujuk `decisions.md`), perubahan dari plan (prompt v1→v2, penilaian S04 ditinjau ulang), keterbatasan/item provisional (dokumen kontrak parameter usulan PENDING REKONSILIASI — bukan ditutup; Catatan Serah Terima `rancangan-retrieval-query.md` secara EKSPLISIT dicatat BELUM sepenuhnya terpenuhi karena Milestone 3.5 masih tersisa), diagram arsitektur Mermaid, dan konfirmasi kompatibilitas `verifikasi_gate()` (M2.4) dengan output M3.4 tanpa perubahan apa pun di sisi M2.4.
+
+**Hasil Verifikasi** Review manual — dicocokkan terhadap seluruh bukti checkpoint 1-8 (commit hash, trace_id, hasil pytest, hasil eval/Promptfoo).
+
+**Commit:** *(bagian dari commit dokumentasi penutupan checkpoint ini, lihat di bawah)*
+
+### Task 24 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tabel "Struktur Repository" diperbarui: baris `docs/keputusan-tertunda.md` (2 entri aktif termasuk #3 M3.4), baris baru `docs/kontrak-parameter-chatbot-api-usulan.md`, baris `milestones/` (tambah `milestones/3.4-penyusunan-request/`), baris `src/` (subpackage `src/layers/query_engine/` + `src/schemas/query_engine.py`), baris `src/prompts/` (`src/prompts/query_engine/`), baris `tests/` (`tests/layers/query_engine/`, 35 test), baris `evals/` (`evals/3.4-.../`, 6/7 lolos), baris `prompt_reliability/` (12 config). Section "Status Saat Ini": ditambah bullet penutup "Milestone 3.4 (Penyusunan Request) SELESAI" (mirror pola bullet M3.1-3.3), bullet "Urutan pengerjaan yang disarankan" diperbarui menunjuk Milestone 3.5 sebagai langkah berikutnya, bullet "Model per langkah dan provider routing" diperbarui menyebut model M3.4. `AGENT.md` disinkronkan persis (`cp` + `diff -q` — identik, nol perbedaan).
+
+**Hasil Verifikasi** `diff -q CLAUDE.md AGENT.md` → tidak ada output (identik).
+
+**Commit:** *(CLAUDE.md/AGENT.md sengaja TIDAK di-track git — lihat `milestones/1.1-fondasi-collector/decisions.md`/`logs.md` Checkpoint 5 — diperbarui di working tree saja, dibaca sistem tiap sesi, bukan artefak git)*
+
+---
+
+## Ringkasan Penutupan Milestone 3.4
+
+- **9 checkpoint, 24 task** — seluruhnya selesai dan terverifikasi nyata (bukan simulasi/mock untuk bagian yang sifatnya perilaku LLM).
+- **35 unit test baru** (`tests/layers/query_engine/`) — seluruhnya hijau, nol network call nyata (mocked LLM).
+- **Eval nyata**: 7 skenario, 6/7 lolos check otomatis (S04 ditinjau ulang → lolos substansi, lihat `evals/3.4-penyusunan-request/audit.md`).
+- **Promptfoo**: 4 skenario, 4/4 lolos setelah 1 iterasi prompt (v1→v2) — 4 baris terverifikasi di `prompt_eval_runs` Supabase.
+- **Jaeger**: 1 trace nyata (`07147fa01b4a6b9ecff545ac36dde0fd`) — seluruh atribut wajib (`gen_ai.*`, `prompt.id`/`version`, `request.domain`/`request.view_name`) terkonfirmasi terisi benar, `prompt.version=2` mengonfirmasi prompt final yang benar-benar dipakai di jalur eksekusi nyata.
+- **Dokumen kontrak parameter usulan** (`docs/kontrak-parameter-chatbot-api-usulan.md`, 67 view) diterbitkan sesuai instruksi eksplisit user — status PENDING REKONSILIASI dengan tim `chatbot_api`, dicatat `docs/keputusan-tertunda.md` #3.
+- **PIC 3 (Query Engine) Langkah 1 SELESAI.** Milestone 3.5 (Langkah 2, verifikasi bentuk request independen) masih tersisa sebelum PIC 3 (Retriever + Query Engine) dinyatakan SELESAI SEPENUHNYA dan Catatan Serah Terima `rancangan-retrieval-query.md` benar-benar terpenuhi.

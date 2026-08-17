@@ -60,6 +60,14 @@ gampang diganti tanpa menyentuh logic layer.
   sini MENGGANTIKAN Langkah 1 (koreksi dua arah, bukan union aditif),
   karena risiko M3.2 simetris (KK1 dan KK2 sama-sama penting). Lihat
   milestones/3.2-kecocokan-makna/decisions.md Keputusan 1 dan 4.
+- OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL: Qwen3-32B (reuse, model chat/
+  completion biasa - forced preseden M1.6/M2.1/M2.3/M3.2 Keputusan 4,
+  tidak perlu perbandingan empiris baru), dipakai kecukupan_struktural.py
+  (M3.3, fallback LLM) - SATU panggilan konservatif (bukan generate-verify
+  penuh) untuk kandidat yang rule table deterministik menghasilkan
+  tidak_pasti, karena risiko M3.3 asimetris (mirror M1.7, bukan simetris
+  seperti M3.2). Lihat milestones/3.3-kecukupan-struktural/decisions.md
+  Keputusan 5.
 
 Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
 get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
@@ -93,6 +101,7 @@ OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_RETRIEVER_EMBEDDING = "openai/text-embedding-3-small"
 OPENROUTER_MODEL_KECOCOKAN_MAKNA_GENERATE = "qwen/qwen3-32b"
 OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI = "deepseek/deepseek-v4-pro"
+OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL = "qwen/qwen3-32b"
 
 load_dotenv()
 

@@ -478,3 +478,29 @@ Console: `8/8 skenario lolos`. Payload lengkap tersimpan `evals/3.2-kecocokan-ma
 ---
 
 ---
+
+## Checkpoint 13 — Audit Eval
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 21 — Tulis `audit.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `evals/3.2-kecocokan-makna/audit.md` — ringkasan 8/8 lolos per skenario, 4 temuan didokumentasikan jujur: (1) bukti nyata koreksi dua arah bekerja (S07, Langkah 2 eksplisit menyatakan mengoreksi Langkah 1), (2) nuansa join/nullable tidak muncul di `alasan` S07 meski `CATATAN_LINTAS_DOMAIN` diinject penuh — dicatat sebagai observasi netral, BUKAN keterbatasan formal (baru satu titik data), (3) presisi S06 melebihi ambang toleransi (0/9 vs toleransi 2), (4) KK1/KK2 sumber lolos tanpa retry.
+
+**Temuan**
+Diputuskan TIDAK menambah entri baru `docs/keterbatasan-diterima.md` — dipertimbangkan eksplisit (Temuan 2 di atas) tapi ditolak karena satu titik data tunggal, beda dari preseden M2.1 #6/M3.1 #11 yang berulang lintas beberapa skenario sebelum dicatat formal.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual — tiap skenario `rancangan.md` py hasil match/toleransi tercatat, tidak ada yang diam-diam dihilangkan meski seluruhnya lolos.
+
+**Commit:** `2035811` — `test(milestone-3.2): audit eval kecocokan makna`
+
+---
+
+---

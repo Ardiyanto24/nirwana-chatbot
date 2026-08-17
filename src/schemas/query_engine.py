@@ -43,3 +43,46 @@ class HasilPenyusunanRequest(BaseModel):
         if self.status == StatusEksekusi.GAGAL_TEKNIS and self.request is not None:
             raise ValueError("status=gagal_teknis wajib request=None")
         return self
+
+
+class HasilVerifikasiBentukRequest(BaseModel):
+    """Skema Verifikasi Bentuk Request (Milestone 3.5, Langkah 2 Query Engine):
+    hasil penilaian ulang independen `QueryEngineRequest` (M3.4) terhadap
+    kepatuhan sumber (`view_name`) dan kecukupan semantik `params` terhadap
+    `label_bentuk_jawaban`.
+
+    `request` SELALU utuh (bukan Optional) - M3.5 mendiagnosis, tidak pernah
+    merevisi/membuang apa yang dinilainya (beda `HasilVerifikasiGate` M2.4
+    yang me-null-kan `request_final` saat `lolos=False`). Lihat
+    milestones/3.5-verifikasi-bentuk-request/decisions.md Keputusan 7.
+
+    `status` (teknis, biner) + `lolos`/`alasan` (substantif) menggabungkan
+    dua pola preseden berbeda - lihat decisions.md Keputusan 9.
+    """
+
+    atomic_intent: AtomicIntent
+    request: QueryEngineRequest
+    status: StatusEksekusi
+    lolos: bool | None
+    alasan: str | None
+
+    @model_validator(mode="after")
+    def status_lolos_alasan_konsisten(self) -> Self:
+        if self.status not in (StatusEksekusi.BERHASIL, StatusEksekusi.GAGAL_TEKNIS):
+            raise ValueError(
+                "status HasilVerifikasiBentukRequest hanya boleh "
+                "berhasil/gagal_teknis - satu pemanggilan LLM, tanpa "
+                "keputusan otorisasi/ketergantungan/batch"
+            )
+        if self.status == StatusEksekusi.GAGAL_TEKNIS:
+            if self.lolos is not None or self.alasan is not None:
+                raise ValueError("status=gagal_teknis wajib lolos=None dan alasan=None")
+            return self
+
+        if self.lolos is None:
+            raise ValueError("status=berhasil wajib punya lolos (True/False)")
+        if self.lolos and self.alasan is not None:
+            raise ValueError("lolos=True tidak boleh punya alasan")
+        if not self.lolos and self.alasan is None:
+            raise ValueError("lolos=False wajib punya alasan")
+        return self

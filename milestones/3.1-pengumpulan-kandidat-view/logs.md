@@ -76,6 +76,52 @@ Tidak ada.
 
 ---
 
+---
+
+## Checkpoint 3 — Skema Retriever + Skeleton Subpackage
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 4 — `src/schemas/retriever.py`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyempurnaan desain: `model_validator` diimplementasikan sebagai konsistensi `status`↔`fallback_terpicu` (bukan `status`↔`kandidat` seperti draf awal plan) - karena BM25 murni deterministik tidak pernah punya mode "gagal_teknis" seperti pemanggilan LLM, sehingga hanya `BERHASIL`/`SEBAGIAN` yang relevan, dan `SEBAGIAN` hanya bermakna kalau fallback benar-benar terpicu lalu gagal teknis.
+
+**Apa yang dilakukan**
+Menulis `src/schemas/retriever.py`: `SumberPencarian` (Enum `bm25`/`embedding_fallback`), `KandidatView` (`view_name`/`domain`/`skor`/`sumber`), `HasilPencarianKandidat` (`atomic_intent`/`domain_diizinkan`/`kandidat`/`fallback_terpicu`/`status`) dengan `model_validator(mode="after")` menolak `status` selain BERHASIL/SEBAGIAN, dan menolak `fallback_terpicu=False` dipasangkan `status=SEBAGIAN`.
+
+**Temuan**
+Draf `model_validator` awal (status↔kandidat kosong, mirror `AtomicIntentDomains` M2.1) ternyata tidak punya skenario nyata yang valid untuk M3.1 - BM25 selalu berjalan sukses secara struktural (tidak ada "gagal total" seperti panggilan LLM). Diganti validator yang benar-benar mencerminkan invarian nyata pipeline M3.1.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`python -c "from src.schemas.retriever import HasilPencarianKandidat"` sukses. `pytest tests/layers/retriever/test_retriever_schema.py -v` — 6/6 lolos (status=GAGAL_TEKNIS ditolak, status=DITOLAK_OTORISASI ditolak, fallback_terpicu=False+status=SEBAGIAN ditolak, 3 kombinasi valid diterima).
+
+**Commit:** *(digabung Task 5, lihat di bawah)*
+
+---
+
+### Task 5 — Skeleton Subpackage
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Membuat `src/layers/retriever/__init__.py` dan `tests/layers/retriever/__init__.py` (keduanya kosong) sebelum file kode lain di subpackage ini ditulis - mengikuti lesson-learned M2.4 (`ModuleNotFoundError` kalau lupa).
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Test collection `pytest tests/layers/retriever/` berjalan tanpa `ModuleNotFoundError`. `CLAUDE.md`/`AGENT.md` diperbarui mencatat folder baru `src/layers/retriever/` dan `tests/layers/retriever/`, disinkronkan identik.
+
+**Commit:** `5e22518` — `feat(milestone-3.1): skema retriever + skeleton subpackage`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada.

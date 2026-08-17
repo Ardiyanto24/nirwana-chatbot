@@ -68,6 +68,13 @@ gampang diganti tanpa menyentuh logic layer.
   tidak_pasti, karena risiko M3.3 asimetris (mirror M1.7, bukan simetris
   seperti M3.2). Lihat milestones/3.3-kecukupan-struktural/decisions.md
   Keputusan 5.
+- OPENROUTER_MODEL_PENYUSUNAN_REQUEST: Qwen3-32B (reuse, model chat/
+  completion biasa - forced preseden "satu konstanta per konsumen" M1.4
+  Keputusan 9, tidak perlu perbandingan empiris baru), dipakai
+  penyusunan_request.py (M3.4, Langkah 1 Query Engine) - SATU panggilan
+  generate-only (ekstraksi parameter terstruktur), tanpa retry/verifier
+  independen (M3.5 terpisah). Lihat
+  milestones/3.4-penyusunan-request/decisions.md Keputusan 9 dan 10.
 
 Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
 get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
@@ -102,6 +109,7 @@ OPENROUTER_MODEL_RETRIEVER_EMBEDDING = "openai/text-embedding-3-small"
 OPENROUTER_MODEL_KECOCOKAN_MAKNA_GENERATE = "qwen/qwen3-32b"
 OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL = "qwen/qwen3-32b"
+OPENROUTER_MODEL_PENYUSUNAN_REQUEST = "qwen/qwen3-32b"
 
 load_dotenv()
 

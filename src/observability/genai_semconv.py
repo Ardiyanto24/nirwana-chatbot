@@ -43,3 +43,11 @@ GEN_AI_USAGE_OUTPUT_TOKENS = _gen_ai.GEN_AI_USAGE_OUTPUT_TOKENS
 # custom lain di kontrak span (rbac.domain, request.domain, dst.).
 PROMPT_ID = "prompt.id"
 PROMPT_VERSION = "prompt.version"
+
+# Milestone 3.4 (Query Engine Langkah 1) - forced kontrak
+# rancangan-observability-ai-chatbot.md Bagian 2, baris "Query Engine
+# (Langkah 1 & 2)": chat x2 (M3.4+M3.5), atribut request.domain/
+# request.view_name selain prompt.id/prompt.version. Custom (bukan
+# gen_ai.*), mengikuti pola PROMPT_ID/PROMPT_VERSION.
+REQUEST_DOMAIN = "request.domain"
+REQUEST_VIEW_NAME = "request.view_name"

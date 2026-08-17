@@ -25,6 +25,12 @@ from pydantic import BaseModel, ValidationError
 from src.config.llm import OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL, get_openrouter_client
 from src.layers.retriever.definisi_view import DEFINISI_LENGKAP_VIEW
 from src.layers.retriever.grain_view import GRAIN_STRUKTURAL_VIEW, KarakteristikGrain
+from src.layers.retriever.kecocokan_makna import nilai_kecocokan_makna_atomic_intent
+from src.layers.retriever.retriever import (
+    _atribut_span_dari_hasil,
+    _kumpulkan_kandidat,
+)
+from src.layers.retriever.retriever import _TRACER_NAME as _RETRIEVER_TRACER_NAME
 from src.observability.genai_semconv import (
     GEN_AI_OPERATION_NAME,
     GEN_AI_REQUEST_MODEL,
@@ -36,6 +42,7 @@ from src.observability.genai_semconv import (
 from src.observability.tracing import get_tracer
 from src.prompts.loader import load_prompt
 from src.schemas.decomposition import AtomicIntent
+from src.schemas.domain_gate import Domain
 from src.schemas.retriever import (
     HasilKecocokanMakna,
     HasilKecukupanStruktural,
@@ -343,3 +350,33 @@ def evaluasi_kecukupan_struktural_atomic_intent(
         view_name_final=view_name_final,
         status=StatusEksekusi.BERHASIL,
     )
+
+
+# --- Orkestrator penutup pipeline Retriever (M3.1 -> M3.2 -> M3.3) ---------
+
+
+def proses_retrieval_atomic_intent(
+    atomic_intent: AtomicIntent, domain_diizinkan: list[Domain]
+) -> HasilKecukupanStruktural:
+    """Closing piece tiga langkah Retriever (M3.1-3.3, decisions.md
+    Keputusan 4) - membuka span `retriever.cari_kandidat_view` (nama
+    SAMA dengan wrapper standalone M3.1 `cari_kandidat_view()`) yang
+    MEMBUNGKUS `_kumpulkan_kandidat()` (M3.1 pure) -> `nilai_kecocokan_
+    makna_atomic_intent()` (M3.2, span `chat` anak) ->
+    `evaluasi_kecukupan_struktural_atomic_intent()` (M3.3, span `chat`
+    anak kondisional) sekaligus, lalu mengisi `retrieval.selected_view`
+    SEBELUM span ditutup - memenuhi KK3 M3.3 secara literal (atribut ada
+    di span `retriever.cari_kandidat_view` yang sama, bukan span baru)."""
+    tracer = get_tracer(_RETRIEVER_TRACER_NAME)
+
+    with tracer.start_as_current_span("retriever.cari_kandidat_view") as span:
+        hasil_pencarian = _kumpulkan_kandidat(atomic_intent, domain_diizinkan)
+        for key, value in _atribut_span_dari_hasil(hasil_pencarian).items():
+            span.set_attribute(key, value)
+
+        hasil_kecocokan = nilai_kecocokan_makna_atomic_intent(hasil_pencarian)
+        hasil_kecukupan = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
+
+        span.set_attribute("retrieval.selected_view", hasil_kecukupan.view_name_final or "")
+
+        return hasil_kecukupan

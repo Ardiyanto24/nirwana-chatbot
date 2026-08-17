@@ -436,3 +436,64 @@ Ditemukan saat memverifikasi `cari_bm25()` ASLI secara langsung (bukan mempercay
 `pytest tests/layers/retriever/test_pencarian_bm25.py -v` — 8/8 lolos (6 test lama tetap hijau tanpa perubahan assertion + 2 test baru: query murni stopword, regresi typo B3). `pytest tests/layers/retriever/ tests/config/ tests/layers/verification_gate/ -v` — 50/50 lolos, regresi penuh tanpa perubahan assertion di suite lain.
 
 **Commit:** `56d70e9` (`fix`, kode) + `ba4b400` (`docs`, koreksi dokumentasi + entri keputusan-tertunda/keterbatasan-diterima).
+
+---
+
+## Checkpoint 10 — Orkestrator + Observability Penuh
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 20 — `src/layers/retriever/retriever.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`cari_kandidat_view()`: panggil `cari_bm25()`; kalau `perlu_fallback=False` return langsung; kalau `True`, panggil `cari_embedding()` dengan `OPENROUTER_MODEL_RETRIEVER_EMBEDDING`, union dedup (`_union_kandidat()`, BM25 diprioritaskan kalau ada duplikat, tidak diurutkan ulang lintas skala skor berbeda). Span pembungkus `retriever.cari_kandidat_view` + span anak `retriever.pencarian_embedding_fallback` (hanya di dalam blok `if perlu_fallback`).
+
+**Hasil Verifikasi**
+Lihat Task 21-22.
+
+**Commit:** `350212c` — `feat(milestone-3.1): orkestrator cari_kandidat_view + observability`
+
+---
+
+### Task 21 — Test Kasus A/B/C
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu koreksi saat menulis Kasus C: draf awal query "jalur BM25-saja tanpa monkeypatch" ternyata SECARA NYATA memicu fallback (RESERVATION-topic query dengan domain_diizinkan=[FNB] - BM25 legitimately tidak menemukan apa pun di FNB), sehingga assertion `fallback_terpicu is False` GAGAL bukan karena bug, melainkan asumsi test yang salah. Diperbaiki: assertion difokuskan ke zero-leakage (yang genuinely dijamin di KEDUA kemungkinan jalur), bukan mengasumsikan jalur mana yang akan terpicu.
+
+**Apa yang dilakukan**
+5 test: Kasus A (monkeypatch `cari_embedding` raise `AssertionError` kalau dipanggil - membuktikan genuinely tidak terpicu), Kasus B ×2 (fallback menang dengan kandidat gabungan; fallback gagal teknis tetap kembalikan BM25 + `status=SEBAGIAN`), Kasus C ×2 (end-to-end tanpa monkeypatch + monkeypatch eksplisit lintas-domain).
+
+**Temuan**
+Test Kasus C tanpa monkeypatch (`test_kasus_c_kk2_zero_leakage_end_to_end_tanpa_monkeypatch`) mengonfirmasi ulang temuan `docs/keterbatasan-diterima.md` #11 secara tidak sengaja - biaya API nyata kecil tapi tidak sepenuhnya disengaja (baru disadari setelah run pertama gagal).
+
+**Error/Kegagalan**
+`AssertionError: assert True is False` pada draf awal `test_kasus_c_kk2_zero_leakage_jalur_bm25_saja` - lihat Diagnosis.
+
+**Diagnosis dan Perbaikan**
+Bukan bug kode - draf test salah asumsi. Query "okupansi Bali bulan ini" + `domain_diizinkan=[Domain.FNB]` legitimately membuat BM25 gagal total di domain FNB (query genuinely bukan soal FNB), memicu fallback nyata. Test diganti nama (`_tanpa_monkeypatch`) dan assertion difokuskan ke properti yang benar-benar dijamin (zero-leakage), bukan jalur mana yang terpicu.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_retriever.py -v` — 5/5 lolos setelah perbaikan.
+
+**Commit:** `1bf33f5` — `test(milestone-3.1): skenario orkestrator end-to-end`
+
+---
+
+### Task 22 — Verifikasi Span Nyata di Jaeger
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Docker Desktop tidak berjalan di awal checkpoint ini - dinyalakan manual, `docker compose up -d` (`infra/observability/`) menjalankan Collector+Jaeger+Prometheus. Skrip verifikasi one-off (scratchpad, TIDAK di-commit, mirror pola M2.4) memanggil `setup_tracing()` + `cari_kandidat_view()` nyata untuk 2 skenario, dibungkus span `invoke_agent`: (1) BM25-saja ("okupansi Bali bulan ini", domain RESERVATION), (2) fallback-terpicu (skenario B3 typo eval, "okupasi hotel minggu ini gimana").
+
+**Temuan**
+Percobaan pertama skenario "fallback-terpicu" salah pilih query (skenario B1 eval, "tamu-tamu ini pesannya lewat mana aja...") - ternyata TIDAK memicu fallback sungguhan (konsisten `docs/keterbatasan-diterima.md` #11: B1 tetap gagal ditemukan BM25 tapi kandidat LAIN tetap ada, jadi `perlu_fallback` tidak aktif). Diganti ke skenario B3 (typo) yang terkonfirmasi memicu fallback nyata di Checkpoint 9.
+
+**Error/Kegagalan**
+Tidak ada error teknis - percobaan pertama "gagal" secara ekspektasi (bukan error), sesuai kategori temuan di atas.
+
+**Hasil Verifikasi**
+Query langsung ke Jaeger API (`http://localhost:16686/api/traces?service=nirwana-chatbot-retriever-verify`) mengonfirmasi: (a) span `retriever.cari_kandidat_view` muncul di KEDUA trace dengan `retrieval.candidates_count` terisi benar (2 untuk BM25-saja, 10 untuk fallback-terpicu) dan `retrieval.fallback_terpicu`/`retrieval.sumber_utama` sesuai; (b) span anak `retriever.pencarian_embedding_fallback` (`gen_ai.operation.name=embeddings`, `gen_ai.request.model=openai/text-embedding-3-small`) HANYA muncul di trace fallback-terpicu, dikonfirmasi ABSEN di trace BM25-saja - bukti langsung span anak bersyarat bekerja sesuai desain, bukan cuma diasumsikan dari baca kode.
+
+**Commit:** Tidak ada (skrip verifikasi tidak di-commit, sesuai konvensi M2.4).

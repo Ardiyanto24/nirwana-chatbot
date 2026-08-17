@@ -30,6 +30,8 @@ Konsisten preseden SELURUH pemakaian `StatusEksekusi.SEBAGIAN` yang sudah ada; k
 **Dampak**
 Tidak ada dampak lintas-milestone langsung — M4.3 (konsumen berikutnya) tetap menerima `status=berhasil` untuk seluruh 200, konsisten kontrak `StatusEksekusi` yang sudah ada. Kalau nanti kontrak `chatbot_api` menyediakan sinyal freshness/kualitas data (Keputusan 2), keputusan ini WAJIB direvisit.
 
+> **REVISIT (2026-08-17): pemicu peninjauan ulang TERPENUHI.** Tim database engineering mengonfirmasi endpoint `GET /chatbot/{domain}/{view_name}/_meta` (`last_refreshed_at`/`data_quality_status`) sudah tersedia — persis sinyal tertutup yang tadinya belum ada saat Keputusan 1 diambil. Keputusan "M4.2 SELALU `berhasil`" DIREVISI: `SEBAGIAN` sekarang genuinely dipakai untuk `data_quality_status="flagged"` ATAU `last_refreshed_at` melewati ambang kesegaran — TAPI `null`/kegagalan panggilan `_meta` TETAP `berhasil` (bukan `sebagian`), supaya sinyal `sebagian` tidak diencerkan oleh ketidaktahuan semata (lihat Keputusan 11 untuk detail lengkap + alasan). Argumen inti Keputusan 1 di atas (preseden `SEBAGIAN`=proses 2+ langkah, satu gagal teknis) TETAP RELEVAN — sekarang M4.2 genuinely punya 2 langkah (panggilan data + panggilan `_meta`), memenuhi pola precedent yang sama persis.
+
 ---
 
 ## Keputusan 2: Usulan Kontrak `last_refreshed_at`/`data_quality_status` — Dicatat sebagai Addendum `keputusan-tertunda.md` #3, Tidak Memblokir M4.2
@@ -191,11 +193,38 @@ Tidak ada — forced by instruksi eksplisit `CLAUDE.md`/preseden konsisten miles
 
 ---
 
+## Keputusan 11: Revisit — `SEBAGIAN` Diaktifkan dari Sinyal `_meta` (`data_quality_status`/`last_refreshed_at`)
+
+**Status:** Ditemukan pasca-milestone (2026-08-17) — tim database engineering mengabari endpoint `_meta` sudah tersedia, memenuhi pemicu peninjauan ulang eksplisit di Keputusan 1 dan `docs/keputusan-tertunda.md` #3 addendum.
+
+**Latar Belakang**
+Keputusan 1 sengaja SELALU memetakan 200→`berhasil` karena TIDAK ADA sinyal tertutup untuk `SEBAGIAN` saat itu. Tim database sekarang menyediakan `GET /chatbot/{domain}/{view_name}/_meta` mengembalikan `last_refreshed_at`/`data_quality_status` (Opsi B — endpoint terpisah, sesuai usulan kita — 67 endpoint data existing TIDAK berubah bentuk). Genuinely terbuka: bagaimana persisnya memetakan nilai-nilai ini (termasuk `null`/kegagalan panggilan) ke `StatusEksekusi`.
+
+**Keputusan yang Dipilih**
+- `data_quality_status="flagged"` → `SEBAGIAN` (sinyal terkonfirmasi tim database, closed-rule).
+- `last_refreshed_at` melewati `EXECUTION_DATA_STALENESS_THRESHOLD_JAM` (Keputusan Jenis B baru, lihat commit Checkpoint 3) → `SEBAGIAN` (independen dari `data_quality_status` — bisa trigger sendiri-sendiri, digabung tanpa dobel-hitung).
+- `data_quality_status=null` ATAU panggilan `_meta` gagal (timeout/5xx/dsb) → TETAP `berhasil` — TIDAK PERNAH `SEBAGIAN` dari ketidaktahuan semata. Dicatat jujur lewat `catatan_interpretasi` (M4.3, Keputusan terkait di `milestones/4.3-.../decisions.md`), nada BEDA dari `flagged`/stale (bukan menyiratkan masalah terkonfirmasi).
+- Panggilan `_meta` SATU percobaan saja (TIDAK ikut `EXECUTION_MAX_RETRY_INFRA`) — kegagalannya tidak boleh menahan/menggagalkan atomic intent yang datanya sendiri sudah berhasil diambil.
+- `HasilEksekusiAtomicIntent` validator diperluas: `SEBAGIAN` valid, structurally MIRIP `BERHASIL` (`nilai_hasil` wajib terisi, TIDAK boleh `kegagalan_alasan`/`bug_prioritas_tinggi` — beda dari `GAGAL_TEKNIS` yang genuinely gagal).
+
+**Alasan**
+Tim database eksplisit memperingatkan: "kalau field null, itu genuinely tidak diketahui — bukan aman/ok default, jangan diperlakukan sama dengan ok". Tapi disamakan dengan `flagged` (SEBAGIAN) JUGA salah arah — 2 view `guests-*` dikonfirmasi tim database akan sering `null` BUKAN karena masalah, murni keterbatasan cakupan pengecekan otomatis mereka (V1). Kalau `null` disamakan `SEBAGIAN`, sinyal itu akan sering muncul untuk alasan yang bukan genuinely masalah — mengencerkan `SEBAGIAN` sebagai sinyal prioritas yang jarang+berarti (argumen inti Keputusan 1 yang sama, sekarang diterapkan ke kasus baru). Opsi tengah (tetap `berhasil` + catatan jujur) menjaga KEDUA prinsip: tidak menyembunyikan ketidaktahuan (kejujuran `CLAUDE.md`), tidak menyamakan "belum diverifikasi" dengan "dikonfirmasi bermasalah".
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **`null`/kegagalan `_meta` juga dianggap `SEBAGIAN`** — ditawarkan eksplisit ke user (`AskUserQuestion`), TIDAK dipilih: risiko pengenceran sinyal `SEBAGIAN`, terutama untuk 2 view `guests-*` yang akan sering `null`.
+- **`last_refreshed_at` murni informasi teks, TANPA ambang klasifikasi** — direkomendasikan awal (menghindari menebak angka tanpa dasar empiris), TIDAK dipilih user: user memilih tetap pakai ambang (dengan syarat eksplisit ambang itu provisional + wajib dikomunikasikan ke tim database, lihat `docs/keputusan-tertunda.md` #3 addendum kedua).
+- **Panggilan `_meta` ikut retry infra sama seperti data utama** — ditolak: menggandakan potensi latensi (retry data + retry meta) untuk sinyal yang sifatnya sekunder/best-effort, tidak proporsional.
+
+**Dampak**
+`src/config/chatbot_api.py` (konstanta ambang baru), `src/schemas/execution.py` (validator+field baru), `src/layers/execution/pemanggilan_chatbot_api.py` (fungsi baru `panggil_meta_chatbot_api()`), `src/layers/execution/klasifikasi_respons.py` (integrasi), `src/layers/execution/penyimpanan_paket.py` (M4.3, catatan kualitas data) — lihat `milestones/4.3-.../decisions.md` untuk sisi M4.3.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
 |---|---|---|---|
-| 1 | Berhasil vs sebagian (200): selalu berhasil | A | Plan |
+| 1 | Berhasil vs sebagian (200): selalu berhasil (DIREVISI Keputusan 11) | A | Plan |
 | 2 | Usulan kontrak last_refreshed_at/data_quality_status | A | Checkpoint 1 |
 | 3 | Cakupan 400: Opsi B, orkestrasi loop penuh | A | Plan |
 | 4 | Real testing chatbot_api ditunda | A | Checkpoint 7 |
@@ -205,3 +234,4 @@ Tidak ada — forced by instruksi eksplisit `CLAUDE.md`/preseden konsisten miles
 | 8 | M3.5/M2.4 dipanggil ulang apa adanya | B | Checkpoint 6 |
 | 9 | keputusan-tertunda.md #3 diperluas, bukan entri baru | B | Checkpoint 1 |
 | 10 | decisions.md Task pertama, logs.md per checkpoint | B | Plan |
+| 11 | Revisit: SEBAGIAN diaktifkan dari sinyal _meta | A | Revisit Checkpoint 1 |

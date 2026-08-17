@@ -145,6 +145,24 @@ Tidak ada — forced by instruksi eksplisit `CLAUDE.md`.
 
 ---
 
+## Keputusan 9: Revisit — Catatan Kualitas Data (`flagged`/Stale/Tidak Diketahui) Digabung ke `catatan_interpretasi`
+
+**Status:** Ditemukan pasca-milestone (2026-08-17) — turunan langsung dari `milestones/4.2-.../decisions.md` Keputusan 11 (endpoint `_meta` tim database aktif, `SEBAGIAN` diaktifkan di M4.2).
+
+**Sumber Paksaan**
+Forced pemisahan tanggung jawab yang sudah dipegang konsisten sejak Checkpoint 3 M4.3 (asli): M4.2 murni menentukan STATUS (`berhasil`/`sebagian`/`gagal_teknis`), teks manusiawi untuk `catatan_interpretasi` adalah domain M4.3 — persis pola nullable-bermakna yang sudah ada. `data_quality_status`/`last_refreshed_at` (diteruskan `HasilEksekusiAtomicIntent` M4.2, Keputusan 11 di sana) genuinely butuh diterjemahkan jadi teks sebelum masuk `catatan_interpretasi`, sama seperti kolom nullable butuh diterjemahkan dari nama kolom mentah.
+
+**Keputusan yang Diikuti**
+`susun_dan_simpan_paket()` menerima `data_quality_status`/`last_refreshed_at` opsional. `_catatan_kualitas_data()` (baru) menghasilkan teks BERBEDA NADA untuk 3 kasus: `SEBAGIAN` karena `flagged` (menyebut eksplisit ditandai tim database), `SEBAGIAN` karena stale (menyebut timestamp konkret + ambang yang dipakai), `berhasil` dengan kualitas tidak diketahui (frasa netral "belum diketahui", TIDAK menyiratkan masalah). Hasilnya DIGABUNG (bukan menimpa) dengan catatan nullable-bermakna yang sudah ada — `catatan_interpretasi` tetap satu list.
+
+**Catatan Ketergantungan**
+Kalau nada/isi teks salah satu dari 3 kasus disamakan (mis. "tidak diketahui" ditulis dengan nada yang sama alarming-nya dengan "flagged"), itu bertentangan langsung dengan alasan M4.2 Keputusan 11 memisahkan `SEBAGIAN` dari `berhasil+catatan` — kejujuran soal SEBERAPA yakin sistem terhadap suatu sinyal jadi hilang kalau teksnya tidak konsisten dengan status di baliknya.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+Tidak ada alternatif dipertimbangkan karena forced by preseden pemisahan tanggung jawab M4.2/M4.3 yang sudah ada.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -157,3 +175,4 @@ Tidak ada — forced by instruksi eksplisit `CLAUDE.md`.
 | 6 | Koreksi referensi Milestone 4.5 -> 4.3 di dokumentasi M1.5 | A | Checkpoint 1 |
 | 7 | store_session_memory() tetap -> None, raise-on-failure | B | Checkpoint 2 |
 | 8 | decisions.md Task pertama | B | Plan |
+| 9 | Revisit: catatan kualitas data digabung catatan_interpretasi | B | Revisit Checkpoint 1 |

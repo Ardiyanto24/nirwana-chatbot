@@ -183,3 +183,47 @@ Tidak ada.
 **Commit:** `2dbf085` — `feat(prompts): prompt fallback kecukupan struktural`
 
 ---
+
+## Checkpoint 6 — Fungsi LLM Fallback + Observability
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 9 — Implementasikan `_evaluasi_llm_fallback()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan `OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL = "qwen/qwen3-32b"` ke `src/config/llm.py` (+ dokumentasi entri di docstring modul). Menambahkan `_evaluasi_llm_fallback()` ke `kecukupan_struktural.py` — satu panggilan batch (`_call_llm_fallback`, dipisah dari span/parsing untuk reuse skrip eval, mirror pola `kecocokan_makna.py`), span `"chat"` (`gen_ai.operation.name`/`gen_ai.request.model`/`prompt.id`/`prompt.version`) HANYA dibuka kalau `kandidat_tidak_pasti` non-kosong. Reuse `DEFINISI_LENGKAP_VIEW` (corpus M3.2) sebagai sumber teks grain lengkap per kandidat di user prompt — bukan re-derive dari `KarakteristikGrain.catatan` sendiri (yang notabene adalah interpretasi kita, bukan definisi asli katalog). Tiga jalur kegagalan (API error, empty choices, JSON rusak total) sama-sama jatuh ke `_default_aman_semua()` — SELURUH kandidat batch itu `cukup=False`, `sumber_keputusan=LLM`. Kandidat yang hilang dari respons yang SEBAGIAN valid (`_parse_fallback`) diberi default aman individual (bukan menggagalkan seluruh batch).
+
+**Temuan**
+Tidak ada penyimpangan dari plan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Lihat Task 10.
+
+**Commit:** `cbb1ad1` — `feat(milestone-3.3): fallback llm konservatif kecukupan struktural`
+
+---
+
+### Task 10 — Test Monkeypatch
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan 6 test ke `tests/layers/retriever/test_kecukupan_struktural.py`: batch kosong (dibuktikan monkeypatch `_call_llm_fallback` raise `AssertionError`, mirror pola pembuktian jalur pintas M2.3/M3.2), sukses normal, API error, empty choices, JSON rusak (tiga terakhir sama-sama menguji `_default_aman_semua`), dan kandidat hilang dari respons sebagian valid (test langsung ke `_parse_fallback`, bukti jaminan struktural "tidak drop diam-diam" mirror M3.2).
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada — seluruh 6 test baru lolos pada percobaan pertama.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_kecukupan_struktural.py -v` → 28 passed (22 test Checkpoint 4 + 6 test baru).
+
+**Commit:** `6ebb667` — `test(milestone-3.3): fallback llm monkeypatch`
+
+---

@@ -380,3 +380,49 @@ Sama seperti Task 15 di atas (dijalankan bersamaan) — 70/70 lolos.
 ---
 
 ---
+
+## Checkpoint 10 — Orkestrator `_semua()`
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 17 — Implementasi `nilai_kecocokan_makna_semua`
+
+**Kesesuaian dengan plan:** Menyimpang SEBAGIAN pada satu atribut span (bukan pada task/fungsi itu sendiri) — lihat catatan di bawah.
+
+**Apa yang dilakukan**
+Extend `kecocokan_makna.py`: `nilai_kecocokan_makna_semua()` — loop `[nilai_kecocokan_makna_atomic_intent(hp) for hp in daftar_hasil_pencarian]`, span `retriever.nilai_kecocokan_makna_semua` (tracer `retriever.kecocokan_makna`, mirror `domain_gate.identifikasi_domain_semua`), atribut `kecocokan_makna.intent_count`/`gagal_teknis_count`/`sebagian_count`. `CLAUDE.md`/`AGENT.md` diperbarui — `kecocokan_makna.py` M3.2 dinyatakan SELESAI.
+
+**Temuan**
+**Deviasi kecil dari plan ditemukan saat menulis fungsi ini**: plan Checkpoint 10 menyebut atribut agregat `kecocokan_makna.dikoreksi_count` ("jumlah kandidat yang labelnya berubah Langkah1→2") di span `_semua()`. Menghitung ini di level `_semua()` butuh akses ke `hasil_awal` (Langkah 1) DAN `hasil_verifikasi` (Langkah 2) tiap atomic intent secara bersamaan — tapi `nilai_kecocokan_makna_atomic_intent()` (Checkpoint 9) hanya mengembalikan `HasilKecocokanMakna` final (skema publik, TIDAK menyimpan state antara Langkah 1/2). Menambah field intermediate ke skema publik hanya untuk metrik ini dinilai tidak proporsional dan tidak diminta `decisions.md` manapun. **Data ini SUDAH tercatat lengkap** per-atomic-intent di atribut `retriever.kecocokan_makna.verifikasi_dikoreksi_count` pada span `"chat"` Langkah 2 (Checkpoint 8) — bisa diagregasi lewat query Jaeger/trace correlation antar span dalam satu trace, tanpa perlu duplikasi di span pembungkus. Atribut agregat `_semua()` disederhanakan jadi `intent_count`/`gagal_teknis_count`/`sebagian_count` saja (persis pola `domain_gate.identifikasi_domain_semua()`), TANPA `dikoreksi_count` di level ini. Bukan penghilangan data — hanya dipindah tanggung jawab pencatatannya ke span yang sudah tepat memilikinya.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -m pytest tests/layers/retriever/ tests/config/` — 73 test lolos (3 baru + 70 sisa tanpa regresi).
+
+**Commit:** `51adcf1` — `feat(milestone-3.2): orkestrator _semua() kecocokan makna`
+
+---
+
+### Task 18 — Test Orkestrator `_semua()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Extend test — multi-intent loop dengan urutan dipertahankan (termasuk campuran satu intent kandidat-kosong di antara intent normal), list kosong tidak error, kombinasi 3 status berbeda (`GAGAL_TEKNIS`/`SEBAGIAN`/`BERHASIL`) dalam satu batch diverifikasi urutannya persis sesuai input.
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Sama seperti Task 17 di atas (dijalankan bersamaan) — 73/73 lolos.
+
+**Commit:** `ff628b6` — `test(milestone-3.2): orkestrator _semua() kecocokan makna`
+
+---
+
+---

@@ -48,6 +48,14 @@ Konsisten budaya eval-driven proyek ini (M1.6/M1.7/M2.1 semua menemukan hal nyat
 - **Kunci model final permanen pasca-eval Checkpoint 7 (seperti pola M1.3-M2.3)** — bentuk awal plan sebelum dikoreksi user; ditolak karena cakupan eval Checkpoint 7 dinilai user belum cukup luas untuk klaim kepastian permanen.
 - **Uji 3 model HANYA dengan skenario KK1/KK2 standar (tanpa Bagian B stress-test)** — ditolak saat desain proses eval: KK1 sumber terbukti trivial untuk BM25 sendiri (frasa literal ada di korpus), sama sekali tidak memberi sinyal pembeda antar model embedding.
 
+**Addendum (setelah Checkpoint 7 — hasil eval nyata, lihat `evals/3.1-pengumpulan-kandidat-view/audit.md`):**
+
+Hasil: Qwen3-Embedding-4B **0/5 recall** (gagal total di seluruh skenario Bagian B, termasuk satu kasus di mana BM25 murni sudah lebih baik). Qwen3-Embedding-8B dan `text-embedding-3-small` sama-sama **5/5 recall**; `text-embedding-3-small` unggul di rank rata-rata (2.4 vs 2.6), konsistensi posisi (nyaris selalu rank 2, dibanding Qwen3-8B yang berayun 1-5), dan latensi query-only (~0.79s vs ~1.99s rata-rata, ~2.5x lebih cepat).
+
+**Model dikunci: `openai/text-embedding-3-small`** (`OPENROUTER_MODEL_RETRIEVER_EMBEDDING`, Checkpoint 8) — recall sempurna + rank paling konsisten + latensi terendah, tiga dimensi penilaian sekaligus, bukan trade-off yang harus dipilih. Berstatus PROVISIONAL (dicatat `docs/keputusan-tertunda.md`, bukan ditutup permanen — lihat Keputusan 2 di atas), sesuai instruksi eksplisit user.
+
+**Insiden operasional dicatat sebagai bagian keputusan ini**: panggilan pertama ke `openai/text-embedding-3-small` sempat gagal `404 NotFoundError` karena setting akun OpenRouter "Allowed Providers" awalnya hanya mengizinkan `siliconflow` — bukan bug kode. User mengubah setting (menambahkan `OpenAI` ke Allowed Providers, `openrouter.ai/settings/privacy`) sebelum eval penuh dijalankan ulang. Dicatat di sini karena ini prasyarat operasional yang harus tetap terpenuhi di lingkungan mana pun kode ini dijalankan produksi (bukan cuma sesi pengembangan ini) — kalau di lingkungan lain Allowed Providers dikonfigurasi ulang membatasi ke `siliconflow` saja, `OPENROUTER_MODEL_RETRIEVER_EMBEDDING` akan gagal teknis (`gagal=True`, jatuh ke `status=SEBAGIAN`, bukan crash — sudah ditangani `cari_embedding()`), bukan silently memakai model lain.
+
 ---
 
 ## Keputusan 3: Relokasi `DAFTAR_VIEW_PER_DOMAIN` ke `src/config/katalog_view.py`

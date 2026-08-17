@@ -1,0 +1,148 @@
+description: "Reliability testing - query_engine.verifikasi_bentuk_request (M3.5)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: query_engine.verifikasi_bentuk_request
+      model: deepseek/deepseek-v4-pro
+      response_format: { type: json_object }
+      extra_body: { reasoning: { effort: high } }
+
+tests:
+  - description: S02_tren_rentang_satu_hari_tidak_cukup
+    vars:
+      user_prompt: |
+        Kebutuhan: Bagaimana tren revenue outlet F&B tiga bulan terakhir? (bentuk jawaban: tren)
+
+        View data yang dipakai: v_fnb_outlet_daily
+
+        Definisi lengkap view (grain, kolom, sumber):
+        *Sumber: `fact_fnb_outlet_daily` + `dim_outlet` + `dim_property` + `dim_outlet_type` — grain: outlet x tanggal.*
+        **Fungsi**: performa harian 1 outlet F&B — revenue, rata-rata nota, pertumbuhan, seberapa besar porsi tamu inhouse yang mampir (capture rate).
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id`, `property_name` | Properti pemilik outlet. |
+        | `outlet_id`, `outlet_name` | Identitas outlet. |
+        | `outlet_type_name` | `Restaurant`, `Bar`, atau `Room Service` (Room Service tidak menerima walk-in). |
+        | `period_date` | Tanggal. |
+        | `revenue` | Revenue outlet hari itu. |
+        | `transaction_count` | Jumlah struk. |
+        | `avg_check` | Rata-rata nilai per struk. |
+        | `mom_revenue_growth` / `yoy_revenue_growth` | Pertumbuhan revenue MoM/YoY. |
+        | `capture_rate` | Porsi tamu inhouse (yang sedang menginap) yang memakai outlet ini. |
+        | `walk_in_ratio` | Porsi transaksi dari pelanggan luar (bukan tamu menginap). |
+        | `revenue_rank_vs_outlet_type_avg` | Ranking revenue outlet ini dibanding rata-rata outlet sejenis. |
+
+        Params yang tersusun:
+        {"period_date_from": "2026-08-17", "period_date_to": "2026-08-17"}
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output);
+          return p.lolos === false && typeof p.alasan === "string" && p.alasan.length > 0;
+
+  - description: S03_tren_rentang_cukup_panjang_lolos
+    vars:
+      user_prompt: |
+        Kebutuhan: Bagaimana tren revenue outlet F&B tiga bulan terakhir? (bentuk jawaban: tren)
+
+        View data yang dipakai: v_fnb_outlet_daily
+
+        Definisi lengkap view (grain, kolom, sumber):
+        *Sumber: `fact_fnb_outlet_daily` + `dim_outlet` + `dim_property` + `dim_outlet_type` — grain: outlet x tanggal.*
+        **Fungsi**: performa harian 1 outlet F&B — revenue, rata-rata nota, pertumbuhan, seberapa besar porsi tamu inhouse yang mampir (capture rate).
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id`, `property_name` | Properti pemilik outlet. |
+        | `outlet_id`, `outlet_name` | Identitas outlet. |
+        | `outlet_type_name` | `Restaurant`, `Bar`, atau `Room Service` (Room Service tidak menerima walk-in). |
+        | `period_date` | Tanggal. |
+        | `revenue` | Revenue outlet hari itu. |
+        | `transaction_count` | Jumlah struk. |
+        | `avg_check` | Rata-rata nilai per struk. |
+        | `mom_revenue_growth` / `yoy_revenue_growth` | Pertumbuhan revenue MoM/YoY. |
+        | `capture_rate` | Porsi tamu inhouse (yang sedang menginap) yang memakai outlet ini. |
+        | `walk_in_ratio` | Porsi transaksi dari pelanggan luar (bukan tamu menginap). |
+        | `revenue_rank_vs_outlet_type_avg` | Ranking revenue outlet ini dibanding rata-rata outlet sejenis. |
+
+        Params yang tersusun:
+        {"period_date_from": "2026-05-17", "period_date_to": "2026-08-17"}
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output);
+          return p.lolos === true;
+
+  - description: S04_nilai_tunggal_valid_lolos
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa okupansi Bali bulan lalu? (bentuk jawaban: nilai_tunggal)
+
+        View data yang dipakai: v_reservation_room_type_daily
+
+        Definisi lengkap view (grain, kolom, sumber):
+        *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti x tipe kamar x tanggal.*
+        **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari — "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id` | Kode properti (P01-P05; P06 kantor pusat tidak punya kamar). |
+        | `property_name` | Nama hotel. |
+        | `region` | Wilayah properti. |
+        | `room_type_name` | `Standard`, `Deluxe`, `Suite`, atau `Villa`. **Villa hanya ada di P01/P04/P05** — Jakarta (P02) & Yogyakarta (P03) tidak punya. |
+        | `period_date` | Tanggal. |
+        | `rooms_sold` | Jumlah kamar tipe ini terjual pada tanggal itu. |
+        | `total_rooms_available` | Jumlah kamar tipe ini yang tersedia untuk dijual. |
+        | `occupancy_rate` | `rooms_sold / total_rooms_available`, rentang 0-1. |
+        | `adr` | **Average Daily Rate** — rata-rata tarif kamar terjual (Rupiah). |
+        | `revpar` | **Revenue Per Available Room** = `adr x occupancy_rate` — metrik profitabilitas utama industri hotel. |
+        | `revenue` | Total pendapatan kamar tipe ini pada tanggal itu. |
+        | `room_type_revenue_share_pct` | Kontribusi tipe kamar ini terhadap total revenue kamar properti hari itu. |
+
+        Params yang tersusun:
+        {"property_id": "P01", "period_date_from": "2026-07-01", "period_date_to": "2026-07-31"}
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output);
+          return p.lolos === true;
+
+  - description: S05_replikasi_nilai_nonsensikal_m34
+    vars:
+      user_prompt: |
+        Kebutuhan: Okupansi Nirwana Lombok Escape bulan ini (bentuk jawaban: nilai_tunggal)
+
+        View data yang dipakai: v_reservation_room_type_daily
+
+        Definisi lengkap view (grain, kolom, sumber):
+        *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti x tipe kamar x tanggal.*
+        **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari — "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id` | Kode properti (P01-P05; P06 kantor pusat tidak punya kamar). |
+        | `property_name` | Nama hotel. |
+        | `region` | Wilayah properti. |
+        | `room_type_name` | `Standard`, `Deluxe`, `Suite`, atau `Villa`. **Villa hanya ada di P01/P04/P05** — Jakarta (P02) & Yogyakarta (P03) tidak punya. |
+        | `period_date` | Tanggal. |
+        | `rooms_sold` | Jumlah kamar tipe ini terjual pada tanggal itu. |
+        | `total_rooms_available` | Jumlah kamar tipe ini yang tersedia untuk dijual. |
+        | `occupancy_rate` | `rooms_sold / total_rooms_available`, rentang 0-1. |
+        | `adr` | **Average Daily Rate** — rata-rata tarif kamar terjual (Rupiah). |
+        | `revpar` | **Revenue Per Available Room** = `adr x occupancy_rate` — metrik profitabilitas utama industri hotel. |
+        | `revenue` | Total pendapatan kamar tipe ini pada tanggal itu. |
+        | `room_type_revenue_share_pct` | Kontribusi tipe kamar ini terhadap total revenue kamar properti hari itu. |
+
+        Params yang tersusun:
+        {"property_name": "Nirwana Lombok Escape", "period_date_from": "2026-08-01", "period_date_to": "2026-08-31", "occupancy_rate": "nilai_tunggal"}
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output);
+          return p.lolos === false && typeof p.alasan === "string" && p.alasan.length > 0;

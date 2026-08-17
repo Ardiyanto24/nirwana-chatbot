@@ -29,3 +29,52 @@ Review manual — seluruh keputusan di plan yang disetujui (Keputusan Desain Tur
 ---
 
 ---
+
+## Checkpoint 2 — Corpus Definisi Lengkap View
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 2 — Bangun `definisi_view.py`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan penyesuaian metode kerja (bukan penyimpangan hasil): 67 entri DIBANGKITKAN lewat skrip Python sekali-pakai (parse regex atas `katalog-data-chatbot.md`, tulis dict Python) alih-alih diketik ulang manual satu per satu — menjamin byte-identik dengan sumber tanpa risiko salah ketik manual pada teks sepanjang ini (67 blok × ~10-20 baris). Hasil akhirnya tetap file Python statis hardcoded (bukan file yang dibaca runtime), sama seperti preseden `korpus_view.py`.
+
+**Apa yang dilakukan**
+Menulis skrip (`scratchpad/gen_definisi_view.py`, tidak di-commit) yang: (1) memisahkan bagian `## Catatan Lintas-Domain` dari body 67 view, (2) meregex tiap blok `#### \`view_name\`` s.d. batas berikutnya, (3) mengelompokkan entri per domain via `DAFTAR_VIEW_PER_DOMAIN` (bukan re-parse header `## Domain` — dihindari karena satu domain, `guests_pii`/`guests_profile`, py header gabungan non-standar), (4) menulis `src/layers/retriever/definisi_view.py` dengan `DEFINISI_LENGKAP_VIEW: dict[str, str]` (67 entri) dan `CATATAN_LINTAS_DOMAIN: str` (7 butir, transkripsi verbatim).
+
+**Temuan**
+Dua putaran percobaan regex gagal sebelum benar: (1) percobaan pertama hanya menemukan 65/67 entri — dua view (`guests_contact_view`, `guests_profile_view`) py header dengan teks tambahan setelah backtick penutup (`` #### `guests_contact_view` (domain `guests_pii`) ``), tidak cocok pola `` `#### \`([^\`]+)\`\n` `` yang mengasumsikan newline persis setelah backtick. (2) perbaikan pertama (`.*` sebelum `\n`) salah menambah `re.DOTALL` implisit ke bagian header sehingga `.*` melahap seluruh dokumen sampai ujung — regex akhirnya hanya menemukan 1 entri. Diperbaiki dengan `[^\n]*` (bukan `.*`) khusus untuk sisa baris header, mempertahankan `re.DOTALL` hanya untuk grup body. Setelah kedua perbaikan, tepat 67 entri ditemukan, diverifikasi bijective dengan `DAFTAR_VIEW_PER_DOMAIN`.
+
+**Error/Kegagalan**
+`AssertionError: expected 67, got 65` (percobaan 1), lalu `AssertionError: expected 67, got 1` (percobaan 2) — keduanya di skrip generator, sebelum file final ditulis. Tidak ada error di file akhir.
+
+**Diagnosis dan Perbaikan**
+Lihat "Temuan" di atas — root cause diisolasi dengan debug terpisah (`missing = all_views - set(entries.keys())`) yang langsung menunjuk `guests_contact_view`/`guests_profile_view`, dikonfirmasi dengan membaca baris 971/983 dokumen sumber langsung.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -c "from src.layers.retriever.definisi_view import DEFINISI_LENGKAP_VIEW, CATATAN_LINTAS_DOMAIN"` — import sukses, `len(DEFINISI_LENGKAP_VIEW) == 67`. Spot-check manual isi `guests_contact_view` dan `v_hr_turnover_snapshot` dibaca lewat tool `Read` (bukan terminal, yang menampilkan em-dash/× sebagai mojibake akibat codepage konsol Windows, bukan korupsi data nyata) — konten UTF-8 benar.
+
+**Commit:** `735735c` — `feat(milestone-3.2): corpus definisi lengkap 67 view`
+
+---
+
+### Task 3 — Tulis Test Drift-Detection
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `tests/layers/retriever/test_definisi_view.py` — regex independen (didefinisikan ulang di file test, bukan impor dari skrip generator, supaya benar-benar independen) mem-parse ulang dokumen sumber, dibandingkan `==` terhadap `DEFINISI_LENGKAP_VIEW`. 8 test: kesamaan persis dokumen sumber, prasyarat regex menemukan 67 entri, 67-count langsung, bijective dengan `DAFTAR_VIEW_PER_DOMAIN`, kesamaan `CATATAN_LINTAS_DOMAIN`, spot-check marker "Kolom turunan" (`v_maintenance_ticket_daily`), spot-check jebakan snapshot (`v_hr_turnover_snapshot`), spot-check butir 5 Catatan Lintas-Domain ("di-join dari").
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -m pytest tests/layers/retriever/ tests/config/ -v` — 43 test lolos (8 baru + 35 sisa M3.1 tanpa regresi). Catatan operasional: `python -m pytest` dengan Python sistem (bukan `.venv/`) gagal `ModuleNotFoundError: rank_bm25` untuk 2 file test M3.1 yang sudah ada — bukan bug dari perubahan checkpoint ini, murni salah lingkungan (dependency proyek ada di `.venv/`, bukan Python sistem, sesuai catatan `prompt_reliability/README.md` soal `PROMPTFOO_PYTHON`); pengujian ulang dengan `.venv/Scripts/python.exe` mengonfirmasi seluruh 43 test lolos.
+
+**Commit:** `733b191` — `test(milestone-3.2): drift-detection corpus definisi lengkap view`
+
+---
+
+---

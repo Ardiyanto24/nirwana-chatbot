@@ -24,12 +24,28 @@ _TRACER_NAME = "context_resolution.session_memory"
 
 
 def store_session_memory(package: SessionMemoryPackage) -> None:
+    """Span `memory.store` ditambahkan Milestone 4.3 (co-located dengan
+    fungsi ini, mirror pola memory.retrieve - lihat milestones/4.3-.../
+    decisions.md Keputusan 5). Kegagalan DB ditangkap, di-set sebagai
+    error.type=gagal_teknis pada span, LALU di-raise ulang APA ADANYA -
+    signature/perilaku raise-on-failure TIDAK berubah (Keputusan 7)."""
     # mode="json" memastikan LabelBentukJawaban/StatusEksekusi (StrEnum)
     # diserialisasi ke .value ("nilai_tunggal") - bukan objek Enum itu sendiri.
     row = SessionMemoryPackageRow(**package.model_dump(mode="json"))
-    with Session(get_engine()) as session:
-        session.add(row)
-        session.commit()
+
+    tracer = get_tracer(_TRACER_NAME)
+    with tracer.start_as_current_span("memory.store") as span:
+        span.set_attribute("session.id", package.session_id)
+        span.set_attribute("turn.index", package.turn_index)
+        span.set_attribute("atomic_intent_id", package.atomic_intent_id)
+
+        try:
+            with Session(get_engine()) as session:
+                session.add(row)
+                session.commit()
+        except Exception:
+            span.set_attribute("error.type", "gagal_teknis")
+            raise
 
 
 def retrieve_session_memory(session_id: str, turn_index: int) -> list[SessionMemoryPackage]:

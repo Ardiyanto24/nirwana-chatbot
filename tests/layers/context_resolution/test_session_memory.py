@@ -6,6 +6,10 @@ Test data pakai session_id berprefix "test-" + teardown eksplisit supaya
 Supabase (dipakai jangka panjang juga untuk M5/M6) tidak kotor sisa data uji.
 
 Di-skip otomatis kalau `DATABASE_URL` tidak tersedia di environment.
+
+Skenario KEGAGALAN store (span memory.store error.type, Milestone 4.3
+Checkpoint 2) murni mocked - TIDAK butuh DATABASE_URL, sengaja dipisah ke
+test_session_memory_kegagalan.py supaya tidak ikut ter-skip modul ini.
 """
 
 import os

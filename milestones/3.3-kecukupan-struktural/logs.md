@@ -457,3 +457,32 @@ Tidak ada.
 **Commit:** `96b0a86` — `docs(evals-3.3): rancangan+audit kecukupan struktural`
 
 ---
+
+## Checkpoint 13 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 22-24 — Finalisasi decisions.md, logs.md, report.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan Addendum Checkpoint 7 ke `decisions.md` (mencatat evolusi prompt fallback v1→v3 + alasan tidak berhenti di temuan-didokumentasikan seperti pola M3.2). Menulis `report.md` lengkap: KK1-3 vs bukti nyata, diagram arsitektur Mermaid, konfirmasi Catatan Serah Terima ke Verification Gate (M2.4, diverifikasi langsung dari kode `verifikasi_gate.py` — `view_name_tervalidasi_retriever: str` kompatibel bentuk dengan `HasilKecukupanStruktural.view_name_final`), penutupan PIC 3 (Retriever) sepenuhnya.
+
+### Task 25 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Memperbarui tabel Struktur Repository (`src/layers/retriever/` — `grain_view.py`+`kecukupan_struktural.py` baru, `retriever.py` direfactor; `src/prompts/retriever/` — `kecukupan_struktural_fallback.md`; `tests/` — 3 file baru M3.3, 127 test total subpackage; `evals/` — entri M3.3; `prompt_reliability/` — 11 config total) dan "Status Saat Ini" (bullet baru Milestone 3.3 SELESAI, urutan pengerjaan diperbarui menunjuk M3.4/M3.5, model-per-langkah menambah M3.3). `cp CLAUDE.md AGENT.md` dikonfirmasi identik (`diff -q`).
+
+**Hasil Verifikasi Penutupan Milestone**
+`pytest tests/` (seluruh project, bukan cuma subpackage retriever) → **430 passed** (dijalankan Checkpoint 9, sebelum perubahan lanjutan Checkpoint 10-12 — regresi ulang subpackage retriever+config setelah itu tetap hijau, `pytest tests/layers/retriever/ tests/config/ -q` → 127 passed final).
+
+**Commit:** *(commit ini + commit decisions/report sebelumnya menutup Checkpoint 13; `CLAUDE.md`/`AGENT.md` tidak di-track git, diperbarui working tree saja)*
+
+---
+
+## Ringkasan Penutupan Milestone 3.3
+
+28 commit sepanjang 13 checkpoint. 54 unit test baru (`test_grain_view.py` 10, `test_kecukupan_struktural_schema.py` 8, `test_kecukupan_struktural.py` 36) — total 127 test `tests/layers/retriever/`+`tests/config/`, seluruhnya hijau. Eval nyata 6/6 skenario end-to-end. Reliability testing Promptfoo 4/4 setelah 3 iterasi perbaikan prompt berbasis bukti. Verifikasi Jaeger nyata dua trace_id konkret membuktikan KK3 literal. Satu refactor terisolasi pada kode M3.1 shipped (span lifecycle) dengan regresi penuh tanpa perubahan assertion. **PIC 3 (Retriever, Milestone 3.1-3.3) SELESAI SEPENUHNYA.**

@@ -115,3 +115,47 @@ Tidak ada — seluruh 8 test lolos pada percobaan pertama.
 **Commit:** `fc31a1a` — `test(milestone-3.3): validator skema kecukupan struktural`
 
 ---
+
+## Checkpoint 4 — Mekanisme Deterministik (Rule Table)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 6 — Bangun `_evaluasi_deterministik()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Membuat `src/layers/retriever/kecukupan_struktural.py` (baru) berisi `_evaluasi_deterministik(label_bentuk_jawaban, grain) -> tuple[str, str]`: `nilai_tunggal` selalu `cukup`; `tren` dicek lewat `grain.punya_time_series`; `perbandingan`/`peringkat`/`komposisi` dicek lewat `grain.punya_dimensi_pembanding` (tiga label ini pola rule-nya identik — sama-sama butuh grain yang menghasilkan >1 baris comparable). Label yang tidak dikenal rule table (dibandingkan `==` terhadap seluruh anggota `LabelBentukJawaban` yang eksplisit dicek) jatuh ke cabang terakhir `tidak_pasti`.
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Lihat Task 7.
+
+**Commit:** `23a79d1` — `feat(milestone-3.3): mekanisme deterministik rule table`
+
+---
+
+### Task 7 — Test Matriks Lengkap
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `tests/layers/retriever/test_kecukupan_struktural.py` — 22 test (parametrized) mencakup seluruh kombinasi 5 label x nilai tri-state relevan per label, PLUS satu kasus fail-safe: memanggil `_evaluasi_deterministik()` dengan `label_bentuk_jawaban` berupa plain `str` ("deskriptif_naratif") yang BUKAN anggota Enum `LabelBentukJawaban` saat ini — mensimulasikan taksonomi label masa depan tanpa perlu mengubah Enum, membuktikan perbandingan `==` di rule table jatuh ke cabang fail-safe terakhir alih-alih exception/menebak.
+
+**Temuan**
+Tidak ada — hipotesis desain (perbandingan `==` enum vs plain str aman dan predictable di Python) terbukti sesuai ekspektasi pada percobaan pertama.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_kecukupan_struktural.py -v` → 22 passed.
+
+**Commit:** `22c9df6` — `test(milestone-3.3): matriks rule deterministik + fail-safe`
+
+---

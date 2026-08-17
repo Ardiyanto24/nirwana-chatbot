@@ -231,6 +231,56 @@ Tidak ada.
 
 ---
 
+---
+
+## Checkpoint 6 — Fallback Embedding Generik
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task Tambahan (di luar penomoran plan) — Refactor `view_ke_domain()`
+
+Sebelum menulis `pencarian_embedding.py`, ditemukan kebutuhan reverse mapping `view_name -> Domain` yang IDENTIK dengan helper privat `_domain_per_view()` yang sudah ada di `pencarian_bm25.py` (Checkpoint 5). Alih-alih duplikasi atau import fungsi privat lintas modul, fungsi dipindah jadi publik `view_ke_domain()` di `src/config/katalog_view.py` (`@lru_cache`) - konsisten alasan relokasi `DAFTAR_VIEW_PER_DOMAIN` itu sendiri (data referensi dipakai >1 konsumen). `pencarian_bm25.py` diupdate reuse fungsi ini, test baru ditambahkan `tests/config/test_katalog_view.py`. Regresi penuh 43 test (`tests/config/`, `tests/layers/retriever/`, `tests/layers/verification_gate/`) tetap hijau. **Commit:** `22bfbec` — `refactor(milestone-3.1): view_ke_domain() reusable di src/config`.
+
+### Task 11 — Konstanta Model Sementara + `pencarian_embedding.py`
+
+**Kesesuaian dengan plan:** Sesuai plan. Verifikasi exact model ID string OpenRouter (`qwen/qwen3-embedding-4b`, `qwen/qwen3-embedding-8b`, `openai/text-embedding-3-small`) dikonfirmasi via `WebFetch` ke halaman koleksi model embedding OpenRouter sebelum ditulis ke `llm.py` - bukan tebakan format penamaan.
+
+**Apa yang dilakukan**
+3 konstanta sementara `OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_4B/_QWEN3_8B/_OPENAI_SMALL_3` di `src/config/llm.py` (docstring modul diperluas menjelaskan alasan sementara + rujukan `decisions.md` Keputusan 2). `src/layers/retriever/pencarian_embedding.py`: `embed_korpus(model)` (`@lru_cache` per-model, satu batch call ke `client.embeddings.create()`), `cari_embedding(teks_kebutuhan, domain_diizinkan, model)` (cosine similarity via `numpy`, filter struktural domain identik `cari_bm25()`, `try/except` luas menangkap kegagalan API jadi `gagal=True`).
+
+**Temuan**
+Tidak ada temuan tak terduga di luar yang sudah dicatat di Task Tambahan di atas.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Lihat Task 12.
+
+**Commit:** `2361461` — `feat(milestone-3.1): fallback embedding generik`
+
+---
+
+### Task 12 — Test Monkeypatch
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+5 test, seluruhnya monkeypatch `get_openrouter_client()` (nol network call/biaya nyata): ranking cosine similarity benar (vektor one-hot terkontrol), domain filtering struktural identik pola BM25, parameter `model` benar-benar diteruskan ke KEDUA panggilan `embeddings.create()` (batch korpus + query), `sumber` selalu `EMBEDDING_FALLBACK`, kegagalan API (`RuntimeError` disimulasikan) menghasilkan `gagal=True` bukan exception bocor. Model name UNIK per test function untuk menghindari `lru_cache` `embed_korpus()` saling mengotori antar-test.
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_pencarian_embedding.py -v` — 5/5 lolos.
+
+**Commit:** `9d59197` — `test(milestone-3.1): pencarian embedding monkeypatch`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Tidak ada.
+Refactor `view_ke_domain()` (dicatat di atas, dalam Checkpoint 6) - bukan checkpoint terpisah, penyesuaian kecil saat mengerjakan Task 11 begitu duplikasi terdeteksi.

@@ -71,3 +71,47 @@ Tidak ada — seluruh 10 test lolos pada percobaan pertama.
 **Commit:** *(lihat commit gabungan Task 2-3 di bawah)*
 
 ---
+
+## Checkpoint 3 — Skema Kecukupan Struktural
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 4 — Extend `src/schemas/retriever.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan `SumberKeputusanKecukupan` (Enum `DETERMINISTIK`/`LLM`), `KecukupanKandidat`, `HasilKecukupanStruktural` ke `src/schemas/retriever.py` (extend file yang sama, mirror pola M3.1+M3.2 satu file). Validator `status_dan_view_name_final_konsisten`: (a) `status` wajib `StatusEksekusi.BERHASIL`; (b) `view_name_final` (kalau tidak `None`) wajib match salah satu `kecukupan` berlabel `cukup=True`.
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Lihat Task 5 (test skema dijalankan bersamaan).
+
+**Commit:** `fbf5488` — `feat(milestone-3.3): skema kecukupan struktural`
+
+---
+
+### Task 5 — Test Skema
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `tests/layers/retriever/test_kecukupan_struktural_schema.py` (file terpisah dari `test_kecukupan_struktural.py` yang akan berisi test orkestrator Checkpoint 8+, mirror pola `test_kecocokan_makna_schema.py` vs `test_kecocokan_makna.py` M3.2) — 8 test mencakup kedua validator, dua arah gagal (status bukan BERHASIL/GAGAL_TEKNIS; view_name_final tidak match kandidat cukup manapun — dua sub-kasus: kandidat ada tapi cukup=False, dan view_name_final tidak pernah dievaluasi sama sekali) dan arah sukses (view_name_final=None valid untuk dua kasus "tidak ada kandidat cukup"; view_name_final match kandidat cukup valid).
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada — seluruh 8 test lolos pada percobaan pertama.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/ -v` (regresi penuh subpackage, bukan hanya file baru) → 85 passed, termasuk 8 test baru + seluruh test M3.1/M3.2 existing tanpa perubahan assertion.
+
+**Commit:** `fc31a1a` — `test(milestone-3.3): validator skema kecukupan struktural`
+
+---

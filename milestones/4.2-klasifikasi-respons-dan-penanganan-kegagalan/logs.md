@@ -68,7 +68,49 @@ Review manual — catatan ditambahkan tanpa mengubah isi historis report.md yang
 
 ---
 
-*(Checkpoint 2-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
+## Checkpoint 2 — Refactor M4.1: Pisahkan Logic Murni dari Span
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 4 — Ekstrak `_panggil_chatbot_api_raw()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`src/layers/execution/pemanggilan_chatbot_api.py` direfactor: logic HTTP+parsing murni dipindah ke `_panggil_chatbot_api_raw()` (tanpa span). `panggil_chatbot_api()` publik jadi wrapper tipis yang membuka span `execute_tool`, mendelegasikan ke `_panggil_chatbot_api_raw()`, lalu men-set `http.response.status_code` HANYA kalau `status_code is not None` (kegagalan transport tidak punya status_code untuk dicatat) - perilaku ini identik logic lama.
+
+**Temuan**
+Test suite awalnya gagal collect via `python` sistem (`ModuleNotFoundError: opentelemetry.exporter.otlp.proto.grpc`) - ternyata bukan bug refactor, melainkan environment: project punya `.venv` sendiri yang harus dipakai eksplisit (`./.venv/Scripts/python.exe`), bukan `python`/`pip` global.
+
+**Error/Kegagalan (jika ada)**
+`ModuleNotFoundError` di atas - murni kesalahan environment (python sistem, bukan `.venv` project), bukan error dari kode yang direfactor.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Diperbaiki dengan menjalankan test lewat `.venv` project (`./.venv/Scripts/python.exe -m pytest`), bukan `python` sistem. Tidak ada perubahan kode untuk mengatasi ini.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/test_pemanggilan_chatbot_api.py -v` — **11/11 test lolos TANPA perubahan assertion** (regresi murni terhadap test yang sudah ada sejak M4.1), termasuk `test_span_execute_tool_mencatat_status_code` yang memverifikasi atribut span tidak berubah.
+
+**Commit:** *(pending — digabung dengan Task 5)*
+
+### Task 5 — Konstanta Retry/Revisi
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan `EXECUTION_MAX_RETRY_INFRA = 2`, `EXECUTION_RETRY_DELAY_DETIK = 1.0`, `EXECUTION_MAX_REVISI = 3` ke `src/config/chatbot_api.py`, dengan docstring merujuk `decisions.md` Keputusan 6.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual — nilai konsisten dengan Keputusan 6 (mirror `_MAX_ATTEMPTS=3` M1.6).
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 3-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
 
 ---
 

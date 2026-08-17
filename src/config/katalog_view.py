@@ -1,13 +1,25 @@
-"""Katalog 67 view_name valid per domain (Milestone 2.4, Cek 1: bentuk
-request statis).
+"""Katalog 67 view_name valid per domain.
 
 Ditranskripsi dari docs/03-domain-source/katalog-data-chatbot.md (67
 header `####` - 65 diawali `v_`, DUA PENGECUALIAN `guests_contact_view`/
 `guests_profile_view` tidak mengikuti konvensi awalan `v_`, ditranskripsi
 persis sesuai penamaan dokumen sumber, bukan disalahkan menjadi `v_guests_
-*`). Dipakai verifikasi_bentuk_request_statis() untuk memastikan
-`view_name` request benar-benar ada di domain yang dinyatakan - ruang
-kesalahan tertutup (67 nilai final, diaudit tim database engineering).
+*`).
+
+Awalnya dibangun di src/layers/verification_gate/katalog_view.py
+(Milestone 2.4, Cek 1: bentuk request statis - verifikasi_bentuk_request_
+statis() memastikan view_name request benar-benar ada di domain yang
+dinyatakan). Direlokasi ke src/config/ di Milestone 3.1 karena layer
+Retriever (hulu, jalan lebih dulu di pipeline) butuh mapping domain->
+view_name yang SAMA PERSIS untuk memfilter kandidat pencarian sesuai
+domain yang diizinkan - src/config/ sudah jadi rumah data referensi
+lintas-layer di proyek ini (role_permissions.py, employees.py, llm.py),
+konsisten preseden itu dibanding duplikasi transkripsi atau dependency
+edge terbalik (layer hulu import dari layer hilir). Lihat
+milestones/3.1-pengumpulan-kandidat-view/decisions.md Keputusan 3.
+
+Ruang kesalahan tertutup (67 nilai final, diaudit tim database
+engineering).
 """
 
 from src.schemas.domain_gate import Domain

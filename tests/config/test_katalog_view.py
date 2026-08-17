@@ -1,9 +1,9 @@
-"""Test katalog 67 view (Milestone 2.4) - cross-check total DAN per-domain
-count terhadap tabel api-chatbot.md, ditulis independen dari hasil
-transkripsi (bukan len() dari data yang sama) supaya bukan pengujian
-sirkular."""
+"""Test katalog 67 view (Milestone 2.4, direlokasi ke src/config/ Milestone
+3.1) - cross-check total DAN per-domain count terhadap tabel
+api-chatbot.md, ditulis independen dari hasil transkripsi (bukan len()
+dari data yang sama) supaya bukan pengujian sirkular."""
 
-from src.layers.verification_gate.katalog_view import DAFTAR_VIEW_PER_DOMAIN
+from src.config.katalog_view import DAFTAR_VIEW_PER_DOMAIN
 from src.schemas.domain_gate import Domain
 
 # Ditranskripsi independen dari tabel per-domain api-chatbot.md baris 46-57.

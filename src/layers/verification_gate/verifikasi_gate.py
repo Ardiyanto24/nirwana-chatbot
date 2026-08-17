@@ -7,7 +7,7 @@ Pydantic itu sendiri - yang diperiksa di sini murni view_name terdaftar
 di domain yang dinyatakan, dan limit tidak melebihi batas chatbot_api.
 """
 
-from src.layers.verification_gate.katalog_view import DAFTAR_VIEW_PER_DOMAIN
+from src.config.katalog_view import DAFTAR_VIEW_PER_DOMAIN
 from src.observability.tracing import get_tracer
 from src.schemas.cakupan_individu import ConstraintCakupanIndividu
 from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest

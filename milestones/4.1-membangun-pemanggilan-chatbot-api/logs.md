@@ -10,8 +10,8 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 2 | `9b2dd50`, `e637389` | `chore(milestone-4.1): tambah dependency httpx` + `feat(milestone-4.1): konfigurasi chatbot_api, pemetaan slug view, skema hasil pemanggilan` |
 | 3 | `6e2d71f` | `feat(milestone-4.1): implementasi pemanggilan chatbot_api` |
 | 4 | `a203b10` | `test(milestone-4.1): unit test pemanggilan chatbot_api (mocked)` |
-| 5 | **DIJEDA** — fix `employee_id` sudah beres, tapi blocker BARU: kredensial `CHATBOT_AUTHZ_READER_DB_URL` permission denied ke `mart_cleaned.role_permissions` (di luar cakupan proyek ini) | |
-| 6 | **DITUNDA** — bergantung Checkpoint 5 | |
+| 5 | *(tidak ada commit kode — murni verifikasi operasional, KK1/KK2 lolos nyata, span Jaeger terkonfirmasi)* | |
+| 6 | *(pending)* | |
 
 ---
 
@@ -184,3 +184,38 @@ Gagal di `authz.py::get_access_scope()` — kredensial `CHATBOT_AUTHZ_READER_DB_
 **Error/Kegagalan:** `psycopg2.errors.InsufficientPrivilege: permission denied for table role_permissions` (di sisi server `chatbot_api`, bukan kode proyek ini).
 
 **Commit:** tidak ada (blocked, tidak ada perubahan kode).
+
+### Checkpoint 5 dilanjutkan — blocker kredensial diperbaiki tim database
+
+User mengonfirmasi tim database sudah mengatasi masalah kredensial `CHATBOT_AUTHZ_READER_DB_URL`. Diverifikasi nyata: `panggil_chatbot_api()` dipanggil ulang persis skenario Task 10 — **`status_code=200`** (bukan lagi 500), body berisi data occupancy nyata untuk `property_id=P01` (8 kolom: `property_id`/`room_type`/`date`/`rooms_sold`/`adr`/`total_rooms_available`/`occupancy_rate`/`revpar`). **KK1 lolos.**
+
+### Task 11 — Panggilan nyata KK2 (403)
+
+**Kesesuaian dengan plan:** Sesuai plan. `role_title="Front Office Staff"`, domain `fnb`, `view_name="v_fnb_outlet_daily"` — persis skenario yang dibuktikan `api-chatbot.md` ("Front Office Staff → domain fnb ditolak 403").
+
+**Hasil:** `status_code=403`, `body={"detail": "role 'Front Office Staff' is not permitted for domain 'fnb'"}` — diteruskan apa adanya, tidak dimodifikasi/disembunyikan. **KK2 lolos.**
+
+**Commit:** tidak ada perubahan kode (murni verifikasi, bukti di bawah lewat Jaeger).
+
+### Task 12 — Verifikasi span `execute_tool` nyata di Jaeger
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan catatan teknis: infrastruktur observability (OTel Collector + Jaeger, Milestone 1.1) TIDAK berjalan di awal sesi — Docker Desktop belum aktif. Dijalankan: start Docker Desktop, `docker compose -f infra/observability/docker-compose.yml up -d` (3 container: `nirwana-jaeger`, `nirwana-otel-collector`, `nirwana-prometheus`, seluruhnya `Up` dalam <15 detik).
+
+**Apa yang dilakukan**
+KK1 dan KK2 (Task 10-11) DIULANG dengan `setup_tracing()` aktif (span sebelumnya, sebelum Collector jalan, TIDAK ter-export — dicatat sebagai kekurangan teknis yang langsung diperbaiki, bukan disembunyikan) — dibungkus span pembungkus manual (`test.kk1_200`/`test.kk2_403`) supaya `trace_id` bisa ditangkap dari luar `panggil_chatbot_api()`, lalu `trace.get_tracer_provider().force_flush()` dipanggil eksplisit sebelum query Jaeger.
+
+**Verifikasi nyata (lewat Jaeger HTTP API `/api/traces/<trace_id>`, bukan baca kode)**
+- **KK1** — `trace_id=7f79c0a8fe748539cf184cac940baace`: span anak `execute_tool` (child of `test.kk1_200`), `otel.scope.name=execution.pemanggilan_chatbot_api`, tag `http.response.status_code=200` (int64). Terkonfirmasi.
+- **KK2** — `trace_id=2a3c8338023749851de6017592459739`: span anak `execute_tool`, tag `http.response.status_code=403` (int64). Terkonfirmasi.
+
+**Temuan**
+Span `execute_tool` TIDAK membawa `error.type` (dikonfirmasi kosong di kedua trace) — persis sesuai desain (`decisions.md` Keputusan 7: `error.type` tanggung jawab M4.2, bukan M4.1).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada (setelah blocker kredensial Task 10 diperbaiki eksternal).
+
+**Selesai:** 2026-08-17
+
+**Commit:** tidak ada perubahan kode dari Task 10-12 (murni operasional/verifikasi) — file `.env` lokal (gitignored) ditambah `CHATBOT_API_BASE_URL`, tidak ter-commit (sesuai desain, nilai lokal per-developer).
+
+**Checkpoint 5 selesai:** 2026-08-17

@@ -111,3 +111,45 @@ Dibaca ulang manual, format konsisten dengan entri #1-2 yang sudah ada.
 **Commit:** `09620ea` — `docs: catat keputusan tertunda konvensi parameter chatbot_api`
 
 ---
+
+## Checkpoint 3 — Skema `HasilPenyusunanRequest`
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 6-7 — Skema + Test
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`src/schemas/query_engine.py` — `HasilPenyusunanRequest` reuse `QueryEngineRequest` (M2.4), validator dua arah (`status=BERHASIL` <=> `request` terisi). `tests/layers/query_engine/test_query_engine_schema.py` — 7 test mencakup seluruh kombinasi status valid/tidak valid.
+
+**Temuan / Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`pytest tests/layers/query_engine/ -v` → 19 passed (12 whitelist + 7 skema).
+
+**Commit:** `14fa7be` (feat) + `fb9f6b5` (test).
+
+---
+
+## Checkpoint 4 — Prompt + Config Plumbing
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 8-10 — Konstanta Model, Span Attributes, Prompt
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`OPENROUTER_MODEL_PENYUSUNAN_REQUEST` (Qwen3-32B) ditambahkan ke `src/config/llm.py`. `REQUEST_DOMAIN`/`REQUEST_VIEW_NAME` ditambahkan ke `genai_semconv.py` (pola sama `PROMPT_ID`/`PROMPT_VERSION`). `src/prompts/query_engine/penyusunan_request.md` ditulis — instruksi resolusi tanggal relatif, daftar parameter valid (bukan tabel kolom mentah), larangan mengisi `employee_id`/`role_title`/`domain`/`view_name`.
+
+**Temuan / Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`load_prompt("query_engine.penyusunan_request")` sukses parse + render. `pytest tests/layers/query_engine/ tests/layers/retriever/ tests/config/ -q` (regresi lintas subpackage) → 146 passed.
+
+**Commit:** `16b7258` (konstanta) + `967a04b` (prompt).
+
+---

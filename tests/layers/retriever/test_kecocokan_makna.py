@@ -18,12 +18,13 @@ import uuid
 from openai import APIError
 
 import src.layers.retriever.kecocokan_makna as kecocokan_makna_module
-from src.layers.retriever.kecocokan_makna import _langkah_generate, _parse_generate
+from src.layers.retriever.kecocokan_makna import _langkah_generate, _langkah_verifikasi, _parse_generate, _parse_verifikasi
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.retriever import (
     HasilPencarianKandidat,
     KandidatView,
+    KecocokanKandidat,
     LabelKecocokanMakna,
     SumberPencarian,
 )
@@ -42,6 +43,15 @@ def _buat_atomic_intent(teks: str = "okupansi per tipe kamar Bali bulan ini") ->
 
 def _buat_kandidat(view_name: str, domain: Domain = Domain.RESERVATION) -> KandidatView:
     return KandidatView(view_name=view_name, domain=domain, skor=5.0, sumber=SumberPencarian.BM25)
+
+
+def _buat_kecocokan(
+    view_name: str,
+    label: LabelKecocokanMakna,
+    domain: Domain = Domain.RESERVATION,
+    alasan: str = "penilaian awal",
+) -> KecocokanKandidat:
+    return KecocokanKandidat(kandidat=_buat_kandidat(view_name, domain), label=label, alasan=alasan)
 
 
 def _buat_hasil_pencarian(kandidat: list[KandidatView]) -> HasilPencarianKandidat:
@@ -247,6 +257,168 @@ def test_langkah_generate_empty_choices_gagal_true(monkeypatch):
     )
 
     hasil, gagal = _langkah_generate(hasil_pencarian)
+
+    assert gagal is True
+    assert hasil == []
+
+
+# --- Pure-function: _parse_verifikasi ----------------------------------------
+
+
+def test_parse_verifikasi_koreksi_ditemukan_ke_sebagian():
+    """Koreksi arah 1: Langkah 1 bilang ditemukan, Langkah 2 menurunkan
+    ke sebagian (grain-mismatch yang terlewat Langkah 1)."""
+    kandidat = [_buat_kandidat("v_reservation_property_daily")]
+    hasil_awal = [_buat_kecocokan("v_reservation_property_daily", LabelKecocokanMakna.DITEMUKAN)]
+    raw = json.dumps(
+        {
+            "penilaian": [
+                {
+                    "view_name": "v_reservation_property_daily",
+                    "label": "sebagian",
+                    "alasan": "grain per properti, bukan per tipe kamar seperti dibutuhkan",
+                }
+            ]
+        }
+    )
+    hasil, gagal, alasan = _parse_verifikasi(raw, kandidat, hasil_awal)
+
+    assert gagal is False
+    assert hasil[0].label == LabelKecocokanMakna.SEBAGIAN
+
+
+def test_parse_verifikasi_koreksi_sebagian_ke_ditemukan():
+    """Koreksi arah 2: Langkah 1 terlalu ragu (sebagian), Langkah 2
+    menaikkan ke ditemukan (cocok penuh, keraguan awal tidak berdasar)."""
+    kandidat = [_buat_kandidat("v_reservation_room_type_daily")]
+    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.SEBAGIAN)]
+    raw = json.dumps(
+        {
+            "penilaian": [
+                {
+                    "view_name": "v_reservation_room_type_daily",
+                    "label": "ditemukan",
+                    "alasan": "grain, sumber, dan nama semuanya cocok - tidak ada alasan ragu",
+                }
+            ]
+        }
+    )
+    hasil, gagal, alasan = _parse_verifikasi(raw, kandidat, hasil_awal)
+
+    assert gagal is False
+    assert hasil[0].label == LabelKecocokanMakna.DITEMUKAN
+
+
+def test_parse_verifikasi_konfirmasi_label_tidak_berubah():
+    kandidat = [_buat_kandidat("v_reservation_room_type_daily")]
+    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+    raw = json.dumps(
+        {
+            "penilaian": [
+                {
+                    "view_name": "v_reservation_room_type_daily",
+                    "label": "ditemukan",
+                    "alasan": "sudah benar, dikonfirmasi",
+                }
+            ]
+        }
+    )
+    hasil, gagal, alasan = _parse_verifikasi(raw, kandidat, hasil_awal)
+
+    assert gagal is False
+    assert hasil[0].label == LabelKecocokanMakna.DITEMUKAN
+
+
+def test_parse_verifikasi_json_rusak_dipaksa_gagal():
+    kandidat = [_buat_kandidat("v_reservation_room_type_daily")]
+    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+
+    hasil, gagal, alasan = _parse_verifikasi("bukan json valid", kandidat, hasil_awal)
+
+    assert gagal is True
+    assert hasil == []
+    assert alasan is not None and "parse_error" in alasan
+
+
+def test_parse_verifikasi_kandidat_hilang_fallback_ke_hasil_awal():
+    """Beda dari _parse_generate: kandidat yang hilang dari respons Langkah
+    2 fallback ke label Langkah 1 kandidat itu (bukan default SEBAGIAN
+    generik) - kita SUDAH punya penilaian nyata untuk itu."""
+    kandidat = [
+        _buat_kandidat("v_reservation_room_type_daily"),
+        _buat_kandidat("v_reservation_property_daily"),
+    ]
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN),
+        _buat_kecocokan(
+            "v_reservation_property_daily", LabelKecocokanMakna.TIDAK_DITEMUKAN, alasan="grain salah"
+        ),
+    ]
+    raw = json.dumps(
+        {
+            "penilaian": [
+                {
+                    "view_name": "v_reservation_room_type_daily",
+                    "label": "ditemukan",
+                    "alasan": "dikonfirmasi",
+                }
+            ]
+        }
+    )
+    hasil, gagal, alasan = _parse_verifikasi(raw, kandidat, hasil_awal)
+
+    assert gagal is False
+    assert len(hasil) == 2
+    assert hasil[1].label == LabelKecocokanMakna.TIDAK_DITEMUKAN
+    assert hasil[1].alasan == "grain salah"  # persis alasan Langkah 1, bukan alasan baru
+    assert alasan is not None and "missing:v_reservation_property_daily" in alasan
+
+
+# --- _langkah_verifikasi (mocked LLM, TANPA network call nyata) -------------
+
+
+def test_langkah_verifikasi_sukses_koreksi_dua_arah(monkeypatch):
+    hasil_pencarian = _buat_hasil_pencarian(
+        [
+            _buat_kandidat("v_reservation_room_type_daily"),
+            _buat_kandidat("v_reservation_property_daily"),
+        ]
+    )
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.SEBAGIAN),
+        _buat_kecocokan("v_reservation_property_daily", LabelKecocokanMakna.DITEMUKAN),
+    ]
+    raw = json.dumps(
+        {
+            "penilaian": [
+                {"view_name": "v_reservation_room_type_daily", "label": "ditemukan", "alasan": "naik"},
+                {"view_name": "v_reservation_property_daily", "label": "sebagian", "alasan": "turun"},
+            ]
+        }
+    )
+    monkeypatch.setattr(
+        kecocokan_makna_module,
+        "_call_llm_verifikasi",
+        lambda hp, awal: _FakeChatResponse(raw),
+    )
+
+    hasil, gagal = _langkah_verifikasi(hasil_pencarian, hasil_awal)
+
+    assert gagal is False
+    assert hasil[0].label == LabelKecocokanMakna.DITEMUKAN
+    assert hasil[1].label == LabelKecocokanMakna.SEBAGIAN
+
+
+def test_langkah_verifikasi_api_error_gagal_true(monkeypatch):
+    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+
+    def _raise_api_error(hp, awal):
+        raise APIError("simulasi kegagalan API", request=None, body=None)
+
+    monkeypatch.setattr(kecocokan_makna_module, "_call_llm_verifikasi", _raise_api_error)
+
+    hasil, gagal = _langkah_verifikasi(hasil_pencarian, hasil_awal)
 
     assert gagal is True
     assert hasil == []

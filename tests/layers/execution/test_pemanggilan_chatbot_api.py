@@ -174,6 +174,86 @@ def test_nilai_none_di_params_tidak_ikut_terkirim(monkeypatch):
 # --- span execute_tool -------------------------------------------------------
 
 
+# --- panggil_meta_chatbot_api (Milestone 4.2 revisit) -----------------------
+
+
+def test_meta_url_menyisipkan_meta_di_belakang_slug(monkeypatch):
+    dipanggil = _patch_get(
+        monkeypatch, httpx.Response(200, json={"data_quality_status": "ok", "last_refreshed_at": "x"})
+    )
+
+    modul.panggil_meta_chatbot_api(_buat_request(), role_title="X", employee_id="E0001")
+
+    assert dipanggil["url"] == (
+        f"{_BASE_URL}/chatbot/facility/housekeeping-staff-daily/_meta"
+    )
+
+
+def test_meta_200_lengkap_ter_parse_benar(monkeypatch):
+    _patch_get(
+        monkeypatch,
+        httpx.Response(
+            200, json={"view": "x", "data_quality_status": "flagged", "last_refreshed_at": "2026-08-17T05:12:03.481Z"}
+        ),
+    )
+
+    hasil = modul.panggil_meta_chatbot_api(_buat_request(), role_title="X", employee_id="E0001")
+
+    assert hasil.status_code == 200
+    assert hasil.data_quality_status == "flagged"
+    assert hasil.last_refreshed_at == "2026-08-17T05:12:03.481Z"
+    assert hasil.kegagalan_transport is None
+
+
+def test_meta_200_field_null_diterima_apa_adanya(monkeypatch):
+    _patch_get(monkeypatch, httpx.Response(200, json={"data_quality_status": None, "last_refreshed_at": None}))
+
+    hasil = modul.panggil_meta_chatbot_api(_buat_request(), role_title="X", employee_id="E0001")
+
+    assert hasil.status_code == 200
+    assert hasil.data_quality_status is None
+    assert hasil.last_refreshed_at is None
+
+
+@pytest.mark.parametrize("status_code", [403, 404, 500])
+def test_meta_non_200_field_kosong_tanpa_crash(monkeypatch, status_code):
+    _patch_get(monkeypatch, httpx.Response(status_code, json={"detail": "x"}))
+
+    hasil = modul.panggil_meta_chatbot_api(_buat_request(), role_title="X", employee_id="E0001")
+
+    assert hasil.status_code == status_code
+    assert hasil.data_quality_status is None
+    assert hasil.last_refreshed_at is None
+
+
+def test_meta_timeout_field_kosong_tanpa_crash(monkeypatch):
+    _patch_get(monkeypatch, httpx.TimeoutException("simulasi timeout"))
+
+    hasil = modul.panggil_meta_chatbot_api(_buat_request(), role_title="X", employee_id="E0001")
+
+    assert hasil.status_code is None
+    assert hasil.kegagalan_transport == "timeout"
+    assert hasil.data_quality_status is None
+
+
+def test_meta_tidak_membuka_span_sendiri(monkeypatch):
+    """Beda dari panggil_chatbot_api(), fungsi ini TIDAK boleh memanggil
+    get_tracer() sama sekali - span execute_tool dibungkus pemanggil
+    (M4.2 klasifikasi_respons.py)."""
+    dipanggil_tracer = {"count": 0}
+
+    def _fake_get_tracer(name):
+        dipanggil_tracer["count"] += 1
+        raise AssertionError("panggil_meta_chatbot_api tidak boleh memanggil get_tracer()")
+
+    monkeypatch.setattr(modul, "get_tracer", _fake_get_tracer)
+    _patch_get(monkeypatch, httpx.Response(200, json={}))
+
+    modul.panggil_meta_chatbot_api(_buat_request(), role_title="X", employee_id="E0001")
+
+    assert dipanggil_tracer["count"] == 0
+
+
 def test_span_execute_tool_mencatat_status_code(monkeypatch):
     _patch_get(monkeypatch, httpx.Response(200, json=[]))
 

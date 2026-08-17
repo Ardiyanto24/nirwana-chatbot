@@ -28,7 +28,7 @@ import httpx
 from src.config.chatbot_api import CHATBOT_API_TIMEOUT_DETIK, get_chatbot_api_base_url
 from src.config.slug_view_chatbot_api import VIEW_NAME_KE_SLUG_CHATBOT_API
 from src.observability.tracing import get_tracer
-from src.schemas.execution import HasilPemanggilanChatbotAPI
+from src.schemas.execution import HasilMetaChatbotAPI, HasilPemanggilanChatbotAPI
 from src.schemas.verification_gate import QueryEngineRequest
 
 _TRACER_NAME = "execution.pemanggilan_chatbot_api"
@@ -86,3 +86,52 @@ def panggil_chatbot_api(
         if hasil.status_code is not None:
             span.set_attribute("http.response.status_code", hasil.status_code)
         return hasil
+
+
+def panggil_meta_chatbot_api(
+    request: QueryEngineRequest, role_title: str, employee_id: str
+) -> HasilMetaChatbotAPI:
+    """Endpoint `_meta` (tim database engineering, Milestone 4.7 sisi
+    mereka - lihat milestones/4.2-.../decisions.md Keputusan 11) - sinyal
+    freshness/kualitas data, Opsi B (endpoint terpisah, TIDAK mengubah
+    bentuk endpoint data yang sudah ada). SATU percobaan saja, TANPA
+    retry - kegagalan sinyal sekunder ini TIDAK BOLEH menahan/
+    menggagalkan atomic intent yang datanya sendiri sudah berhasil
+    diambil lewat `panggil_chatbot_api()`/`_panggil_chatbot_api_raw()`.
+
+    TIDAK membuka span sendiri - dipanggil dari `eksekusi_atomic_intent()`
+    (M4.2, `klasifikasi_respons.py`) yang sudah membungkus span
+    `execute_tool`, mirror pola `_panggil_chatbot_api_raw()`.
+
+    Non-200/kegagalan transport apa pun diperlakukan seragam sebagai
+    "tidak diketahui" (field lain `None`) - TIDAK PERNAH crash, karena
+    ini sinyal best-effort yang bukan bagian ruang kesalahan tertutup
+    KK sumber M4.1/M4.2."""
+    slug = VIEW_NAME_KE_SLUG_CHATBOT_API[request.view_name]
+    url = f"{get_chatbot_api_base_url()}/chatbot/{request.domain.value}/{slug}/_meta"
+    query_params = {"role_title": role_title, "employee_id": employee_id}
+
+    try:
+        with httpx.Client(timeout=CHATBOT_API_TIMEOUT_DETIK) as client:
+            response = client.get(url, params=query_params)
+    except httpx.TimeoutException:
+        return HasilMetaChatbotAPI(status_code=None, kegagalan_transport="timeout")
+    except httpx.TransportError:
+        return HasilMetaChatbotAPI(status_code=None, kegagalan_transport="connection_error")
+
+    if response.status_code != 200:
+        return HasilMetaChatbotAPI(status_code=response.status_code)
+
+    try:
+        body = response.json()
+    except ValueError:
+        return HasilMetaChatbotAPI(status_code=response.status_code)
+
+    if not isinstance(body, dict):
+        return HasilMetaChatbotAPI(status_code=response.status_code)
+
+    return HasilMetaChatbotAPI(
+        status_code=response.status_code,
+        data_quality_status=body.get("data_quality_status"),
+        last_refreshed_at=body.get("last_refreshed_at"),
+    )

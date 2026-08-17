@@ -103,7 +103,31 @@ Tidak ada.
 
 ---
 
-*(Checkpoint 3-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
+## Checkpoint 3 — Katalog Nullable-Bermakna (Subset Representatif)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 6 — `catatan_nullable_bermakna.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Dibaca langsung `docs/03-domain-source/katalog-data-chatbot.md` di 3 titik (baris ~300-344, ~490-519, ~405-421) untuk transkripsi PERSIS. `src/config/catatan_nullable_bermakna.py` ditulis dengan 3 pasang view+kolom: `v_lookup_fnb_transactions.guest_id` (baris 332), `v_lookup_maintenance_tickets.room_id` (baris 508), `v_maintenance_ticket_daily.avg_exceeds_sla_threshold` (baris 421) — mencakup 2 domain (fnb, facility), termasuk 1 contoh kolom turunan/agregat (bukan cuma kolom mentah).
+
+**Temuan**
+Saat menulis test (Task berikutnya), sempat draft awal berisi 5 pasang (3 kolom untuk `v_lookup_maintenance_tickets` saja) — melebihi cakupan "2-3 pasang" yang disepakati Keputusan 2. Dikoreksi jadi 3 pasang final (buang `resolved_date`/`parts_replaced`) supaya konsisten `decisions.md`/`keterbatasan-diterima.md` yang sudah menyebut angka itu eksplisit.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Test baru `tests/config/test_catatan_nullable_bermakna.py` (4 test): view_name terdaftar valid (cross-check `DAFTAR_VIEW_PER_DOMAIN`); cakupan tetap subset (<10 pasang); **frasa kunci tiap catatan (ditulis ULANG independen di test, bukan copy-paste dari file katalog) benar-benar ditemukan di teks sumber `katalog-data-chatbot.md` pada bagian view yang tepat** — bukti transkripsi tidak melenceng, bukan pengujian sirkular.
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 4-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
 
 ---
 

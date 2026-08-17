@@ -1,0 +1,30 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Kebutuhan minimal, tidak over-filling",
+  "timestamp": "2026-08-17T06:36:21.138091+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "20b5fd05-110f-4338-b92e-7a9e80399424",
+    "teks_kebutuhan": "Ada berapa venue yang dimiliki Nirwana?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name": "v_lookup_venues",
+  "tanggal_referensi": "2026-08-17",
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "20b5fd05-110f-4338-b92e-7a9e80399424",
+      "teks_kebutuhan": "Ada berapa venue yang dimiliki Nirwana?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "spa_event",
+      "view_name": "v_lookup_venues",
+      "params": {}
+    },
+    "status": "berhasil"
+  },
+  "match": true
+}

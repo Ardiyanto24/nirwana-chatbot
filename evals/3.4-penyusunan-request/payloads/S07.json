@@ -1,0 +1,30 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "KK2: parameter masuk akal tapi tidak ada di whitelist",
+  "timestamp": "2026-08-17T06:36:51.519804+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "44bc3661-a2ee-49f0-98e3-38a44a155840",
+    "teks_kebutuhan": "Tampilkan properti Nirwana dengan rating bintang 5",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name": "v_properties_ref",
+  "tanggal_referensi": "2026-08-17",
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "44bc3661-a2ee-49f0-98e3-38a44a155840",
+      "teks_kebutuhan": "Tampilkan properti Nirwana dengan rating bintang 5",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "properties_ref",
+      "view_name": "v_properties_ref",
+      "params": {}
+    },
+    "status": "berhasil"
+  },
+  "match": true
+}

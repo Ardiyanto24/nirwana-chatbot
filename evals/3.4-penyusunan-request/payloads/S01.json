@@ -1,0 +1,34 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "KK1: bulan lalu",
+  "timestamp": "2026-08-17T06:33:56.556547+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "b432b884-5d34-4f90-b2f6-e8a6544dd14e",
+    "teks_kebutuhan": "Berapa okupansi Bali bulan lalu?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name": "v_reservation_room_type_daily",
+  "tanggal_referensi": "2026-08-17",
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "b432b884-5d34-4f90-b2f6-e8a6544dd14e",
+      "teks_kebutuhan": "Berapa okupansi Bali bulan lalu?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "reservation",
+      "view_name": "v_reservation_room_type_daily",
+      "params": {
+        "region": "Bali",
+        "period_date_from": "2026-07-01",
+        "period_date_to": "2026-07-31"
+      }
+    },
+    "status": "berhasil"
+  },
+  "match": true
+}

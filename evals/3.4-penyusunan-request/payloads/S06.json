@@ -1,0 +1,32 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "View tanpa kolom tanggal sama sekali",
+  "timestamp": "2026-08-17T06:36:38.174339+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "c5ba7e63-c67a-40da-9f64-66c1b5ec5e00",
+    "teks_kebutuhan": "Bahan apa saja untuk membuat menu Nasi Goreng?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name": "v_lookup_recipe_bom",
+  "tanggal_referensi": "2026-08-17",
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "c5ba7e63-c67a-40da-9f64-66c1b5ec5e00",
+      "teks_kebutuhan": "Bahan apa saja untuk membuat menu Nasi Goreng?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "fnb",
+      "view_name": "v_lookup_recipe_bom",
+      "params": {
+        "item_name": "Nasi Goreng"
+      }
+    },
+    "status": "berhasil"
+  },
+  "match": true
+}

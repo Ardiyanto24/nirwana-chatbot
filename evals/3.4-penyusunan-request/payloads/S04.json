@@ -1,0 +1,35 @@
+{
+  "scenario_id": "S04",
+  "deskripsi": "Resolusi nama properti ke kode",
+  "timestamp": "2026-08-17T06:35:23.920526+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "5736ec7a-c5be-42ab-bca5-9c219696ba7c",
+    "teks_kebutuhan": "Okupansi Nirwana Lombok Escape bulan ini",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name": "v_reservation_room_type_daily",
+  "tanggal_referensi": "2026-08-17",
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "5736ec7a-c5be-42ab-bca5-9c219696ba7c",
+      "teks_kebutuhan": "Okupansi Nirwana Lombok Escape bulan ini",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "reservation",
+      "view_name": "v_reservation_room_type_daily",
+      "params": {
+        "property_name": "Nirwana Lombok Escape",
+        "period_date_from": "2026-08-01",
+        "period_date_to": "2026-08-31",
+        "occupancy_rate": "nilai_tunggal"
+      }
+    },
+    "status": "berhasil"
+  },
+  "match": false
+}

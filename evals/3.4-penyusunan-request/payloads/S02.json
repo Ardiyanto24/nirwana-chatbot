@@ -1,0 +1,34 @@
+{
+  "scenario_id": "S02",
+  "deskripsi": "KK1: tiga bulan terakhir",
+  "timestamp": "2026-08-17T06:34:23.559668+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "6c24440f-07e0-44e8-a3a8-d44e8de707a8",
+    "teks_kebutuhan": "Bagaimana tren revenue outlet F&B tiga bulan terakhir?",
+    "label_bentuk_jawaban": "tren",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name": "v_fnb_outlet_daily",
+  "tanggal_referensi": "2026-08-17",
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "6c24440f-07e0-44e8-a3a8-d44e8de707a8",
+      "teks_kebutuhan": "Bagaimana tren revenue outlet F&B tiga bulan terakhir?",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "fnb",
+      "view_name": "v_fnb_outlet_daily",
+      "params": {
+        "period_date_from": "2026-05-17",
+        "period_date_to": "2026-08-17",
+        "revenue": "revenue"
+      }
+    },
+    "status": "berhasil"
+  },
+  "match": true
+}

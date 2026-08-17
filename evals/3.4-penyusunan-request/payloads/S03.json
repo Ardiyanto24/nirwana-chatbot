@@ -1,0 +1,35 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "Filter kategorikal persis",
+  "timestamp": "2026-08-17T06:34:42.769428+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "74653dba-91be-4b11-b326-328bd970a153",
+    "teks_kebutuhan": "Bagaimana performa kanal Direct di Bali bulan Juni 2026?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name": "v_reservation_channel_daily",
+  "tanggal_referensi": "2026-08-17",
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "74653dba-91be-4b11-b326-328bd970a153",
+      "teks_kebutuhan": "Bagaimana performa kanal Direct di Bali bulan Juni 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "reservation",
+      "view_name": "v_reservation_channel_daily",
+      "params": {
+        "channel_name": "Direct",
+        "region": "Bali",
+        "period_date_from": "2026-06-01",
+        "period_date_to": "2026-06-30"
+      }
+    },
+    "status": "berhasil"
+  },
+  "match": true
+}

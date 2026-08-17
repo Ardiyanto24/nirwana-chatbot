@@ -411,3 +411,24 @@ def nilai_kecocokan_makna_atomic_intent(
         kecocokan=hasil_verifikasi,
         status=StatusEksekusi.BERHASIL,
     )
+
+
+def nilai_kecocokan_makna_semua(
+    daftar_hasil_pencarian: list[HasilPencarianKandidat],
+) -> list[HasilKecocokanMakna]:
+    """Untuk seluruh kebutuhan atomik berhasil M3.1 dalam satu turn, nilai
+    kecocokan maknanya satu per satu (bukan batch lintas-atomic-intent -
+    hanya batch lintas-kandidat DALAM satu atomic intent, lihat decisions.md
+    Keputusan 2-3). Mirror struktur `domain_gate.identifikasi_domain_semua()`."""
+    tracer = get_tracer(_TRACER_NAME)
+    with tracer.start_as_current_span("retriever.nilai_kecocokan_makna_semua") as span:
+        span.set_attribute("kecocokan_makna.intent_count", len(daftar_hasil_pencarian))
+
+        hasil = [nilai_kecocokan_makna_atomic_intent(hp) for hp in daftar_hasil_pencarian]
+
+        gagal_teknis_count = sum(1 for h in hasil if h.status == StatusEksekusi.GAGAL_TEKNIS)
+        sebagian_count = sum(1 for h in hasil if h.status == StatusEksekusi.SEBAGIAN)
+        span.set_attribute("kecocokan_makna.gagal_teknis_count", gagal_teknis_count)
+        span.set_attribute("kecocokan_makna.sebagian_count", sebagian_count)
+
+        return hasil

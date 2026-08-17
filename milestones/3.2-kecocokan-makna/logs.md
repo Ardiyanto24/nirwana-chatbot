@@ -78,3 +78,49 @@ Tidak ada.
 ---
 
 ---
+
+## Checkpoint 3 — Skema Kecocokan Makna
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 4 — Tambah Skema ke `src/schemas/retriever.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambah `LabelKecocokanMakna` (enum ditemukan/sebagian/tidak_ditemukan), `KecocokanKandidat` (kandidat: KandidatView utuh, label, alasan), `HasilKecocokanMakna` (atomic_intent, kecocokan, status) ke `src/schemas/retriever.py` yang sudah ada (M3.1) — bukan file baru, sesuai preseden satu modul skema per layer. Docstring modul diperluas menjelaskan perbedaan cakupan status M3.1 vs M3.2 dan validator satu-arah.
+
+**Temuan**
+Tidak ada temuan di luar dugaan — implementasi persis mengikuti bentuk yang sudah dirancang di plan/decisions.md.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -m pytest tests/layers/retriever/test_kecocokan_makna_schema.py tests/layers/retriever/test_retriever_schema.py -v` — 14 test lolos (8 baru + 6 M3.1 tanpa regresi).
+
+**Commit:** `78d1891` — `feat(milestone-3.2): skema kecocokan makna`
+
+---
+
+### Task 5 — Tulis Test Skema
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `tests/layers/retriever/test_kecocokan_makna_schema.py` — 8 test: `GAGAL_TEKNIS`+`kecocokan` non-kosong ditolak, `DITOLAK_OTORISASI`/`TERBLOKIR_KETERGANTUNGAN` ditolak, `GAGAL_TEKNIS`+kosong valid, **`BERHASIL`+kosong valid** (pembeda utama dari `AtomicIntentDomains` — Keputusan 10), `SEBAGIAN`/`BERHASIL`+non-kosong valid, dan `KandidatView` utuh (bukan `view_name` str) terbawa di `KecocokanKandidat`.
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Sama seperti Task 4 di atas (dijalankan bersamaan) — 14/14 lolos.
+
+**Commit:** `e2a3016` — `test(milestone-3.2): skema kecocokan makna`
+
+---
+
+---

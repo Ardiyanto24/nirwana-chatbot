@@ -11,7 +11,7 @@ from pydantic import ValidationError
 
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
-from src.schemas.query_engine import HasilPenyusunanRequest
+from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 from src.schemas.verification_gate import QueryEngineRequest
 
@@ -77,4 +77,129 @@ def test_status_lain_selain_berhasil_gagal_teknis_ditolak(status_lain):
     with pytest.raises(ValidationError):
         HasilPenyusunanRequest(
             atomic_intent=_buat_atomic_intent(), request=None, status=status_lain
+        )
+
+
+# --- HasilVerifikasiBentukRequest (Milestone 3.5) -----------------------------
+
+
+def test_gagal_teknis_lolos_none_alasan_none_valid():
+    hasil = HasilVerifikasiBentukRequest(
+        atomic_intent=_buat_atomic_intent(),
+        request=_buat_request(),
+        status=StatusEksekusi.GAGAL_TEKNIS,
+        lolos=None,
+        alasan=None,
+    )
+    assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
+    assert hasil.lolos is None
+    assert hasil.alasan is None
+
+
+def test_berhasil_lolos_true_alasan_none_valid():
+    hasil = HasilVerifikasiBentukRequest(
+        atomic_intent=_buat_atomic_intent(),
+        request=_buat_request(),
+        status=StatusEksekusi.BERHASIL,
+        lolos=True,
+        alasan=None,
+    )
+    assert hasil.lolos is True
+    assert hasil.alasan is None
+
+
+def test_berhasil_lolos_false_alasan_terisi_valid():
+    hasil = HasilVerifikasiBentukRequest(
+        atomic_intent=_buat_atomic_intent(),
+        request=_buat_request(),
+        status=StatusEksekusi.BERHASIL,
+        lolos=False,
+        alasan="rentang tanggal hanya satu hari, tidak cukup membentuk tren",
+    )
+    assert hasil.lolos is False
+    assert hasil.alasan is not None
+
+
+def test_gagal_teknis_dengan_lolos_terisi_ditolak():
+    with pytest.raises(ValidationError):
+        HasilVerifikasiBentukRequest(
+            atomic_intent=_buat_atomic_intent(),
+            request=_buat_request(),
+            status=StatusEksekusi.GAGAL_TEKNIS,
+            lolos=True,
+            alasan=None,
+        )
+
+
+def test_gagal_teknis_dengan_alasan_terisi_ditolak():
+    with pytest.raises(ValidationError):
+        HasilVerifikasiBentukRequest(
+            atomic_intent=_buat_atomic_intent(),
+            request=_buat_request(),
+            status=StatusEksekusi.GAGAL_TEKNIS,
+            lolos=None,
+            alasan="alasan tidak seharusnya ada di sini",
+        )
+
+
+def test_berhasil_dengan_lolos_none_ditolak():
+    with pytest.raises(ValidationError):
+        HasilVerifikasiBentukRequest(
+            atomic_intent=_buat_atomic_intent(),
+            request=_buat_request(),
+            status=StatusEksekusi.BERHASIL,
+            lolos=None,
+            alasan=None,
+        )
+
+
+def test_lolos_true_dengan_alasan_terisi_ditolak():
+    with pytest.raises(ValidationError):
+        HasilVerifikasiBentukRequest(
+            atomic_intent=_buat_atomic_intent(),
+            request=_buat_request(),
+            status=StatusEksekusi.BERHASIL,
+            lolos=True,
+            alasan="tidak boleh ada alasan saat lolos",
+        )
+
+
+def test_lolos_false_dengan_alasan_none_ditolak():
+    with pytest.raises(ValidationError):
+        HasilVerifikasiBentukRequest(
+            atomic_intent=_buat_atomic_intent(),
+            request=_buat_request(),
+            status=StatusEksekusi.BERHASIL,
+            lolos=False,
+            alasan=None,
+        )
+
+
+@pytest.mark.parametrize(
+    "status_lain",
+    [
+        StatusEksekusi.SEBAGIAN,
+        StatusEksekusi.DITOLAK_OTORISASI,
+        StatusEksekusi.TERBLOKIR_KETERGANTUNGAN,
+    ],
+)
+def test_verifikasi_bentuk_request_status_lain_ditolak(status_lain):
+    with pytest.raises(ValidationError):
+        HasilVerifikasiBentukRequest(
+            atomic_intent=_buat_atomic_intent(),
+            request=_buat_request(),
+            status=status_lain,
+            lolos=None,
+            alasan=None,
+        )
+
+
+def test_verifikasi_bentuk_request_request_wajib_terisi():
+    with pytest.raises(ValidationError):
+        HasilVerifikasiBentukRequest(
+            atomic_intent=_buat_atomic_intent(),
+            request=None,
+            status=StatusEksekusi.GAGAL_TEKNIS,
+            lolos=None,
+            alasan=None,
         )

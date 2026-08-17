@@ -159,3 +159,27 @@ Tidak ada.
 **Commit:** `22c9df6` — `test(milestone-3.3): matriks rule deterministik + fail-safe`
 
 ---
+
+## Checkpoint 5 — Prompt LLM Fallback
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 8 — Tulis Prompt
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `src/prompts/retriever/kecukupan_struktural_fallback.md` (id `retriever.kecukupan_struktural_fallback`, mirror struktur `context_resolution/matching.md` M1.7 — satu panggilan konservatif tanpa variabel Jinja2, beda dari `kecocokan_makna_generate.md` M3.2 yang butuh `catatan_lintas_domain`). Instruksi eksplisit menjelaskan konteks per bentuk jawaban (nilai_tunggal/tren/perbandingan-peringkat-komposisi) dan aturan "kalau ragu, cukup=false".
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`load_prompt("retriever.kecukupan_struktural_fallback")` sukses parse frontmatter+body, `.render()` menghasilkan teks tanpa error (tidak ada variabel Jinja2 yang perlu di-supply).
+
+**Commit:** `2dbf085` — `feat(prompts): prompt fallback kecukupan struktural`
+
+---

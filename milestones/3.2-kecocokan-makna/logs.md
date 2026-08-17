@@ -268,3 +268,69 @@ Tidak ada.
 ---
 
 ---
+
+## Checkpoint 8 — Implementasi Langkah 2
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 13 — Implementasi `_langkah_verifikasi` dkk.
+
+**Kesesuaian dengan plan:** Sesuai plan, plus Task 10 (Promptfoo config) dieksekusi di sini sesuai deviasi yang dicatat logs Checkpoint 5.
+
+**Apa yang dilakukan**
+Extend `kecocokan_makna.py`: `_render_context_verifikasi()`/`_render_system_prompt_verifikasi()` (konstanta terpisah dari Langkah 1 meski isinya sama, mirror preseden `identifikasi.py`/`verifikasi_titik_buta.py` M2.1), `_build_user_prompt_verifikasi()` (definisi lengkap + penilaian awal Langkah 1 per kandidat), `_call_llm_verifikasi()` (DeepSeek V4 Pro, `extra_body={"reasoning": {"effort": "high"}}`), `_parse_verifikasi()` (SATU perbedaan penting dari `_parse_generate`: kandidat hilang/label-invalid di respons Langkah 2 fallback ke label Langkah 1 kandidat itu SAJA — bukan default generik SEBAGIAN — karena penilaian nyata untuk kandidat itu sudah ada dari Langkah 1, lebih aman dipakai daripada menebak; keputusan implementasi ini tidak butuh entri decisions.md baru, hanya generalisasi natural dari Keputusan 8 ke level per-kandidat), `_langkah_verifikasi()` (span `"chat"`, atribut `retriever.kecocokan_makna.verifikasi_dikoreksi_count` — sinyal observability langsung untuk mendeteksi anchoring: kalau count ini selalu 0 di produksi, Langkah 2 kemungkinan cuma menyalin Langkah 1).
+
+**Temuan**
+Tidak ada temuan mengejutkan. `CLAUDE.md`/`AGENT.md` diperbarui mencatat Langkah 2 selesai.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -m pytest tests/layers/retriever/ tests/config/ -v` — 66 test lolos (7 baru Langkah 2 + 59 sisa tanpa regresi).
+
+**Commit:** `5166864` — `feat(milestone-3.2): implementasi Langkah 2 kecocokan makna (verifikasi)`
+
+---
+
+### Task 14 — Test Mocked Langkah 2
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Extend `tests/layers/retriever/test_kecocokan_makna.py` — 5 test pure-function `_parse_verifikasi` (koreksi arah turun ditemukan→sebagian, koreksi arah naik sebagian→ditemukan, konfirmasi tak berubah, JSON rusak → gagal, kandidat hilang → fallback ke label Langkah 1 PERSIS bukan default generik) + 2 test `_langkah_verifikasi` mocked (sukses koreksi dua arah sekaligus dalam satu batch, `APIError` → gagal=True).
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Sama seperti Task 13 di atas (dijalankan bersamaan) — 66/66 lolos.
+
+**Commit:** `7698ebd` — `test(milestone-3.2): Langkah 2 kecocokan makna (verifikasi)`
+
+---
+
+### Task 10 — Promptfoo Config Langkah 2 (dipindah dari Checkpoint 6)
+
+**Kesesuaian dengan plan:** Menyimpang checkpoint eksekusi (dipindah dari Checkpoint 6 ke sini), SESUAI keputusan deviasi yang sudah dicatat eksplisit di logs Checkpoint 5.
+
+**Apa yang dilakukan**
+Menulis `prompt_reliability/retriever/kecocokan_makna_verifikasi.promptfooconfig.yaml` — 3 skenario, tiap skenario menyuplai penilaian awal Langkah 1 yang SENGAJA salah arah (S01 terlalu longgar, S02 terlalu ragu, S03 sudah benar/harus dikonfirmasi bukan diubah) untuk menguji Langkah 2 benar-benar mengoreksi dua arah, bukan menyalin.
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -c "import yaml; yaml.safe_load(open(...))"` — YAML valid, 3 test terparse, `render_context` merujuk `_render_context_verifikasi` yang baru dibuat Task 13. **Belum dijalankan nyata** — eksekusi Promptfoo penuh ditunda ke Checkpoint 14.
+
+**Commit:** `58b0e03` — `chore(milestone-3.2): Promptfoo config Langkah 2 kecocokan makna`
+
+---
+
+---

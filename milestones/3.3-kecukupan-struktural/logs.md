@@ -227,3 +227,71 @@ Tidak ada — seluruh 6 test baru lolos pada percobaan pertama.
 **Commit:** `6ebb667` — `test(milestone-3.3): fallback llm monkeypatch`
 
 ---
+
+## Checkpoint 7 — Reliability Testing Promptfoo (Native)
+
+**Mulai:** 2026-08-17 · **Selesai:** *(lihat Checkpoint 8 log untuk hasil run — dieksekusi paralel dengan implementasi Checkpoint 8 karena run Promptfoo panggilan API nyata memakan waktu, tidak memblokir kerja lain yang tidak bergantung padanya)*
+
+### Task 11 — Config Promptfoo Native
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `prompt_reliability/retriever/kecukupan_struktural_fallback.promptfooconfig.yaml` — 4 skenario: S01 (row-level `v_lookup_bookings` tanpa label periode, label tren, assert `cukup=false`), S02 (grain jelas time-series `v_reservation_room_type_daily`, label tren, assert `cukup=true`), S03 (snapshot eksplisit `v_facility_room_status_daily`, label tren, assert `cukup=false`), S04 (dua kandidat sekaligus dalam satu batch — bukti WAJIB menilai keduanya, plus assert kandidat grain jelas tetap `cukup=true` di tengah batch campuran). Definisi view di tiap skenario diambil PERSIS dari `DEFINISI_LENGKAP_VIEW` (dibaca via skrip sekali-pakai ke file sementara, dihapus setelah dipakai — menghindari masalah encoding konsol Windows, bukan korupsi data) supaya user_prompt di config identik dengan yang benar-benar dikirim `_build_user_prompt_fallback()` saat runtime.
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada saat penulisan config (hasil eksekusi nyata dicatat terpisah setelah run selesai — lihat Checkpoint 8 log).
+
+**Hasil Verifikasi**
+*(menyusul — run Promptfoo lokal dieksekusi di background, hasil + push ke `prompt_eval_runs` dicatat begitu selesai)*
+
+**Commit:** `fa1ac35` — `chore(prompt-reliability): config kecukupan struktural`
+
+---
+
+## Checkpoint 8 — Orkestrator Per Kebutuhan Atomik + Tie-Break
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 12 — Implementasikan Orkestrator
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan `evaluasi_kecukupan_struktural_atomic_intent()` ke `kecukupan_struktural.py`: filter `hasil_kecocokan.kecocokan` ke label `ditemukan`/`sebagian`; loop tiap kandidat lewat `_evaluasi_deterministik()`; kandidat dengan hasil `tidak_pasti` dikumpulkan dan dilempar SEKALI (batch) ke `_evaluasi_llm_fallback()`; gabungkan seluruh `KecukupanKandidat`; `_pilih_view_name_final()` menerapkan tie-break (label M3.2 DITEMUKAN>SEBAGIAN dulu, lalu skor `KandidatView` tertinggi via `min()` dengan key tuple `(urutan_label, -skor)`) untuk memfinalkan `view_name_final` dari kandidat `cukup=True`, atau `None` kalau tidak ada.
+
+**Temuan**
+Tidak ada penyimpangan dari plan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Lihat Task 13.
+
+**Commit:** `38eba02` — `feat(milestone-3.3): orkestrator per kebutuhan atomik + tie-break`
+
+---
+
+### Task 13 — Test Skenario Orkestrator
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan 6 test ke `tests/layers/retriever/test_kecukupan_struktural.py`: seluruh kandidat terselesaikan deterministik (`v_reservation_room_type_daily`, `punya_time_series=ya`, dibuktikan monkeypatch `_call_llm_fallback` raise — nol panggilan LLM genuinely nol, bukan cuma tidak diverifikasi); sebagian kandidat butuh fallback LLM (kombinasi `v_reservation_channel_daily` deterministik + `v_lookup_bookings` fallback dalam SATU batch kebutuhan atomik yang sama, membuktikan dua jalur hidup berdampingan); tidak ada kandidat cukup sama sekali (`v_properties_ref`, deterministik pasti tanpa LLM) → `view_name_final=None`; kandidat berlabel `tidak_ditemukan` dikecualikan total dari evaluasi (Keputusan 3); dan dua kasus tie-break (label DITEMUKAN menang meski skor lebih rendah; skor tertinggi menang saat label sama-sama DITEMUKAN).
+
+**Temuan**
+Helper `_buat_kandidat()`/`_buat_kecocokan_kandidat()` (ditulis Checkpoint 6) perlu diperluas menerima parameter `skor` opsional untuk mendukung skenario tie-break berbasis skor — perluasan aditif (default value dipertahankan), tidak meregresi test Checkpoint 6 yang sudah ada.
+
+**Error/Kegagalan**
+Satu kesalahan penulisan test (bukan bug kode produksi): draft awal `test_orkestrator_seluruh_deterministik_nol_panggilan_llm` sempat memanggil fungsi placeholder yang salah ketik (`SumberKeukupanKecukupan_or_deterministik()`) alih-alih assertion langsung `== SumberKeputusanKecukupan.DETERMINISTIK` — diperbaiki sebelum dijalankan, tidak pernah ter-commit dalam bentuk salah.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_kecukupan_struktural.py -v` → 34 passed (28 test Checkpoint 4+6 + 6 test baru).
+
+**Commit:** `f63786e` — `test(milestone-3.3): skenario orkestrator per-item`
+
+---

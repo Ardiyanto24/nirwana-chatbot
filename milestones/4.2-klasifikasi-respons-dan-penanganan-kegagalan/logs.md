@@ -275,6 +275,26 @@ Tidak ada error nyata — temuan di atas ditangkap lewat review kode, bukan test
 
 **Commit:** *(pending)*
 
+### Checkpoint 3 — Revisit M4.2: Integrasi Meta Call ke `eksekusi_atomic_intent()`
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+**Kesesuaian dengan plan:** Sesuai plan (skema `SEBAGIAN` sudah dikerjakan di Checkpoint 2, dicatat di sana - checkpoint ini murni logic klasifikasi + integrasi).
+
+**Apa yang dilakukan**
+`EXECUTION_DATA_STALENESS_THRESHOLD_JAM = 48` ditambah `src/config/chatbot_api.py`. `_data_basi()` (parse ISO datetime, bandingkan usia terhadap ambang, gagal parse → False) + `_tentukan_kualitas_data()` (flagged/stale → SEBAGIAN, null/lainnya → BERHASIL) ditambah `klasifikasi_respons.py`. Jalur 200 di `eksekusi_atomic_intent()` sekarang memanggil `panggil_meta_chatbot_api()` sekali, menentukan status akhir, mencatat `execution.data_quality_status`/`execution.last_refreshed_at`/`execution.alasan_sebagian` (BUKAN `execution.kegagalan_alasan` - nama itu dicadangkan khusus jalur GAGAL_TEKNIS) ke span, `error.type="sebagian"` kalau SEBAGIAN.
+
+**Temuan**
+Test lama `test_klasifikasi_respons.py` (3 test yang mencapai jalur 200) perlu disesuaikan menambah mock `panggil_meta_chatbot_api` (default "tidak diketahui") - tanpa ini, test lama akan mencoba panggilan HTTP nyata (tidak ter-mock) ke `_meta` yang gagal dengan connection error, yang KEBETULAN tetap menghasilkan hasil BERHASIL (graceful degradation) tapi memperlambat test dan tidak deterministik. Dikoreksi proaktif SEBELUM menjalankan test (bukan ditemukan lewat kegagalan).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/ -v` — **73/73 lolos, 1 skip (sengaja)**. Test baru `test_klasifikasi_respons_kualitas_data.py` (12 test): `flagged`→SEBAGIAN; `last_refreshed_at` basi→SEBAGIAN; segar→BERHASIL; flagged+stale sekaligus→SEBAGIAN tunggal (tidak dobel); `null`→BERHASIL; kegagalan `_meta`→BERHASIL, `retry_count_infra` TIDAK bertambah, `_meta` dipanggil TEPAT 1 kali (bukti tanpa retry); format timestamp tak terduga→tidak dianggap basi (bukan crash); unit test langsung `_data_basi()`/`_tentukan_kualitas_data()` termasuk kasus tepat-di-ambang. SELURUH test lama (`test_klasifikasi_respons.py`, `test_klasifikasi_respons_revisi.py`, `test_pemanggilan_chatbot_api.py`, `test_execution_schema.py`, `test_penyimpanan_paket*.py`) tetap lolos tanpa kegagalan.
+
+**Commit:** *(pending)*
+
 ---
 
 ## Task/Checkpoint di Luar Plan (jika ada)

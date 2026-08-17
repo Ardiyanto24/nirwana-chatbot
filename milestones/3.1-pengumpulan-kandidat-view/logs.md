@@ -281,6 +281,79 @@ Tidak ada.
 
 ---
 
+---
+
+## Checkpoint 7 — Eval Perbandingan 3 Model Embedding + Validasi KK1/KK2
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 13 — `rancangan.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Sebelum menulis skenario Bagian B, `cari_bm25()` diuji lokal (murni Python, tanpa biaya) terhadap 5 draf query paraphrase untuk memvalidasi bahwa skenario benar-benar menstress kegagalan BM25 (bukan trivial seperti KK1 sumber). Menulis `rancangan.md`: Bagian A (A1/A2, KK1/KK2 standar) + Bagian B (B1-B5, 5 kategori: sinonim non-literal, bahasa sehari-hari vs teknis, typo, framing abstrak, partial-stem).
+
+**Temuan**
+Analisis lokal menemukan **celah desain trigger nyata**: skenario B1 (kanal booking) menunjukkan BM25 bisa gagal total menemukan target (`v_reservation_channel_daily` sama sekali tidak muncul di 5 kandidat) TANPA memicu `perlu_fallback=True` (trigger provisional Checkpoint 5 hanya aktif kalau SELURUH kandidat berskor nol, bukan kalau kandidat yang ditemukan salah/tidak lengkap). Dicatat eksplisit di `rancangan.md` sebagai temuan yang mengubah desain eksekusi eval (Bagian B memanggil `cari_embedding()` langsung, bukan lewat orkestrator produksi yang belum dibangun).
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Baseline BM25 tiap skenario B1-B5 dikonfirmasi lokal sebelum ditulis ke `rancangan.md` (posisi target dicatat presisi, bukan estimasi).
+
+**Commit:** *(digabung Task 14-15, satu commit `docs`)*
+
+---
+
+### Task 14 — `run_eval.py` + Eksekusi Nyata
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `run_eval.py` (Bagian A via `cari_bm25()` langsung, Bagian B via `cari_embedding()` 3x per skenario satu per model). Dry-run bertahap: A1/A2 (tanpa biaya) → B3 tunggal (3 model, verifikasi pipeline nyata) → batch penuh.
+
+**Temuan**
+Dry-run B3 menemukan `openai/text-embedding-3-small` gagal `404 NotFoundError` — pesan error OpenRouter: setting akun "Allowed Providers" hanya mengizinkan `siliconflow`. Diagnosis langsung (panggilan manual `client.embeddings.create()`) mengonfirmasi ini murni setting akun, bukan bug kode (Qwen3-4B/8B, sama-sama dilayani `siliconflow`, berhasil normal).
+
+**Error/Kegagalan**
+`openai.NotFoundError: Error code: 404 - ...your account's allowed-providers setting permits only: siliconflow...` — dicatat verbatim di `audit.md`.
+
+**Diagnosis dan Perbaikan**
+Bukan bug yang bisa diperbaiki di kode. Diajukan ke user lewat `AskUserQuestion` (lanjut 2 model saja vs user ubah setting) — user memilih ubah setting. Panduan diberikan (halaman `openrouter.ai/settings/privacy`, toggle "Enable paid endpoints that may train on inputs"/"ZDR Endpoints only"). User menambahkan `OpenAI` ke Allowed Providers lewat UI (screenshot dikonfirmasi: "SiliconFlow" + "OpenAI", status "Saved"). Diverifikasi ulang via panggilan manual (sukses, 1536 dimensi) SEBELUM eval penuh dijalankan ulang.
+
+**Hasil Verifikasi**
+Eval penuh (`run_eval.py` tanpa filter) dieksekusi nyata ke OpenRouter: Bagian A (2 skenario) + Bagian B (5 skenario × 3 model = 15 panggilan `cari_embedding()`, masing-masing minimal 1 panggilan API query + panggilan batch korpus 67 teks pada penggunaan pertama tiap model). Seluruh 17 payload tersimpan `payloads/` (JSON lengkap, termasuk kandidat per view + skor).
+
+**Commit:** *(digabung Task 15, lihat di bawah)*
+
+---
+
+### Task 15 — `audit.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tabel perbandingan recall/posisi/latensi 3 model × 5 skenario B. Analisis temuan utama, rekomendasi (bukan keputusan final).
+
+**Temuan**
+- **Qwen3-Embedding-4B: 0/5 recall (gagal total di SEMUA skenario B)** — termasuk B4 di mana BM25 baseline sendiri sudah menemukan target (model 4B lebih buruk dari BM25 murni di kasus itu).
+- **Qwen3-Embedding-8B dan `text-embedding-3-small`: sama-sama 5/5 recall.** `text-embedding-3-small` sedikit lebih unggul (rank rata-rata 2.4 vs 2.6, JAUH lebih konsisten posisi, latensi query-only ~2.5x lebih cepat: 0.79s vs 1.99s).
+- **Konfirmasi ulang temuan trigger dari Task 13**: 4 dari 5 skenario B (semua kecuali B3 yang typo/0-kandidat) TIDAK memicu `perlu_fallback` produksi saat ini — recall gap nyata untuk desain Checkpoint 9.
+
+**Error/Kegagalan**
+Tidak ada (di luar insiden Allowed Providers Task 14, sudah diselesaikan sebelum bagian ini).
+
+**Hasil Verifikasi**
+`audit.md` ditinjau manual, seluruh 15 baris tabel B dan 2 baris tabel A merujuk langsung ke payload tersimpan.
+
+**Commit:** `1b836b6` — `docs(evals-3.1): rancangan+audit perbandingan 3 model embedding` (Task 13-15 digabung satu commit `docs` sesuai plan — eval bukan kode produksi).
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
-Refactor `view_ke_domain()` (dicatat di atas, dalam Checkpoint 6) - bukan checkpoint terpisah, penyesuaian kecil saat mengerjakan Task 11 begitu duplikasi terdeteksi.
+Refactor `view_ke_domain()` (Checkpoint 6) - bukan checkpoint terpisah, penyesuaian kecil saat mengerjakan Task 11 begitu duplikasi terdeteksi.
+
+Insiden Allowed Providers OpenRouter (Checkpoint 7, Task 14) - bukan task terpisah dari plan, tapi blocker operasional tak terduga yang butuh keterlibatan user (ubah setting akun) di tengah eksekusi eval.

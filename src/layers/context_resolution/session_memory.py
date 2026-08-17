@@ -8,8 +8,9 @@ independen dari Milestone 1.4, hasilnya ditahan sampai dipakai Milestone 1.7.
 Store DAN retrieve dua-duanya dibangun di sini (forced by Output M1.5
 sendiri) meski peran resmi M1.5 di pipeline cuma retrieve ("Langkah 3b -
 Tarik Data") - store dibutuhkan sebagai utilitas pendukung supaya milestone
-ini bisa diuji end-to-end. Pemanggil produksi sisi store (Execution, M4.5)
-baru datang belakangan. Lihat decisions.md Keputusan 4.
+ini bisa diuji end-to-end. Pemanggil produksi sisi store (Execution, M4.3
+- "Membangun Penyimpanan Paket ke Session Memory") baru datang belakangan.
+Lihat decisions.md Keputusan 4.
 """
 
 from sqlmodel import Session, select

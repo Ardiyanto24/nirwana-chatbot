@@ -97,6 +97,8 @@ User memilih migrasi untuk admin terpusat — satu tempat mengelola seluruh data
 
 **Catatan Ketergantungan:** Kalau Milestone 4.5 (Execution, pemanggil produksi store) nanti butuh span sendiri untuk operasi simpan, itu jadi kontrak milik milestone tersebut, bukan diwariskan dari sini.
 
+> **Koreksi (Milestone 4.3, 2026-08-17):** "Milestone 4.5" di atas SALAH NOMOR — sesuai `rancangan-execution-interpretation.md` yang jadi rujukan resmi, milestone penyimpanan paket ke Session Memory adalah **4.3** ("Membangun Penyimpanan Paket ke Session Memory"), bukan 4.5 ("Verifikasi Kesetiaan Data dan Penyusunan Visualisasi" — pekerjaan berbeda sama sekali). Span `memory.store` benar-benar ditambahkan di Milestone 4.3, lihat `milestones/4.3-penyimpanan-paket-session-memory/decisions.md` Keputusan 5. Entri ini dipertahankan apa adanya (bukan ditulis ulang) sesuai prinsip `CLAUDE.md` menjaga jejak sejarah.
+
 **Opsi yang Dipertimbangkan tapi Ditolak:** Tidak ada.
 
 ---
@@ -108,6 +110,8 @@ User memilih migrasi untuk admin terpusat — satu tempat mengelola seluruh data
 **Keputusan yang Diikuti:** Field `sumber` bertipe `str` bebas di schema maupun kolom DB — beda dari `label_bentuk_jawaban`/`status` yang genuinely tertutup jadi `Enum` (lihat Keputusan 8).
 
 **Catatan Ketergantungan:** Validasi nilai `sumber` yang benar adalah tanggung jawab penulis (Milestone 1.7 atau 4.5 nanti), bukan M1.5 yang hanya menyimpan/mengembalikan apa adanya.
+
+> **Koreksi (Milestone 4.3, 2026-08-17):** "4.5" di atas juga SALAH NOMOR, sama seperti Keputusan 6 — penulis produksi `sumber="eksekusi_baru"` adalah Milestone **4.3**, bukan 4.5. Lihat catatan koreksi di Keputusan 6.
 
 **Opsi yang Dipertimbangkan tapi Ditolak:** Tidak ada — forced oleh sifat dinamis nilai yang sudah dikunci dokumen sumber.
 

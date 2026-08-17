@@ -52,3 +52,26 @@ Menambahkan 10 test ke `tests/layers/query_engine/test_query_engine_schema.py` (
 **Commit:** `6cacc07` (skema) + `b91c268` (test)
 
 ---
+
+## Checkpoint 3 — Prompt + Config Plumbing
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 4 — Konstanta Model
+
+**Apa yang dilakukan**
+`OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST = "deepseek/deepseek-v4-pro"` ditambahkan ke `src/config/llm.py` + entri docstring.
+
+### Task 5 — Prompt `verifikasi_bentuk_request.md`
+
+**Apa yang dilakukan**
+`src/prompts/query_engine/verifikasi_bentuk_request.md` (baru, `id: query_engine.verifikasi_bentuk_request`, v1) — instruksi eksplisit MENOLAK menilai ulang `view_name` (sudah dipastikan pre-check), fokus HANYA kecukupan `params` terhadap `label_bentuk_jawaban`. Panduan kecukupan per LIMA label (`nilai_tunggal`/`tren`/`perbandingan`/`peringkat`/`komposisi`) ditulis eksplisit satu per satu, grounded pada grain view yang diberikan sebagai konteks. Format keluaran `{"lolos": bool, "alasan": str|null}`.
+
+**Temuan** Tidak ada temuan baru. **Error/Kegagalan** Tidak ada.
+
+**Hasil Verifikasi**
+`load_prompt("query_engine.verifikasi_bentuk_request")` sukses, `id=query_engine.verifikasi_bentuk_request`, `version=1`. `.render()` smoke test tanpa variabel Jinja2 tambahan (prompt ini tidak butuh `render_context`, beda dari `kecocokan_makna_*` yang butuh `catatan_lintas_domain`) — sukses, panjang render 3095 karakter.
+
+**Commit:** `184c92d` (konstanta) + `85528df` (prompt)
+
+---

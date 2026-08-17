@@ -18,7 +18,13 @@ import uuid
 from openai import APIError
 
 import src.layers.retriever.kecocokan_makna as kecocokan_makna_module
-from src.layers.retriever.kecocokan_makna import _langkah_generate, _langkah_verifikasi, _parse_generate, _parse_verifikasi
+from src.layers.retriever.kecocokan_makna import (
+    _langkah_generate,
+    _langkah_verifikasi,
+    _parse_generate,
+    _parse_verifikasi,
+    nilai_kecocokan_makna_atomic_intent,
+)
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.retriever import (
@@ -422,3 +428,88 @@ def test_langkah_verifikasi_api_error_gagal_true(monkeypatch):
 
     assert gagal is True
     assert hasil == []
+
+
+# --- nilai_kecocokan_makna_atomic_intent (orkestrator single-item) ---------
+
+
+def test_orkestrator_kandidat_kosong_nol_panggilan_llm(monkeypatch):
+    """Jalur pintas Keputusan 10: HasilPencarianKandidat.kandidat=[] (M3.1
+    genuinely tidak menemukan kandidat) -> BERHASIL+kecocokan=[], TANPA
+    memanggil LLM sama sekali - dibuktikan monkeypatch raise (pola
+    pembuktian pre-filter M2.3), bukan cuma dicek hasil akhirnya."""
+    monkeypatch.setattr(
+        kecocokan_makna_module,
+        "_langkah_generate",
+        lambda hp: (_ for _ in ()).throw(
+            AssertionError("_langkah_generate TIDAK BOLEH dipanggil untuk kandidat kosong")
+        ),
+    )
+    monkeypatch.setattr(
+        kecocokan_makna_module,
+        "_langkah_verifikasi",
+        lambda hp, awal: (_ for _ in ()).throw(
+            AssertionError("_langkah_verifikasi TIDAK BOLEH dipanggil untuk kandidat kosong")
+        ),
+    )
+
+    hasil_pencarian = _buat_hasil_pencarian([])
+    hasil = nilai_kecocokan_makna_atomic_intent(hasil_pencarian)
+
+    assert hasil.status == StatusEksekusi.BERHASIL
+    assert hasil.kecocokan == []
+
+
+def test_orkestrator_sukses_penuh_pakai_hasil_langkah_2(monkeypatch):
+    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.SEBAGIAN)]
+    hasil_final = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+
+    monkeypatch.setattr(
+        kecocokan_makna_module, "_langkah_generate", lambda hp: (hasil_awal, False)
+    )
+    monkeypatch.setattr(
+        kecocokan_makna_module,
+        "_langkah_verifikasi",
+        lambda hp, awal: (hasil_final, False),
+    )
+
+    hasil = nilai_kecocokan_makna_atomic_intent(hasil_pencarian)
+
+    assert hasil.status == StatusEksekusi.BERHASIL
+    assert hasil.kecocokan == hasil_final  # hasil Langkah 2, BUKAN Langkah 1
+
+
+def test_orkestrator_langkah_1_gagal_total_gagal_teknis(monkeypatch):
+    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+
+    monkeypatch.setattr(kecocokan_makna_module, "_langkah_generate", lambda hp: ([], True))
+    monkeypatch.setattr(
+        kecocokan_makna_module,
+        "_langkah_verifikasi",
+        lambda hp, awal: (_ for _ in ()).throw(
+            AssertionError("_langkah_verifikasi TIDAK BOLEH dipanggil kalau Langkah 1 gagal total")
+        ),
+    )
+
+    hasil = nilai_kecocokan_makna_atomic_intent(hasil_pencarian)
+
+    assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
+    assert hasil.kecocokan == []
+
+
+def test_orkestrator_langkah_2_gagal_sebagian_hasil_langkah_1_dipertahankan(monkeypatch):
+    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+
+    monkeypatch.setattr(
+        kecocokan_makna_module, "_langkah_generate", lambda hp: (hasil_awal, False)
+    )
+    monkeypatch.setattr(
+        kecocokan_makna_module, "_langkah_verifikasi", lambda hp, awal: ([], True)
+    )
+
+    hasil = nilai_kecocokan_makna_atomic_intent(hasil_pencarian)
+
+    assert hasil.status == StatusEksekusi.SEBAGIAN
+    assert hasil.kecocokan == hasil_awal  # Langkah 1 dipertahankan utuh

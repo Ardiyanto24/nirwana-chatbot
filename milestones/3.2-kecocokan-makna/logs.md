@@ -536,3 +536,29 @@ Query Supabase langsung: `prompt_id='retriever.kecocokan_makna_generate'` → 8 
 ---
 
 ---
+
+## Checkpoint 15 — Smoke Test End-to-End
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 23 — Panggilan Nyata + Verifikasi Span Jaeger
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan penyesuaian ekspektasi verifikasi mengikuti deviasi Checkpoint 10 (`dikoreksi_count` ada di span Langkah 2 per-intent, BUKAN span orkestrasi `_semua()` — sudah dijelaskan alasannya di Checkpoint 10).
+
+**Apa yang dilakukan**
+Infra observability lokal (`nirwana-otel-collector`+`nirwana-jaeger`+`nirwana-prometheus`, M1.1) dikonfirmasi sudah berjalan (`docker ps`). Menjalankan `nilai_kecocokan_makna_semua()` nyata (skenario identik S01 — grain-mismatch) dengan `setup_tracing()` diaktifkan, lalu query Jaeger API langsung (`GET /api/traces?service=...`) untuk memverifikasi span nyata.
+
+**Temuan**
+Hasil query Jaeger mengonfirmasi PERSIS kriteria verifikasi plan: dua span `"chat"` terpisah — `gen_ai.request.model=qwen/qwen3-32b` (Langkah 1, `prompt.id=retriever.kecocokan_makna_generate`) dan `gen_ai.request.model=deepseek/deepseek-v4-pro` (Langkah 2, `prompt.id=retriever.kecocokan_makna_verifikasi`, `retriever.kecocokan_makna.verifikasi_dikoreksi_count=0` — nol karena Langkah 1/2 sepakat pada skenario ini, konsisten temuan `run_eval.py` Checkpoint 12). Span orkestrasi `retriever.nilai_kecocokan_makna_semua` membawa `kecocokan_makna.intent_count=1`/`gagal_teknis_count=0`/`sebagian_count=0` sesuai desain Checkpoint 10. Hasil fungsional juga benar (`v_reservation_room_type_daily=ditemukan`, `v_reservation_property_daily=tidak_ditemukan`) — konsisten S01 eval.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`curl http://localhost:16686/api/traces?service=nirwana-chatbot-smoketest-m32` — trace nyata ditemukan, 3 span (2×`chat` + 1 orkestrasi) dengan seluruh atribut kontrak observability terisi benar, dikonfirmasi lewat parsing JSON respons API Jaeger langsung (bukan hanya UI/asumsi).
+
+**Commit:** *(tidak ada perubahan kode — hanya `logs.md`, lihat Checkpoint 16)*
+
+---
+
+---

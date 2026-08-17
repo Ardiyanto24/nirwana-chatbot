@@ -168,6 +168,69 @@ Tidak ada.
 
 ---
 
+---
+
+## Checkpoint 5 — Pencarian BM25 Primer + Trigger Fallback (Provisional)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 8 — `uv add rank-bm25`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`uv add rank-bm25` — menambah `rank-bm25==0.2.2` (+ `numpy==2.5.2` transitif) ke `pyproject.toml`/`uv.lock`.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Install sukses, 2 paket ditambahkan.
+
+**Commit:** `95b15cd` — `chore: tambah dependency rank-bm25`
+
+---
+
+### Task 9 — `src/layers/retriever/pencarian_bm25.py`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyempurnaan: kandidat hanya dikembalikan untuk skor > 0 (bukan seluruh domain_diizinkan tanpa syarat skor) — kandidat skor 0 bukan "mungkin relevan" secara leksikal, murni noise. Ini membuat `perlu_fallback = len(kandidat) == 0` (setara `skor_tertinggi <= BM25_SKOR_MINIMUM` yang direncanakan, tapi lebih sederhana secara implementasi).
+
+**Apa yang dilakukan**
+Index `BM25Okapi` dibangun sekali dari `KORPUS_FUNGSI_VIEW` (`@lru_cache`, tokenisasi regex `[a-z0-9]+` atas teks lowercase). `cari_bm25()` menghitung skor atas seluruh 67 view, MATERIALISASI `KandidatView` hanya untuk domain di `domain_diizinkan` DAN skor > 0.
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan**
+Proses (bukan kode): commit pertama keliru menggabungkan `chore` (dependency) dan `feat` (implementasi `pencarian_bm25.py`) dalam satu commit `chore: tambah dependency rank-bm25` — melanggar aturan pemisahan kategori Conventional Commits di `CLAUDE.md`.
+
+**Diagnosis dan Perbaikan**
+`git add` tidak sengaja menyertakan `src/layers/retriever/pencarian_bm25.py` bersama `pyproject.toml`/`uv.lock`. Diperbaiki dengan `git reset --soft HEAD~1` (uncommit, perubahan tetap ada) lalu commit ulang terpisah: `chore` (dependency saja) → `feat` (implementasi) → `test` (Task 10, terpisah).
+
+**Hasil Verifikasi**
+Lihat Task 10.
+
+**Commit:** `9187f52` — `feat(milestone-3.1): pencarian bm25 primer`
+
+---
+
+### Task 10 — Test KK1/KK2/Trigger Boundary
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+6 test: KK1 literal (`"okupansi Bali bulan ini"` + `[RESERVATION]`), KK2 zero-leakage (query sama + `[FNB]`, RESERVATION sengaja tidak diizinkan), trigger boundary (`"xyzzy qwerty asdf"` — tanpa overlap leksikal sama sekali), urutan skor menurun, `sumber` selalu BM25, `domain_diizinkan=[]` selalu fallback.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_pencarian_bm25.py -v` — 6/6 lolos, deterministik murni Python tanpa network call.
+
+**Commit:** `371ba20` — `test(milestone-3.1): skenario kk1/kk2/trigger bm25`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada.

@@ -146,7 +146,7 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 
 ---
 
-## 10. Konvensi Filter Cakupan-Individu `employee_id` (Milestone 2.4) Belum Dikonfirmasi Tim Database Engineering — RISIKO TINGGI
+## 10. Konvensi Filter Cakupan-Individu `employee_id` (Milestone 2.4) — TERVERIFIKASI: Gap Dikonfirmasi untuk 7 dari 9 View — RISIKO TINGGI
 
 **Ditemukan di:** Milestone 2.4 (`milestones/2.4-verification-gate/decisions.md` Keputusan 1, 2026-08-16), lewat riset kontrak (agent Explore) sebelum plan ditulis, dikonfirmasi lewat dua putaran `AskUserQuestion` dengan user.
 
@@ -156,7 +156,23 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 
 **Dampak + mitigasi:** **RISIKO LEBIH TINGGI dari entri #8/#9** — kalau `chatbot_api` genuinely TIDAK menerapkan filter baris berdasarkan `employee_id` untuk 9 view performa-individu (M2.3), maka seluruh mekanisme cek 3-4 M2.4 (`tegakkan_constraint_cakupan_individu()`/`verifikasi_kelengkapan_penegakan()`) tidak benar-benar melindungi apa pun — parameter terkirim tapi diabaikan server-side, constraint cakupan-individu M2.3 jadi TIDAK ditegakkan secara substantif meski secara struktural (request) terlihat benar. Ini BUKAN kebocoran data yang tidak diketahui — `error.type=gagal_teknis`/`verification.check_name` tetap tercatat benar di observability, tapi keefektifan RIIL filter tidak bisa dibuktikan dari dalam proyek ini. Mitigasi saat ini: tidak ada verifikasi independen ke perilaku `chatbot_api` — murni menerapkan konvensi terbaik yang tersedia dari kontrak resmi.
 
-**Pemicu peninjauan ulang:** (a) SEGERA begitu ada akses/dokumentasi resmi ke perilaku `chatbot_api` per-view (mis. `whitelist_<domain>.py` tersedia untuk ditinjau, atau konfirmasi langsung tim database engineering) — verifikasi ulang apakah `employee_id` benar-benar diterapkan sebagai filter baris untuk 9 view performa-individu; (b) kalau ternyata TIDAK, revisi mendesak diperlukan sebelum M2.4 dianggap benar-benar menegakkan constraint cakupan-individu (kandidat: parameter lain yang benar, atau eskalasi kebutuhan penambahan parameter baru ke tim database engineering); (c) sebelum Milestone 4.x (Execution) mengirim request nyata ke `chatbot_api` produksi, ini WAJIB diverifikasi — bukan asumsi yang boleh dibawa tanpa konfirmasi ke tahap produksi.
+**Status Verifikasi: TERVERIFIKASI (2026-08-17, Milestone 4.1, Checkpoint 1).** Trigger (c) di bawah terpenuhi lewat riset plan Milestone 4.1 — repo `chatbot_api` ternyata bisa diakses read-only dari repo bertetangga `../nirwana-database/scripts/chatbot_api/` (bukan "tidak ada di repo ini" seperti diasumsikan saat entri ini ditulis pertama kali). Membaca `whitelist_facility.py`+`whitelist_hr.py` langsung mengonfirmasi:
+
+| View (9 total, M2.3) | `employee_id`/`staff_id` terdaftar sebagai filter di whitelist `chatbot_api`? |
+|---|---|
+| `v_lookup_staff_shifts` (hr) | Ya — filter `employee_id` ada |
+| `v_lookup_employee_performance` (hr) | Ya — filter `employee_id` ada |
+| `v_hr_employee_monthly` | Tidak — hanya `property_id`/`date_from`/`date_to` |
+| `v_hr_employee_performance_semester` | Tidak — hanya `property_id`/`review_period` |
+| `v_hr_watchlist_monthly` | Tidak — hanya `property_id`/`date_from`/`date_to` |
+| `v_housekeeping_staff_daily` (facility) | Tidak — hanya `property_id`/`date_from`/`date_to` |
+| `v_maintenance_technician_daily` (facility) | Tidak — hanya `property_id`/`date_from`/`date_to` |
+| `v_lookup_housekeeping_log` (facility) | Tidak — hanya `property_id`/`date_from`/`date_to` (meski katalog data menandai kolom `staff_id`) |
+| `v_lookup_maintenance_tickets` (facility) | Tidak — hanya `property_id`/`status`/`priority` (meski katalog data menandai kolom `assigned_staff_id`) |
+
+**Kesimpulan: 2 dari 9 view aman (HR lookup), 7 dari 9 view genuinely TIDAK menegakkan filter `employee_id` server-side** — seluruh 4 view `facility` gap, 3 dari 5 view `hr` gap. Dikonfirmasi ke user (Milestone 4.1, lewat `AskUserQuestion`): **keputusan tetap mengirim `employee_id` sesuai desain M2.3/M2.4 yang sudah ada** — parameter ini "diperlakukan seolah punya filter" karena tim database engineering diharapkan menambahkannya sebagai filter di kemudian hari; memperbaiki whitelist `chatbot_api` sendiri di luar cakupan proyek ini (`chatbot_api` sudah final, tidak boleh dimodifikasi). Lihat `milestones/4.1-membangun-pemanggilan-chatbot-api/decisions.md` Keputusan 1.
+
+**Pemicu peninjauan ulang:** (a) **SELESAI (2026-08-17)** — lihat Status Verifikasi di atas; (b) **TERKONFIRMASI TIDAK diterapkan untuk 7/9 view** — revisi mendesak TIDAK dilakukan (bukan tanggung jawab proyek ini untuk memperbaiki `chatbot_api`); ditandai eksplisit sebagai risiko yang tetap terbuka sampai tim database engineering menambahkan filter; (c) **SELESAI** — verifikasi ini dilakukan tepat sebelum Milestone 4.1 mengirim request nyata ke `chatbot_api` produksi (verifikasi nyata M4.1 sendiri ditunda ke Checkpoint 5, menunggu kabar filter diterapkan); (d) **BARU**: begitu ada kabar dari tim database engineering bahwa filter `employee_id` sudah ditambahkan untuk 7 view di atas, verifikasi ulang whitelist-nya (baca file yang sama) sebelum menutup entri ini sepenuhnya, dan lanjutkan Checkpoint 5 Milestone 4.1.
 
 ---
 

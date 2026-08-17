@@ -28,6 +28,18 @@ Validator `HasilKecocokanMakna` SATU ARAH (bukan dua arah seperti
 `AtomicIntentDomains`) - status BERHASIL dengan `kecocokan=[]` tetap
 valid (M3.1 memang bisa tidak menemukan kandidat sama sekali). Lihat
 milestones/3.2-kecocokan-makna/decisions.md Keputusan 7-10.
+
+Skema M3.3 (`SumberKeputusanKecukupan`/`KecukupanKandidat`/
+`HasilKecukupanStruktural`) - HANYA `StatusEksekusi.BERHASIL` yang valid
+(beda dari M3.1/M3.2 yang punya mode gagal teknis nyata): mekanisme
+hybrid M3.3 tidak pernah gagal teknis di level kebutuhan-atomik, jalur
+deterministik murni Python dan kegagalan LLM fallback diserap sebagai
+default aman `cukup=False` per-kandidat (bukan dipropagasi jadi status
+gagal). `view_name_final` divalidasi wajib salah satu kandidat berlabel
+`cukup=True` di `kecukupan` (cek kelengkapan penegakan, mirror
+verifikasi_gate() M2.4 cek 4), atau `None` kalau tidak ada kandidat
+cukup. Lihat milestones/3.3-kecukupan-struktural/decisions.md
+Keputusan 9.
 """
 
 from enum import Enum
@@ -107,4 +119,43 @@ class HasilKecocokanMakna(BaseModel):
                 "gagal_teknis - M3.2 tidak membuat keputusan otorisasi/"
                 "ketergantungan"
             )
+        return self
+
+
+class SumberKeputusanKecukupan(str, Enum):
+    DETERMINISTIK = "deterministik"
+    LLM = "llm"
+
+
+class KecukupanKandidat(BaseModel):
+    kandidat: KandidatView
+    kecocokan_label: LabelKecocokanMakna
+    cukup: bool
+    alasan: str
+    sumber_keputusan: SumberKeputusanKecukupan
+
+
+class HasilKecukupanStruktural(BaseModel):
+    atomic_intent: AtomicIntent
+    kecukupan: list[KecukupanKandidat]
+    view_name_final: str | None
+    status: StatusEksekusi
+
+    @model_validator(mode="after")
+    def status_dan_view_name_final_konsisten(self) -> Self:
+        if self.status != StatusEksekusi.BERHASIL:
+            raise ValueError(
+                "status HasilKecukupanStruktural wajib berhasil - mekanisme "
+                "M3.3 tidak pernah gagal teknis di level kebutuhan-atomik "
+                "(jalur deterministik murni Python, kegagalan LLM fallback "
+                "diserap sebagai default aman cukup=False per-kandidat)"
+            )
+        if self.view_name_final is not None:
+            view_names_cukup = {k.kandidat.view_name for k in self.kecukupan if k.cukup}
+            if self.view_name_final not in view_names_cukup:
+                raise ValueError(
+                    "view_name_final wajib salah satu kandidat berlabel "
+                    "cukup=True di kecukupan - tidak boleh memilih view yang "
+                    "tidak pernah dinyatakan cukup"
+                )
         return self

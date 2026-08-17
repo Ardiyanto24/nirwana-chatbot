@@ -211,6 +211,24 @@ Review manual seluruh perubahan `CLAUDE.md`/`AGENT.md` konsisten status nyata mi
 
 ---
 
+## Revisit — Integrasi Sinyal Freshness/Kualitas Data (`_meta`)
+
+Dipicu revisit M4.2 (lihat `milestones/4.2-.../logs.md`) — M4.3 ikut direvisi karena `catatan_interpretasi` (mekanisme yang sudah ada, Checkpoint 3 M4.3 asli) adalah tempat yang tepat untuk catatan kualitas data, mirror pola nullable-bermakna.
+
+### Checkpoint 1 — Keputusan
+
+**Mulai:** 2026-08-17
+
+**Apa yang dilakukan**
+Menambah Keputusan 9 (`decisions.md`) — `_catatan_kualitas_data()` digabung `catatan_interpretasi`, nada teks berbeda untuk `flagged`/stale/tidak-diketahui.
+
+**Hasil Verifikasi**
+Review manual — konsisten `milestones/4.2-.../decisions.md` Keputusan 11.
+
+**Commit:** *(pending — digabung commit M4.2 Checkpoint 1, satu commit mencakup kedua file decisions.md + keputusan-tertunda.md)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada.

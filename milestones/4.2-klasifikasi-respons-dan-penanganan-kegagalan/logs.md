@@ -234,6 +234,27 @@ Tidak berlaku.
 
 ---
 
+## Revisit — Integrasi Sinyal Freshness/Kualitas Data (`_meta`)
+
+Dipicu kabar tim database (2026-08-17) endpoint `_meta` aktif — memenuhi pemicu peninjauan ulang Keputusan 1. Plan terpisah ditulis dan disetujui (lihat plan file sesi ini), checkpoint di bawah mengikuti plan itu.
+
+### Checkpoint 1 — Keputusan dan Dokumentasi
+
+**Mulai:** 2026-08-17
+
+**Apa yang dilakukan**
+Menambah addendum di Keputusan 1 (revisit) + Keputusan 11 baru (`decisions.md`) menjelaskan pemetaan final `flagged`/stale→`SEBAGIAN`, `null`/gagal→tetap `berhasil`+catatan. Menambah addendum kedua `docs/keputusan-tertunda.md` #3 — mencatat isi lengkap pesan tim database, keputusan ambang batas 48 jam (starting point), DAN draf pesan balasan ke tim database yang wajib dikirim user (item aksi eksplisit).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual — konsisten seluruh diskusi `AskUserQuestion` sesi ini (3 keputusan: pemetaan null/gagal, pemakaian ambang, retry meta call).
+
+**Commit:** *(pending)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada.

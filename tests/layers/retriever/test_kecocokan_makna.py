@@ -24,6 +24,7 @@ from src.layers.retriever.kecocokan_makna import (
     _parse_generate,
     _parse_verifikasi,
     nilai_kecocokan_makna_atomic_intent,
+    nilai_kecocokan_makna_semua,
 )
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
@@ -513,3 +514,63 @@ def test_orkestrator_langkah_2_gagal_sebagian_hasil_langkah_1_dipertahankan(monk
 
     assert hasil.status == StatusEksekusi.SEBAGIAN
     assert hasil.kecocokan == hasil_awal  # Langkah 1 dipertahankan utuh
+
+
+# --- nilai_kecocokan_makna_semua (orkestrator lintas atomic intent) --------
+
+
+def test_semua_multi_intent_loop_dan_urutan_dipertahankan(monkeypatch):
+    hp1 = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hp2 = _buat_hasil_pencarian([])  # jalur pintas kandidat kosong
+
+    monkeypatch.setattr(
+        kecocokan_makna_module,
+        "_langkah_generate",
+        lambda hp: ([_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)], False),
+    )
+    monkeypatch.setattr(
+        kecocokan_makna_module,
+        "_langkah_verifikasi",
+        lambda hp, awal: (awal, False),
+    )
+
+    hasil = nilai_kecocokan_makna_semua([hp1, hp2])
+
+    assert len(hasil) == 2
+    assert hasil[0].atomic_intent == hp1.atomic_intent
+    assert hasil[0].status == StatusEksekusi.BERHASIL
+    assert hasil[1].atomic_intent == hp2.atomic_intent
+    assert hasil[1].kecocokan == []
+
+
+def test_semua_list_kosong_tidak_error():
+    hasil = nilai_kecocokan_makna_semua([])
+    assert hasil == []
+
+
+def test_semua_aggregate_gagal_teknis_dan_sebagian_count(monkeypatch):
+    hp_gagal_total = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hp_gagal_verifikasi = _buat_hasil_pencarian([_buat_kandidat("v_reservation_property_daily")])
+    hp_sukses = _buat_hasil_pencarian([_buat_kandidat("v_reservation_channel_daily")])
+
+    def _fake_generate(hp):
+        if hp is hp_gagal_total:
+            return [], True
+        return [_buat_kecocokan(hp.kandidat[0].view_name, LabelKecocokanMakna.DITEMUKAN)], False
+
+    def _fake_verifikasi(hp, awal):
+        if hp is hp_gagal_verifikasi:
+            return [], True
+        return awal, False
+
+    monkeypatch.setattr(kecocokan_makna_module, "_langkah_generate", _fake_generate)
+    monkeypatch.setattr(kecocokan_makna_module, "_langkah_verifikasi", _fake_verifikasi)
+
+    hasil = nilai_kecocokan_makna_semua([hp_gagal_total, hp_gagal_verifikasi, hp_sukses])
+
+    status_list = [h.status for h in hasil]
+    assert status_list == [
+        StatusEksekusi.GAGAL_TEKNIS,
+        StatusEksekusi.SEBAGIAN,
+        StatusEksekusi.BERHASIL,
+    ]

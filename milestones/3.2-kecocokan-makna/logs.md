@@ -124,3 +124,29 @@ Sama seperti Task 4 di atas (dijalankan bersamaan) — 14/14 lolos.
 ---
 
 ---
+
+## Checkpoint 4 — Konstanta Model
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 6 — Tambah Konstanta Model M3.2
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambah `OPENROUTER_MODEL_KECOCOKAN_MAKNA_GENERATE = "qwen/qwen3-32b"` dan `OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI = "deepseek/deepseek-v4-pro"` ke `src/config/llm.py`, dengan entri docstring baru mengikuti gaya entri lama (rujuk milestone, model, dan alasan reuse — termasuk penjelasan kenapa Langkah 2 di sini MENGGANTIKAN Langkah 1, beda dari pola union aditif M2.1/M2.3).
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -c "from src.config.llm import OPENROUTER_MODEL_KECOCOKAN_MAKNA_GENERATE, OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI"` — import sukses, nilai sesuai (`qwen/qwen3-32b`, `deepseek/deepseek-v4-pro`).
+
+**Commit:** `6ff410d` — `feat(milestone-3.2): konstanta model kecocokan makna`
+
+---
+
+---

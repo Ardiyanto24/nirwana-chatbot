@@ -202,3 +202,69 @@ Tidak ada.
 ---
 
 ---
+
+## Checkpoint 7 — Implementasi Langkah 1
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 11 — Implementasi `_langkah_generate` dkk.
+
+**Kesesuaian dengan plan:** Sesuai plan, plus Task 8 (Promptfoo config) dieksekusi di sini sesuai deviasi yang dicatat logs Checkpoint 5.
+
+**Apa yang dilakukan**
+Menulis `src/layers/retriever/kecocokan_makna.py`: `_render_context_generate()`/`_render_system_prompt_generate()` (inject `CATATAN_LINTAS_DOMAIN`), `_build_user_prompt_generate()` (kebutuhan + label_bentuk_jawaban + daftar kandidat dengan definisi lengkap dari `DEFINISI_LENGKAP_VIEW`), `_call_llm_generate()` (panggilan mentah, dipisah dari parsing - preseden `matching.py`), `_parse_generate()` (jaminan struktural: iterasi dari daftar kandidat GROUND-TRUTH, bukan dari respons LLM — kandidat hilang/label invalid diberi default aman via `_entri_aman_default()`, kandidat halusinasi di respons diabaikan), `_langkah_generate()` (span `"chat"` sesuai kontrak, atribut `retriever.kecocokan_makna.generate_forced_fallback_reason`/`generate_ditemukan_count`).
+
+**Temuan**
+Tidak ada temuan mengejutkan pada kode implementasi. `CLAUDE.md`/`AGENT.md` diperbarui mencatat `kecocokan_makna.py` (Langkah 1 selesai) di baris `src/`, disinkronkan identik.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -m pytest tests/layers/retriever/ tests/config/ -v` — 59 test lolos (8 baru Langkah 1 + 51 sisa tanpa regresi).
+
+**Commit:** `29d90f1` — `feat(milestone-3.2): implementasi Langkah 1 kecocokan makna (generate)`
+
+---
+
+### Task 12 — Test Mocked Langkah 1
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `tests/layers/retriever/test_kecocokan_makna.py` — 5 test pure-function `_parse_generate` (respons valid, JSON rusak → gagal, kandidat hilang → default aman BUKAN drop, label invalid → default aman, `view_name` halusinasi diabaikan) + 3 test `_langkah_generate` dengan `get_openrouter_client`/`_call_llm_generate` di-monkeypatch (sukses normal, `APIError` → gagal=True bukan exception, `empty_choices` → gagal=True) — mirror pola `test_pencarian_embedding.py` (M3.1), TANPA network call nyata.
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Sama seperti Task 11 di atas (dijalankan bersamaan) — 59/59 lolos.
+
+**Commit:** `24076b3` — `test(milestone-3.2): Langkah 1 kecocokan makna (generate)`
+
+---
+
+### Task 8 — Promptfoo Config Langkah 1 (dipindah dari Checkpoint 5)
+
+**Kesesuaian dengan plan:** Menyimpang checkpoint eksekusi (dipindah dari Checkpoint 5 ke sini), SESUAI keputusan deviasi yang sudah dicatat eksplisit di logs Checkpoint 5 — bukan penyimpangan baru.
+
+**Apa yang dilakukan**
+Menulis `prompt_reliability/retriever/kecocokan_makna_generate.promptfooconfig.yaml` — 3 skenario awal (S01 KK1 grain-mismatch `v_reservation_property_daily` vs kebutuhan per-tipe-kamar, S02 KK2 cocok penuh `v_reservation_room_type_daily`, S03 jebakan "Kolom turunan" `sla_threshold_hours` dengan toleransi eksplisit — nuansa penuh divalidasi di eval Checkpoint 11-13, bukan smoke test ini). `render_context` merujuk `src.layers.retriever.kecocokan_makna._render_context_generate` yang baru dibuat Task 11 — dependency yang jadi alasan deviasi Checkpoint 5 sekarang terpenuhi.
+
+**Temuan**
+`user_prompt` di tiap skenario disusun manual mengikuti format PERSIS keluaran `_build_user_prompt_generate()` (dicek dengan menjalankan fungsi tersebut atas data uji nyata terlebih dahulu, lihat kutipan format di komentar commit) - bukan ditulis bebas, supaya reliability testing benar-benar mencerminkan payload runtime asli (prinsip `provider.py`: "prompt yang diuji selalu identik dengan yang benar-benar dikirim").
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -c "import yaml; yaml.safe_load(open(...))"` — YAML valid, 3 test terparse. Import `_render_context_generate` via `importlib` (mensimulasikan cara `provider.py` me-resolve `render_context`) sukses, mengembalikan `catatan_lintas_domain` (2479 karakter). **Belum dijalankan nyata terhadap OpenRouter** — eksekusi Promptfoo penuh ditunda ke Checkpoint 14 sesuai plan.
+
+**Commit:** `82e87a0` — `chore(milestone-3.2): Promptfoo config Langkah 1 kecocokan makna`
+
+---
+
+---

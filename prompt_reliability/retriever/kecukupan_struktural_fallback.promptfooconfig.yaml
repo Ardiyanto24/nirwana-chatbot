@@ -31,11 +31,11 @@ tests:
       - type: javascript
         value: |
           const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_lookup_bookings");
-          r.cukup === false
+          return r.cukup === false;
       - type: javascript
         value: |
           const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_lookup_bookings");
-          typeof r.alasan === "string" && r.alasan.length > 0
+          return typeof r.alasan === "string" && r.alasan.length > 0;
 
   - description: S02_grain_jelas_time_series_cukup_untuk_tren
     vars:
@@ -59,31 +59,31 @@ tests:
       - type: javascript
         value: |
           const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_reservation_room_type_daily");
-          r.cukup === true
+          return r.cukup === true;
 
-  - description: S03_snapshot_eksplisit_tidak_cukup_untuk_tren
+  - description: S03_snapshot_tanpa_tren_historis_eksplisit_tidak_cukup_untuk_tren
     vars:
       user_prompt: |
-        Kebutuhan: tren status kamar out-of-order 3 bulan terakhir (bentuk jawaban: tren)
+        Kebutuhan: tren turnover departemen Housekeeping Bali 3 bulan terakhir (bentuk jawaban: tren)
 
         Daftar kandidat yang grain-nya ambigu, beserta definisi lengkapnya:
 
-        ### v_facility_room_status_daily
-        *Sumber: `fact_facility_room_status_daily` + `dim_room` + `dim_property` + `dim_room_type` — grain: kamar x tanggal (snapshot).*
-        **Fungsi**: status 1 kamar tertentu pada tanggal tertentu - termasuk apakah sedang out-of-order.
+        ### v_hr_turnover_snapshot
+        *Sumber: `fact_hr_turnover_snapshot` + `dim_property` + `dim_department` — grain: properti x departemen x tanggal (snapshot).*
+        **Fungsi**: tingkat turnover per departemen per properti - snapshot, tidak ada tren historis (data sumber tidak punya tanggal resign).
 
         | Kolom | Deskripsi |
         |---|---|
-        | `room_id` | Kode kamar. |
+        | `property_id`, `property_name` | Identitas properti. |
+        | `department_name` | Departemen. |
         | `period_date` | Tanggal snapshot. |
-        | `status` | Kondisi kamar (occupied, available, cleaning, maintenance, out-of-order). |
-        | `is_out_of_order` | Boolean - kamar rusak berat, tidak bisa dijual. |
+        | `turnover_rate` | Rasio karyawan keluar (resigned/terminated) di departemen ini. |
     assert:
       - type: is-json
       - type: javascript
         value: |
-          const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_facility_room_status_daily");
-          r.cukup === false
+          const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_hr_turnover_snapshot");
+          return r.cukup === false;
 
   - description: S04_dua_kandidat_sekaligus_batch_wajib_lengkap
     vars:
@@ -116,8 +116,8 @@ tests:
       - type: javascript
         value: |
           const p = JSON.parse(output).penilaian;
-          p.length === 2 && p.every(x => typeof x.cukup === "boolean")
+          return p.length === 2 && p.every(x => typeof x.cukup === "boolean");
       - type: javascript
         value: |
           const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_reservation_room_type_daily");
-          r.cukup === true
+          return r.cukup === true;

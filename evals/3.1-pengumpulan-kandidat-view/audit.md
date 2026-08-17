@@ -38,8 +38,27 @@ Catatan latensi: `embed_korpus(model)` di-cache per-model (`@lru_cache`) dalam s
 
 **Temuan trigger (dicatat `rancangan.md` sebelum eksekusi, dikonfirmasi lagi di sini):** skenario B1 membuktikan nyata bahwa `perlu_fallback` (trigger BM25→embedding) TIDAK AKTIF untuk B1/B2/B4/B5 (BM25 menemukan *sesuatu*, meski salah/tidak lengkap) — hanya B3 (typo, 0 kandidat sama sekali) yang benar-benar memicu trigger produksi saat ini. Artinya di 4 dari 5 skenario yang justru butuh fallback paling nyata, mekanisme produksi (Checkpoint 10) **tidak akan pernah memanggil embedding sama sekali** dengan desain trigger `BM25_SKOR_MINIMUM=0.0` saat ini — recall gap ini nyata dan perlu direvisi Checkpoint 9, bukan cuma isu kualitas model.
 
+## Koreksi Checkpoint 9 — Angka Trigger BM25 yang Benar
+
+Klaim "temuan trigger" di atas ditulis berdasar `rancangan.md` yang ternyata memakai baseline BM25 dari skrip eksplorasi (dengan stopword filtering) yang **belum diterapkan** ke `pencarian_bm25.py` sesungguhnya saat Checkpoint 7 dijalankan. Setelah diverifikasi ulang terhadap kode ASLI (tanpa stopword filtering, persis yang di-commit Checkpoint 5): **SEMUA 5 skenario B1-B5 (bukan 4/5) gagal memicu `perlu_fallback`** — root cause: kata fungsi umum ("yang", "dan", "di", dst.) muncul di hampir seluruh 67 teks korpus, membuat skor BM25 nyaris selalu positif untuk query apa pun, terlepas dari relevansi makna.
+
+**Perbaikan diterapkan Checkpoint 9**: stopword filtering ditambahkan ke `pencarian_bm25.py` (`_STOPWORDS_ID`, ~50 kata fungsi Bahasa Indonesia/Inggris). Hasil setelah perbaikan (diverifikasi ulang lewat pemanggilan `cari_bm25()` langsung, bukan estimasi):
+
+| ID | `perlu_fallback` SEBELUM perbaikan | `perlu_fallback` SESUDAH perbaikan | Target ditemukan? |
+|---|---|---|---|
+| B1 | False (keliru) | **False** | Tidak — recall gap nyata, TETAP tidak ditemukan meski stopword difilter |
+| B2 | False (keliru) | False | Ya, rank 2/5 |
+| B3 | False (keliru — SEHARUSNYA True) | **True** | — (fallback benar terpicu) |
+| B4 | False (keliru) | False | Ya, rank 2/4 |
+| B5 | False (keliru) | False | Ya, rank 7/10 |
+
+Stopword filtering memperbaiki kasus yang memang murni disebabkan noise kata fungsi (B3 — typo memutus satu-satunya token bermakna, tanpa stopword lain yang "menyelamatkan" skor secara keliru). **B1 tetap tidak ditemukan bahkan pasca-perbaikan** — target (`v_reservation_channel_daily`, tema "kanal booking") genuinely tidak berbagi SATU KATA BERMAKNA pun dengan query paraphrase ("pesannya lewat mana", "aplikasi pihak ketiga") — ini BUKAN bug tokenizer, melainkan keterbatasan inheren pencarian leksikal murni yang TIDAK bisa diperbaiki tokenizer manapun (dicatat `docs/keterbatasan-diterima.md` entri baru, bukan diperbaiki lebih lanjut di checkpoint ini — lihat Rekomendasi di bawah).
+
+**`BM25_SKOR_MINIMUM` dipertahankan di `0.0`** (bukan dinaikkan) — dengan stopword filtering, skor positif kini benar-benar berarti overlap kata bermakna, bukan noise. Menaikkan angka ini lebih lanjut tanpa bukti tambahan (5 skenario buatan tangan tidak cukup untuk kalibrasi presisi) berisiko over-trigger (memanggil embedding untuk kasus yang BM25 sebenarnya sudah cukup, menambah biaya/latensi tanpa manfaat recall).
+
 ## Rekomendasi (Bukan Keputusan Final — Ditutup Checkpoint 8)
 
 1. **Model final: `openai/text-embedding-3-small`** — recall sempurna + rank paling konsisten + latensi terendah. Qwen3-Embedding-8B adalah alternatif valid (recall sama) kalau ada pertimbangan lain (mis. preferensi menghindari provider training-data di luar `siliconflow`, trade-off yang user sudah pertimbangkan sadar saat mengizinkan `OpenAI` di Allowed Providers).
 2. **Qwen3-Embedding-4B TIDAK DIREKOMENDASIKAN sama sekali** — 0% recall bukan trade-off yang bisa diterima untuk mekanisme yang tujuannya justru menyelamatkan kasus yang BM25 gagal.
-3. **Trigger `BM25_SKOR_MINIMUM=0.0` perlu direvisi substansial**, bukan cuma nilai numerik — data di atas menunjukkan trigger "kandidat kosong total" nyaris tidak pernah aktif meski BM25 secara nyata gagal menemukan target yang benar. Opsi yang perlu dipertimbangkan Checkpoint 9: threshold berbasis skor absolut (bukan sekadar >0), atau evaluasi ulang apakah trigger "kondisional" masih tepat dibanding pendekatan lain.
+3. ~~Trigger `BM25_SKOR_MINIMUM=0.0` perlu direvisi substansial~~ — **SELESAI Checkpoint 9**: root cause bukan nilai numerik threshold, melainkan tokenizer tanpa stopword filtering (kata fungsi umum membuat skor selalu positif). Stopword filtering ditambahkan, `BM25_SKOR_MINIMUM` dipertahankan `0.0`. Lihat bagian "Koreksi Checkpoint 9" di atas.
+4. **Keterbatasan residual (diterima, bukan diperbaiki)**: skenario B1 (sinonim non-literal tanpa satu kata bermakna pun yang overlap) tetap tidak ditemukan BM25 bahkan pasca-perbaikan stopword — keterbatasan inheren pencarian leksikal, bukan bug. Dicatat `docs/keterbatasan-diterima.md`.

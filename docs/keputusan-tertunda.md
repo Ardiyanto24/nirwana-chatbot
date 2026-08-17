@@ -17,3 +17,21 @@ Untuk Milestone 1.2 spesifik, diputuskan **file config YAML** (`src/config/roles
 **Kenapa belum saatnya diputuskan:** Milestone 1.5 belum dimulai — teknologi storage yang tepat sebaiknya dipilih dengan konteks kebutuhan Session Memory yang sesungguhnya (skema paket per atomic intent, pola akses/query, TTL, dst — lihat `arsitektur-ai-chatbot-rbac.md` §7), bukan diputuskan sekarang hanya berdasar kebutuhan kecil (20 baris statis daftar role).
 
 **Pemicu peninjauan ulang:** Awal implementasi Milestone 1.5 (Penarikan/Penyimpanan Data Session Memory) — saat itu, putuskan teknologi storage (mis. SQLite/PostgreSQL/lainnya) untuk Session Memory, dan sekalian evaluasi apakah `src/config/roles.yaml` sebaiknya dipindahkan ke database yang sama (kemudahan admin terpusat) atau tetap sebagai file config terpisah (kesederhanaan, tidak ada dependency tambahan untuk data yang jarang berubah).
+
+---
+
+## 2. Model Embedding Final Retriever (Milestone 3.1) — Provisional, Belum Ditutup Permanen
+
+**Status:** AKTIF — model SUDAH dipilih dan dipakai produksi (`OPENROUTER_MODEL_RETRIEVER_EMBEDDING = "openai/text-embedding-3-small"`, `src/config/llm.py`), TAPI keputusan ini **sengaja tidak ditutup permanen** seperti pola model chat/completion milestone lain (M1.3-M2.3) — instruksi eksplisit user.
+
+**Muncul di:** Milestone 3.1 (Pengumpulan Kandidat View), Checkpoint 7-9 (2026-08-17).
+
+**Konteks kemunculan:** Mekanisme pencarian kandidat M3.1 diputuskan Hybrid (BM25 utama + fallback embedding semantik). User eksplisit meminta 3 kandidat model embedding (Qwen3-Embedding-4B, Qwen3-Embedding-8B, `text-embedding-3-small`) dibandingkan secara empiris lewat eval nyata (`evals/3.1-pengumpulan-kandidat-view/`) sebelum dikunci — bukan dipilih di depan tanpa bukti, beda dari preseden M1.4 (model chat dipilih dari benchmark publik SEA-HELM tanpa eval internal). Hasil eval (5 skenario stress-test kegagalan BM25): Qwen3-Embedding-4B gagal total (0/5 recall), Qwen3-Embedding-8B dan `text-embedding-3-small` sama-sama sempurna (5/5) — `text-embedding-3-small` dipilih karena rank rata-rata lebih baik, jauh lebih konsisten, dan latensi ~2.5x lebih rendah.
+
+**Kenapa belum ditutup permanen:** Cakupan eval Checkpoint 7 sengaja terbatas (5 skenario stress-test, dirancang manual — bukan ratusan kasus produksi nyata). Model dengan performa TERBAIK dari 3 kandidat yang diuji dipakai SEKARANG sebagai keputusan pragmatis, tapi ini bukan klaim bahwa `text-embedding-3-small` adalah pilihan optimal untuk SELURUH ruang kasus nyata yang belum tentu tercermin di 5 skenario buatan tangan.
+
+**Pemicu peninjauan ulang:**
+1. Milestone 3.2 (atau tahap produksi manapun setelah M3.1) menunjukkan pola kegagalan fallback nyata (recall rendah pada kasus nyata) yang tidak tertangkap 5 skenario eval Checkpoint 7 — revisit dengan skenario tambahan dari data produksi asli.
+2. OpenRouter merilis model embedding baru yang relevan untuk Bahasa Indonesia (mis. Qwen versi lebih baru, atau model spesifik-Indonesia) — bandingkan ulang terhadap `text-embedding-3-small` yang sedang dipakai.
+3. Evaluasi biaya/latensi berubah signifikan setelah dipakai pada volume request nyata (harga per-token OpenRouter berubah, atau volume fallback ternyata jauh lebih tinggi dari perkiraan karena temuan trigger di bawah).
+4. **Terkait erat:** trigger `BM25_SKOR_MINIMUM` (lihat `milestones/3.1-pengumpulan-kandidat-view/decisions.md` Keputusan 1 + Checkpoint 9) juga provisional — kalau trigger direvisi signifikan (mis. fallback jadi jauh lebih sering terpicu), volume pemakaian model embedding ini berubah drastis, yang bisa mengubah kalkulasi biaya/latensi di atas dan layak jadi pemicu peninjauan ulang tersendiri.

@@ -27,6 +27,14 @@ User eksplisit memilih hybrid meski rekomendasi awal adalah BM25 murni — trade
 
 ---
 
+**Addendum Checkpoint 9 (stopword filtering + threshold BM25):** Eval Checkpoint 7 menemukan bug lebih mendasar di implementasi BM25 (Checkpoint 5): tokenizer tanpa stopword filtering membuat trigger `perlu_fallback` nyaris tidak pernah aktif (kata fungsi umum "yang"/"dan"/"di" muncul di hampir seluruh 67 teks korpus, skor BM25 selalu positif untuk query apa pun — diverifikasi ulang: SEMUA 5 skenario stress-test Checkpoint 7 gagal memicu trigger dengan implementasi asli, bukan cuma 4/5 seperti draf awal `rancangan.md`/`audit.md` sebelum dikoreksi). **Perbaikan**: stopword filtering ditambahkan ke `pencarian_bm25.py` (`_STOPWORDS_ID`, ~50 kata fungsi). **`BM25_SKOR_MINIMUM` dipertahankan di `0.0`** (bukan dinaikkan) — dengan stopword filtering, skor positif kini benar-benar berarti overlap kata bermakna. Setelah perbaikan: 4/5 skenario stress-test membaik (B3 kini benar memicu trigger; B2/B4/B5 tetap mempertahankan recall BM25 murni). Satu keterbatasan residual (B1, paraphrase tanpa overlap kata bermakna sama sekali) TETAP tidak ditemukan bahkan pasca-perbaikan — dicatat `docs/keterbatasan-diterima.md` #11 (bukan diperbaiki lebih lanjut, karena akan butuh redesain trigger yang mengubah arsitektur Hybrid yang sudah disetujui, di luar cakupan revisi "threshold berbasis bukti" Checkpoint 9). Detail lengkap: `evals/3.1-pengumpulan-kandidat-view/audit.md` bagian "Koreksi Checkpoint 9".
+
+**Opsi Addendum yang Dipertimbangkan tapi Ditolak:**
+- **Naikkan `BM25_SKOR_MINIMUM` ke nilai positif (mis. 2.0) tanpa stopword filtering** — ditolak, tidak mengatasi root cause (noise dari kata fungsi), hanya menggeser ambang batas noise ke titik yang berbeda; 5 skenario buatan tangan tidak cukup untuk kalibrasi presisi angka semacam ini.
+- **Redesain trigger jadi "selalu panggil kedua jalur" (BM25 + embedding union, bukan fallback kondisional)** — ditolak untuk checkpoint ini, mengubah arsitektur Hybrid yang sudah disetujui user (BM25 utama + fallback KONDISIONAL) tanpa persetujuan ulang; dicatat sebagai opsi masa depan di `docs/keterbatasan-diterima.md` #11 kalau bukti lebih lanjut mendukung.
+
+---
+
 ## Keputusan 2: Model Embedding untuk Jalur Fallback — Dibandingkan Empiris, Dikunci Provisional
 
 **Status:** Diputuskan sebelum implementasi (dari plan, lewat `AskUserQuestion`, dua putaran + klarifikasi lanjutan setelah plan awal ditolak user).

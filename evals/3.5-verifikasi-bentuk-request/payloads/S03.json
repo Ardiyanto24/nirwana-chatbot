@@ -1,0 +1,42 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "Kontrol positif: request tren valid, rentang cukup panjang",
+  "timestamp": "2026-08-17T09:56:49.772254+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "bdbeacb3-161d-476b-a557-399398fef1fb",
+    "teks_kebutuhan": "Bagaimana tren revenue outlet F&B tiga bulan terakhir?",
+    "label_bentuk_jawaban": "tren",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name_tervalidasi_retriever": "v_fnb_outlet_daily",
+  "request_input": {
+    "domain": "fnb",
+    "view_name": "v_fnb_outlet_daily",
+    "params": {
+      "period_date_from": "2026-05-17",
+      "period_date_to": "2026-08-17"
+    }
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "bdbeacb3-161d-476b-a557-399398fef1fb",
+      "teks_kebutuhan": "Bagaimana tren revenue outlet F&B tiga bulan terakhir?",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "fnb",
+      "view_name": "v_fnb_outlet_daily",
+      "params": {
+        "period_date_from": "2026-05-17",
+        "period_date_to": "2026-08-17"
+      }
+    },
+    "status": "berhasil",
+    "lolos": true,
+    "alasan": null
+  },
+  "match": true
+}

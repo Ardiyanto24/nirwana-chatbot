@@ -1,0 +1,40 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "KK1: view_name sengaja tidak sesuai Retriever",
+  "timestamp": "2026-08-17T09:56:30.459755+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "e85b8036-0664-48d6-8498-76f8b2f41736",
+    "teks_kebutuhan": "Berapa okupansi Bali bulan lalu?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name_tervalidasi_retriever": "v_reservation_room_type_daily",
+  "request_input": {
+    "domain": "reservation",
+    "view_name": "v_reservation_channel_daily",
+    "params": {
+      "property_id": "P01"
+    }
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "e85b8036-0664-48d6-8498-76f8b2f41736",
+      "teks_kebutuhan": "Berapa okupansi Bali bulan lalu?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "reservation",
+      "view_name": "v_reservation_channel_daily",
+      "params": {
+        "property_id": "P01"
+      }
+    },
+    "status": "berhasil",
+    "lolos": false,
+    "alasan": "view_name request ('v_reservation_channel_daily') tidak sesuai dengan view_name yang divalidasi Retriever ('v_reservation_room_type_daily')"
+  },
+  "match": true
+}

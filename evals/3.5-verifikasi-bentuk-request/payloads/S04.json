@@ -1,0 +1,44 @@
+{
+  "scenario_id": "S04",
+  "deskripsi": "Kontrol positif: request nilai_tunggal valid",
+  "timestamp": "2026-08-17T09:57:05.435745+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "8b32ee35-91f4-4f95-a47b-d00611ee5f07",
+    "teks_kebutuhan": "Berapa okupansi Bali bulan lalu?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name_tervalidasi_retriever": "v_reservation_room_type_daily",
+  "request_input": {
+    "domain": "reservation",
+    "view_name": "v_reservation_room_type_daily",
+    "params": {
+      "property_id": "P01",
+      "period_date_from": "2026-07-01",
+      "period_date_to": "2026-07-31"
+    }
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "8b32ee35-91f4-4f95-a47b-d00611ee5f07",
+      "teks_kebutuhan": "Berapa okupansi Bali bulan lalu?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "reservation",
+      "view_name": "v_reservation_room_type_daily",
+      "params": {
+        "property_id": "P01",
+        "period_date_from": "2026-07-01",
+        "period_date_to": "2026-07-31"
+      }
+    },
+    "status": "berhasil",
+    "lolos": true,
+    "alasan": null
+  },
+  "match": true
+}

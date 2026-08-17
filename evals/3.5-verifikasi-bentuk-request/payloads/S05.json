@@ -1,0 +1,46 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Replikasi temuan nyata S04 M3.4: nilai parameter nonsensikal",
+  "timestamp": "2026-08-17T09:57:46.474284+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "198ab4c4-602b-4ab0-ae9f-ad13000d00b0",
+    "teks_kebutuhan": "Okupansi Nirwana Lombok Escape bulan ini",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name_tervalidasi_retriever": "v_reservation_room_type_daily",
+  "request_input": {
+    "domain": "reservation",
+    "view_name": "v_reservation_room_type_daily",
+    "params": {
+      "property_name": "Nirwana Lombok Escape",
+      "period_date_from": "2026-08-01",
+      "period_date_to": "2026-08-31",
+      "occupancy_rate": "nilai_tunggal"
+    }
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "198ab4c4-602b-4ab0-ae9f-ad13000d00b0",
+      "teks_kebutuhan": "Okupansi Nirwana Lombok Escape bulan ini",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "reservation",
+      "view_name": "v_reservation_room_type_daily",
+      "params": {
+        "property_name": "Nirwana Lombok Escape",
+        "period_date_from": "2026-08-01",
+        "period_date_to": "2026-08-31",
+        "occupancy_rate": "nilai_tunggal"
+      }
+    },
+    "status": "berhasil",
+    "lolos": false,
+    "alasan": "Params hanya menetapkan property_name dan rentang tanggal satu bulan, tetapi grain view adalah properti × tipe kamar × tanggal; tanpa filter room_type atau agregasi, hasil akan mengembalikan banyak baris per tipe kamar per hari (mis. 4 tipe × 31 hari), bukan satu angka okupansi untuk properti bulan ini."
+  },
+  "match": true
+}

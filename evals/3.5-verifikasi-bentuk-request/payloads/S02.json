@@ -1,0 +1,42 @@
+{
+  "scenario_id": "S02",
+  "deskripsi": "KK2: label tren, rentang tanggal dipersempit satu hari",
+  "timestamp": "2026-08-17T09:56:38.466277+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "b6a6eee9-111f-4286-a60e-e98f749d15d9",
+    "teks_kebutuhan": "Bagaimana tren revenue outlet F&B tiga bulan terakhir?",
+    "label_bentuk_jawaban": "tren",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "view_name_tervalidasi_retriever": "v_fnb_outlet_daily",
+  "request_input": {
+    "domain": "fnb",
+    "view_name": "v_fnb_outlet_daily",
+    "params": {
+      "period_date_from": "2026-08-17",
+      "period_date_to": "2026-08-17"
+    }
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "b6a6eee9-111f-4286-a60e-e98f749d15d9",
+      "teks_kebutuhan": "Bagaimana tren revenue outlet F&B tiga bulan terakhir?",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "request": {
+      "domain": "fnb",
+      "view_name": "v_fnb_outlet_daily",
+      "params": {
+        "period_date_from": "2026-08-17",
+        "period_date_to": "2026-08-17"
+      }
+    },
+    "status": "berhasil",
+    "lolos": false,
+    "alasan": "Params hanya memuat rentang satu hari (period_date_from=2026-08-17 dan period_date_to=2026-08-17), padahal kebutuhan meminta tren revenue tiga bulan terakhir. Untuk label tren, diperlukan rentang tanggal yang cukup panjang lebih dari satu titik, bukan satu hari."
+  },
+  "match": true
+}

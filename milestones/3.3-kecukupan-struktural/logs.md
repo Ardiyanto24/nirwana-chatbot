@@ -432,3 +432,28 @@ Tidak ada.
 **Commit:** *(skrip verifikasi murni operasional di scratchpad, tidak di-commit — konsisten preseden M3.1 Checkpoint 10 Task 22)*
 
 ---
+
+## Checkpoint 12 — Eval
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 19-21 — Rancangan, Eksekusi Nyata, Audit
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `evals/3.3-kecukupan-struktural/rancangan.md` (6 skenario: KK1 tren+snapshot, KK2 nilai_tunggal, fallback LLM genuinely terpicu, perbandingan dimensi jelas, tie-break nyata, tidak ada kandidat cukup). Menulis `run_eval.py` yang menjalankan `proses_retrieval_atomic_intent()` NYATA end-to-end (beda dari `evals/3.2-.../run_eval.py` yang mengonstruksi `HasilPencarianKandidat` manual — di sini M3.1 JUGA dijalankan nyata). Dieksekusi di background (real, bukan mock) — **6/6 skenario lolos**. Menulis `audit.md` dengan dua temuan didokumentasikan transparan.
+
+**Temuan**
+1. S01 tidak menyurfacekan kandidat fokus yang dirancang (`v_hr_turnover_snapshot`) — M3.1/M3.2 nyata mengembalikan `v_hr_headcount_status_daily` sebagai gantinya, kandidat berbeda yang JUGA diklasifikasi `tidak_pasti` (konsisten, bukan bug) tapi bukan yang dirancang eksplisit. Toleransi rancangan sudah mengantisipasi ini secara eksplisit.
+2. S03 membuktikan tie-break label-menang-atas-skor bekerja NYATA di produksi (bukan cuma unit test sintetis Task 13): `v_reservation_channel_daily` (skor 4.42, label `ditemukan`) mengalahkan `v_reservation_room_type_daily` (skor 5.93 lebih tinggi, label `sebagian`) sebagai `view_name_final`.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`python evals/3.3-kecukupan-struktural/run_eval.py` → 6/6 LOLOS, payload lengkap tersimpan `payloads/S01.json` s.d. `S06.json`.
+
+**Commit:** `96b0a86` — `docs(evals-3.3): rancangan+audit kecukupan struktural`
+
+---

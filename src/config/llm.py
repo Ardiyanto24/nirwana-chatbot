@@ -75,6 +75,13 @@ gampang diganti tanpa menyentuh logic layer.
   generate-only (ekstraksi parameter terstruktur), tanpa retry/verifier
   independen (M3.5 terpisah). Lihat
   milestones/3.4-penyusunan-request/decisions.md Keputusan 9 dan 10.
+- OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST: DeepSeek V4 Pro (reuse pola
+  M1.6 Langkah 6/M2.1/M2.3/M3.2 Langkah 2), dipakai
+  verifikasi_bentuk_request.py (M3.5, Langkah 2 Query Engine) dengan
+  reasoning="high" - verifikasi independen SATU panggilan terhadap hasil
+  M3.4, dipicu HANYA setelah pre-check kepatuhan sumber deterministik
+  lolos. Lihat
+  milestones/3.5-verifikasi-bentuk-request/decisions.md Keputusan 5.
 
 Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
 get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
@@ -110,6 +117,7 @@ OPENROUTER_MODEL_KECOCOKAN_MAKNA_GENERATE = "qwen/qwen3-32b"
 OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL = "qwen/qwen3-32b"
 OPENROUTER_MODEL_PENYUSUNAN_REQUEST = "qwen/qwen3-32b"
+OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST = "deepseek/deepseek-v4-pro"
 
 load_dotenv()
 

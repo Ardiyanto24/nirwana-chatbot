@@ -152,7 +152,31 @@ Review manual isi prompt + span `PROMPT_VERSION` di `susun_request_atomic_intent
 
 ---
 
-*(Checkpoint 4-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
+## Checkpoint 4 — Skema Hasil Eksekusi
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 8 — Skema `HasilEksekusiAtomicIntent`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian lokasi file test (dicatat di bawah).
+
+**Apa yang dilakukan**
+Menambah `HasilEksekusiAtomicIntent` ke `src/schemas/execution.py`: `status: StatusEksekusi` (invarian: hanya BERHASIL/GAGAL_TEKNIS), `nilai_hasil: Any = None`, `bug_prioritas_tinggi: bool = False`, `retry_count_infra: int = 0`, `revisi_count: int = 0`, `kegagalan_alasan: str | None = None`, dengan `model_validator` menegakkan invarian silang (GAGAL_TEKNIS wajib `kegagalan_alasan` + `nilai_hasil=None`; BERHASIL tidak boleh `kegagalan_alasan`/`bug_prioritas_tinggi=True`; status lain di luar keduanya ditolak).
+
+**Temuan**
+Plan menyebut lokasi test `tests/schemas/test_execution_schema.py`, tapi dicek dulu konvensi nyata project: skema `Hasil<X>` lain (`retriever.py`/`query_engine.py`) test-nya di `tests/layers/<layer>/test_<modul>_schema.py`, BUKAN direktori `tests/schemas/` terpisah (direktori itu bahkan tidak ada di project). Disesuaikan ke `tests/layers/execution/test_execution_schema.py`, mirror persis preseden `test_query_engine_schema.py`.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/test_execution_schema.py -v` — **11/11 lolos**: konstruksi valid BERHASIL (dengan `nilai_hasil` terisi maupun list kosong `[]` - membuktikan 0-legitimate tetap sah), konstruksi valid GAGAL_TEKNIS, dan 4 kasus pelanggaran invarian (BERHASIL+kegagalan_alasan, BERHASIL+bug_prioritas_tinggi=True, GAGAL_TEKNIS tanpa kegagalan_alasan, GAGAL_TEKNIS+nilai_hasil terisi) + 3 kasus status terlarang (SEBAGIAN/DITOLAK_OTORISASI/TERBLOKIR_KETERGANTUNGAN) semuanya memicu `ValidationError` sesuai ekspektasi.
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 5-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
 
 ---
 

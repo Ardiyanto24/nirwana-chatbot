@@ -41,15 +41,16 @@ gampang diganti tanpa menyentuh logic layer.
   (M2.3) dengan reasoning="high" - asimetri risiko M2.3 sama arah dengan
   M2.1 (false-negative = constraint terlewat = potensi kebocoran). Lihat
   milestones/2.3-deteksi-cakupan-individu/decisions.md Keputusan 2 dan 8.
-- OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_4B/_QWEN3_8B/_OPENAI_SMALL_3:
-  TIGA konstanta SEMENTARA (eval-only), dipakai pencarian_embedding.py
-  (M3.1, Checkpoint 6-7) untuk membandingkan 3 kandidat model embedding
-  fallback secara empiris sebelum dikunci - user eksplisit minta
-  perbandingan nyata, bukan pilih di depan tanpa bukti (beda dari pola
-  model chat/completion lain di atas). Akan DISEDERHANAKAN ke SATU
-  konstanta final OPENROUTER_MODEL_RETRIEVER_EMBEDDING pasca-eval
-  (Checkpoint 8, restorasi pola "satu konstanta per konsumen"). Lihat
-  milestones/3.1-pengumpulan-kandidat-view/decisions.md Keputusan 2.
+- OPENROUTER_MODEL_RETRIEVER_EMBEDDING: text-embedding-3-small (OpenAI via
+  OpenRouter), dipakai pencarian_embedding.py (M3.1, fallback cari_bm25()
+  gagal menemukan kandidat) - dikunci Checkpoint 8 setelah eval nyata
+  membandingkan 3 kandidat (Qwen3-Embedding-4B/8B, text-embedding-3-small):
+  Qwen3-4B 0/5 recall (gagal total), Qwen3-8B dan text-embedding-3-small
+  sama-sama 5/5, text-embedding-3-small unggul rank+latensi. Status
+  PROVISIONAL (dicatat docs/keputusan-tertunda.md, bukan ditutup permanen
+  seperti model chat/completion lain - instruksi eksplisit user). Lihat
+  milestones/3.1-pengumpulan-kandidat-view/decisions.md Keputusan 2 dan
+  evals/3.1-pengumpulan-kandidat-view/audit.md.
 
 Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
 get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
@@ -80,10 +81,7 @@ OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI = "qwen/qwen3-32b"
 OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI = "qwen/qwen3-32b"
 OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI = "deepseek/deepseek-v4-pro"
-# Sementara, eval-only (Milestone 3.1 Checkpoint 6-7) - lihat docstring modul.
-OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_4B = "qwen/qwen3-embedding-4b"
-OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_8B = "qwen/qwen3-embedding-8b"
-OPENROUTER_MODEL_RETRIEVER_EMBEDDING_OPENAI_SMALL_3 = "openai/text-embedding-3-small"
+OPENROUTER_MODEL_RETRIEVER_EMBEDDING = "openai/text-embedding-3-small"
 
 load_dotenv()
 

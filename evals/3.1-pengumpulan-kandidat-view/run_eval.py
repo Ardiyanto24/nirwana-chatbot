@@ -18,21 +18,21 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.config.llm import (
-    OPENROUTER_MODEL_RETRIEVER_EMBEDDING_OPENAI_SMALL_3,
-    OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_4B,
-    OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_8B,
-)
 from src.layers.retriever.pencarian_bm25 import cari_bm25
 from src.layers.retriever.pencarian_embedding import cari_embedding
 from src.schemas.domain_gate import Domain
 
 OUTPUT_DIR = Path(__file__).resolve().parent / "payloads"
 
+# ID model literal (BUKAN import dari src/config/llm.py) - script ini
+# membandingkan 3 KANDIDAT TETAP, sengaja tidak mengikuti perubahan
+# konstanta produksi pasca-Checkpoint 8 (yang hanya menyisakan 1 model
+# final). Arsip historis perbandingan, tetap bisa dijalankan ulang kapan
+# pun tanpa bergantung konfigurasi produksi saat ini.
 MODELS = {
-    "qwen3-4b": OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_4B,
-    "qwen3-8b": OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_8B,
-    "openai-small-3": OPENROUTER_MODEL_RETRIEVER_EMBEDDING_OPENAI_SMALL_3,
+    "qwen3-4b": "qwen/qwen3-embedding-4b",
+    "qwen3-8b": "qwen/qwen3-embedding-8b",
+    "openai-small-3": "openai/text-embedding-3-small",
 }
 
 BAGIAN_A = [

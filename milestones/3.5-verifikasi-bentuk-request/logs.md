@@ -100,3 +100,27 @@ Menambahkan 10 test ke `tests/layers/query_engine/test_query_engine_schema.py` (
 **Commit:** `e47f92d` (implementasi) + `21d2fa2` (test)
 
 ---
+
+## Checkpoint 5 — Eval Nyata
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 10-12 — Rancangan, Eksekusi, Audit
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`evals/3.5-verifikasi-bentuk-request/rancangan.md` — 5 skenario (S01 kepatuhan sumber KK1, S02 tren rentang sempit KK2, S03-S04 kontrol positif, S05 replikasi PERSIS payload `evals/3.4-penyusunan-request/payloads/S04.json`). `run_eval.py` dijalankan nyata ke OpenRouter (DeepSeek V4 Pro `reasoning="high"`) — **5/5 skenario lolos di run pertama**, tanpa perlu iterasi prompt.
+
+**Temuan**
+Tiga temuan didokumentasikan `audit.md`: (1) S01 `alasan` PERSIS string deterministik pre-check, bukti langsung LLM tidak dilibatkan; (2) S05 menangkap masalah LEBIH DALAM dari ekspektasi (grain-mismatch: params tanpa filter `room_type` akan menghasilkan banyak baris, bukan sekadar mengomentari nilai `occupancy_rate` aneh) — bukti penalaran genuinely grain-vs-label, bukan pattern-matching; (3) ketidakkonsistenan nyata S04 vs S05 (gap struktural serupa - tanpa filter `room_type` - tapi verdict berbeda, `lolos=true` vs `lolos=false`) — dicatat transparan sebagai observasi, BUKAN memicu revisi prompt (baru 1 titik data, dampak rendah, tidak melanggar KK sumber manapun).
+
+**Error/Kegagalan**
+Tidak ada — seluruh 5 panggilan LLM sukses di percobaan pertama, tanpa API error/timeout.
+
+**Hasil Verifikasi**
+Payload lengkap tersimpan `evals/3.5-verifikasi-bentuk-request/payloads/S01.json` s.d. `S05.json`, dibaca ulang manual untuk memverifikasi kualitas `alasan` (bukan cuma cek boolean `lolos`).
+
+**Commit:** `941c069`
+
+---

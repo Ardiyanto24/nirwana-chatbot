@@ -562,3 +562,51 @@ Tidak ada.
 ---
 
 ---
+
+## Checkpoint 16 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 24 — Tulis `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `milestones/3.2-kecocokan-makna/report.md` — Bagian 1 (ringkasan), Bagian 2 (KK vs bukti nyata, tabel), Bagian 3 (cara kerja+diagram Mermaid+integrasi, konfirmasi kontrak serah-terima `HasilPencarianKandidat` M3.1 tidak berubah), Bagian 4 (3 penyimpangan plan), Bagian 5 (keterbatasan — dua temuan Checkpoint 12/14 dicatat eksplisit TIDAK dinaikkan jadi entri formal `keterbatasan-diterima.md`, alasan disebutkan), Bagian 6 (follow-up ke M3.3, pemicu peninjauan eksplisit).
+
+**Temuan**
+Tidak ada temuan di luar dugaan — menulis report murni merangkum apa yang sudah terverifikasi di checkpoint-checkpoint sebelumnya.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual — kedua Kriteria Keberhasilan sumber (`rancangan-retrieval-query.md` Milestone 3.2) py baris bukti di Bagian 2, tidak ada yang terlewat.
+
+**Commit:** `7c4d40a` — `docs(milestone-3.2): report`
+
+---
+
+### Task 25 — Perbarui Status Project
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`CLAUDE.md`/`AGENT.md` "Status Saat Ini" diperbarui: entri baru M3.2 SELESAI (ringkasan mekanisme, KK, eval, reliability testing, bug tooling), baris "Urutan pengerjaan yang disarankan" diarahkan ke M3.3 berikutnya, baris folder milestone/`src/`/`src/prompts/`/`evals/` disinkronkan menyebut M3.2. Disinkronkan identik (`diff` kosong).
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` — kosong (identik).
+
+**Commit:** *(CLAUDE.md/AGENT.md sengaja tidak di-track git, lihat M1.1 decisions.md)*
+
+---
+
+## Ringkasan Milestone
+
+16 checkpoint, 25 task, seluruhnya terverifikasi dan ter-commit. Kedua Kriteria Keberhasilan sumber lolos lewat panggilan LLM nyata (bukan mock), 73 unit test, 8/8 skenario eval, 14/16 skenario Promptfoo (2 temuan honest didokumentasikan), dan span nyata di Jaeger. Milestone 3.2 SELESAI.

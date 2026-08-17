@@ -15,17 +15,22 @@ from openai import APIError
 
 import src.layers.retriever.kecukupan_struktural as kecukupan_struktural_module
 from src.layers.retriever.grain_view import KarakteristikGrain
-from src.layers.retriever.kecukupan_struktural import _evaluasi_deterministik, _evaluasi_llm_fallback
+from src.layers.retriever.kecukupan_struktural import (
+    _evaluasi_deterministik,
+    _evaluasi_llm_fallback,
+    evaluasi_kecukupan_struktural_atomic_intent,
+)
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.retriever import (
+    HasilKecocokanMakna,
     KandidatView,
     KecocokanKandidat,
     LabelKecocokanMakna,
     SumberKeputusanKecukupan,
     SumberPencarian,
 )
-from src.schemas.session_memory import LabelBentukJawaban
+from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 
 
 def _grain(time_series="tidak_pasti", pembanding="tidak_pasti") -> KarakteristikGrain:
@@ -137,14 +142,14 @@ def _buat_atomic_intent(
     )
 
 
-def _buat_kandidat(view_name: str) -> KandidatView:
-    return KandidatView(view_name=view_name, domain=Domain.RESERVATION, skor=3.0, sumber=SumberPencarian.BM25)
+def _buat_kandidat(view_name: str, skor: float = 3.0) -> KandidatView:
+    return KandidatView(view_name=view_name, domain=Domain.RESERVATION, skor=skor, sumber=SumberPencarian.BM25)
 
 
 def _buat_kecocokan_kandidat(
-    view_name: str, label: LabelKecocokanMakna = LabelKecocokanMakna.DITEMUKAN
+    view_name: str, label: LabelKecocokanMakna = LabelKecocokanMakna.DITEMUKAN, skor: float = 3.0
 ) -> KecocokanKandidat:
-    return KecocokanKandidat(kandidat=_buat_kandidat(view_name), label=label, alasan="lolos M3.2")
+    return KecocokanKandidat(kandidat=_buat_kandidat(view_name, skor), label=label, alasan="lolos M3.2")
 
 
 class _FakeUsage:
@@ -276,3 +281,129 @@ def test_fallback_kandidat_hilang_dari_respons_default_aman_bukan_drop():
     assert by_view["v_lookup_bookings"].cukup is True
     assert by_view["v_lookup_fnb_transactions"].cukup is False
     assert "tidak muncul di respons" in by_view["v_lookup_fnb_transactions"].alasan
+
+
+# --- evaluasi_kecukupan_struktural_atomic_intent (orkestrator per-item) ----
+
+
+def _buat_hasil_kecocokan(
+    kecocokan: list[KecocokanKandidat], label_bentuk_jawaban: LabelBentukJawaban = LabelBentukJawaban.TREN
+) -> HasilKecocokanMakna:
+    return HasilKecocokanMakna(
+        atomic_intent=_buat_atomic_intent(label_bentuk_jawaban),
+        kecocokan=kecocokan,
+        status=StatusEksekusi.BERHASIL,
+    )
+
+
+def test_orkestrator_seluruh_deterministik_nol_panggilan_llm(monkeypatch):
+    """v_reservation_room_type_daily: punya_time_series=ya (GRAIN_STRUKTURAL_VIEW)
+    -> tren cukup murni rule table, TIDAK PERNAH menyentuh fallback LLM -
+    dibuktikan monkeypatch _call_llm_fallback raise (mirror pola pembuktian
+    jalur pintas M2.3/M3.1/M3.2)."""
+    monkeypatch.setattr(
+        kecukupan_struktural_module,
+        "_call_llm_fallback",
+        lambda ai, kk: (_ for _ in ()).throw(
+            AssertionError("_call_llm_fallback TIDAK BOLEH dipanggil untuk kandidat deterministik murni")
+        ),
+    )
+    hasil_kecocokan = _buat_hasil_kecocokan(
+        [_buat_kecocokan_kandidat("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+    )
+
+    hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
+
+    assert hasil.status == StatusEksekusi.BERHASIL
+    assert hasil.view_name_final == "v_reservation_room_type_daily"
+    assert hasil.kecukupan[0].sumber_keputusan == SumberKeputusanKecukupan.DETERMINISTIK
+
+
+def test_orkestrator_sebagian_butuh_fallback_llm(monkeypatch):
+    """v_lookup_bookings: punya_time_series=tidak_pasti -> rule table jatuh
+    tidak_pasti, WAJIB lewat fallback LLM. Kombinasikan dengan kandidat
+    deterministik murni (v_reservation_channel_daily, time_series=ya) dalam
+    satu batch - bukti kedua jalur bisa hidup berdampingan per kebutuhan
+    atomik yang sama."""
+    kk_deterministik = _buat_kecocokan_kandidat(
+        "v_reservation_channel_daily", LabelKecocokanMakna.SEBAGIAN
+    )
+    kk_ambigu = _buat_kecocokan_kandidat("v_lookup_bookings", LabelKecocokanMakna.DITEMUKAN)
+
+    raw = json.dumps(
+        {"penilaian": [{"view_name": "v_lookup_bookings", "cukup": False, "alasan": "row-level, tidak cukup untuk tren"}]}
+    )
+    monkeypatch.setattr(
+        kecukupan_struktural_module, "_call_llm_fallback", lambda ai, kk: _FakeChatResponse(raw)
+    )
+
+    hasil_kecocokan = _buat_hasil_kecocokan([kk_deterministik, kk_ambigu])
+    hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
+
+    by_view = {k.kandidat.view_name: k for k in hasil.kecukupan}
+    assert by_view["v_reservation_channel_daily"].sumber_keputusan == SumberKeputusanKecukupan.DETERMINISTIK
+    assert by_view["v_reservation_channel_daily"].cukup is True
+    assert by_view["v_lookup_bookings"].sumber_keputusan == SumberKeputusanKecukupan.LLM
+    assert by_view["v_lookup_bookings"].cukup is False
+    # Tie-break: hanya v_reservation_channel_daily yang cukup -> dia yang final.
+    assert hasil.view_name_final == "v_reservation_channel_daily"
+
+
+def test_orkestrator_tidak_ada_kandidat_cukup_view_name_final_none():
+    """v_properties_ref: punya_time_series=tidak (deterministik pasti,
+    TANPA fallback LLM) -> tidak_cukup untuk tren, tidak ada kandidat lain
+    -> view_name_final=None, bukan error."""
+    hasil_kecocokan = _buat_hasil_kecocokan(
+        [_buat_kecocokan_kandidat("v_properties_ref", LabelKecocokanMakna.SEBAGIAN)]
+    )
+
+    hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
+
+    assert hasil.view_name_final is None
+    assert hasil.kecukupan[0].cukup is False
+    assert hasil.status == StatusEksekusi.BERHASIL
+
+
+def test_orkestrator_label_tidak_ditemukan_dikecualikan_dari_evaluasi():
+    """Keputusan 3: kandidat berlabel tidak_ditemukan (M3.2) TIDAK ikut
+    dievaluasi strukturnya sama sekali."""
+    hasil_kecocokan = _buat_hasil_kecocokan(
+        [_buat_kecocokan_kandidat("v_reservation_room_type_daily", LabelKecocokanMakna.TIDAK_DITEMUKAN)]
+    )
+
+    hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
+
+    assert hasil.kecukupan == []
+    assert hasil.view_name_final is None
+
+
+def test_orkestrator_tie_break_label_ditemukan_menang_atas_sebagian():
+    """Dua kandidat sama-sama cukup (tren, keduanya time_series=ya) tapi
+    label M3.2 beda - DITEMUKAN wajib menang meski skor lebih rendah."""
+    kk_ditemukan = _buat_kecocokan_kandidat(
+        "v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN, skor=1.0
+    )
+    kk_sebagian = _buat_kecocokan_kandidat(
+        "v_reservation_channel_daily", LabelKecocokanMakna.SEBAGIAN, skor=9.0
+    )
+
+    hasil_kecocokan = _buat_hasil_kecocokan([kk_ditemukan, kk_sebagian])
+    hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
+
+    assert hasil.view_name_final == "v_reservation_room_type_daily"
+
+
+def test_orkestrator_tie_break_skor_tertinggi_menang_saat_label_sama():
+    """Dua kandidat sama-sama cukup DAN sama-sama label DITEMUKAN - skor
+    KandidatView (M3.1) tertinggi yang menang."""
+    kk_skor_rendah = _buat_kecocokan_kandidat(
+        "v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN, skor=2.0
+    )
+    kk_skor_tinggi = _buat_kecocokan_kandidat(
+        "v_reservation_channel_daily", LabelKecocokanMakna.DITEMUKAN, skor=8.0
+    )
+
+    hasil_kecocokan = _buat_hasil_kecocokan([kk_skor_rendah, kk_skor_tinggi])
+    hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
+
+    assert hasil.view_name_final == "v_reservation_channel_daily"

@@ -39,7 +39,14 @@ from src.observability.genai_semconv import (
 )
 from src.observability.tracing import get_tracer
 from src.prompts.loader import load_prompt
-from src.schemas.retriever import HasilPencarianKandidat, KandidatView, KecocokanKandidat, LabelKecocokanMakna
+from src.schemas.retriever import (
+    HasilKecocokanMakna,
+    HasilPencarianKandidat,
+    KandidatView,
+    KecocokanKandidat,
+    LabelKecocokanMakna,
+)
+from src.schemas.session_memory import StatusEksekusi
 
 _TRACER_NAME = "retriever.kecocokan_makna"
 _PROMPT_ID_GENERATE = "retriever.kecocokan_makna_generate"
@@ -360,3 +367,47 @@ def _langkah_verifikasi(
         )
 
         return hasil, gagal
+
+
+# --- Orkestrator single-item --------------------------------------------------
+
+
+def nilai_kecocokan_makna_atomic_intent(
+    hasil_pencarian: HasilPencarianKandidat,
+) -> HasilKecocokanMakna:
+    """Gabungkan Langkah 1 (generate) + Langkah 2 (verifikasi, koreksi dua
+    arah) untuk SATU kebutuhan atomik (`HasilPencarianKandidat`, output
+    M3.1). Jalur pintas kandidat kosong: M3.1 memang bisa tidak menemukan
+    kandidat sama sekali - BERHASIL+kecocokan=[] tanpa satu pun panggilan
+    LLM (decisions.md Keputusan 10). Fallback gagal-teknis mengikuti
+    decisions.md Keputusan 7-8: Langkah 1 gagal total -> GAGAL_TEKNIS+
+    kosong; Langkah 2 gagal (Langkah 1 sukses) -> SEBAGIAN+hasil Langkah 1
+    dipertahankan utuh."""
+    if not hasil_pencarian.kandidat:
+        return HasilKecocokanMakna(
+            atomic_intent=hasil_pencarian.atomic_intent,
+            kecocokan=[],
+            status=StatusEksekusi.BERHASIL,
+        )
+
+    hasil_awal, gagal_generate = _langkah_generate(hasil_pencarian)
+    if gagal_generate:
+        return HasilKecocokanMakna(
+            atomic_intent=hasil_pencarian.atomic_intent,
+            kecocokan=[],
+            status=StatusEksekusi.GAGAL_TEKNIS,
+        )
+
+    hasil_verifikasi, gagal_verifikasi = _langkah_verifikasi(hasil_pencarian, hasil_awal)
+    if gagal_verifikasi:
+        return HasilKecocokanMakna(
+            atomic_intent=hasil_pencarian.atomic_intent,
+            kecocokan=hasil_awal,
+            status=StatusEksekusi.SEBAGIAN,
+        )
+
+    return HasilKecocokanMakna(
+        atomic_intent=hasil_pencarian.atomic_intent,
+        kecocokan=hasil_verifikasi,
+        status=StatusEksekusi.BERHASIL,
+    )

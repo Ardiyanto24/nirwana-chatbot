@@ -43,6 +43,22 @@ def test_build_user_prompt_memuat_tanggal_referensi_dan_whitelist():
     assert "employee_id" not in prompt  # tidak pernah masuk whitelist, tidak muncul di daftar
 
 
+def test_build_user_prompt_tanpa_feedback_tidak_memuat_perhatian():
+    prompt = _build_user_prompt(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP, feedback=None)
+    assert "PERHATIAN" not in prompt
+
+
+def test_build_user_prompt_dengan_feedback_menyisipkan_perhatian():
+    prompt = _build_user_prompt(
+        _buat_atomic_intent(),
+        _VIEW,
+        _TANGGAL_TETAP,
+        feedback="parameter 'room_type_name' tidak dikenal server",
+    )
+    assert "PERHATIAN" in prompt
+    assert "parameter 'room_type_name' tidak dikenal server" in prompt
+
+
 # --- _parse_response (pure function) ------------------------------------
 
 
@@ -128,7 +144,7 @@ def test_orkestrator_sukses_normal(monkeypatch):
         {"params": {"property_id": "P01", "period_date_from": "2026-06-01", "period_date_to": "2026-06-30"}}
     )
     monkeypatch.setattr(
-        penyusunan_request_module, "_call_llm", lambda ai, vn, tr: _FakeChatResponse(raw)
+        penyusunan_request_module, "_call_llm", lambda ai, vn, tr, fb=None: _FakeChatResponse(raw)
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -151,7 +167,7 @@ def test_orkestrator_domain_diturunkan_kode_tanpa_ditanyakan_llm(monkeypatch):
     raw = json.dumps({"params": {}})
     dipanggil_dengan = {}
 
-    def _fake_call_llm(ai, vn, tr):
+    def _fake_call_llm(ai, vn, tr, fb=None):
         dipanggil_dengan["view_name"] = vn
         return _FakeChatResponse(raw)
 
@@ -164,7 +180,7 @@ def test_orkestrator_domain_diturunkan_kode_tanpa_ditanyakan_llm(monkeypatch):
 
 
 def test_orkestrator_api_error_gagal_teknis(monkeypatch):
-    def _raise(ai, vn, tr):
+    def _raise(ai, vn, tr, fb=None):
         raise APIError("simulasi kegagalan API", request=None, body=None)
 
     monkeypatch.setattr(penyusunan_request_module, "_call_llm", _raise)
@@ -177,7 +193,7 @@ def test_orkestrator_api_error_gagal_teknis(monkeypatch):
 
 def test_orkestrator_empty_choices_gagal_teknis(monkeypatch):
     monkeypatch.setattr(
-        penyusunan_request_module, "_call_llm", lambda ai, vn, tr: _FakeChatResponse("", choices=[])
+        penyusunan_request_module, "_call_llm", lambda ai, vn, tr, fb=None: _FakeChatResponse("", choices=[])
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -189,7 +205,7 @@ def test_orkestrator_json_rusak_gagal_teknis(monkeypatch):
     monkeypatch.setattr(
         penyusunan_request_module,
         "_call_llm",
-        lambda ai, vn, tr: _FakeChatResponse("bukan json valid {{{"),
+        lambda ai, vn, tr, fb=None: _FakeChatResponse("bukan json valid {{{"),
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -200,7 +216,7 @@ def test_orkestrator_json_rusak_gagal_teknis(monkeypatch):
 def test_orkestrator_key_tidak_dikenal_tersaring_dari_request_final(monkeypatch):
     raw = json.dumps({"params": {"property_id": "P01", "kolom_karangan": "nilai"}})
     monkeypatch.setattr(
-        penyusunan_request_module, "_call_llm", lambda ai, vn, tr: _FakeChatResponse(raw)
+        penyusunan_request_module, "_call_llm", lambda ai, vn, tr, fb=None: _FakeChatResponse(raw)
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -212,7 +228,7 @@ def test_orkestrator_key_tidak_dikenal_tersaring_dari_request_final(monkeypatch)
 def test_orkestrator_employee_id_dari_llm_tidak_pernah_lolos(monkeypatch):
     raw = json.dumps({"params": {"employee_id": "E0001", "property_id": "P01"}})
     monkeypatch.setattr(
-        penyusunan_request_module, "_call_llm", lambda ai, vn, tr: _FakeChatResponse(raw)
+        penyusunan_request_module, "_call_llm", lambda ai, vn, tr, fb=None: _FakeChatResponse(raw)
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -220,12 +236,50 @@ def test_orkestrator_employee_id_dari_llm_tidak_pernah_lolos(monkeypatch):
     assert "employee_id" not in hasil.request.params
 
 
+def test_orkestrator_feedback_diteruskan_ke_call_llm(monkeypatch):
+    """Milestone 4.2: feedback dari penolakan chatbot_api sebelumnya
+    (400) wajib benar-benar sampai ke _call_llm(), bukan cuma diterima
+    lalu dibuang."""
+    raw = json.dumps({"params": {"property_id": "P01"}})
+    diterima: dict = {}
+
+    def _fake_call_llm(ai, vn, tr, fb=None):
+        diterima["feedback"] = fb
+        return _FakeChatResponse(raw)
+
+    monkeypatch.setattr(penyusunan_request_module, "_call_llm", _fake_call_llm)
+
+    susun_request_atomic_intent(
+        _buat_atomic_intent(),
+        _VIEW,
+        _TANGGAL_TETAP,
+        feedback="alasan penolakan chatbot_api",
+    )
+
+    assert diterima["feedback"] == "alasan penolakan chatbot_api"
+
+
+def test_orkestrator_feedback_default_none(monkeypatch):
+    raw = json.dumps({"params": {}})
+    diterima: dict = {}
+
+    def _fake_call_llm(ai, vn, tr, fb=None):
+        diterima["feedback"] = fb
+        return _FakeChatResponse(raw)
+
+    monkeypatch.setattr(penyusunan_request_module, "_call_llm", _fake_call_llm)
+
+    susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
+
+    assert diterima["feedback"] is None
+
+
 def test_orkestrator_tanggal_referensi_default_terpakai_kalau_tidak_diberikan(monkeypatch):
     """tanggal_referensi=None -> default dihitung server-side, bukan
     error/None diteruskan mentah ke _call_llm."""
     tanggal_dipakai = {}
 
-    def _fake_call_llm(ai, vn, tr):
+    def _fake_call_llm(ai, vn, tr, fb=None):
         tanggal_dipakai["tr"] = tr
         return _FakeChatResponse(json.dumps({"params": {}}))
 

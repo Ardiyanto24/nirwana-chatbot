@@ -1,8 +1,8 @@
 """Penyusunan Request (Milestone 3.4, Langkah 1 Query Engine). Dari
 kebutuhan atomik + `view_name` yang sudah divalidasi Retriever (M3.1-3.3),
 menyusun `QueryEngineRequest {domain, view_name, params}` lewat SATU
-pemanggilan LLM (ekstraksi parameter terstruktur) - tanpa retry, tanpa
-verifier independen (Milestone 3.5 terpisah).
+pemanggilan LLM (ekstraksi parameter terstruktur) - tanpa retry internal,
+tanpa verifier independen (Milestone 3.5 terpisah).
 
 `domain` diturunkan kode via `view_ke_domain()[view_name]` (M3.1),
 TIDAK diminta dari LLM. `params` disaring deterministik pasca-LLM
@@ -12,6 +12,15 @@ match, bukan mempercayai kepatuhan prompt saja. `employee_id`/
 paksa kapan pun muncul di respons LLM.
 
 Lihat milestones/3.4-penyusunan-request/decisions.md.
+
+Parameter `feedback` opsional (ditambahkan Milestone 4.2, lihat
+milestones/4.2-klasifikasi-respons-dan-penanganan-kegagalan/decisions.md
+Keputusan 3) dipakai saat REVISI - dipanggil ulang dari orkestrator
+Execution (`src/layers/execution/klasifikasi_respons.py`) kalau
+chatbot_api menolak request sebelumnya dengan status 400. Mirror pola
+persis parameter `feedback` di `pecah_atomik()` (M1.6). Fungsi ini
+SENDIRI tetap tanpa retry internal - loop revisi (kalau ada) sepenuhnya
+tanggung jawab pemanggil (Execution), bukan modul ini.
 """
 
 import json
@@ -55,22 +64,39 @@ def _render_system_prompt() -> str:
 
 
 def _build_user_prompt(
-    atomic_intent: AtomicIntent, view_name: str, tanggal_referensi: date
+    atomic_intent: AtomicIntent,
+    view_name: str,
+    tanggal_referensi: date,
+    feedback: str | None = None,
 ) -> str:
     whitelist = sorted(PARAM_WHITELIST_VIEW.get(view_name, frozenset()))
     definisi = DEFINISI_LENGKAP_VIEW.get(view_name, "(definisi tidak ditemukan)")
-    return (
+    lines = [
         f"Kebutuhan: {atomic_intent.teks_kebutuhan} "
-        f"(bentuk jawaban: {atomic_intent.label_bentuk_jawaban.value})\n"
-        f"Tanggal referensi hari ini: {tanggal_referensi.isoformat()}\n"
-        f"\nView data yang dipakai: {view_name}\n"
-        f"\nDefinisi lengkap view (untuk memahami arti tiap kolom):\n{definisi}\n"
+        f"(bentuk jawaban: {atomic_intent.label_bentuk_jawaban.value})",
+        f"Tanggal referensi hari ini: {tanggal_referensi.isoformat()}",
+    ]
+    if feedback:
+        lines.append(
+            f"\nPERHATIAN: percobaan penyusunan parameter sebelumnya DITOLAK "
+            f"chatbot_api dengan alasan: {feedback}\n"
+            f"Perbaiki parameter berikut berdasarkan alasan ini."
+        )
+    lines.append(f"\nView data yang dipakai: {view_name}")
+    lines.append(f"\nDefinisi lengkap view (untuk memahami arti tiap kolom):\n{definisi}")
+    lines.append(
         f"\nDaftar parameter yang VALID untuk view ini "
         f"(HANYA boleh pakai key dari daftar ini):\n{', '.join(whitelist)}"
     )
+    return "\n".join(lines)
 
 
-def _call_llm(atomic_intent: AtomicIntent, view_name: str, tanggal_referensi: date):
+def _call_llm(
+    atomic_intent: AtomicIntent,
+    view_name: str,
+    tanggal_referensi: date,
+    feedback: str | None = None,
+):
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`), mirror pola
     kecocokan_makna.py/kecukupan_struktural.py."""
@@ -79,7 +105,10 @@ def _call_llm(atomic_intent: AtomicIntent, view_name: str, tanggal_referensi: da
         model=OPENROUTER_MODEL_PENYUSUNAN_REQUEST,
         messages=[
             {"role": "system", "content": _render_system_prompt()},
-            {"role": "user", "content": _build_user_prompt(atomic_intent, view_name, tanggal_referensi)},
+            {
+                "role": "user",
+                "content": _build_user_prompt(atomic_intent, view_name, tanggal_referensi, feedback),
+            },
         ],
         response_format={"type": "json_object"},
         temperature=0,
@@ -123,13 +152,19 @@ def _saring_params_tidak_dikenal(view_name: str, params: dict) -> tuple[dict, li
 
 
 def susun_request_atomic_intent(
-    atomic_intent: AtomicIntent, view_name: str, tanggal_referensi: date | None = None
+    atomic_intent: AtomicIntent,
+    view_name: str,
+    tanggal_referensi: date | None = None,
+    feedback: str | None = None,
 ) -> HasilPenyusunanRequest:
-    """SATU pemanggilan LLM generate-only (tanpa retry, tanpa verifier
-    independen - Milestone 3.5 terpisah). `domain` diturunkan kode via
-    `view_ke_domain()`, TIDAK diminta LLM. `tanggal_referensi` default
-    hari ini zona WIB kalau tidak diberikan (test/eval bisa pin nilai
-    tetap lewat parameter ini)."""
+    """SATU pemanggilan LLM generate-only (tanpa retry internal, tanpa
+    verifier independen - Milestone 3.5 terpisah). `domain` diturunkan
+    kode via `view_ke_domain()`, TIDAK diminta LLM. `tanggal_referensi`
+    default hari ini zona WIB kalau tidak diberikan (test/eval bisa pin
+    nilai tetap lewat parameter ini). `feedback` opsional dipakai saat
+    dipanggil ulang dari orkestrator Execution (M4.2) untuk merevisi
+    parameter yang sebelumnya ditolak chatbot_api (status 400) - lihat
+    docstring modul untuk detail."""
     if tanggal_referensi is None:
         tanggal_referensi = _tanggal_referensi_default()
 
@@ -146,7 +181,7 @@ def susun_request_atomic_intent(
         span.set_attribute(REQUEST_VIEW_NAME, view_name)
 
         try:
-            response = _call_llm(atomic_intent, view_name, tanggal_referensi)
+            response = _call_llm(atomic_intent, view_name, tanggal_referensi, feedback)
         except APIError as exc:
             span.set_attribute("query_engine.penyusunan_request.gagal_alasan", f"api_error: {exc}")
             return HasilPenyusunanRequest(

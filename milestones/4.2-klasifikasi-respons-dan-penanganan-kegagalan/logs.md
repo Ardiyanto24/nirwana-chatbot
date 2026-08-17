@@ -176,7 +176,31 @@ Tidak ada.
 
 ---
 
-*(Checkpoint 5-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
+## Checkpoint 5 — Klasifikasi Inti: Retry Infrastruktural + Eskalasi 403/404 + Berhasil 200
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 9 — `klasifikasi_respons.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Membuat `src/layers/execution/klasifikasi_respons.py`: `_kegagalan_infra()` (helper klasifikasi retryable: `kegagalan_transport` ATAU `status_code>=500`), `_panggil_dengan_retry_infra()` (loop retry maks `EXECUTION_MAX_RETRY_INFRA`, delay `EXECUTION_RETRY_DELAY_DETIK` via `time.sleep`), dan `eksekusi_atomic_intent()` (orkestrator, membungkus SATU span `execute_tool`) yang menangani jalur 200 (berhasil), 403/404 (eskalasi, `bug_prioritas_tinggi=True`, TANPA retry), retry-infra-exhausted (gagal_teknis), dan placeholder 400 (gagal_teknis sementara, disempurnakan Checkpoint 6). Signature menerima `view_name`/`constraint` sekalipun belum dipakai di checkpoint ini - disiapkan sekaligus untuk Checkpoint 6 (dijelaskan eksplisit di docstring fungsi kenapa ini bukan speculative/premature).
+
+**Temuan**
+Tidak ada temuan tak terduga - implementasi berjalan sesuai desain yang sudah dipetakan detail di plan (termasuk hitungan retry_count yang presisi: `percobaan` di `_panggil_dengan_retry_infra()` merepresentasikan JUMLAH RETRY, bukan jumlah total panggilan, mirror pola `retry_count=attempt-1` di `decompose.py`).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada - seluruh 8 test lolos di percobaan pertama.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/test_klasifikasi_respons.py -v` — **8/8 lolos**: 200 langsung berhasil (`_panggil_chatbot_api_raw` dipanggil 1x); 200 body kosong `[]` tetap berhasil (bukti KK Keputusan 1); 403 DAN 404 eskalasi tanpa retry (`bug_prioritas_tinggi=True`, dipanggil TEPAT 1x, span `error.type=gagal_teknis`+`execution.bug_prioritas_tinggi=True`); 500 berturut habis batas -> gagal_teknis, dipanggil TEPAT 3x (`EXECUTION_MAX_RETRY_INFRA`+1); timeout berturut habis batas -> gagal_teknis serupa; 500 lalu sukses di percobaan ke-2 -> berhasil, `retry_count_infra=1`, span `execution.retry_count_infra=1` DAN `http.response.status_code=200` (bukti status code yang tercatat adalah dari percobaan TERAKHIR, bukan pertama); 400 placeholder -> gagal_teknis (`belum_diimplementasi`), dipanggil TEPAT 1x (bukti 400 tidak ikut retry infra). Span attributes diverifikasi via fake tracer in-process (`_SpanRekam`/`_TracerRekam`, mirror pola M4.1) - TIDAK butuh Jaeger/Docker.
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 6 akan ditambahkan progresif setelah selesai dan terverifikasi.)*
 
 ---
 

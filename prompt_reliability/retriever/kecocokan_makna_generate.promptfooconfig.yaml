@@ -1,0 +1,89 @@
+description: "Reliability testing - retriever.kecocokan_makna_generate (M3.2 Langkah 1) - skenario awal KK1/KK2 sumber, akan diselaraskan penuh dengan evals/3.2-kecocokan-makna/ di Checkpoint 14"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: retriever.kecocokan_makna_generate
+      model: qwen/qwen3-32b
+      response_format: { type: json_object }
+      render_context: src.layers.retriever.kecocokan_makna._render_context_generate
+
+tests:
+  - description: S01_KK1_grain_mismatch_ringkasan_properti_vs_per_tipe_kamar
+    vars:
+      user_prompt: |
+        Kebutuhan: Tampilkan breakdown okupansi per tipe kamar untuk properti Bali bulan ini (bentuk jawaban: komposisi)
+
+        Daftar kandidat beserta definisi lengkapnya:
+
+        ### v_reservation_property_daily
+        *Sumber: `fact_revenue_property_daily` + `dim_property` — grain: properti × tanggal.*
+        **Fungsi**: ringkasan performa harian 1 properti — lead time booking, pertumbuhan MoM/YoY, ranking dibanding 4 properti lain, tingkat tamu berulang.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id`, `property_name`, `region` | Identitas properti. |
+        | `period_date` | Tanggal. |
+        | `avg_lead_time_days` / `median_lead_time_days` | Rata-rata/median jarak hari antara `booking_date` dan `check_in_date`. |
+        | `mom_occupancy_growth` / `yoy_occupancy_growth` | Pertumbuhan okupansi bulan-ke-bulan / tahun-ke-tahun. |
+        | `repeat_guest_rate` | Proporsi booking dari tamu yang sudah pernah menginap sebelumnya. |
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_reservation_property_daily");
+          return p !== undefined && p.label !== "ditemukan";
+
+  - description: S02_KK2_cocok_penuh_per_tipe_kamar
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa okupansi per tipe kamar di Bali bulan ini? (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat beserta definisi lengkapnya:
+
+        ### v_reservation_room_type_daily
+        *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti × tipe kamar × tanggal.*
+        **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari — "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id` | Kode properti (P01–P05; P06 kantor pusat tidak punya kamar). |
+        | `room_type_name` | `Standard`, `Deluxe`, `Suite`, atau `Villa`. |
+        | `period_date` | Tanggal. |
+        | `occupancy_rate` | `rooms_sold ÷ total_rooms_available`, rentang 0–1. |
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_reservation_room_type_daily");
+          return p !== undefined && p.label === "ditemukan";
+
+  - description: S03_kolom_turunan_sla_bukan_native
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa batas SLA (dalam jam) yang tercatat di database untuk tiket prioritas critical? (bentuk jawaban: nilai_tunggal)
+
+        Daftar kandidat beserta definisi lengkapnya:
+
+        ### v_maintenance_ticket_daily
+        *Sumber: `fact_maintenance_ticket_daily` + `dim_property` + `dim_facility_area` + `dim_issue_type` + `dim_priority` — grain: properti × area × jenis isu × prioritas × tanggal.*
+        **Fungsi**: volume tiket baru, rata-rata durasi penyelesaian, dan apakah SLA terlampaui — sudah menyertakan threshold SLA & flag pelanggaran terhitung langsung di view.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `priority_name` | `critical`, `high`, `medium`, `low`. |
+        | `avg_sla_duration_hours` | Rata-rata durasi penyelesaian (jam). |
+        | `sla_threshold_hours` | **Kolom turunan** — batas SLA sesuai prioritas: `critical`=8 jam, `high`=24 jam, `medium`=48 jam, `low`=72 jam. |
+    assert:
+      - type: is-json
+      - type: javascript
+        # toleransi eksplisit - sla_threshold_hours ADA di kandidat (bukan
+        # tidak_ditemukan), tapi label pasti (ditemukan vs sebagian) belum
+        # dipatok di sini karena "Kolom turunan" (hasil hitung, bukan
+        # tercatat langsung di database) adalah nuansa yang divalidasi
+        # penuh di evals/3.2-kecocokan-makna/ (Checkpoint 11-13), bukan
+        # smoke test reliability ini - hanya pastikan JSON valid + kandidat
+        # dinilai (tidak diabaikan).
+        value: |
+          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_maintenance_ticket_daily");
+          return p !== undefined;

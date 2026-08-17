@@ -5,6 +5,7 @@ description = "AI Chatbot RBAC backend - Nirwana Hospitality Group"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.141.1",
+    "httpx>=0.28.1",
     "jinja2>=3.1.6",
     "openai>=3.0.0",
     "opentelemetry-api>=1.44.0",

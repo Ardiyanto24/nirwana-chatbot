@@ -41,6 +41,15 @@ gampang diganti tanpa menyentuh logic layer.
   (M2.3) dengan reasoning="high" - asimetri risiko M2.3 sama arah dengan
   M2.1 (false-negative = constraint terlewat = potensi kebocoran). Lihat
   milestones/2.3-deteksi-cakupan-individu/decisions.md Keputusan 2 dan 8.
+- OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_4B/_QWEN3_8B/_OPENAI_SMALL_3:
+  TIGA konstanta SEMENTARA (eval-only), dipakai pencarian_embedding.py
+  (M3.1, Checkpoint 6-7) untuk membandingkan 3 kandidat model embedding
+  fallback secara empiris sebelum dikunci - user eksplisit minta
+  perbandingan nyata, bukan pilih di depan tanpa bukti (beda dari pola
+  model chat/completion lain di atas). Akan DISEDERHANAKAN ke SATU
+  konstanta final OPENROUTER_MODEL_RETRIEVER_EMBEDDING pasca-eval
+  (Checkpoint 8, restorasi pola "satu konstanta per konsumen"). Lihat
+  milestones/3.1-pengumpulan-kandidat-view/decisions.md Keputusan 2.
 
 Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
 get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
@@ -71,6 +80,10 @@ OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI = "qwen/qwen3-32b"
 OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI = "qwen/qwen3-32b"
 OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI = "deepseek/deepseek-v4-pro"
+# Sementara, eval-only (Milestone 3.1 Checkpoint 6-7) - lihat docstring modul.
+OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_4B = "qwen/qwen3-embedding-4b"
+OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_8B = "qwen/qwen3-embedding-8b"
+OPENROUTER_MODEL_RETRIEVER_EMBEDDING_OPENAI_SMALL_3 = "openai/text-embedding-3-small"
 
 load_dotenv()
 

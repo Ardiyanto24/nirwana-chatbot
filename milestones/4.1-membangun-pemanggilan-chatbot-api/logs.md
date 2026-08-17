@@ -10,7 +10,7 @@ Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dike
 | 2 | `9b2dd50`, `e637389` | `chore(milestone-4.1): tambah dependency httpx` + `feat(milestone-4.1): konfigurasi chatbot_api, pemetaan slug view, skema hasil pemanggilan` |
 | 3 | `6e2d71f` | `feat(milestone-4.1): implementasi pemanggilan chatbot_api` |
 | 4 | `a203b10` | `test(milestone-4.1): unit test pemanggilan chatbot_api (mocked)` |
-| 5 | **DITUNDA** — menunggu kabar filter `employee_id` diterapkan tim database | |
+| 5 | **DIJEDA** — fix `employee_id` sudah beres, tapi blocker BARU: kredensial `CHATBOT_AUTHZ_READER_DB_URL` permission denied ke `mart_cleaned.role_permissions` (di luar cakupan proyek ini) | |
 | 6 | **DITUNDA** — bergantung Checkpoint 5 | |
 
 ---
@@ -147,3 +147,40 @@ Tidak ada.
 **Commit:** `a203b10`
 
 **Checkpoint 3+4 selesai:** 2026-08-17
+
+---
+
+## Checkpoint 5 — Verifikasi Nyata
+
+**Mulai:** 2026-08-17 (setelah user mengonfirmasi tim database sudah memperbaiki gap `employee_id`)
+
+### Verifikasi ulang fix filter `employee_id` (prasyarat sebelum Checkpoint 5 dimulai, lihat decisions.md Keputusan 2)
+
+Dibaca ulang LANGSUNG `whitelist_facility.py`+`whitelist_hr.py` (repo bertetangga) — **seluruh 7 view yang sebelumnya gap sekarang punya filter `employee_id`**, pemetaan kolom tepat (`staff_id` untuk 2 view housekeeping, `assigned_staff_id` untuk 2 view maintenance, `employee_id` untuk 3 view hr). Nama parameter cocok persis dengan yang sudah dikirim `panggil_chatbot_api()` — tidak ada perubahan kode diperlukan. `docs/keterbatasan-diterima.md` #10 diperbarui: status jadi "DIPERBAIKI oleh Tim Database Engineering (2026-08-17)", seluruh pemicu peninjauan ulang ditandai selesai.
+
+### Task 9 — Jalankan `chatbot_api` lokal + cek `/health`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan penyesuaian teknis (tidak disebutkan plan): tidak ada `.venv` tersedia di repo bertetangga `nirwana-database` untuk menjalankan `chatbot_api` (butuh `fastapi`/`uvicorn`/`psycopg2-binary`, beda dari `psycopg[binary]` yang dipakai proyek ini). Dijalankan lewat environment ephemeral `uv run --with fastapi --with "uvicorn[standard]" --with psycopg2-binary uvicorn main:app --app-dir <path repo bertetangga> --port 8000` — TIDAK mengubah `pyproject.toml`/dependency permanen proyek ini maupun repo bertetangga (`chatbot_api` tetap tidak dimodifikasi, `CLAUDE.md`).
+
+**Verifikasi nyata:** `curl http://127.0.0.1:8000/health` → `{"status":"ok"}`, HTTP 200.
+
+**Commit:** tidak ada perubahan kode (murni operasional, tidak menghasilkan file untuk di-commit).
+
+### Task 10 — Panggilan nyata KK1 (200) — **BLOCKED, bukan oleh kode M4.1**
+
+**Kesesuaian dengan plan:** Dicoba sesuai plan (`panggil_chatbot_api()` nyata, `role_title="Front Office Staff"`, `employee_id="E0071"`, domain `reservation`/`v_lookup_daily_occupancy`, persona dari `api-chatbot.md`) — **GAGAL, tapi bukan karena kode kita.**
+
+**Apa yang terjadi**
+Hasil: `status_code=500`, bukan `200` yang diharapkan. Log server `chatbot_api` menunjukkan akar masalah:
+```
+psycopg2.errors.InsufficientPrivilege: permission denied for table role_permissions
+```
+Gagal di `authz.py::get_access_scope()` — kredensial `CHATBOT_AUTHZ_READER_DB_URL` (dipakai `chatbot_api` untuk cek otorisasi independennya sendiri ke `mart_cleaned.role_permissions`, TABEL PRODUKSI eksternal, bukan salinan Lapis 1 kita) kehilangan izin `SELECT`. Ini gagal PALING AWAL (sebelum whitelist/data query apa pun) — artinya blocker menyeluruh untuk SELURUH endpoint `chatbot_api`, bukan kasus spesifik satu domain/view.
+
+**Diagnosis:** murni masalah grant/kredensial database di sisi `nirwana-database` (di luar cakupan modifikasi proyek ini, `CLAUDE.md`) — TIDAK berkaitan dengan fix `employee_id` sebelumnya (gagal di langkah otorisasi, sebelum request bahkan sampai ke whitelist/filter). `panggil_chatbot_api()` sendiri bekerja BENAR — meneruskan `status_code=500` + body (`"Internal Server Error"`, fallback text karena bukan JSON) apa adanya, persis sesuai desain M4.1 (passthrough tanpa interpretasi).
+
+**Tindak lanjut:** draf pesan disiapkan untuk tim database engineering (dikirim user di luar sesi ini), berisi traceback lengkap + diagnosis + permintaan cek ulang grant `SELECT` kredensial `chatbot_authz_reader`. **Checkpoint 5 DIJEDA** menunggu perbaikan kredensial ini — KK1/KK2 M4.1 belum bisa dibuktikan nyata sampai blocker ini selesai.
+
+**Error/Kegagalan:** `psycopg2.errors.InsufficientPrivilege: permission denied for table role_permissions` (di sisi server `chatbot_api`, bukan kode proyek ini).
+
+**Commit:** tidak ada (blocked, tidak ada perubahan kode).

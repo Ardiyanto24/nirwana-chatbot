@@ -146,7 +146,7 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 
 ---
 
-## 10. Konvensi Filter Cakupan-Individu `employee_id` (Milestone 2.4) — TERVERIFIKASI: Gap Dikonfirmasi untuk 7 dari 9 View — RISIKO TINGGI
+## 10. Konvensi Filter Cakupan-Individu `employee_id` (Milestone 2.4) — DIPERBAIKI oleh Tim Database Engineering (2026-08-17)
 
 **Ditemukan di:** Milestone 2.4 (`milestones/2.4-verification-gate/decisions.md` Keputusan 1, 2026-08-16), lewat riset kontrak (agent Explore) sebelum plan ditulis, dikonfirmasi lewat dua putaran `AskUserQuestion` dengan user.
 
@@ -170,9 +170,11 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 | `v_lookup_housekeeping_log` (facility) | Tidak — hanya `property_id`/`date_from`/`date_to` (meski katalog data menandai kolom `staff_id`) |
 | `v_lookup_maintenance_tickets` (facility) | Tidak — hanya `property_id`/`status`/`priority` (meski katalog data menandai kolom `assigned_staff_id`) |
 
-**Kesimpulan: 2 dari 9 view aman (HR lookup), 7 dari 9 view genuinely TIDAK menegakkan filter `employee_id` server-side** — seluruh 4 view `facility` gap, 3 dari 5 view `hr` gap. Dikonfirmasi ke user (Milestone 4.1, lewat `AskUserQuestion`): **keputusan tetap mengirim `employee_id` sesuai desain M2.3/M2.4 yang sudah ada** — parameter ini "diperlakukan seolah punya filter" karena tim database engineering diharapkan menambahkannya sebagai filter di kemudian hari; memperbaiki whitelist `chatbot_api` sendiri di luar cakupan proyek ini (`chatbot_api` sudah final, tidak boleh dimodifikasi). Lihat `milestones/4.1-membangun-pemanggilan-chatbot-api/decisions.md` Keputusan 1.
+**Kesimpulan (saat gap ditemukan): 2 dari 9 view aman (HR lookup), 7 dari 9 view genuinely TIDAK menegakkan filter `employee_id` server-side** — seluruh 4 view `facility` gap, 3 dari 5 view `hr` gap. Dikonfirmasi ke user (Milestone 4.1, lewat `AskUserQuestion`): **keputusan tetap mengirim `employee_id` sesuai desain M2.3/M2.4 yang sudah ada** — parameter ini "diperlakukan seolah punya filter" karena tim database engineering diharapkan menambahkannya sebagai filter di kemudian hari; memperbaiki whitelist `chatbot_api` sendiri di luar cakupan proyek ini (`chatbot_api` sudah final, tidak boleh dimodifikasi). Lihat `milestones/4.1-membangun-pemanggilan-chatbot-api/decisions.md` Keputusan 1.
 
-**Pemicu peninjauan ulang:** (a) **SELESAI (2026-08-17)** — lihat Status Verifikasi di atas; (b) **TERKONFIRMASI TIDAK diterapkan untuk 7/9 view** — revisi mendesak TIDAK dilakukan (bukan tanggung jawab proyek ini untuk memperbaiki `chatbot_api`); ditandai eksplisit sebagai risiko yang tetap terbuka sampai tim database engineering menambahkan filter; (c) **SELESAI** — verifikasi ini dilakukan tepat sebelum Milestone 4.1 mengirim request nyata ke `chatbot_api` produksi (verifikasi nyata M4.1 sendiri ditunda ke Checkpoint 5, menunggu kabar filter diterapkan); (d) **BARU**: begitu ada kabar dari tim database engineering bahwa filter `employee_id` sudah ditambahkan untuk 7 view di atas, verifikasi ulang whitelist-nya (baca file yang sama) sebelum menutup entri ini sepenuhnya, dan lanjutkan Checkpoint 5 Milestone 4.1.
+**RESOLUSI (2026-08-17): gap DIPERBAIKI tim database engineering.** User menyampaikan temuan ini langsung ke tim database engineering (draf pesan disiapkan lewat sesi ini). Dikonfirmasi ulang dengan membaca LANGSUNG `whitelist_facility.py`+`whitelist_hr.py` (repo bertetangga) — **seluruh 7 view yang sebelumnya gap sekarang sudah punya filter `employee_id`**, dengan pemetaan kolom yang tepat: `v_housekeeping_staff_daily`→kolom `staff_id`, `v_lookup_housekeeping_log`→kolom `staff_id`, `v_maintenance_technician_daily`→kolom `assigned_staff_id`, `v_lookup_maintenance_tickets`→kolom `assigned_staff_id`, `v_hr_employee_monthly`/`v_hr_employee_performance_semester`/`v_hr_watchlist_monthly`→kolom `employee_id`. Nama parameter (`employee_id`) di seluruh 7 entri PERSIS sama dengan yang sudah dikirim `panggil_chatbot_api()` (M4.1) — **tidak perlu perubahan kode apa pun di Lapis 1**. **9 dari 9 view cakupan-individu M2.3 sekarang genuinely ditegakkan server-side.** Entri ini dianggap SELESAI — dipertahankan di dokumen sebagai catatan sejarah (bukan dihapus), konsisten prinsip `CLAUDE.md` "jangan menghapus atau menyembunyikan sejarah error/perubahan arah."
+
+**Pemicu peninjauan ulang:** (a)-(d) seluruhnya **SELESAI** — lihat RESOLUSI di atas. Tidak ada pemicu tersisa untuk entri ini.
 
 ---
 

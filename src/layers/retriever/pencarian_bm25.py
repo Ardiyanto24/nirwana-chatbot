@@ -2,12 +2,25 @@
 view_name, murni deterministik, tanpa network call. Index dibangun sekali
 per proses (`@lru_cache`) dari `KORPUS_FUNGSI_VIEW`.
 
-Trigger fallback ke embedding (Checkpoint 6) - PROVISIONAL:
-BM25_SKOR_MINIMUM = 0.0 (tidak ada satu pun kandidat berskor positif di
-domain_diizinkan, artinya tidak ada overlap leksikal sama sekali). Nilai
-ini eksplisit sementara, direvisi Checkpoint 9 berbasis bukti eval
-Checkpoint 7 - lihat
-milestones/3.1-pengumpulan-kandidat-view/decisions.md.
+Trigger fallback ke embedding (Checkpoint 6) - REVISI Checkpoint 9
+berbasis bukti `evals/3.1-pengumpulan-kandidat-view/audit.md`:
+
+1. **Stopword filtering ditambahkan** (`_STOPWORDS_ID`). Temuan Checkpoint 9:
+   tokenizer awal Checkpoint 5 (tanpa stopword) membuat query APA PUN nyaris
+   selalu punya skor positif terhadap SETIAP view lewat kata fungsi umum
+   ("yang", "dan", "di", dst, muncul di hampir seluruh 67 teks korpus) -
+   trigger `perlu_fallback` jadi TIDAK PERNAH aktif bahkan untuk 5/5
+   skenario stress-test Checkpoint 7 yang eksplisit dirancang menstress
+   kegagalan BM25 (dikonfirmasi ulang: implementasi ASLI tanpa stopword
+   filtering menghasilkan `perlu_fallback=False` di SEMUA 5 skenario,
+   bukan cuma 4/5 seperti draf awal `rancangan.md`/`audit.md` sebelum
+   koreksi ini - lihat logs.md Checkpoint 9 untuk detail kesalahan
+   dokumentasi yang diperbaiki).
+2. **BM25_SKOR_MINIMUM dipertahankan di 0.0** (bukan dinaikkan) - dengan
+   stopword filtering, skor positif kini benar-benar berarti overlap kata
+   BERMAKNA (bukan kata fungsi), jadi threshold "positif vs nol" kembali
+   jadi sinyal yang wajar, bukan lagi trigger yang nyaris tidak pernah
+   aktif.
 
 Filter domain diterapkan di titik MATERIALISASI kandidat (Keputusan 6
 decisions.md) - kandidat untuk domain di luar domain_diizinkan TIDAK
@@ -28,9 +41,30 @@ BM25_SKOR_MINIMUM = 0.0
 
 _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 
+# Kata fungsi umum Bahasa Indonesia (+ beberapa Inggris/istilah generik yang
+# muncul di korpus, mis. "vs", "mis") - tanpa daftar ini, kata-kata ini
+# muncul di hampir seluruh 67 teks Fungsi sehingga query APA PUN kebetulan
+# selalu "cocok" sesuatu, membuat trigger fallback nyaris tidak pernah aktif
+# (temuan Checkpoint 9, bukan daftar stemming lengkap - sengaja konservatif,
+# hanya kata fungsi murni tanpa muatan topik/domain).
+_STOPWORDS_ID = frozenset(
+    {
+        "yang", "dan", "atau", "di", "ke", "dari", "ini", "itu", "untuk",
+        "dengan", "pada", "adalah", "atas", "akan", "bisa", "ada", "tidak",
+        "tapi", "juga", "saja", "saat", "oleh", "sebagai", "secara", "per",
+        "jadi", "kalau", "karena", "seperti", "lebih", "sudah", "belum",
+        "masih", "harus", "dapat", "agar", "maupun", "serta", "bagi",
+        "tentang", "tanpa", "hal", "satu", "dua", "para", "apa", "gimana",
+        "sih", "ya", "nya", "mu", "ku", "the", "a", "an", "of", "in", "on",
+        "for", "to", "vs", "mis",
+    }
+)
+
 
 def _tokenisasi(teks: str) -> list[str]:
-    return _TOKEN_PATTERN.findall(teks.lower())
+    return [
+        t for t in _TOKEN_PATTERN.findall(teks.lower()) if t not in _STOPWORDS_ID
+    ]
 
 
 @lru_cache(maxsize=1)

@@ -53,3 +53,30 @@ def test_domain_diizinkan_kosong_selalu_fallback():
     kandidat, perlu_fallback = cari_bm25("okupansi Bali bulan ini", [])
     assert kandidat == []
     assert perlu_fallback is True
+
+
+def test_query_hanya_stopword_memicu_fallback():
+    """Regresi Checkpoint 9: sebelum stopword filtering ditambahkan, query
+    yang isinya murni kata fungsi umum ("yang", "dan", "di", "ini") akan
+    kebetulan "cocok" hampir seluruh 67 view (kata-kata ini muncul di
+    hampir semua teks Fungsi), membuat perlu_fallback SALAH-negatif
+    (tidak pernah True padahal query ini secara semantik kosong makna).
+    Dengan stopword filtering, tokenisasi query ini menghasilkan list
+    kosong -> otomatis 0 kandidat -> fallback benar terpicu."""
+    kandidat, perlu_fallback = cari_bm25(
+        "yang ini itu dan di ke dari untuk dengan", [Domain.RESERVATION]
+    )
+    assert kandidat == []
+    assert perlu_fallback is True
+
+
+def test_typo_okupansi_memicu_fallback():
+    """Skenario B3 evals/3.1-.../rancangan.md: typo memutus exact-match
+    token BM25 sepenuhnya (tanpa kata bermakna lain yang overlap) ->
+    fallback wajib terpicu. Regresi eksplisit karena ini kasus nyata yang
+    ditemukan gagal terdeteksi sebelum stopword filtering ditambahkan."""
+    kandidat, perlu_fallback = cari_bm25(
+        "okupasi hotel minggu ini gimana", [Domain.RESERVATION]
+    )
+    assert kandidat == []
+    assert perlu_fallback is True

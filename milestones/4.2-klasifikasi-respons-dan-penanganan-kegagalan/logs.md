@@ -253,6 +253,28 @@ Review manual — konsisten seluruh diskusi `AskUserQuestion` sesi ini (3 keputu
 
 **Commit:** *(pending)*
 
+### Checkpoint 2 — Pemanggilan Endpoint `_meta`
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu konsolidasi (dicatat di bawah).
+
+**Apa yang dilakukan**
+`HasilMetaChatbotAPI` ditambah ke `src/schemas/execution.py` (mirror XOR `HasilPemanggilanChatbotAPI`). `panggil_meta_chatbot_api()` ditambah ke `pemanggilan_chatbot_api.py` — GET `.../{slug}/_meta`, SATU percobaan (tanpa retry), TIDAK membuka span sendiri (dibungkus pemanggil M4.2). Non-200/kegagalan apa pun diperlakukan seragam "tidak diketahui" tanpa crash.
+
+**Sekaligus dikerjakan** (konsolidasi dari Checkpoint 3 plan, karena satu file edit yang sama): perluasan validator `HasilEksekusiAtomicIntent` — `SEBAGIAN` sekarang valid (structurally mirip `BERHASIL`), field baru `data_quality_status`/`last_refreshed_at`. Diputuskan digabung karena kedua perubahan skema (M4.2 revisit) secara alami satu unit edit di file yang sama (`src/schemas/execution.py`) — Checkpoint 3 sekarang murni fokus ke `klasifikasi_respons.py` (logic klasifikasi + integrasi panggilan meta), bukan skema lagi.
+
+**Temuan**
+Test lama `test_status_di_luar_berhasil_gagal_teknis_ditolak[sebagian]` (parametrize) tadinya lolos untuk alasan SALAH setelah validator diperluas (SEBAGIAN sekarang valid sebagai STATUS, tapi test itu juga set `kegagalan_alasan="x"` yang tetap ditolak validator untuk SEBAGIAN — jadi masih raise ValidationError, tapi bukan karena status-nya lagi). Dikoreksi: parametrize dipersempit ke `DITOLAK_OTORISASI`/`TERBLOKIR_KETERGANTUNGAN` saja, ditambah test baru khusus `SEBAGIAN` (valid construction + 2 invarian: tanpa `kegagalan_alasan`, tanpa `bug_prioritas_tinggi=True`).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada error nyata — temuan di atas ditangkap lewat review kode, bukan test yang gagal.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/ -v` — **62/62 lolos, 1 skip (sengaja)** — mencakup seluruh regresi M4.1/M4.2/M4.3 (`test_pemanggilan_chatbot_api.py` 19, `test_execution_schema.py` 15, `test_klasifikasi_respons.py` 7, `test_klasifikasi_respons_revisi.py` 5, `test_penyimpanan_paket.py` 13, `test_penyimpanan_paket_integrasi.py` 2+1skip) TANPA satu pun kegagalan.
+
+**Commit:** *(pending)*
+
 ---
 
 ## Task/Checkpoint di Luar Plan (jika ada)

@@ -247,3 +247,19 @@ Root cause: perilaku baru genuinely mengubah default output untuk kasus yang seb
 `./.venv/Scripts/python.exe -m pytest tests/layers/execution/ -v` — **81/81 lolos, 1 skip (sengaja)**, termasuk `test_kk1_round_trip_identik`/`test_kk3_...` (REAL Supabase, tetap lolos setelah perbaikan). 9 test baru khusus `_catatan_kualitas_data()`/orkestrator gabungan.
 
 **Commit:** *(pending)*
+
+### Checkpoint 6 — Penutupan Revisit
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+**Apa yang dilakukan**
+Addendum ditambahkan `report.md` M4.3 (M4.3 SUDAH ditutup formal sebelumnya, jadi addendum di file yang sudah ada, bukan file baru) — mencatat revisit, bukti 81/81 test, status verifikasi nyata endpoint `_meta` tertunda (mengikuti status DITUNDA M4.1/M4.2 Checkpoint 7). `CLAUDE.md`/`AGENT.md` diperbarui.
+
+**Hasil Verifikasi**
+Review manual — `report.md` addendum konsisten format Bagian 1-6 asli, append di akhir (bukan menulis ulang bagian yang sudah ada).
+
+**Commit:** *(tidak berlaku — `CLAUDE.md`/`AGENT.md` sengaja tidak di-track git, `report.md`/`logs.md` di-commit terpisah)*
+
+---
+
+**Revisit SELESAI.**

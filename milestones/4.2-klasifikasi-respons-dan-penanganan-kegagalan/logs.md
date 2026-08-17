@@ -295,6 +295,22 @@ Tidak ada.
 
 **Commit:** *(pending)*
 
+### Checkpoint 6 — Penutupan Revisit
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+**Apa yang dilakukan**
+`CLAUDE.md`/`AGENT.md` diperbarui mencatat revisit ini. `report.md` M4.2 TIDAK dibuat/diperbarui sesi ini — M4.2 secara keseluruhan MASIH belum ditutup formal (Checkpoint 7 asli, verifikasi nyata ke `chatbot_api` lokal, tetap tertunda sejak sebelum revisit ini dimulai). Membuat `report.md` sekarang (sebelum Checkpoint 7 asli selesai) akan salah menyiratkan M4.2 sudah ditutup penuh, padahal belum. Dokumentasi revisit ini cukup lengkap tercatat di `decisions.md` (Keputusan 11) dan `logs.md` (file ini).
+
+**Hasil Verifikasi**
+Review manual — status "Checkpoint 1-6 selesai, Checkpoint 7 tertunda" tetap akurat dan konsisten sebelum+sesudah revisit; revisit ini MENAMBAH cakupan Checkpoint 1-6 (sekarang juga mencakup sinyal `_meta`), tidak mengubah status Checkpoint 7.
+
+**Commit:** *(tidak berlaku — `CLAUDE.md`/`AGENT.md` sengaja tidak di-track git)*
+
+---
+
+**Revisit SELESAI** (Checkpoint 1-4 dari plan revisit) — Checkpoint 5 (verifikasi nyata `_meta`) tetap tertunda mengikuti status M4.1/M4.2 Checkpoint 7 yang sudah ada sebelumnya, dicatat eksplisit bukan diklaim tuntas.
+
 ---
 
 ## Task/Checkpoint di Luar Plan (jika ada)

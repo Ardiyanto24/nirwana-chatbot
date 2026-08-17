@@ -77,3 +77,13 @@ Tidak ada perubahan pada bentuk kode akhir maupun struktur checkpoint. Penyimpan
 - **Konfirmasi visual Jaeger KK2** — follow-up wajib begitu Docker aktif, dicatat eksplisit di Bagian 5.
 - **Perluasan katalog nullable-bermakna** — pemicu peninjauan ulang tercatat `docs/keterbatasan-diterima.md` #12 (begitu ada bukti traffic nyata kolom lain yang sering kosong).
 - Rekomendasi: saat M4.4/4.5 mulai membaca `nilai_hasil["rows"]` secara nyata, verifikasi tambahan bentuk data untuk `label_bentuk_jawaban` selain `nilai_tunggal` (tren/perbandingan/peringkat/komposisi) — Checkpoint 5 M4.3 hanya menguji `nilai_tunggal`.
+
+## Addendum (Revisit, 2026-08-17) — Integrasi Sinyal Freshness/Kualitas Data
+
+Tim database engineering mengonfirmasi endpoint `_meta` aktif (lihat `milestones/4.2-.../decisions.md` Keputusan 11) — memenuhi pemicu peninjauan ulang yang tercatat di Bagian 5/6 di atas ("Perluasan katalog nullable-bermakna" pemicunya beda, tapi ini pemicu SERUPA soal kejujuran sinyal kualitas data, dicatat `docs/keputusan-tertunda.md` #3).
+
+`susun_dan_simpan_paket()` (`penyimpanan_paket.py`) diperluas: parameter `data_quality_status`/`last_refreshed_at` opsional, `_catatan_kualitas_data()` baru menghasilkan teks berbeda nada untuk 3 kasus (SEBAGIAN+flagged, SEBAGIAN+stale, BERHASIL+tidak diketahui) — digabung (bukan menimpa) dengan catatan nullable-bermakna yang sudah ada. Lihat `decisions.md` Keputusan 9 untuk detail lengkap.
+
+**Bukti:** 81/81 test `tests/layers/execution/` lolos (9 test baru khusus catatan kualitas + regresi penuh) — termasuk 2 test REAL Supabase (`test_kk1_round_trip_identik`, `test_kk3_...`) yang disesuaikan (`data_quality_status="ok"` eksplisit) supaya tetap fokus menguji nullable-bermakna secara terisolasi dari fitur baru ini.
+
+**Status verifikasi nyata endpoint `_meta` itu sendiri**: TERTUNDA — mengikuti status DITUNDA yang sama dengan M4.1/M4.2 Checkpoint 7 (instance lokal `chatbot_api` belum tentu aktif/sudah termasuk endpoint `_meta` baru). Seluruh logic Revisit ini dibangun+diuji lewat simulasi/mock, konsisten prinsip project ("disimulasikan" sah sebagai bukti sebelum verifikasi nyata tersedia).

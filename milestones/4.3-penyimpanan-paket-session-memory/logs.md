@@ -227,8 +227,23 @@ Review manual — konsisten `milestones/4.2-.../decisions.md` Keputusan 11.
 
 **Commit:** *(pending — digabung commit M4.2 Checkpoint 1, satu commit mencakup kedua file decisions.md + keputusan-tertunda.md)*
 
----
+### Checkpoint 4 — Catatan Kualitas Data
 
-## Task/Checkpoint di Luar Plan (jika ada)
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
 
-Tidak ada.
+**Apa yang dilakukan**
+`_catatan_kualitas_data(status, data_quality_status, last_refreshed_at)` ditambah `penyimpanan_paket.py` — 3 kasus: SEBAGIAN+flagged (nada "perlu perhatian tim database"), SEBAGIAN+stale (menyebut timestamp+ambang konkret), BERHASIL+kualitas `None` (nada netral "belum diketahui", TIDAK menyiratkan masalah). BERHASIL+`"ok"` sengaja TIDAK menghasilkan catatan (tidak mengotori `catatan_interpretasi` dengan "semua baik-baik saja"). `susun_dan_simpan_paket()` menerima `data_quality_status`/`last_refreshed_at` opsional, menggabung catatan kualitas dengan catatan nullable-bermakna yang sudah ada (`+`, bukan menimpa).
+
+**Temuan**
+Perilaku baru ("BERHASIL + `data_quality_status=None` → tambah catatan 'tidak diketahui'") ternyata memengaruhi 2 test LAMA yang tidak pernah mengisi parameter itu (default `None`): `test_orkestrator_berhasil_lengkap` (Checkpoint 4 asli) dan `test_kk3_nullable_bermakna_tersimpan_dengan_catatan_tepat` (Checkpoint 5 asli, real Supabase) — keduanya sebelumnya mengharapkan `len(catatan_interpretasi) == 1`, sekarang jadi 2 (catatan nullable + catatan "tidak diketahui" baru). Dianalisis: ini BUKAN bug, melainkan konsekuensi wajar yang benar dari desain baru (kejujuran soal kualitas tidak diketahui, terlepas dari APAKAH caller mengecek atau tidak — beda dari "caller tidak peduli" yang seharusnya diam saja). Dikoreksi dengan menambah `data_quality_status="ok"` eksplisit ke kedua test lama supaya fokusnya tetap murni menguji catatan nullable-bermakna (skenario gabungan sudah dicakup test baru `test_orkestrator_catatan_nullable_dan_kualitas_digabung_bukan_menimpa`).
+
+**Error/Kegagalan (jika ada)**
+2 test regresi gagal SEMENTARA (`AssertionError: assert 2 == 1`) sebelum dikoreksi - lihat Temuan di atas untuk diagnosis lengkap.
+
+**Diagnosis dan Perbaikan**
+Root cause: perilaku baru genuinely mengubah default output untuk kasus yang sebelumnya tidak diuji eksplisit (parameter baru tidak diisi). Perbaikan: kedua test lama diberi `data_quality_status="ok"` eksplisit (bukan mengubah logic `_catatan_kualitas_data()` - logic-nya sudah benar sesuai desain).
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/ -v` — **81/81 lolos, 1 skip (sengaja)**, termasuk `test_kk1_round_trip_identik`/`test_kk3_...` (REAL Supabase, tetap lolos setelah perbaikan). 9 test baru khusus `_catatan_kualitas_data()`/orkestrator gabungan.
+
+**Commit:** *(pending)*

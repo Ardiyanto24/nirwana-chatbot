@@ -85,6 +85,45 @@ def test_catatan_nilai_hasil_kosong_tidak_menghasilkan_apa_apa():
     assert modul._catatan_interpretasi_untuk_hasil(_VIEW_TERDAFTAR, None) == []
 
 
+# --- _catatan_kualitas_data (Revisit 2026-08-17, Keputusan 9) -----------
+
+
+def test_catatan_kualitas_sebagian_flagged():
+    catatan = modul._catatan_kualitas_data(StatusEksekusi.SEBAGIAN, "flagged", None)
+    assert len(catatan) == 1
+    assert "flagged" in catatan[0]
+    assert "perlu perhatian" in catatan[0]
+
+
+def test_catatan_kualitas_sebagian_stale():
+    catatan = modul._catatan_kualitas_data(StatusEksekusi.SEBAGIAN, "ok", "2020-01-01T00:00:00+00:00")
+    assert len(catatan) == 1
+    assert "2020-01-01T00:00:00+00:00" in catatan[0]
+    assert "ambang kesegaran" in catatan[0]
+
+
+def test_catatan_kualitas_sebagian_flagged_dan_stale_prioritas_flagged():
+    catatan = modul._catatan_kualitas_data(StatusEksekusi.SEBAGIAN, "flagged", "2020-01-01T00:00:00+00:00")
+    assert len(catatan) == 1
+    assert "flagged" in catatan[0]
+
+
+def test_catatan_kualitas_berhasil_tidak_diketahui():
+    catatan = modul._catatan_kualitas_data(StatusEksekusi.BERHASIL, None, None)
+    assert len(catatan) == 1
+    assert "belum diketahui" in catatan[0]
+
+
+def test_catatan_kualitas_berhasil_ok_tidak_ada_catatan():
+    """Kualitas dikonfirmasi ok - tidak perlu catatan apa pun (tidak
+    mengotori catatan_interpretasi dengan 'semua baik-baik saja')."""
+    assert modul._catatan_kualitas_data(StatusEksekusi.BERHASIL, "ok", "2026-08-17T00:00:00+00:00") == []
+
+
+def test_catatan_kualitas_gagal_teknis_tidak_menghasilkan_apa_apa():
+    assert modul._catatan_kualitas_data(StatusEksekusi.GAGAL_TEKNIS, None, None) == []
+
+
 # --- susun_dan_simpan_paket (orkestrator) -------------------------------
 
 
@@ -93,8 +132,17 @@ def test_orkestrator_berhasil_lengkap(monkeypatch):
     ai = _buat_atomic_intent()
     nilai_hasil = [{"ticket_id": "T1", "room_id": None, "property_id": "P01"}]
 
+    # data_quality_status="ok" - fokus test ini murni catatan nullable-
+    # bermakna, bukan catatan kualitas data (diuji terpisah di atas dan
+    # di test_orkestrator_catatan_nullable_dan_kualitas_digabung_bukan_menimpa).
     hasil = modul.susun_dan_simpan_paket(
-        ai, "sess-1", 3, StatusEksekusi.BERHASIL, view_name=_VIEW_TERDAFTAR, nilai_hasil=nilai_hasil
+        ai,
+        "sess-1",
+        3,
+        StatusEksekusi.BERHASIL,
+        view_name=_VIEW_TERDAFTAR,
+        nilai_hasil=nilai_hasil,
+        data_quality_status="ok",
     )
 
     assert hasil.atomic_intent_id == ai.atomic_intent_id
@@ -127,6 +175,48 @@ def test_orkestrator_sumber_selalu_eksekusi_baru(monkeypatch):
         _buat_atomic_intent(), "sess-1", 1, StatusEksekusi.BERHASIL, nilai_hasil=[]
     )
     assert hasil.sumber == "eksekusi_baru"
+
+
+def test_orkestrator_sebagian_dengan_catatan_kualitas(monkeypatch):
+    dipanggil = _patch_store(monkeypatch)
+    ai = _buat_atomic_intent()
+
+    hasil = modul.susun_dan_simpan_paket(
+        ai,
+        "sess-1",
+        1,
+        StatusEksekusi.SEBAGIAN,
+        nilai_hasil=[{"a": 1}],
+        data_quality_status="flagged",
+    )
+
+    assert hasil.status == StatusEksekusi.SEBAGIAN
+    assert len(hasil.catatan_interpretasi) == 1
+    assert "flagged" in hasil.catatan_interpretasi[0]
+    assert dipanggil["package"] == hasil
+
+
+def test_orkestrator_catatan_nullable_dan_kualitas_digabung_bukan_menimpa(monkeypatch):
+    """Skenario gabungan: hasil punya kolom null terdaftar katalog
+    nullable-bermakna DAN kualitas data tidak diketahui sekaligus - dua
+    catatan harus muncul bersamaan, bukan salah satu menimpa yang lain."""
+    _patch_store(monkeypatch)
+    ai = _buat_atomic_intent()
+    nilai_hasil = [{"ticket_id": "T1", "room_id": None, "property_id": "P01"}]
+
+    hasil = modul.susun_dan_simpan_paket(
+        ai,
+        "sess-1",
+        1,
+        StatusEksekusi.BERHASIL,
+        view_name=_VIEW_TERDAFTAR,
+        nilai_hasil=nilai_hasil,
+        data_quality_status=None,
+    )
+
+    assert len(hasil.catatan_interpretasi) == 2
+    assert any("fasilitas umum" in c for c in hasil.catatan_interpretasi)
+    assert any("belum diketahui" in c for c in hasil.catatan_interpretasi)
 
 
 def test_orkestrator_exception_store_diteruskan_apa_adanya(monkeypatch):

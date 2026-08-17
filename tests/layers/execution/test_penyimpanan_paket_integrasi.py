@@ -79,6 +79,9 @@ def test_kk3_nullable_bermakna_tersimpan_dengan_catatan_tepat():
     nilai_hasil = [{"ticket_id": "T2", "property_id": "P01", "room_id": None}]
 
     try:
+        # data_quality_status="ok" (Revisit 2026-08-17) - fokus KK3 murni
+        # catatan nullable-bermakna, bukan catatan kualitas data (fitur
+        # terpisah, diuji tests/layers/execution/test_penyimpanan_paket.py).
         disimpan = susun_dan_simpan_paket(
             ai,
             session_id,
@@ -86,6 +89,7 @@ def test_kk3_nullable_bermakna_tersimpan_dengan_catatan_tepat():
             status=StatusEksekusi.BERHASIL,
             view_name="v_lookup_maintenance_tickets",
             nilai_hasil=nilai_hasil,
+            data_quality_status="ok",
         )
 
         assert len(disimpan.catatan_interpretasi) == 1

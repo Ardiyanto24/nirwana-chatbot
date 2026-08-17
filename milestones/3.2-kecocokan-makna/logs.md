@@ -176,3 +176,29 @@ Tidak ada.
 ---
 
 ---
+
+## Checkpoint 6 — Prompt Langkah 2 (Verifikasi)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 9 — Tulis `kecocokan_makna_verifikasi.md`
+
+**Kesesuaian dengan plan:** Sesuai plan untuk Task 9 ini. Task 10 (Promptfoo config verifikasi) TETAP dipindah ke Checkpoint 8, konsisten deviasi yang sudah dicatat di logs Checkpoint 5.
+
+**Apa yang dilakukan**
+Menulis `src/prompts/retriever/kecocokan_makna_verifikasi.md` (frontmatter id=`retriever.kecocokan_makna_verifikasi`, version=1, milestone="3.2", model_compat=["deepseek/deepseek-v4-pro"]) — instruksi eksplisit re-derivasi independen SEBELUM melihat label Langkah 1 (mitigasi anchoring, per decisions.md Keputusan 1 dan Risiko baris 2 di plan), dua arah kesalahan diinstruksikan eksplisit sebagai daftar bernomor (terlalu longgar vs terlalu ragu), keluaran dinyatakan eksplisit sebagai "penilaian FINAL yang akan MENGGANTIKAN penilaian awal sepenuhnya". `CLAUDE.md`/`AGENT.md` diperbarui (baris `src/prompts/`) mencatat kedua prompt M3.2 sudah terisi, disinkronkan identik.
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -c "from src.prompts.loader import load_prompt; ...; load_prompt('retriever.kecocokan_makna_verifikasi').render(catatan_lintas_domain=...)"` — parse frontmatter + render Jinja2 sukses, 5216 karakter keluaran.
+
+**Commit:** `b7116b2` — `feat(milestone-3.2): prompt Langkah 2 kecocokan makna (verifikasi)`
+
+---
+
+---

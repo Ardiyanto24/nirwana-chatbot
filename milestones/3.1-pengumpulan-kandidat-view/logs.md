@@ -122,6 +122,52 @@ Test collection `pytest tests/layers/retriever/` berjalan tanpa `ModuleNotFoundE
 
 ---
 
+---
+
+## Checkpoint 4 — Korpus 67 Deskripsi Fungsi
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 6 — `src/layers/retriever/korpus_view.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Membaca penuh `docs/03-domain-source/katalog-data-chatbot.md` (1020 baris), mentranskripsi manual teks `**Fungsi**:` untuk seluruh 67 view (transkripsi PERSIS termasuk markup Markdown `**bold**` dan tanda kutip lurus, bukan dinormalisasi) ke `KORPUS_FUNGSI_VIEW: dict[str, str]`, key `view_name` bersumber dari `DAFTAR_VIEW_PER_DOMAIN` (Checkpoint 2).
+
+**Temuan**
+Verifikasi silang manual (`Grep` pola `\*\*Fungsi\*\*:` terhadap dokumen sumber, dibandingkan baris demi baris terhadap draf transkripsi) menemukan 2 markup `**bold**` yang terlewat pada transkripsi awal: `guests_contact_view` ("**tidak** ada atribut analitis") dan `guests_profile_view` ("**Tidak** ada kolom kontak") — keduanya diperbaiki SEBELUM commit, dikonfirmasi lolos test independen Task 7.
+
+**Error/Kegagalan**
+Tidak ada (2 temuan transkripsi di atas tertangkap sebelum commit, bukan kegagalan test yang lolos ke commit).
+
+**Hasil Verifikasi**
+Lihat Task 7 (test independen membuktikan korpus akhir 100% sama persis dengan dokumen sumber).
+
+**Commit:** `51dfe2d` — `feat(milestone-3.1): korpus 67 deskripsi fungsi`
+
+---
+
+### Task 7 — Test Parse-Ulang Independen
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `tests/layers/retriever/test_korpus_view.py`: regex `^#### \`([^\`]+)\`.*\n\*Sumber:.*\n\*\*Fungsi\*\*:\s*(.+)$` (MULTILINE) memparse ulang dokumen sumber langsung dari file, dibandingkan `==` penuh terhadap `KORPUS_FUNGSI_VIEW`. Ditambah test prasyarat (regex sendiri menemukan tepat 67 entri — mencegah perbandingan `==` "lolos" keliru kalau kedua sisi sama-sama kosong/parsial), test bijektif terhadap `DAFTAR_VIEW_PER_DOMAIN`, dan spot-check "okupansi" (prasyarat KK1).
+
+**Temuan**
+Tidak ada temuan tambahan di luar Task 6 (test ini yang menangkap 2 markup terlewat sebelum commit final).
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_korpus_view.py -v` — 5/5 lolos: `test_korpus_sama_persis_dengan_dokumen_sumber`, `test_regex_menemukan_67_entri_di_dokumen`, `test_korpus_67_entri`, `test_bijektif_dengan_daftar_view_per_domain`, `test_okupansi_ada_di_teks_v_reservation_room_type_daily`.
+
+**Commit:** `aaae8ca` — `test(milestone-3.1): verifikasi korpus independen`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada.

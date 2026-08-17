@@ -26,7 +26,53 @@ Tidak ada.
 **Hasil Verifikasi**
 Review manual — seluruh keputusan di plan yang disetujui (Keputusan Desain Turunan + Keputusan yang Ditanyakan ke User) punya entri `decisions.md` yang sesuai, tidak ada yang diam-diam jadi asumsi implisit.
 
-**Commit:** *(dicatat setelah commit dibuat)*
+**Commit:** `edf6ee1` — `docs(milestone-3.1): decisions.md keputusan awal`
+
+---
+
+---
+
+## Checkpoint 2 — Relokasi Katalog View ke `src/config/`
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 2 — Pindahkan `DAFTAR_VIEW_PER_DOMAIN`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Membuat `src/config/katalog_view.py` (docstring diperluas menjelaskan alasan relokasi + rujukan `decisions.md` Keputusan 3, data `DAFTAR_VIEW_PER_DOMAIN` byte-identik dengan versi lama), update import di `verifikasi_gate.py` dari `src.layers.verification_gate.katalog_view` ke `src.config.katalog_view`, hapus `src/layers/verification_gate/katalog_view.py`.
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`grep -rn "from src\.layers\.verification_gate\.katalog_view"` di seluruh repo — nol hasil, tidak ada import lama tersisa.
+
+**Commit:** *(digabung Task 3, lihat di bawah)*
+
+---
+
+### Task 3 — Pindahkan Test ke `tests/config/`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Membuat `tests/config/__init__.py` dan `tests/config/test_katalog_view.py` (isi sama persis dengan versi lama, hanya import path diubah ke `src.config.katalog_view`), hapus `tests/layers/verification_gate/test_katalog_view.py`.
+
+**Temuan**
+`git add` mendeteksi perpindahan file sebagai rename murni (`R src/layers/verification_gate/katalog_view.py -> src/config/katalog_view.py`, `R tests/layers/verification_gate/test_katalog_view.py -> tests/config/test_katalog_view.py`) — bukti tambahan bahwa perubahan ini murni refactor tanpa modifikasi isi substansial.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`pytest tests/layers/verification_gate/ tests/config/ -v` — 25 test lolos (20 test verification_gate sisa + 5 test config pindahan), tanpa perubahan assertion. `CLAUDE.md`/`AGENT.md` diperbarui (baris `src/config/`, `src/layers/verification_gate/`, `tests/`) mencatat relokasi dan folder baru `tests/config/`, disinkronkan identik (`diff` kosong).
+
+**Commit:** `fc9c342` — `refactor(config): relokasi katalog view ke src/config`
 
 ---
 

@@ -1,0 +1,113 @@
+# Logs — Milestone 3.4: Penyusunan Request
+
+Dokumen ini mencatat peristiwa nyata sepanjang milestone ini dikerjakan — dikelompokkan per checkpoint, lalu per task di dalamnya, mengikuti struktur yang sama dengan Checkpoint & Task Breakdown di plan.
+
+---
+
+## Checkpoint 1 — Keputusan Desain
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 1 — Tulis `decisions.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `milestones/3.4-penyusunan-request/decisions.md`: 15 keputusan (1 Jenis A hasil `AskUserQuestion` + klarifikasi lanjutan langsung ke user dalam sesi perencanaan — konvensi penamaan parameter nama kolom asli view, ditambah instruksi eksplisit user untuk dokumen kontrak usulan terpisah; 14 Jenis B forced/preseden — reuse `QueryEngineRequest`, domain diturunkan kode, signature menerima `view_name` langsung, `tanggal_referensi` WIB, status biner validator dua arah, `employee_id`/`role_title` tidak pernah diisi, filter defensif, subpackage baru, observability, lokasi dokumen kontrak, entri keputusan-tertunda).
+
+**Temuan**
+Tidak ada temuan baru di luar yang sudah tercatat di plan (Context "Temuan Penting").
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual — seluruh keputusan di plan yang disetujui punya entri `decisions.md` dengan "Opsi yang Dipertimbangkan tapi Ditolak".
+
+**Commit:** `6a945d9` — `docs(milestone-3.4): decisions.md keputusan awal`
+
+---
+
+## Checkpoint 2 — Kontrak Parameter `chatbot_api` Usulan
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 2 — Bangun `param_whitelist.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `src/layers/query_engine/param_whitelist.py` — `_ekstrak_nama_kolom()` parse tabel Markdown "| Kolom | Deskripsi |" per entri `DEFINISI_LENGKAP_VIEW` (HANYA sel pertama tiap baris, supaya backtick di sel Deskripsi seperti nilai enum tidak salah tertangkap sebagai nama kolom), `_whitelist_dari_kolom()` mengklasifikasi kolom bertema tanggal (substring "date") jadi 3 entri (exact + `_from`/`_to`), kolom lain 1 entri exact. `PARAM_WHITELIST_VIEW: dict[str, frozenset[str]]` untuk 67 view, `limit`/`offset` ditambahkan ke semua, `employee_id`/`role_title`/`domain`/`view_name` tidak pernah masuk.
+
+**Temuan**
+Dua pola pemisah kolom-ganda-per-baris ditemukan di korpus (koma: "`property_id`, `property_name`, `region`"; garis miring: "`avg_lead_time_days` / `median_lead_time_days`") — keduanya tertangani otomatis oleh regex `_BACKTICK_NAME` yang mencari SEMUA nama berformat backtick di sel, tanpa perlu logic split per separator berbeda.
+
+**Error/Kegagalan**
+Tidak ada — sanity check manual (`PARAM_WHITELIST_VIEW['v_reservation_room_type_daily']`, dst.) lolos pada percobaan pertama.
+
+**Hasil Verifikasi**
+Lihat Task 3.
+
+**Commit:** `9716096` — `feat(milestone-3.4): whitelist parameter per-view`
+
+---
+
+### Task 3 — Test Whitelist Parameter
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `tests/layers/query_engine/test_param_whitelist.py` — 12 test: bijektif dengan `DAFTAR_VIEW_PER_DOMAIN`, 67-count, nol view gagal parsing (whitelist > sekadar param global), param global selalu ada, param terlarang tidak pernah bocor, spot-check kolom multi-per-baris (koma DAN garis miring), sel Deskripsi tidak ikut terekstrak (`v_maintenance_ticket_daily` — `critical`/`high`/`medium`/`low` dari teks penjelasan `sla_threshold_hours` WAJIB tidak muncul di whitelist), view tanpa `property_id` konsisten katalog (`v_financial_business_line_group_monthly`).
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada — seluruh 12 test lolos pada percobaan pertama.
+
+**Hasil Verifikasi**
+`pytest tests/layers/query_engine/test_param_whitelist.py -v` → 12 passed.
+
+**Commit:** `147b313` — `test(milestone-3.4): verifikasi whitelist parameter`
+
+---
+
+### Task 4 — Dokumen Kontrak Parameter Usulan
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Skrip sekali-pakai (`scratchpad/gen_kontrak_parameter.py`, tidak di-commit, mirror pola `korpus_view.py`/`definisi_view.py`) membangkitkan `docs/kontrak-parameter-chatbot-api-usulan.md` dari `PARAM_WHITELIST_VIEW` + `DAFTAR_VIEW_PER_DOMAIN` — pembuka menjelaskan status USULAN (bukan kontrak resmi), aturan derivasi, pemicu peninjauan ulang, lalu tabel 67 baris dikelompokkan per 10 domain (mirror struktur `katalog-data-chatbot.md`).
+
+**Temuan (konsekuensi desain, dicatat untuk `report.md` Bagian 5)**
+`PARAM_TERLARANG` (Keputusan 7 `decisions.md`) mengecualikan `employee_id` secara GLOBAL dari seluruh whitelist — termasuk `v_employees_directory`, padahal Fungsi view itu sendiri secara eksplisit "cari nama karyawan dari ID" (lookup by `employee_id` adalah use-case UTAMA-nya, bukan soal cakupan-individu seperti 9 view "performa individu" M2.3 yang jadi alasan awal pengecualian). Konsekuensi: M3.4 kehilangan kapabilitas mengisi filter `employee_id` langsung untuk lookup direktori sederhana pada view ini secara spesifik — trade-off yang sengaja diterima (konsistensi aturan sederhana > pengecualian kasus-per-kasus) tapi didokumentasikan transparan, bukan disembunyikan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Dokumen dibaca ulang manual (143 baris), dicocokkan sampel terhadap `katalog-data-chatbot.md` untuk beberapa view (`v_reservation_room_type_daily`, `v_properties_ref`, `guests_profile_view`) — seluruhnya sesuai.
+
+**Commit:** `dbfe396` — `docs: kontrak parameter chatbot_api usulan`
+
+---
+
+### Task 5 — Entri `keputusan-tertunda.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambahkan entri #3 ke `docs/keputusan-tertunda.md` — konvensi parameter AKTIF dipakai tapi provisional, 3 pemicu peninjauan eksplisit (rekonsiliasi tim `chatbot_api` di akhir proyek, pola kegagalan `400` berulang di M4.x, dokumentasi whitelist resmi tersedia lebih awal).
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Dibaca ulang manual, format konsisten dengan entri #1-2 yang sudah ada.
+
+**Commit:** `09620ea` — `docs: catat keputusan tertunda konvensi parameter chatbot_api`
+
+---

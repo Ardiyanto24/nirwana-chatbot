@@ -19,7 +19,7 @@ from functools import lru_cache
 
 from rank_bm25 import BM25Okapi
 
-from src.config.katalog_view import DAFTAR_VIEW_PER_DOMAIN
+from src.config.katalog_view import view_ke_domain
 from src.layers.retriever.korpus_view import KORPUS_FUNGSI_VIEW
 from src.schemas.domain_gate import Domain
 from src.schemas.retriever import KandidatView, SumberPencarian
@@ -44,15 +44,6 @@ def _bm25_index() -> BM25Okapi:
     return BM25Okapi(korpus_tertokenisasi)
 
 
-@lru_cache(maxsize=1)
-def _domain_per_view() -> dict[str, Domain]:
-    return {
-        view_name: domain
-        for domain, views in DAFTAR_VIEW_PER_DOMAIN.items()
-        for view_name in views
-    }
-
-
 def cari_bm25(
     teks_kebutuhan: str, domain_diizinkan: list[Domain]
 ) -> tuple[list[KandidatView], bool]:
@@ -64,7 +55,7 @@ def cari_bm25(
     perlu_fallback)."""
     index = _bm25_index()
     view_names = _view_names()
-    domain_map = _domain_per_view()
+    domain_map = view_ke_domain()
 
     skor_semua = index.get_scores(_tokenisasi(teks_kebutuhan))
 

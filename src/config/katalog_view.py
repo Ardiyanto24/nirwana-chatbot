@@ -22,6 +22,8 @@ Ruang kesalahan tertutup (67 nilai final, diaudit tim database
 engineering).
 """
 
+from functools import lru_cache
+
 from src.schemas.domain_gate import Domain
 
 DAFTAR_VIEW_PER_DOMAIN: dict[Domain, frozenset[str]] = {
@@ -117,3 +119,18 @@ DAFTAR_VIEW_PER_DOMAIN: dict[Domain, frozenset[str]] = {
     Domain.GUESTS_PII: frozenset({"guests_contact_view"}),
     Domain.GUESTS_PROFILE: frozenset({"guests_profile_view"}),
 }
+
+
+@lru_cache(maxsize=1)
+def view_ke_domain() -> dict[str, Domain]:
+    """Reverse mapping view_name -> Domain, turunan DAFTAR_VIEW_PER_DOMAIN.
+    Ditambahkan Milestone 3.1 (dipakai pencarian_bm25.py+pencarian_
+    embedding.py untuk filter struktural domain_diizinkan) - taruh di sini
+    (bukan file layer manapun) supaya konsisten dengan alasan relokasi
+    DAFTAR_VIEW_PER_DOMAIN itu sendiri: turunan data referensi, dipakai
+    lebih dari satu konsumen lintas-layer."""
+    return {
+        view_name: domain
+        for domain, views in DAFTAR_VIEW_PER_DOMAIN.items()
+        for view_name in views
+    }

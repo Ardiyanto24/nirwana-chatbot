@@ -3,7 +3,7 @@
 api-chatbot.md, ditulis independen dari hasil transkripsi (bukan len()
 dari data yang sama) supaya bukan pengujian sirkular."""
 
-from src.config.katalog_view import DAFTAR_VIEW_PER_DOMAIN
+from src.config.katalog_view import DAFTAR_VIEW_PER_DOMAIN, view_ke_domain
 from src.schemas.domain_gate import Domain
 
 # Ditranskripsi independen dari tabel per-domain api-chatbot.md baris 46-57.
@@ -46,3 +46,14 @@ def test_guests_view_pengecualian_penamaan():
     nyata di dokumen sumber, bukan typo transkripsi."""
     assert "guests_contact_view" in DAFTAR_VIEW_PER_DOMAIN[Domain.GUESTS_PII]
     assert "guests_profile_view" in DAFTAR_VIEW_PER_DOMAIN[Domain.GUESTS_PROFILE]
+
+
+def test_view_ke_domain_reverse_mapping_konsisten():
+    """view_ke_domain() (Milestone 3.1) - reverse mapping harus konsisten
+    dengan DAFTAR_VIEW_PER_DOMAIN forward mapping: setiap view muncul
+    tepat sekali, dan domain-nya cocok."""
+    reverse = view_ke_domain()
+    assert len(reverse) == 67
+    for domain, views in DAFTAR_VIEW_PER_DOMAIN.items():
+        for view_name in views:
+            assert reverse[view_name] == domain

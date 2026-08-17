@@ -426,3 +426,29 @@ Sama seperti Task 17 di atas (dijalankan bersamaan) — 73/73 lolos.
 ---
 
 ---
+
+## Checkpoint 11 — Rancangan Eval
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 19 — Tulis `rancangan.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `evals/3.2-kecocokan-makna/rancangan.md` — 8 skenario (S01-S02 KK1/KK2 sumber persis; S03 kolom turunan anti-false-negative; S04-S05 pasangan snapshot-vs-tren + counter-case anti-over-triggering; S06 domain padat 10 kandidat mirror stress-test B5 M3.1; S07 kolom hasil join nullable, observasional; S08 dua view financial mirip beda filter bawaan), tiap skenario dengan kebutuhan+kandidat+ekspektasi+toleransi eksplisit SEBELUM eksekusi.
+
+**Temuan**
+Saat menyusun S03 (awalnya dirancang sebagai "kolom turunan = trap negatif"), disadari spec sumber `rancangan-retrieval-query.md` sebenarnya membedakan DUA jenis jebakan berbeda: "Kolom turunan" (kolom hasil HITUNG, mis. `sla_threshold_hours`) vs "kolom hasil JOIN dari tabel lain, berpotensi tidak selalu terisi" (mis. `property_id` di `v_housekeeping_staff_daily`). Awalnya kedua ini nyaris tercampur jadi satu skenario. Dipisah jadi S03 (kolom turunan — dirancang ULANG jadi kasus POSITIF/anti-false-negative, karena nilai kolom turunan tetap benar) dan S07 (kolom hasil join, observasional soal nullability) — pemisahan ini memperjelas apa sebenarnya yang diuji tiap skenario.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual — setiap dimensi di tabel "Yang Diuji" punya skenario pembukti, KK1/KK2 sumber (S01-S02) tanpa toleransi sesuai statusnya sebagai kriteria wajib.
+
+**Commit:** `b9b7dd0` — `test(milestone-3.2): rancangan eval kecocokan makna`
+
+---
+
+---

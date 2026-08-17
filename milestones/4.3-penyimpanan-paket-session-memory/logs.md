@@ -151,7 +151,42 @@ Tidak ada.
 
 ---
 
-*(Checkpoint 5-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
+## Checkpoint 5 — Verifikasi Nyata: Round-Trip Supabase + Jaeger + Skenario Gagal
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17 (KK1/KK3 tuntas; KK2 sub-bagian visual Jaeger tertunda, lihat di bawah)
+
+### Task 8 — Skenario Nyata
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian (dicatat di bawah).
+
+**Apa yang dilakukan**
+`tests/layers/execution/test_penyimpanan_paket_integrasi.py` (mirror pola skip-otomatis `DATABASE_URL` M1.5, teardown `_cleanup()`):
+- **KK1**: `susun_dan_simpan_paket()` dipanggil nyata (session `test-m43-kk1`), hasilnya ditarik kembali `retrieve_session_memory()` (M1.5) — dibandingkan objek penuh.
+- **KK3**: skenario `room_id=None` (kolom terdaftar katalog Checkpoint 3) disimpan nyata (session `test-m43-kk3`), dicek `catatan_interpretasi` benar SEBELUM dan SESUDAH round-trip DB.
+- **KK2 (skenario gagal)**: diputuskan TIDAK disimulasikan sebagai unit test otomatis terpisah di sini (mengubah kredensial/host DB di tengah test suite berisiko merusak koneksi test lain dalam proses yang sama) — mekanismenya SUDAH dibuktikan `test_session_memory_kegagalan.py` (Checkpoint 2, mocked, 2/2 lolos). Ditulis sebagai test `pytest.skip()` eksplisit dengan alasan, bukan dihilangkan diam-diam.
+
+**Temuan**
+Docker Desktop TIDAK aktif di environment sesi ini (`docker ps` gagal connect ke daemon) — konfirmasi visual span `memory.store` nyata di Jaeger (bagian KK2 yang butuh Docker) TIDAK bisa dilakukan sesi ini. Sesuai Risiko & Mitigasi plan M4.3: ini TIDAK memblokir Checkpoint 5/6 lainnya — KK1 dan KK3 (yang tidak butuh Docker sama sekali) tuntas dibuktikan nyata terhadap Supabase.
+
+**Error/Kegagalan (jika ada)**
+`docker ps` gagal: "failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine ... daemon is running?" — bukan error kode, murni infrastruktur lokal tidak aktif.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak diperbaiki sesi ini (Docker Desktop di luar kendali kode) — dicatat sebagai item tertunda eksplisit di `report.md` (Checkpoint 6), bukan diklaim selesai.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/test_penyimpanan_paket_integrasi.py -v` — **2 passed (KK1, KK3), 1 skipped (KK2 skenario gagal, alasan eksplisit dicatat)**, seluruhnya terhadap Supabase SUNGGUHAN (bukan mock):
+- KK1: paket tersimpan `test-m43-kk1` turn 1, ditarik `retrieve_session_memory("test-m43-kk1", 1)` menghasilkan 1 baris identik dengan yang disimpan (`hasil[0] == disimpan`).
+- KK3: paket `test-m43-kk3` dengan `room_id=None` tersimpan `catatan_interpretasi=["Kosong jika kerusakan di fasilitas umum..."]`, tetap identik setelah ditarik ulang dari DB.
+- Teardown `_cleanup()` dijalankan kedua skenario (data uji tidak tertinggal di Supabase).
+
+**KK2 (visual span Jaeger) TERTUNDA** — mekanisme `error.type` sudah terbukti (Checkpoint 2, mocked), konfirmasi visual trace nyata menunggu Docker Collector aktif.
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 6 akan ditambahkan setelah selesai.)*
 
 ---
 

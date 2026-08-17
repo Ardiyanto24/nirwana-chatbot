@@ -395,3 +395,30 @@ Tidak ada — kedua test lolos pada percobaan pertama.
 **Commit:** `1b56a8b` — `test(milestone-3.3): skenario pipeline end-to-end`
 
 ---
+
+## Checkpoint 11 — Verifikasi Jaeger Nyata (KK3)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 18 — Jalankan Pipeline Nyata + Verifikasi Trace
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Skrip verifikasi (`scratchpad/verify_m33_pipeline_spans.py`, tidak di-commit, mirror pola M3.1 Checkpoint 10) menjalankan `proses_retrieval_atomic_intent()` NYATA (Collector lokal aktif, `docker ps` dikonfirmasi `nirwana-otel-collector`/`nirwana-jaeger` `Up`) untuk dua skenario: (A) "tren okupansi Bali per tipe kamar 3 bulan terakhir" (domain `reservation`, jalur M3.3 deterministik penuh); (B) "tren status kamar out-of-order 3 bulan terakhir" (domain `facility`, jalur M3.3 memicu fallback LLM lewat `v_facility_room_status_daily` yang diklasifikasi `tidak_pasti` pasca-revisi Checkpoint 7). Trace diambil langsung dari Jaeger HTTP API (`GET /api/traces?service=nirwana-chatbot-m33-verify`), bukan hanya dibaca dari UI screenshot.
+
+**Temuan (bukti nyata, dua trace_id berbeda)**
+- **Trace A** (`8c8d2782bee629068063f9632a8c725d`, scenario `m33_deterministik_saja`): span `retriever.cari_kandidat_view` membawa `retrieval.candidates_count=5`, `retrieval.fallback_terpicu=False`, `retrieval.sumber_utama=bm25`, DAN `retrieval.selected_view=v_reservation_room_type_daily` — SEMUA pada span YANG SAMA. Dua span anak `"chat"` (M3.2 Langkah 1 Qwen3-32B + Langkah 2 DeepSeek V4 Pro) benar terparent ke span itu. TIDAK ada span `"chat"` fallback M3.3 (jalur deterministik murni, sesuai ekspektasi).
+- **Trace B** (`c3ef710165a92c51006ee4cf2474bd5f`, scenario `m33_fallback_llm_terpicu`): span `retriever.cari_kandidat_view` yang SAMA membawa `retrieval.candidates_count=7` DAN `retrieval.selected_view=` (string kosong — genuinely tidak ada kandidat cukup, `v_facility_room_status_daily` dinilai `cukup=false` oleh fallback LLM). TIGA span anak `"chat"`: 2 milik M3.2 + 1 milik M3.3 fallback (`prompt.id=retriever.kecukupan_struktural_fallback`, `prompt.version=2` — mengonfirmasi run ini genuinely memakai prompt v2, bukan v1/v3, menyelesaikan ambiguitas timing proses background).
+
+Kedua trace membuktikan KK3 secara LITERAL: `retrieval.selected_view` mengisi span `retriever.cari_kandidat_view` M3.1 yang SAMA (bukan span baru), terlihat konsisten di Jaeger untuk jalur deterministik MAUPUN fallback-terpicu — termasuk kasus `view_name_final=None` yang jujur tercermin sebagai string kosong (bukan disembunyikan).
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`curl http://localhost:16686/api/traces?service=nirwana-chatbot-m33-verify` dua trace_id di atas, atribut dicek programatik (Python, bukan baca visual manual) — detail lengkap dicatat di atas.
+
+**Commit:** *(skrip verifikasi murni operasional di scratchpad, tidak di-commit — konsisten preseden M3.1 Checkpoint 10 Task 22)*
+
+---

@@ -41,7 +41,7 @@ Setiap kali prompt di `src/prompts/**/*.md` berubah (bump `version` di frontmatt
 
 ## Status
 
-Terisi penuh — seluruh 8 prompt M1.3-M2.1 (`config` per call site, Fase 2) + 2 prompt M2.3 (`deteksi_cakupan_individu`/`verifikasi_cakupan_individu`, dibangun natif sejak awal milestone, bukan retrofit — lihat `milestones/2.3-deteksi-cakupan-individu/decisions.md` Keputusan 11). `push_results.py` reuse untuk seluruh config.
+Terisi penuh — seluruh 8 prompt M1.3-M2.1 (`config` per call site, Fase 2) + 2 prompt M2.3 (`deteksi_cakupan_individu`/`verifikasi_cakupan_individu`, dibangun natif sejak awal milestone, bukan retrofit — lihat `milestones/2.3-deteksi-cakupan-individu/decisions.md` Keputusan 11) + 2 prompt M3.2 (`retriever/kecocokan_makna_{generate,verifikasi}`, natif sejak awal, diselaraskan penuh 8 skenario `evals/3.2-.../rancangan.md` — 7/8 lolos tiap config, lihat `milestones/3.2-kecocokan-makna/logs.md` Checkpoint 14 untuk detail dua temuan). `push_results.py` reuse untuk seluruh config.
 
 ## Referensi
 

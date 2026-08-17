@@ -1,0 +1,51 @@
+{
+  "scenario_id": "S02",
+  "deskripsi": "KK2 sumber persis: cocok penuh tanpa ragu",
+  "timestamp": "2026-08-17T02:43:49.344824+00:00",
+  "hasil_pencarian": {
+    "atomic_intent": {
+      "atomic_intent_id": "b9baf85e-805a-40f2-9b54-c7304fe5f48f",
+      "teks_kebutuhan": "Berapa okupansi Suite di Bali bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_diizinkan": [
+      "reservation"
+    ],
+    "kandidat": [
+      {
+        "view_name": "v_reservation_room_type_daily",
+        "domain": "reservation",
+        "skor": 1.0,
+        "sumber": "bm25"
+      }
+    ],
+    "fallback_terpicu": false,
+    "status": "berhasil"
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "b9baf85e-805a-40f2-9b54-c7304fe5f48f",
+      "teks_kebutuhan": "Berapa okupansi Suite di Bali bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecocokan": [
+      {
+        "kandidat": {
+          "view_name": "v_reservation_room_type_daily",
+          "domain": "reservation",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "ditemukan",
+        "alasan": "Koreksi dari penilaian awal: view ini menyediakan room_type_name, region, period_date, rooms_sold, dan total_rooms_available; grain harian justru mendukung agregasi bulanan. Dapat difilter Suite + Bali + bulan ini lalu dihitung okupansi = SUM(rooms_sold)/SUM(total_rooms_available) sebagai nilai tunggal."
+      }
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

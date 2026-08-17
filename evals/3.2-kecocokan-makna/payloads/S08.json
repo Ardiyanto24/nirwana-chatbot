@@ -1,0 +1,67 @@
+{
+  "scenario_id": "S08",
+  "deskripsi": "Dua view mirip, beda filter bawaan (baked-in vs manual)",
+  "timestamp": "2026-08-17T02:49:35.301045+00:00",
+  "hasil_pencarian": {
+    "atomic_intent": {
+      "atomic_intent_id": "3fccab4a-0060-49f3-842a-5501339bc520",
+      "teks_kebutuhan": "Berapa margin per departemen (Room, F&B, Spa&Event) bulan ini, tanpa data ringkasan level properti?",
+      "label_bentuk_jawaban": "perbandingan",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_diizinkan": [
+      "financial"
+    ],
+    "kandidat": [
+      {
+        "view_name": "v_financial_departmental_margin",
+        "domain": "financial",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_lookup_financial_summary",
+        "domain": "financial",
+        "skor": 1.0,
+        "sumber": "bm25"
+      }
+    ],
+    "fallback_terpicu": false,
+    "status": "berhasil"
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "3fccab4a-0060-49f3-842a-5501339bc520",
+      "teks_kebutuhan": "Berapa margin per departemen (Room, F&B, Spa&Event) bulan ini, tanpa data ringkasan level properti?",
+      "label_bentuk_jawaban": "perbandingan",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecocokan": [
+      {
+        "kandidat": {
+          "view_name": "v_financial_departmental_margin",
+          "domain": "financial",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "ditemukan",
+        "alasan": "View ini memiliki grain properti × lini bisnis × bulan, kolom business_line_name hanya berisi Room, F&B, Spa&Event karena filter permanen mengecualikan Overall dan Corporate Overhead, serta menyediakan margin_pct per lini bisnis, sehingga tidak perlu filter tambahan untuk memenuhi kebutuhan."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_lookup_financial_summary",
+          "domain": "financial",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "sebagian",
+        "alasan": "View ini menyediakan data departemen (Room, F&B, Spa&Event) dengan kolom department, revenue, expense, profit, period, tetapi tidak memiliki filter bawaan untuk mengecualikan baris Overall/Corporate Overhead, sehingga pemanggil harus menambahkan WHERE department IN (...) secara manual; tanpa filter, data ringkasan properti akan ikut muncul."
+      }
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

@@ -1,0 +1,51 @@
+{
+  "scenario_id": "S04",
+  "deskripsi": "Snapshot vs kebutuhan tren historis",
+  "timestamp": "2026-08-17T02:44:55.462782+00:00",
+  "hasil_pencarian": {
+    "atomic_intent": {
+      "atomic_intent_id": "cd150955-7b68-4a8e-8e66-21a7e79c6d7e",
+      "teks_kebutuhan": "Bagaimana TREN turnover karyawan departemen HR selama setahun terakhir?",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_diizinkan": [
+      "hr"
+    ],
+    "kandidat": [
+      {
+        "view_name": "v_hr_turnover_snapshot",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      }
+    ],
+    "fallback_terpicu": false,
+    "status": "berhasil"
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "cd150955-7b68-4a8e-8e66-21a7e79c6d7e",
+      "teks_kebutuhan": "Bagaimana TREN turnover karyawan departemen HR selama setahun terakhir?",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecocokan": [
+      {
+        "kandidat": {
+          "view_name": "v_hr_turnover_snapshot",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "View ini hanya snapshot turnover rate per departemen per properti pada period_date; tidak memiliki data historis perubahan turnover (data sumber fact_hr_turnover_snapshot tidak punya tanggal resign/riwayat), sehingga tidak bisa menampilkan tren selama setahun terakhir."
+      }
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

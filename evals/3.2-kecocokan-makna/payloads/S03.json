@@ -1,0 +1,51 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "Kolom turunan tetap valid (anti false-negative)",
+  "timestamp": "2026-08-17T02:44:28.495017+00:00",
+  "hasil_pencarian": {
+    "atomic_intent": {
+      "atomic_intent_id": "35e2a482-0fa0-47a7-a118-b8d1fa1584f7",
+      "teks_kebutuhan": "Berapa batas SLA (dalam jam) untuk tiket prioritas critical?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_diizinkan": [
+      "facility"
+    ],
+    "kandidat": [
+      {
+        "view_name": "v_maintenance_ticket_daily",
+        "domain": "facility",
+        "skor": 1.0,
+        "sumber": "bm25"
+      }
+    ],
+    "fallback_terpicu": false,
+    "status": "berhasil"
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "35e2a482-0fa0-47a7-a118-b8d1fa1584f7",
+      "teks_kebutuhan": "Berapa batas SLA (dalam jam) untuk tiket prioritas critical?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecocokan": [
+      {
+        "kandidat": {
+          "view_name": "v_maintenance_ticket_daily",
+          "domain": "facility",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "ditemukan",
+        "alasan": "Kolom sla_threshold_hours secara eksplisit menetapkan batas SLA critical=8 jam, sesuai kebutuhan nilai tunggal; grain detail tidak menghalangi karena nilai dapat diambil dengan filter priority_name='critical'."
+      }
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": "kalau sebagian dengan alasan merujuk sifat turunan, dicatat sebagai temuan nyata (nuansa interpretatif), bukan fail keras"
+}

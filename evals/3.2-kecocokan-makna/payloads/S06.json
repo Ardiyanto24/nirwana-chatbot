@@ -1,0 +1,195 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Domain padat kandidat (10 kandidat sekaligus)",
+  "timestamp": "2026-08-17T02:47:48.323904+00:00",
+  "hasil_pencarian": {
+    "atomic_intent": {
+      "atomic_intent_id": "0ecb55d2-91e3-494d-817e-bbc08413869e",
+      "teks_kebutuhan": "Karyawan mana saja yang pola absensinya menyimpang jauh dari kebiasaan pribadinya bulan ini?",
+      "label_bentuk_jawaban": "peringkat",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_diizinkan": [
+      "hr"
+    ],
+    "kandidat": [
+      {
+        "view_name": "v_hr_attendance_daily",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_hr_employee_monthly",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_hr_employee_performance_semester",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_hr_headcount_status_daily",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_hr_performance_by_status_semester",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_hr_performance_department_semester",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_hr_turnover_snapshot",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_hr_watchlist_monthly",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_lookup_employee_performance",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_lookup_staff_shifts",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      }
+    ],
+    "fallback_terpicu": false,
+    "status": "berhasil"
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "0ecb55d2-91e3-494d-817e-bbc08413869e",
+      "teks_kebutuhan": "Karyawan mana saja yang pola absensinya menyimpang jauh dari kebiasaan pribadinya bulan ini?",
+      "label_bentuk_jawaban": "peringkat",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecocokan": [
+      {
+        "kandidat": {
+          "view_name": "v_hr_attendance_daily",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "Grain view adalah properti × departemen × tanggal, tidak memuat data absensi per karyawan individu sehingga tidak bisa menilai penyimpangan dari baseline pribadi."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_hr_employee_monthly",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "sebagian",
+        "alasan": "Grain karyawan × bulan tersedia, tetapi perbandingan hanya terhadap rata-rata departemen (overtime_vs_dept_avg, late_vs_dept_avg), bukan terhadap baseline historis pribadi karyawan yang dibutuhkan."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_hr_employee_performance_semester",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "Berisi skor dan catatan performa per semester, tidak mengandung data absensi atau deviasi pola absensi dari kebiasaan pribadi."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_hr_headcount_status_daily",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "Hanya menghitung jumlah karyawan per status kepegawaian di level departemen, tidak menyediakan data absensi individu atau perbandingan baseline."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_hr_performance_by_status_semester",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "Menampilkan rata-rata skor kinerja per status kepegawaian, bukan pola absensi karyawan secara individual."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_hr_performance_department_semester",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "Rata-rata skor kinerja per departemen, tidak relevan dengan analisis penyimpangan absensi pribadi karyawan."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_hr_turnover_snapshot",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "Mengukur tingkat turnover departemen, bukan data absensi atau deviasi dari baseline pribadi karyawan."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_hr_watchlist_monthly",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "ditemukan",
+        "alasan": "Grain karyawan × bulan, langsung menyediakan kolom current vs baseline absence/late rate serta absence_deviation_ratio dan in_watchlist, persis memenuhi kebutuhan perbandingan dengan baseline pribadi."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_lookup_employee_performance",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "Hanya berisi skor dan catatan performa terakhir, tidak ada data absensi atau penyimpangan dari kebiasaan pribadi."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_lookup_staff_shifts",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "sebagian",
+        "alasan": "Menyediakan status kehadiran harian per karyawan, tetapi tidak memiliki metrik agregasi bulanan atau baseline historis pribadi untuk menilai penyimpangan jangka panjang."
+      }
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": "kandidat fokus (v_hr_watchlist_monthly) wajib ditemukan tanpa toleransi; hingga 2 dari 9 kandidat lain boleh salah dilabel ditemukan tanpa dianggap fail keras"
+}

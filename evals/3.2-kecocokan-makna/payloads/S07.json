@@ -1,0 +1,51 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "Kolom hasil join lintas-tabel (berpotensi nullable)",
+  "timestamp": "2026-08-17T02:48:20.270603+00:00",
+  "hasil_pencarian": {
+    "atomic_intent": {
+      "atomic_intent_id": "3fa129fe-6499-4b24-be65-d2560f2faffa",
+      "teks_kebutuhan": "Bandingkan durasi pembersihan tiap staf housekeeping per properti bulan ini",
+      "label_bentuk_jawaban": "perbandingan",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_diizinkan": [
+      "facility"
+    ],
+    "kandidat": [
+      {
+        "view_name": "v_housekeeping_staff_daily",
+        "domain": "facility",
+        "skor": 1.0,
+        "sumber": "bm25"
+      }
+    ],
+    "fallback_terpicu": false,
+    "status": "berhasil"
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "3fa129fe-6499-4b24-be65-d2560f2faffa",
+      "teks_kebutuhan": "Bandingkan durasi pembersihan tiap staf housekeeping per properti bulan ini",
+      "label_bentuk_jawaban": "perbandingan",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecocokan": [
+      {
+        "kandidat": {
+          "view_name": "v_housekeeping_staff_daily",
+          "domain": "facility",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "ditemukan",
+        "alasan": "Grain staf × tanggal dengan kolom avg_cleaning_duration_minutes, property_id, dan period_date memungkinkan agregasi bulanan per properti untuk membandingkan durasi pembersihan tiap staf. Penilaian awal terlalu ragu, koreksi ke 'ditemukan' karena semua data yang dibutuhkan tersedia (perlu filter tanggal dan agregasi)."
+      }
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": "observasional - dicatat di audit.md apakah alasan menyinggung nuansa join/nullable property_id, bukan uji pass/fail biner"
+}

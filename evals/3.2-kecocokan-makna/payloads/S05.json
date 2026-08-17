@@ -1,0 +1,51 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Snapshot cocok untuk kebutuhan point-in-time (counter-case S04)",
+  "timestamp": "2026-08-17T02:46:32.342653+00:00",
+  "hasil_pencarian": {
+    "atomic_intent": {
+      "atomic_intent_id": "935f30cf-bc2d-44f3-bfea-fff63bb1bd7d",
+      "teks_kebutuhan": "Berapa tingkat turnover departemen HR bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_diizinkan": [
+      "hr"
+    ],
+    "kandidat": [
+      {
+        "view_name": "v_hr_turnover_snapshot",
+        "domain": "hr",
+        "skor": 1.0,
+        "sumber": "bm25"
+      }
+    ],
+    "fallback_terpicu": false,
+    "status": "berhasil"
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "935f30cf-bc2d-44f3-bfea-fff63bb1bd7d",
+      "teks_kebutuhan": "Berapa tingkat turnover departemen HR bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecocokan": [
+      {
+        "kandidat": {
+          "view_name": "v_hr_turnover_snapshot",
+          "domain": "hr",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "ditemukan",
+        "alasan": "View ini menyediakan kolom department_name dan turnover_rate dengan grain properti × departemen × tanggal snapshot, sehingga bisa difilter department_name='HR' dan period_date pada bulan berjalan (misal snapshot terakhir bulan ini). API akan menyuntikkan filter property_id sesuai akses pengguna, sehingga menghasilkan nilai tunggal tingkat turnover HR."
+      }
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

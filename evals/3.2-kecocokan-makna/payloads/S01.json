@@ -1,0 +1,67 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "KK1 sumber persis: grain-mismatch ringkasan properti vs per tipe kamar",
+  "timestamp": "2026-08-17T02:43:04.422530+00:00",
+  "hasil_pencarian": {
+    "atomic_intent": {
+      "atomic_intent_id": "33dbd770-7dd0-4e90-8c6f-604a08ef019e",
+      "teks_kebutuhan": "Tampilkan breakdown okupansi per tipe kamar untuk properti Bali bulan ini",
+      "label_bentuk_jawaban": "komposisi",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "domain_diizinkan": [
+      "reservation"
+    ],
+    "kandidat": [
+      {
+        "view_name": "v_reservation_room_type_daily",
+        "domain": "reservation",
+        "skor": 1.0,
+        "sumber": "bm25"
+      },
+      {
+        "view_name": "v_reservation_property_daily",
+        "domain": "reservation",
+        "skor": 1.0,
+        "sumber": "bm25"
+      }
+    ],
+    "fallback_terpicu": false,
+    "status": "berhasil"
+  },
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "33dbd770-7dd0-4e90-8c6f-604a08ef019e",
+      "teks_kebutuhan": "Tampilkan breakdown okupansi per tipe kamar untuk properti Bali bulan ini",
+      "label_bentuk_jawaban": "komposisi",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecocokan": [
+      {
+        "kandidat": {
+          "view_name": "v_reservation_room_type_daily",
+          "domain": "reservation",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "ditemukan",
+        "alasan": "Grain properti × tipe kamar × tanggal sesuai; kolom room_type_name, occupancy_rate, period_date, dan property_id/region memungkinkan filter properti Bali dan agregasi bulan berjalan untuk komposisi okupansi per tipe kamar."
+      },
+      {
+        "kandidat": {
+          "view_name": "v_reservation_property_daily",
+          "domain": "reservation",
+          "skor": 1.0,
+          "sumber": "bm25"
+        },
+        "label": "tidak_ditemukan",
+        "alasan": "Grain properti × tanggal tanpa dimensi tipe kamar; tidak ada kolom room_type_name atau okupansi per tipe kamar, hanya pertumbuhan okupansi agregat, sehingga tidak dapat menjawab kebutuhan breakdown per tipe kamar."
+      }
+    ],
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

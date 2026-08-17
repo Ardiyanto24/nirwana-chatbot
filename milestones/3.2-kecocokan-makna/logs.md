@@ -504,3 +504,35 @@ Review manual — tiap skenario `rancangan.md` py hasil match/toleransi tercatat
 ---
 
 ---
+
+## Checkpoint 14 — Prompt Reliability Testing
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 22 — Jalankan Promptfoo untuk Kedua Prompt, Push Hasil
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan penyesuaian metode kerja: kedua config `.promptfooconfig.yaml` (3 skenario placeholder sejak Checkpoint 7-8) DISELARASKAN ULANG jadi 8 skenario persis `evals/3.2-.../rancangan.md` sebelum eksekusi — dibangkitkan lewat skrip sekali-pakai (`scratchpad/gen_promptfoo_configs.py`, tidak di-commit) yang memanggil `_build_user_prompt_generate()`/`_build_user_prompt_verifikasi()` produksi langsung, menjamin `user_prompt` tiap skenario byte-identik dengan yang benar-benar dikirim runtime (prinsip `provider.py`).
+
+**Apa yang dilakukan**
+`npx promptfoo eval` dijalankan untuk kedua config (`PROMPTFOO_PYTHON` diarahkan ke `.venv/Scripts/python.exe`), hasil di-push `push_results.py` ke Supabase `prompt_eval_runs`, diverifikasi query langsung (16 baris baru, 8 per prompt).
+
+**Temuan**
+**Bug ditemukan+diperbaiki sebelum run pertama berhasil**: percobaan awal (assertion JS dipadatkan satu baris dengan `;`, termasuk `return` eksplisit) menghasilkan **0/8 lolos di config generate** — SEMUA gagal dengan `SyntaxError: Unexpected token 'return'`, bukan kegagalan model. Root cause: `promptfoo` (`evaluator-SSlcaq_U.js` fungsi `handleJavascript`) hanya memakai `value` verbatim sebagai isi fungsi kalau string mengandung newline (`renderedValue.includes("\n")`); kalau tidak, dibungkus ulang jadi `return (${value})` — string saya SUDAH punya `return` sendiri, jadi jadi `return (const x=...; return ...;)`, sintaks tidak valid. Diperbaiki dengan memaksa tiap assertion JS jadi multi-baris (newline antar statement, bukan `;` di satu baris) — root cause murni cara PENULISAN assertion, BUKAN prompt/model. Setelah perbaikan, kedua config lolos mayoritas: **7/8 (generate)**, **7/8 (verifikasi)**.
+
+Dua temuan NYATA (bukan bug alat ukur) dari sisa 1 kegagalan tiap config:
+1. **Generate S02 (KK2 sumber) gagal ISOLASI** — Langkah 1 SENDIRIAN (tanpa Langkah 2) melabel `v_reservation_room_type_daily` sebagai `sebagian` ("perlu agregasi bulanan dari data harian"), bukan `ditemukan` — padahal `run_eval.py` (Checkpoint 12, pipeline PENUH) menghasilkan `ditemukan` benar untuk skenario identik. Ini BUKTI NYATA nilai mekanisme dua-langkah: Langkah 1 terisolasi kadang terlalu ragu (persis pola anti-hedging KK2 yang jadi alasan Langkah 2 ada), dan mereplikasi pola non-determinisme `temperature=0` yang sudah tercatat `docs/keterbatasan-diterima.md` #3 (M1.3/M1.4/M1.7) — kelas temuan yang sama, konteks baru (M3.2).
+2. **Verifikasi S08 gagal pada input adversarial buatan** — Langkah 1 disuplai SENGAJA `v_lookup_financial_summary=ditemukan` (adversarial, bukan hasil Langkah 1 asli). Langkah 2 TIDAK mengoreksi turun ke `sebagian` seperti diharapkan — beralasan pemanggil "dapat memfilter... sehingga tetap bisa memenuhi kebutuhan". Ini mengungkap batas nyata: kalau kebutuhan bisa dipenuhi via filter TAMBAHAN di query (bukan view itu sendiri yang cukup), model cenderung tetap memberi `ditemukan` — ambiguitas "sebagian karena butuh filter manual" vs "ditemukan, filter itu urusan Query Engine" belum sepenuhnya konsisten. Catatan: S08 di `run_eval.py` (Checkpoint 12, Langkah 1 ASLI bukan adversarial) LOLOS tepat — temuan ini spesifik untuk starting point adversarial buatan, bukan gagal di jalur produksi nyata.
+
+**Keputusan:** KEDUA temuan TIDAK dinaikkan jadi entri baru `docs/keterbatasan-diterima.md` — Temuan 1 adalah instance BARU dari pola yang SUDAH tercatat (#3), cukup dicatat di sini sebagai replikasi lintas-milestone (mirror bagaimana M1.7 "menambah temuan" ke entri M1.3 yang sama, bukan bikin entri baru terpisah). Temuan 2 baru satu titik data dengan input adversarial buatan (bukan kegagalan jalur produksi nyata) — dipantau kalau berulang di eval M3.3+ atau produksi.
+
+**Error/Kegagalan**
+`SyntaxError: Unexpected token 'return'` (8/8 gagal, config generate, percobaan pertama) — root cause dan perbaikan dijelaskan di atas.
+
+**Hasil Verifikasi**
+Query Supabase langsung: `prompt_id='retriever.kecocokan_makna_generate'` → 8 baris (7 lolos, 1 gagal); `prompt_id='retriever.kecocokan_makna_verifikasi'` → 8 baris (7 lolos, 1 gagal); total tabel `prompt_eval_runs` 82 baris (naik dari 66 sebelum checkpoint ini).
+
+**Commit:** `11d934e` (config diselaraskan) — `chore(milestone-3.2): selaraskan Promptfoo config dengan 8 skenario eval`; `c488b01` — `docs(prompt-reliability): update status`
+
+---
+
+---

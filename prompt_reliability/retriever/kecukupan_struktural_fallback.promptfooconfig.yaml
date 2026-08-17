@@ -1,0 +1,123 @@
+description: "Reliability testing - retriever.kecukupan_struktural_fallback (M3.3)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: retriever.kecukupan_struktural_fallback
+      model: qwen/qwen3-32b
+      response_format: { type: json_object }
+
+tests:
+  - description: S01_row_level_tanpa_label_periode_tidak_cukup_untuk_tren
+    vars:
+      user_prompt: |
+        Kebutuhan: tren booking Bali 3 bulan terakhir (bentuk jawaban: tren)
+
+        Daftar kandidat yang grain-nya ambigu, beserta definisi lengkapnya:
+
+        ### v_lookup_bookings
+        *Sumber: `mart_cleaned.bookings` (row-level, tanpa join) — grain: 1 baris = 1 reservasi.*
+        **Fungsi**: status booking hari ini, detail 1 booking spesifik, riwayat booking 1 tamu (`guest_id`) — kebutuhan Front Office Staff.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `booking_id` | ID reservasi. |
+        | `property_id` | Properti yang dipesan. |
+        | `check_in_date` / `check_out_date` | Tanggal masuk/keluar. |
+        | `booking_date` | Tanggal reservasi dibuat (selalu <= `check_in_date`). |
+        | `status` | `completed`, `confirmed`, `cancelled`, `no-show`. |
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_lookup_bookings");
+          r.cukup === false
+      - type: javascript
+        value: |
+          const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_lookup_bookings");
+          typeof r.alasan === "string" && r.alasan.length > 0
+
+  - description: S02_grain_jelas_time_series_cukup_untuk_tren
+    vars:
+      user_prompt: |
+        Kebutuhan: tren okupansi Bali per tipe kamar 3 bulan terakhir (bentuk jawaban: tren)
+
+        Daftar kandidat yang grain-nya ambigu, beserta definisi lengkapnya:
+
+        ### v_reservation_room_type_daily
+        *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti x tipe kamar x tanggal.*
+        **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari - "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id` | Kode properti. |
+        | `room_type_name` | Standard, Deluxe, Suite, atau Villa. |
+        | `period_date` | Tanggal. |
+        | `occupancy_rate` | rooms_sold / total_rooms_available. |
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_reservation_room_type_daily");
+          r.cukup === true
+
+  - description: S03_snapshot_eksplisit_tidak_cukup_untuk_tren
+    vars:
+      user_prompt: |
+        Kebutuhan: tren status kamar out-of-order 3 bulan terakhir (bentuk jawaban: tren)
+
+        Daftar kandidat yang grain-nya ambigu, beserta definisi lengkapnya:
+
+        ### v_facility_room_status_daily
+        *Sumber: `fact_facility_room_status_daily` + `dim_room` + `dim_property` + `dim_room_type` — grain: kamar x tanggal (snapshot).*
+        **Fungsi**: status 1 kamar tertentu pada tanggal tertentu - termasuk apakah sedang out-of-order.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `room_id` | Kode kamar. |
+        | `period_date` | Tanggal snapshot. |
+        | `status` | Kondisi kamar (occupied, available, cleaning, maintenance, out-of-order). |
+        | `is_out_of_order` | Boolean - kamar rusak berat, tidak bisa dijual. |
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_facility_room_status_daily");
+          r.cukup === false
+
+  - description: S04_dua_kandidat_sekaligus_batch_wajib_lengkap
+    vars:
+      user_prompt: |
+        Kebutuhan: perbandingan performa booking antar tipe kamar Bali bulan ini (bentuk jawaban: perbandingan)
+
+        Daftar kandidat yang grain-nya ambigu, beserta definisi lengkapnya:
+
+        ### v_lookup_bookings
+        *Sumber: `mart_cleaned.bookings` (row-level, tanpa join) — grain: 1 baris = 1 reservasi.*
+        **Fungsi**: status booking hari ini, detail 1 booking spesifik, riwayat booking 1 tamu (`guest_id`).
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `booking_id` | ID reservasi. |
+        | `room_type` | Standard, Deluxe, Suite, Villa. |
+        | `status` | completed, confirmed, cancelled, no-show. |
+
+        ### v_reservation_room_type_daily
+        *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti x tipe kamar x tanggal.*
+        **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari, tipe kamar mana penyumbang revenue terbesar.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `room_type_name` | Standard, Deluxe, Suite, atau Villa. |
+        | `revenue` | Total pendapatan kamar tipe ini pada tanggal itu. |
+        | `room_type_revenue_share_pct` | Kontribusi tipe kamar ini terhadap total revenue kamar properti hari itu. |
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).penilaian;
+          p.length === 2 && p.every(x => typeof x.cukup === "boolean")
+      - type: javascript
+        value: |
+          const r = JSON.parse(output).penilaian.find(p => p.view_name === "v_reservation_room_type_daily");
+          r.cukup === true

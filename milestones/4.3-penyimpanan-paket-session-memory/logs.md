@@ -186,7 +186,28 @@ Tidak diperbaiki sesi ini (Docker Desktop di luar kendali kode) — dicatat seba
 
 ---
 
-*(Checkpoint 6 akan ditambahkan setelah selesai.)*
+## Checkpoint 6 — Penutupan
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 9-11 — report.md, logs.md final, status CLAUDE.md/AGENT.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`report.md` ditulis (KK1-3 vs bukti Checkpoint 5, keterbatasan, follow-up M4.4). `CLAUDE.md`/`AGENT.md` (identik, dikonfirmasi `diff` kosong setelah edit) diperbarui: baris status 4.1/4.2/4.3 dipisah dari baris gabungan lama, 4.4-4.5 jadi "Berikutnya"; paragraf "Sedang berjalan"; jumlah entri `keterbatasan-diterima.md` (11→12) dan `keputusan-tertunda.md` (addendum #3); daftar milestone deterministik (+4.2, +4.3); tabel Struktur Repository (`src/layers/`, `src/schemas/`, `src/config/` kontribusi diperbarui sampai M4.3, ditambah `catatan_nullable_bermakna.py`).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Review manual seluruh perubahan `CLAUDE.md`/`AGENT.md` konsisten status nyata milestone (4.1/4.2 status jujur "Checkpoint tertunda", bukan "Selesai" polos; 4.3 "Selesai" dengan catatan KK2 sub-bagian tertunda).
+
+**Commit:** *(tidak berlaku — `CLAUDE.md`/`AGENT.md` sengaja tidak di-track git, `report.md`/`logs.md` di-commit terpisah)*
+
+---
+
+**Milestone 4.3 SELESAI** (dengan satu item tertunda: konfirmasi visual Jaeger KK2, dicatat eksplisit `report.md` Bagian 5-6 sebagai follow-up wajib, bukan diklaim tuntas).
 
 ---
 

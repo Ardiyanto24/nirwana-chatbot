@@ -497,3 +497,35 @@ Tidak ada error teknis - percobaan pertama "gagal" secara ekspektasi (bukan erro
 Query langsung ke Jaeger API (`http://localhost:16686/api/traces?service=nirwana-chatbot-retriever-verify`) mengonfirmasi: (a) span `retriever.cari_kandidat_view` muncul di KEDUA trace dengan `retrieval.candidates_count` terisi benar (2 untuk BM25-saja, 10 untuk fallback-terpicu) dan `retrieval.fallback_terpicu`/`retrieval.sumber_utama` sesuai; (b) span anak `retriever.pencarian_embedding_fallback` (`gen_ai.operation.name=embeddings`, `gen_ai.request.model=openai/text-embedding-3-small`) HANYA muncul di trace fallback-terpicu, dikonfirmasi ABSEN di trace BM25-saja - bukti langsung span anak bersyarat bekerja sesuai desain, bukan cuma diasumsikan dari baca kode.
 
 **Commit:** Tidak ada (skrip verifikasi tidak di-commit, sesuai konvensi M2.4).
+
+---
+
+## Checkpoint 11 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 23-25 — Finalisasi `decisions.md`, `logs.md`, `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Daftar Isi Keputusan `decisions.md` diperbarui (catatan addendum Checkpoint 9 di Keputusan 1-2). `report.md` ditulis lengkap (Bagian 1-6): KK1/KK2 vs bukti nyata (35 test + eval + span Jaeger), diagram Mermaid arsitektur, konfirmasi eksplisit Catatan Serah Terima `rancangan-retrieval-query.md` ke M2.4 (`view_name_tervalidasi_retriever`) dan M3.2 (bentuk `HasilPencarianKandidat`), 2 penyimpangan signifikan dicatat jujur, keterbatasan provisional. `logs.md` (dokumen ini) sudah dibangun incremental sepanjang milestone, bukan ditulis sekali di akhir.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/ tests/config/ --collect-only -q` — 35 test dikonfirmasi (bukan estimasi) sebelum ditulis ke `report.md`. Full test suite proyek (`pytest tests/`, latar belakang) selesai exit code 0 - regresi lintas milestone terkonfirmasi bersih.
+
+**Commit:** `2b75796` — `docs(milestone-3.1): finalisasi decisions + report`
+
+---
+
+### Task 26 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+"Status Saat Ini": entri Milestone 3.1 baru (ringkasan lengkap termasuk 2 temuan signifikan), "Urutan pengerjaan yang disarankan" diperbarui (langkah berikutnya M3.2), jumlah keterbatasan diterima 10→11, keputusan tertunda #2 dicatat aktif, daftar model per-langkah ditambah M3.1. Tabel struktur repo: baris `milestones/`, `src/` (deskripsi lengkap `src/layers/retriever/` 4 file + `src/schemas/retriever.py` + `src/config/katalog_view.py`), `evals/` diperbarui. `AGENT.md` disinkronkan identik (`diff` kosong).
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` — kosong (identik). Kedua file gitignored (`.gitignore` baris 5-6) — tidak ada commit untuk file ini sendiri, konsisten preseden seluruh milestone sebelumnya.
+
+**Commit:** Tidak ada (file tidak di-track git, by design).

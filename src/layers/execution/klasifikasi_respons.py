@@ -5,25 +5,37 @@ langsung `HasilPemanggilanChatbotAPI` (M4.1, lewat `_panggil_chatbot_api_raw()`
 penanganan sesuai kontrak `rancangan-execution-interpretation.md`: `200` ->
 berhasil (SEBAGIAN sengaja tidak dipakai, Keputusan 1), `403`/`404` ->
 eskalasi langsung tanpa retry sama sekali (bug prioritas tinggi), `5xx`/
-timeout -> retry infrastruktural sampai batas, `400` -> loop revisi ke
-Query Engine (M3.4, Checkpoint 6).
+timeout -> retry infrastruktural sampai batas, `400` -> loop revisi PENUH
+ke Query Engine (Keputusan 3, Opsi B).
 
-Murni deterministik, TANPA LLM - satu span `execute_tool` (tracer
-`execution.klasifikasi_respons`) membungkus SATU ATAU LEBIH percobaan
-(retry infra + revisi 400) sekaligus, mirror pola refactor M3.1/M3.3.
+Murni deterministik, TANPA LLM di modul ini sendiri - satu span
+`execute_tool` (tracer `execution.klasifikasi_respons`) membungkus SATU
+ATAU LEBIH percobaan (retry infra + revisi 400) sekaligus, mirror pola
+refactor M3.1/M3.3. Loop revisi 400 MEMANGGIL fungsi ber-LLM (M3.4/M3.5)
+- span `chat` masing-masing otomatis jadi anak span `execute_tool` ini
+lewat context propagation OTel (mirror pola `retriever.py`).
 
-Checkpoint 5 (saat ini): jalur 200/403/404/retry-infra-exhausted.
-Jalur 400 SEMENTARA placeholder gagal_teknis, dilengkapi Checkpoint 6.
+Batas retry infra: `EXECUTION_MAX_RETRY_INFRA`. Batas revisi 400:
+`EXECUTION_MAX_REVISI` (1 percobaan awal + hingga N-1 revisi). Keduanya
+independen - tiap percobaan revisi punya jatah retry infra sendiri.
 """
 
 import time
+from typing import Any
 
 from src.config.chatbot_api import (
     EXECUTION_MAX_RETRY_INFRA,
+    EXECUTION_MAX_REVISI,
     EXECUTION_RETRY_DELAY_DETIK,
 )
 from src.layers.execution.pemanggilan_chatbot_api import _panggil_chatbot_api_raw
+from src.layers.query_engine.penyusunan_request import susun_request_atomic_intent
+from src.layers.query_engine.verifikasi_bentuk_request import (
+    verifikasi_bentuk_request_atomic_intent,
+)
+from src.layers.verification_gate.verifikasi_gate import verifikasi_gate
 from src.observability.tracing import get_tracer
+from src.schemas.cakupan_individu import ConstraintCakupanIndividu
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.execution import HasilEksekusiAtomicIntent, HasilPemanggilanChatbotAPI
 from src.schemas.session_memory import StatusEksekusi
@@ -61,91 +73,160 @@ def _panggil_dengan_retry_infra(
         time.sleep(EXECUTION_RETRY_DELAY_DETIK)
 
 
+def _ekstrak_alasan_400(body: Any) -> str:
+    """chatbot_api membalas 400 dengan body bebas bentuknya (biasanya
+    {"detail": "..."} mirror pola 403, tapi tidak dijamin) - diambil
+    representasi teks paling informatif yang tersedia untuk dijadikan
+    feedback ke susun_request_atomic_intent()."""
+    if isinstance(body, dict) and "detail" in body:
+        return str(body["detail"])
+    return str(body)
+
+
+def _revisi_request(
+    atomic_intent: AtomicIntent,
+    view_name: str,
+    feedback: str,
+    constraint: ConstraintCakupanIndividu,
+    employee_id: str,
+) -> tuple[QueryEngineRequest | None, str | None]:
+    """Orkestrasi loop revisi (Keputusan 3, Opsi B): panggil ulang
+    susun_request_atomic_intent() (M3.4) DENGAN feedback, lalu
+    verifikasi_bentuk_request_atomic_intent() (M3.5) dan verifikasi_gate()
+    (M2.4) APA ADANYA tanpa modifikasi (keduanya stateless, Keputusan 8).
+    Mengembalikan (request_final, None) kalau lolos ketiganya, atau
+    (None, alasan_spesifik) di titik pertama yang gagal."""
+    hasil_susun = susun_request_atomic_intent(atomic_intent, view_name, feedback=feedback)
+    if hasil_susun.status != StatusEksekusi.BERHASIL or hasil_susun.request is None:
+        return None, "revisi_gagal_susun"
+
+    hasil_verif_bentuk = verifikasi_bentuk_request_atomic_intent(
+        atomic_intent, view_name, hasil_susun.request
+    )
+    if not hasil_verif_bentuk.lolos:
+        return None, "revisi_gagal_verifikasi_bentuk"
+
+    hasil_gate = verifikasi_gate(hasil_verif_bentuk.request, constraint, employee_id, view_name)
+    if not hasil_gate.lolos or hasil_gate.request_final is None:
+        return None, "revisi_gagal_verification_gate"
+
+    return hasil_gate.request_final, None
+
+
 def eksekusi_atomic_intent(
     atomic_intent: AtomicIntent,
     view_name: str,
     request: QueryEngineRequest,
-    constraint,
+    constraint: ConstraintCakupanIndividu,
     role_title: str,
     employee_id: str,
 ) -> HasilEksekusiAtomicIntent:
-    """Orkestrator M4.2. `view_name` (tervalidasi Retriever M3.1-3.3) dan
-    `constraint` (ConstraintCakupanIndividu, Domain Gate M2.3) BELUM
-    dipakai di Checkpoint 5 ini - keduanya dibutuhkan `_revisi_request()`
-    (Checkpoint 6) untuk memanggil ulang `verifikasi_gate()` (M2.4) saat
-    jalur 400 diimplementasikan penuh. Signature disiapkan sekaligus
-    supaya konsumen (belum ada - project belum wiring end-to-end) tidak
-    perlu menyesuaikan pemanggilan dua kali."""
+    """Orkestrator penuh M4.2. `request` HARUS sudah lolos Verification
+    Gate (M2.4) sebelum dipanggil (prasyarat M4.1 yang tetap berlaku di
+    sini) - `constraint`/`view_name` diteruskan APA ADANYA ke
+    `_revisi_request()` kalau jalur 400 terpicu, tidak dipakai di
+    percobaan pertama."""
     tracer = get_tracer(_TRACER_NAME)
 
     with tracer.start_as_current_span("execute_tool") as span:
-        hasil_http, retry_infra = _panggil_dengan_retry_infra(request, role_title, employee_id)
+        current_request = request
+        total_retry_infra = 0
+        revisi_count = 0
 
-        if hasil_http.status_code is not None:
-            span.set_attribute("http.response.status_code", hasil_http.status_code)
-        span.set_attribute("execution.retry_count_infra", retry_infra)
-
-        if _kegagalan_infra(hasil_http):
-            alasan = (
-                f"infra_exhausted_{hasil_http.kegagalan_transport}"
-                if hasil_http.kegagalan_transport is not None
-                else "infra_exhausted_5xx"
+        while True:
+            hasil_http, retry_infra = _panggil_dengan_retry_infra(
+                current_request, role_title, employee_id
             )
+            total_retry_infra += retry_infra
+
+            if hasil_http.status_code is not None:
+                span.set_attribute("http.response.status_code", hasil_http.status_code)
+            span.set_attribute("execution.retry_count_infra", total_retry_infra)
+            span.set_attribute("execution.revisi_count", revisi_count)
+
+            if _kegagalan_infra(hasil_http):
+                alasan = (
+                    f"infra_exhausted_{hasil_http.kegagalan_transport}"
+                    if hasil_http.kegagalan_transport is not None
+                    else "infra_exhausted_5xx"
+                )
+                span.set_attribute("error.type", "gagal_teknis")
+                span.set_attribute("execution.kegagalan_alasan", alasan)
+                return HasilEksekusiAtomicIntent(
+                    atomic_intent=atomic_intent,
+                    status=StatusEksekusi.GAGAL_TEKNIS,
+                    kegagalan_alasan=alasan,
+                    retry_count_infra=total_retry_infra,
+                    revisi_count=revisi_count,
+                )
+
+            status_code = hasil_http.status_code
+
+            if status_code == 200:
+                return HasilEksekusiAtomicIntent(
+                    atomic_intent=atomic_intent,
+                    status=StatusEksekusi.BERHASIL,
+                    nilai_hasil=hasil_http.body,
+                    retry_count_infra=total_retry_infra,
+                    revisi_count=revisi_count,
+                )
+
+            if status_code in (403, 404):
+                alasan = f"eskalasi_{status_code}"
+                span.set_attribute("error.type", "gagal_teknis")
+                span.set_attribute("execution.bug_prioritas_tinggi", True)
+                span.set_attribute("execution.kegagalan_alasan", alasan)
+                return HasilEksekusiAtomicIntent(
+                    atomic_intent=atomic_intent,
+                    status=StatusEksekusi.GAGAL_TEKNIS,
+                    bug_prioritas_tinggi=True,
+                    kegagalan_alasan=alasan,
+                    retry_count_infra=total_retry_infra,
+                    revisi_count=revisi_count,
+                )
+
+            if status_code == 400:
+                if revisi_count >= EXECUTION_MAX_REVISI - 1:
+                    alasan = "revisi_exhausted"
+                    span.set_attribute("error.type", "gagal_teknis")
+                    span.set_attribute("execution.kegagalan_alasan", alasan)
+                    return HasilEksekusiAtomicIntent(
+                        atomic_intent=atomic_intent,
+                        status=StatusEksekusi.GAGAL_TEKNIS,
+                        kegagalan_alasan=alasan,
+                        retry_count_infra=total_retry_infra,
+                        revisi_count=revisi_count,
+                    )
+
+                feedback = _ekstrak_alasan_400(hasil_http.body)
+                request_baru, alasan_gagal = _revisi_request(
+                    atomic_intent, view_name, feedback, constraint, employee_id
+                )
+                if request_baru is None:
+                    span.set_attribute("error.type", "gagal_teknis")
+                    span.set_attribute("execution.kegagalan_alasan", alasan_gagal)
+                    return HasilEksekusiAtomicIntent(
+                        atomic_intent=atomic_intent,
+                        status=StatusEksekusi.GAGAL_TEKNIS,
+                        kegagalan_alasan=alasan_gagal,
+                        retry_count_infra=total_retry_infra,
+                        revisi_count=revisi_count,
+                    )
+
+                current_request = request_baru
+                revisi_count += 1
+                continue
+
+            # Status code lain yang tak terduga (mis. 401) - fallback aman,
+            # bukan bagian ruang kesalahan tertutup KK sumber M4.2 tapi
+            # tidak boleh crash/diam-diam disamarkan sebagai berhasil.
+            alasan = f"status_tak_dikenal_{status_code}"
             span.set_attribute("error.type", "gagal_teknis")
             span.set_attribute("execution.kegagalan_alasan", alasan)
             return HasilEksekusiAtomicIntent(
                 atomic_intent=atomic_intent,
                 status=StatusEksekusi.GAGAL_TEKNIS,
                 kegagalan_alasan=alasan,
-                retry_count_infra=retry_infra,
+                retry_count_infra=total_retry_infra,
+                revisi_count=revisi_count,
             )
-
-        status_code = hasil_http.status_code
-
-        if status_code == 200:
-            return HasilEksekusiAtomicIntent(
-                atomic_intent=atomic_intent,
-                status=StatusEksekusi.BERHASIL,
-                nilai_hasil=hasil_http.body,
-                retry_count_infra=retry_infra,
-            )
-
-        if status_code in (403, 404):
-            alasan = f"eskalasi_{status_code}"
-            span.set_attribute("error.type", "gagal_teknis")
-            span.set_attribute("execution.bug_prioritas_tinggi", True)
-            span.set_attribute("execution.kegagalan_alasan", alasan)
-            return HasilEksekusiAtomicIntent(
-                atomic_intent=atomic_intent,
-                status=StatusEksekusi.GAGAL_TEKNIS,
-                bug_prioritas_tinggi=True,
-                kegagalan_alasan=alasan,
-                retry_count_infra=retry_infra,
-            )
-
-        if status_code == 400:
-            # Checkpoint 6 melengkapi jalur ini dengan loop revisi nyata
-            # ke Query Engine (M3.4 feedback) + Verifikasi Bentuk Request
-            # (M3.5) + Verification Gate (M2.4).
-            alasan = "belum_diimplementasi"
-            span.set_attribute("error.type", "gagal_teknis")
-            span.set_attribute("execution.kegagalan_alasan", alasan)
-            return HasilEksekusiAtomicIntent(
-                atomic_intent=atomic_intent,
-                status=StatusEksekusi.GAGAL_TEKNIS,
-                kegagalan_alasan=alasan,
-                retry_count_infra=retry_infra,
-            )
-
-        # Status code lain yang tak terduga (mis. 401) - fallback aman,
-        # bukan bagian ruang kesalahan tertutup KK sumber M4.2 tapi
-        # tidak boleh crash/diam-diam disamarkan sebagai berhasil.
-        alasan = f"status_tak_dikenal_{status_code}"
-        span.set_attribute("error.type", "gagal_teknis")
-        span.set_attribute("execution.kegagalan_alasan", alasan)
-        return HasilEksekusiAtomicIntent(
-            atomic_intent=atomic_intent,
-            status=StatusEksekusi.GAGAL_TEKNIS,
-            kegagalan_alasan=alasan,
-            retry_count_infra=retry_infra,
-        )

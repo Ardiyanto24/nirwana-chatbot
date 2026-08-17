@@ -7,9 +7,11 @@ menunggu. Real testing ke chatbot_api sungguhan DITUNDA (Checkpoint 7,
 lihat decisions.md Keputusan 4) - seluruh skenario di sini disimulasikan,
 konsisten kata Kriteria Keberhasilan sumber M4.2 sendiri.
 
-Checkpoint 5: jalur 200/403/404/retry-infra. Jalur 400 (placeholder di
-Checkpoint 5, loop revisi penuh di Checkpoint 6) diuji terpisah di
-test_klasifikasi_respons_revisi.py setelah Checkpoint 6 selesai.
+Jalur 200/403/404/retry-infra diuji di sini. Jalur 400 (loop revisi
+penuh ke Query Engine, Checkpoint 6) diuji terpisah di
+test_klasifikasi_respons_revisi.py - constraint/view_name di sini semua
+diisi placeholder (None/tidak relevan) karena 400 TIDAK PERNAH terpicu
+oleh skenario file ini.
 """
 
 import uuid
@@ -209,22 +211,3 @@ def test_500_lalu_sukses_percobaan_kedua_berhasil(monkeypatch):
     assert dipanggil["count"] == 2
     assert tracer_rekam.span.atribut["execution.retry_count_infra"] == 1
     assert tracer_rekam.span.atribut["http.response.status_code"] == 200
-
-
-# --- 400 placeholder (Checkpoint 5, disempurnakan Checkpoint 6) ------------
-
-
-def test_400_placeholder_gagal_teknis_belum_diimplementasi(monkeypatch):
-    dipanggil = _patch_raw(
-        monkeypatch, [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "param salah"})]
-    )
-    _patch_tracer(monkeypatch)
-
-    hasil = modul.eksekusi_atomic_intent(
-        _buat_atomic_intent(), "v_reservation_room_type_daily", _buat_request(),
-        constraint=None, role_title="X", employee_id="E0001",
-    )
-
-    assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
-    assert hasil.kegagalan_alasan == "belum_diimplementasi"
-    assert dipanggil["count"] == 1  # 400 tidak masuk retry infra

@@ -19,13 +19,17 @@ from src.layers.retriever.kecukupan_struktural import (
     _evaluasi_deterministik,
     _evaluasi_llm_fallback,
     evaluasi_kecukupan_struktural_atomic_intent,
+    proses_retrieval_atomic_intent,
 )
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.retriever import (
     HasilKecocokanMakna,
+    HasilKecukupanStruktural,
+    HasilPencarianKandidat,
     KandidatView,
     KecocokanKandidat,
+    KecukupanKandidat,
     LabelKecocokanMakna,
     SumberKeputusanKecukupan,
     SumberPencarian,
@@ -407,3 +411,117 @@ def test_orkestrator_tie_break_skor_tertinggi_menang_saat_label_sama():
     hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
 
     assert hasil.view_name_final == "v_reservation_channel_daily"
+
+
+# --- proses_retrieval_atomic_intent (orkestrator penutup pipeline M3.1-3.3) -
+
+
+def _buat_hasil_pencarian(kandidat: list[KandidatView]) -> HasilPencarianKandidat:
+    return HasilPencarianKandidat(
+        atomic_intent=_buat_atomic_intent(),
+        domain_diizinkan=[Domain.RESERVATION],
+        kandidat=kandidat,
+        fallback_terpicu=False,
+        status=StatusEksekusi.BERHASIL,
+    )
+
+
+def test_pipeline_urutan_panggilan_dan_hasil_akhir_konsisten(monkeypatch):
+    """Bukti proses_retrieval_atomic_intent() memanggil M3.1(pure) ->
+    M3.2 -> M3.3 dalam urutan yang benar, dan hasil akhir persis hasil
+    evaluasi_kecukupan_struktural_atomic_intent() (M3.3) - bukan hasil
+    tahap lain yang tercampur."""
+    urutan_panggilan: list[str] = []
+
+    hasil_pencarian_fixture = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
+    hasil_kecocokan_fixture = _buat_hasil_kecocokan(
+        [_buat_kecocokan_kandidat("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+    )
+    hasil_kecukupan_fixture = HasilKecukupanStruktural(
+        atomic_intent=hasil_kecocokan_fixture.atomic_intent,
+        kecukupan=[
+            KecukupanKandidat(
+                kandidat=_buat_kandidat("v_reservation_room_type_daily"),
+                kecocokan_label=LabelKecocokanMakna.DITEMUKAN,
+                cukup=True,
+                alasan="grain time-series jelas",
+                sumber_keputusan=SumberKeputusanKecukupan.DETERMINISTIK,
+            )
+        ],
+        view_name_final="v_reservation_room_type_daily",
+        status=StatusEksekusi.BERHASIL,
+    )
+
+    def _fake_kumpulkan_kandidat(atomic_intent, domain_diizinkan):
+        urutan_panggilan.append("m3.1")
+        return hasil_pencarian_fixture
+
+    def _fake_nilai_kecocokan(hasil_pencarian):
+        urutan_panggilan.append("m3.2")
+        assert hasil_pencarian is hasil_pencarian_fixture
+        return hasil_kecocokan_fixture
+
+    def _fake_evaluasi_kecukupan(hasil_kecocokan):
+        urutan_panggilan.append("m3.3")
+        assert hasil_kecocokan is hasil_kecocokan_fixture
+        return hasil_kecukupan_fixture
+
+    monkeypatch.setattr(kecukupan_struktural_module, "_kumpulkan_kandidat", _fake_kumpulkan_kandidat)
+    monkeypatch.setattr(
+        kecukupan_struktural_module, "nilai_kecocokan_makna_atomic_intent", _fake_nilai_kecocokan
+    )
+    monkeypatch.setattr(
+        kecukupan_struktural_module,
+        "evaluasi_kecukupan_struktural_atomic_intent",
+        _fake_evaluasi_kecukupan,
+    )
+
+    hasil = proses_retrieval_atomic_intent(_buat_atomic_intent(), [Domain.RESERVATION])
+
+    assert urutan_panggilan == ["m3.1", "m3.2", "m3.3"]
+    assert hasil is hasil_kecukupan_fixture
+    assert hasil.view_name_final == "v_reservation_room_type_daily"
+
+
+def test_pipeline_view_name_final_none_tidak_error(monkeypatch):
+    """Kasus tidak ada kandidat cukup sama sekali - pipeline tetap
+    selesai normal, retrieval.selected_view diisi string kosong (bukan
+    exception saat span.set_attribute dipanggil dengan None)."""
+    hasil_pencarian_fixture = _buat_hasil_pencarian([_buat_kandidat("v_properties_ref")])
+    hasil_kecocokan_fixture = _buat_hasil_kecocokan(
+        [_buat_kecocokan_kandidat("v_properties_ref", LabelKecocokanMakna.SEBAGIAN)]
+    )
+    hasil_kecukupan_fixture = HasilKecukupanStruktural(
+        atomic_intent=hasil_kecocokan_fixture.atomic_intent,
+        kecukupan=[
+            KecukupanKandidat(
+                kandidat=_buat_kandidat("v_properties_ref"),
+                kecocokan_label=LabelKecocokanMakna.SEBAGIAN,
+                cukup=False,
+                alasan="tabel referensi murni, tidak cukup untuk tren",
+                sumber_keputusan=SumberKeputusanKecukupan.DETERMINISTIK,
+            )
+        ],
+        view_name_final=None,
+        status=StatusEksekusi.BERHASIL,
+    )
+
+    monkeypatch.setattr(
+        kecukupan_struktural_module, "_kumpulkan_kandidat", lambda ai, dd: hasil_pencarian_fixture
+    )
+    monkeypatch.setattr(
+        kecukupan_struktural_module,
+        "nilai_kecocokan_makna_atomic_intent",
+        lambda hp: hasil_kecocokan_fixture,
+    )
+    monkeypatch.setattr(
+        kecukupan_struktural_module,
+        "evaluasi_kecukupan_struktural_atomic_intent",
+        lambda hk: hasil_kecukupan_fixture,
+    )
+
+    hasil = proses_retrieval_atomic_intent(_buat_atomic_intent(), [Domain.RESERVATION])
+
+    assert hasil.view_name_final is None

@@ -150,3 +150,29 @@ Tidak ada.
 ---
 
 ---
+
+## Checkpoint 5 — Prompt Langkah 1 (Generate)
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 7 — Tulis `kecocokan_makna_generate.md`
+
+**Kesesuaian dengan plan:** Menyimpang dari plan pada Task 8 (bukan Task 7 ini) — lihat catatan di bawah.
+
+**Apa yang dilakukan**
+Menulis `src/prompts/retriever/kecocokan_makna_generate.md` (frontmatter id=`retriever.kecocokan_makna_generate`, version=1, milestone="3.2", model_compat=["qwen/qwen3-32b"]) — instruksi menilai tiap kandidat terhadap definisi lengkap, jebakan grain-mismatch dan "Kolom turunan" eksplisit disebut, `{{ catatan_lintas_domain }}` diinject sebagai variabel Jinja2 (mirror `catatan_pola_jebakan` M2.1). Format keluaran JSON `{"penilaian": [{"view_name", "label", "alasan"}, ...]}`. `CLAUDE.md`/`AGENT.md` diperbarui (baris `src/`, `src/prompts/`, `tests/`) mencatat folder baru `src/prompts/retriever/` dan file-file M3.2 yang sudah ada sejauh ini, disinkronkan identik (`diff` kosong).
+
+**Temuan**
+**Penyimpangan dari plan ditemukan saat menulis Task 8** (Promptfoo config untuk prompt ini, direncanakan di checkpoint yang sama): konvensi `render_context` (dicontohkan `prompt_reliability/domain_gate/deteksi_cakupan_individu.promptfooconfig.yaml`) mensyaratkan dotted-path ke fungsi `_render_context()` TANPA ARGUMEN di modul layer terkait (mis. `src.layers.domain_gate.deteksi_cakupan_individu._render_context`) — fungsi ini belum bisa ada karena `src/layers/retriever/kecocokan_makna.py` (Checkpoint 7) belum ditulis. Menulis Promptfoo config sekarang akan merujuk fungsi yang belum ada. **Task 8 (dan simetris Task 10 di Checkpoint 6) dipindah ke Checkpoint 7/8** (implementasi Langkah 1/2), dieksekusi bersamaan dengan `_render_context_generate()`/`_render_context_verifikasi()` yang jadi target rujukannya — konsisten preseden M2.3 ("Promptfoo dibangun NATIF sebagai bagian checkpoint [implementasi]", bukan checkpoint prompt terpisah). Task TIDAK dihapus atau dikonsolidasi — nomor/isi Task 8 dan 10 tetap sama persis, hanya checkpoint eksekusinya berpindah. Tidak mengubah jumlah total atomic task milestone ini.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -c "from src.prompts.loader import load_prompt; from src.layers.retriever.definisi_view import CATATAN_LINTAS_DOMAIN; p = load_prompt('retriever.kecocokan_makna_generate'); print(p.render(catatan_lintas_domain=CATATAN_LINTAS_DOMAIN))"` — parse frontmatter + render Jinja2 sukses, 4662 karakter keluaran, `catatan_lintas_domain` ter-inject benar.
+
+**Commit:** `83023b7` — `feat(milestone-3.2): prompt Langkah 1 kecocokan makna (generate)`
+
+---
+
+---

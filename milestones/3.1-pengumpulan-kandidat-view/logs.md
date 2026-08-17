@@ -357,3 +357,41 @@ Tidak ada (di luar insiden Allowed Providers Task 14, sudah diselesaikan sebelum
 Refactor `view_ke_domain()` (Checkpoint 6) - bukan checkpoint terpisah, penyesuaian kecil saat mengerjakan Task 11 begitu duplikasi terdeteksi.
 
 Insiden Allowed Providers OpenRouter (Checkpoint 7, Task 14) - bukan task terpisah dari plan, tapi blocker operasional tak terduga yang butuh keterlibatan user (ubah setting akun) di tengah eksekusi eval.
+
+---
+
+## Checkpoint 8 — Kunci Keputusan Model Embedding Final
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 16 — Addendum `decisions.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis addendum Keputusan 2 di `decisions.md`: `openai/text-embedding-3-small` dikunci berdasar hasil `audit.md` (recall 5/5, rank rata-rata terbaik, latensi terendah).
+
+**Hasil Verifikasi**
+Review manual - argumen recall+rank+latensi tercakup eksplisit, status PROVISIONAL ditegaskan ulang.
+
+**Commit:** `b399913` — `docs(milestone-3.1): kunci model embedding final`
+
+---
+
+### Task 17 — Sederhanakan `src/config/llm.py`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian tak terduga: `evals/3.1-pengumpulan-kandidat-view/run_eval.py` ternyata masih meng-import 3 konstanta sementara yang dihapus (dipakai untuk membandingkan 3 kandidat, bukan cuma model final) - diperbaiki dengan mengganti import jadi ID model literal di `run_eval.py` sendiri, supaya script perbandingan tetap re-runnable sebagai arsip historis tanpa bergantung konfigurasi produksi yang kini hanya 1 model.
+
+**Apa yang dilakukan**
+Hapus 3 konstanta `OPENROUTER_MODEL_RETRIEVER_EMBEDDING_QWEN3_4B/_QWEN3_8B/_OPENAI_SMALL_3`, tambah `OPENROUTER_MODEL_RETRIEVER_EMBEDDING = "openai/text-embedding-3-small"` (docstring modul diupdate). `pencarian_embedding.py` TIDAK diubah (fungsi generik `cari_embedding(..., model)` dipertahankan - titik pemanggilan produksi yang akan di-hardwire adalah orkestrator `retriever.py`, Checkpoint 10, belum dibangun).
+
+**Temuan**
+`run_eval.py` (Checkpoint 7, sudah commit) ternyata coupled ke 3 konstanta sementara - baru ketahuan saat menghapusnya (`ImportError` kalau dibiarkan). Diperbaiki di commit yang sama.
+
+**Error/Kegagalan**
+Tidak ada (ditangkap sebelum commit, bukan test yang gagal).
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/ tests/config/ tests/layers/verification_gate/ -v` — 48/48 lolos (signature `cari_embedding()` tak berubah). `grep` project-wide untuk 2 konstanta lama — nol hasil.
+
+**Commit:** `c893f41` — `refactor(milestone-3.1): sederhanakan config ke satu model final`

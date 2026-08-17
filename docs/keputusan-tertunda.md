@@ -35,3 +35,20 @@ Untuk Milestone 1.2 spesifik, diputuskan **file config YAML** (`src/config/roles
 2. OpenRouter merilis model embedding baru yang relevan untuk Bahasa Indonesia (mis. Qwen versi lebih baru, atau model spesifik-Indonesia) — bandingkan ulang terhadap `text-embedding-3-small` yang sedang dipakai.
 3. Evaluasi biaya/latensi berubah signifikan setelah dipakai pada volume request nyata (harga per-token OpenRouter berubah, atau volume fallback ternyata jauh lebih tinggi dari perkiraan karena temuan trigger di bawah).
 4. **Terkait erat:** trigger `BM25_SKOR_MINIMUM` (lihat `milestones/3.1-pengumpulan-kandidat-view/decisions.md` Keputusan 1 + Checkpoint 9) juga provisional — kalau trigger direvisi signifikan (mis. fallback jadi jauh lebih sering terpicu), volume pemakaian model embedding ini berubah drastis, yang bisa mengubah kalkulasi biaya/latensi di atas dan layak jadi pemicu peninjauan ulang tersendiri.
+
+---
+
+## 3. Konvensi Parameter `chatbot_api` per-View (Milestone 3.4) — Provisional, Menunggu Rekonsiliasi
+
+**Status:** AKTIF — konvensi SUDAH dipakai produksi (`PARAM_WHITELIST_VIEW`, `src/layers/query_engine/param_whitelist.py`; didokumentasikan lengkap di `docs/kontrak-parameter-chatbot-api-usulan.md`), TAPI eksplisit BUKAN kontrak resmi — instruksi langsung user.
+
+**Muncul di:** Milestone 3.4 (Penyusunan Request), Checkpoint 1-2 (2026-08-17).
+
+**Konteks kemunculan:** `docs/03-domain-source/api-chatbot.md` hanya mendokumentasikan 4 parameter global (`role_title`, `employee_id`, `property_id`, `limit`/`offset`) — whitelist parameter PER-VIEW yang dirujuk dokumen itu sendiri (`whitelist_<domain>.py`) sepenuhnya di luar repo ini (kode `chatbot_api` eksternal), ditandai eksplisit "masih terbuka" di `arsitektur-ai-chatbot-rbac.md` Bagian 8 butir 5. User dimintai klarifikasi (dua CSV yang sempat diberikan — `properties.csv`, `employees_deduped.csv` — ternyata data isi tabel, bukan dokumentasi kontrak), yang kemudian mengonfirmasi: file kontrak resmi `chatbot_api` MEMANG belum final ("masih menunggu project ini selesai untuk parameter pastinya"), dan secara eksplisit meminta konvensi provisional (nama kolom asli view, lihat `milestones/3.4-penyusunan-request/decisions.md` Keputusan 1) dipakai SEKARANG, DIDOKUMENTASIKAN formal di `docs/kontrak-parameter-chatbot-api-usulan.md` untuk direkonsiliasi dengan tim pembangun `chatbot_api` di akhir proyek.
+
+**Kenapa belum ditutup permanen:** Konvensi ini murni diturunkan dari nama kolom yang terdokumentasi di `katalog-data-chatbot.md` (data platform sisi kita) — TIDAK ada verifikasi langsung terhadap kode `chatbot_api` sungguhan (di luar akses repo ini) bahwa nama query parameter benar-benar meniru nama kolom SELECT 1:1. Arsitektur sistem sendiri sudah mendesain jalur pemulihan untuk kasus param salah (respons `400` dari Execution M4.x kembali ke M3.4 untuk revisi) — mengonfirmasi bahwa konvensi ini memang dirancang untuk diuji/dikoreksi berdasar perilaku nyata, bukan diklaim benar dari awal.
+
+**Pemicu peninjauan ulang:**
+1. Rekonsiliasi langsung dengan tim pembangun `chatbot_api` di akhir proyek — WAJIB, bukan opsional.
+2. Milestone 4.x (Execution) menunjukkan pola kegagalan `400` berulang yang mengindikasikan nama parameter salah secara sistematis (bukan kesalahan LLM per-kasus).
+3. Dokumentasi/akses resmi ke `whitelist_<domain>.py` (atau setara) menjadi tersedia sebelum akhir proyek — revisit segera begitu tersedia, tidak perlu menunggu sampai akhir.

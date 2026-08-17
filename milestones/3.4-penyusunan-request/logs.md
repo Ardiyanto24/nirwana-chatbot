@@ -228,3 +228,27 @@ Hasil run 2 dipush ke `prompt_eval_runs` (Supabase) — 4 baris terverifikasi (`
 **Commit:** `66bfbc3` (config awal).
 
 ---
+
+## Checkpoint 8 — Verifikasi Jaeger Nyata
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 20 — Jalankan Nyata + Verifikasi Trace
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Skrip verifikasi (`scratchpad/verify_m34_span.py`, tidak di-commit, mirror pola M3.1/M3.3) menjalankan `susun_request_atomic_intent()` NYATA (Collector lokal aktif) untuk skenario "Berapa okupansi Bali bulan lalu?" (`v_reservation_room_type_daily`, `tanggal_referensi=2026-08-17`). Trace diambil langsung dari Jaeger HTTP API.
+
+**Temuan**
+Trace `07147fa01b4a6b9ecff545ac36dde0fd`: span `"chat"` membawa SELURUH atribut wajib sekaligus — `gen_ai.operation.name=chat`, `gen_ai.request.model=qwen/qwen3-32b`, `gen_ai.usage.input_tokens`/`output_tokens`, `prompt.id=query_engine.penyusunan_request`, `prompt.version=2` (mengonfirmasi prompt final v2 yang benar-benar dipakai), `request.domain=reservation`, `request.view_name=v_reservation_room_type_daily`. `status=berhasil`, `params={"region": "Bali", "period_date_from": "2026-07-01", "period_date_to": "2026-07-31"}` — resolusi tanggal benar; model memilih `region` sebagai filter lokasi (bukan `property_id`) — alternatif valid lain dari whitelist yang sama, konsisten pola Temuan 1 Checkpoint 6 (model tidak diberi tabel nama/wilayah-ke-kode eksplisit).
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`curl http://localhost:16686/api/traces?service=nirwana-chatbot-m34-verify` — trace_id di atas, atribut dicek programatik (Python, bukan baca visual manual).
+
+**Commit:** *(skrip verifikasi murni operasional di scratchpad, tidak di-commit — konsisten preseden M3.1/M3.3)*
+
+---

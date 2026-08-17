@@ -1,0 +1,125 @@
+description: "Reliability testing - query_engine.penyusunan_request (M3.4)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: query_engine.penyusunan_request
+      model: qwen/qwen3-32b
+      response_format: { type: json_object }
+
+tests:
+  - description: S01_bulan_lalu_resolusi_tanggal_relatif
+    vars:
+      user_prompt: |
+        Kebutuhan: Berapa okupansi Bali bulan lalu? (bentuk jawaban: nilai_tunggal)
+        Tanggal referensi hari ini: 2026-08-17
+
+        View data yang dipakai: v_reservation_room_type_daily
+
+        Definisi lengkap view (untuk memahami arti tiap kolom):
+        *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti x tipe kamar x tanggal.*
+        **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari - "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id` | Kode properti (P01-P05; P06 kantor pusat tidak punya kamar). |
+        | `property_name` | Nama hotel. |
+        | `region` | Wilayah properti. |
+        | `room_type_name` | Standard, Deluxe, Suite, atau Villa. |
+        | `period_date` | Tanggal. |
+        | `occupancy_rate` | rooms_sold / total_rooms_available. |
+
+        Daftar parameter yang VALID untuk view ini (HANYA boleh pakai key dari daftar ini):
+        adr, limit, occupancy_rate, offset, period_date, period_date_from, period_date_to, property_id, property_name, region, revenue, revpar, room_type_name, room_type_revenue_share_pct, rooms_sold, total_rooms_available
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).params;
+          return p.period_date_from === "2026-07-01" && p.period_date_to === "2026-07-31";
+
+  - description: S02_hanya_pakai_parameter_dari_daftar_valid
+    vars:
+      user_prompt: |
+        Kebutuhan: Bagaimana performa kanal Direct di Bali bulan Juni 2026? (bentuk jawaban: nilai_tunggal)
+        Tanggal referensi hari ini: 2026-08-17
+
+        View data yang dipakai: v_reservation_channel_daily
+
+        Definisi lengkap view (untuk memahami arti tiap kolom):
+        *Sumber: `fact_revenue_channel_daily` + `dim_property` + `dim_channel` — grain: properti x kanal booking x tanggal.*
+        **Fungsi**: performa tiap kanal booking, rasio pembatalan/no-show per kanal, tren pergeseran Direct vs OTA.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id`, `property_name`, `region` | Identitas properti. |
+        | `channel_name` | Direct (tanpa komisi), OTA-Booking.com, OTA-Agoda, Travel Agent, Corporate. |
+        | `period_date` | Tanggal. |
+        | `revenue` | Revenue dari kanal ini hari itu. |
+        | `bookings_count` | Jumlah booking. |
+
+        Daftar parameter yang VALID untuk view ini (HANYA boleh pakai key dari daftar ini):
+        bookings_count, cancellations_count, channel_name, limit, no_shows_count, offset, period_date, period_date_from, period_date_to, property_id, property_name, region, revenue
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).params;
+          return p.channel_name === "Direct" && p.period_date_from === "2026-06-01" && p.period_date_to === "2026-06-30";
+
+  - description: S03_tidak_mengarang_parameter_di_luar_whitelist
+    vars:
+      user_prompt: |
+        Kebutuhan: Tampilkan properti Nirwana dengan rating bintang 5 (bentuk jawaban: nilai_tunggal)
+        Tanggal referensi hari ini: 2026-08-17
+
+        View data yang dipakai: v_properties_ref
+
+        Definisi lengkap view (untuk memahami arti tiap kolom):
+        *Sumber: `mart_aggregated.dim_property` (tanpa join) — grain: 1 baris = 1 properti (6 baris: P01-P06).*
+        **Fungsi**: resolusi nama properti dari kode, atau daftar semua properti grup - "properti apa saja yang dimiliki Nirwana", "P04 itu nama hotelnya apa".
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `property_id` | Kode properti (P01-P06). |
+        | `property_name` | Nama hotel. P06 = Kantor Pusat (bukan hotel - tidak punya kamar). |
+        | `region` | Wilayah. |
+        | `opening_date` | Tanggal properti mulai beroperasi. |
+
+        Daftar parameter yang VALID untuk view ini (HANYA boleh pakai key dari daftar ini):
+        limit, offset, opening_date, opening_date_from, opening_date_to, property_id, property_name, region
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).params;
+          return !("star_rating" in p);
+
+  - description: S04_kebutuhan_minimal_tidak_over_filling
+    vars:
+      user_prompt: |
+        Kebutuhan: Ada berapa venue yang dimiliki Nirwana? (bentuk jawaban: nilai_tunggal)
+        Tanggal referensi hari ini: 2026-08-17
+
+        View data yang dipakai: v_lookup_venues
+
+        Definisi lengkap view (untuk memahami arti tiap kolom):
+        *Sumber: `mart_cleaned.venues` — grain: 1 baris = 1 venue.*
+        **Fungsi**: kapasitas maksimal tiap venue - untuk cek apakah venue muat untuk jumlah peserta yang diminta.
+
+        | Kolom | Deskripsi |
+        |---|---|
+        | `venue_id` | ID venue. |
+        | `property_id` | Properti. |
+        | `venue_name` | Nama venue. |
+        | `venue_type` | Ballroom, Meeting Room, Outdoor. |
+        | `max_capacity` | Kapasitas maksimal peserta. |
+
+        Daftar parameter yang VALID untuk view ini (HANYA boleh pakai key dari daftar ini):
+        limit, max_capacity, offset, property_id, venue_id, venue_name, venue_type
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const p = JSON.parse(output).params;
+          return Object.keys(p).length === 0;

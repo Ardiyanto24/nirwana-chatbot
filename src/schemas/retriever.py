@@ -1,5 +1,7 @@
-"""Skema Pengumpulan Kandidat View (Milestone 3.1): hasil pencarian
-kandidat `view_name` dari satu kebutuhan atomik + domain yang diizinkan.
+"""Skema Pengumpulan Kandidat View (Milestone 3.1) + Kecocokan Makna
+(Milestone 3.2): hasil pencarian kandidat `view_name` dari satu kebutuhan
+atomik + domain yang diizinkan (M3.1), lalu penilaian kecocokan tiap
+kandidat terhadap definisi lengkap katalog (M3.2).
 
 Reuse eksplisit `AtomicIntent` (schemas/decomposition.py) dan `Domain`
 (schemas/domain_gate.py) - tidak didefinisikan ulang, preseden konsisten
@@ -18,6 +20,14 @@ TERBLOKIR_KETERGANTUNGAN juga tidak relevan (M3.1 murni pencocokan,
 tanpa keputusan otorisasi atau ketergantungan turn).
 
 Lihat milestones/3.1-pengumpulan-kandidat-view/decisions.md.
+
+Skema M3.2 (`LabelKecocokanMakna`/`KecocokanKandidat`/`HasilKecocokanMakna`)
+GAGAL_TEKNIS + BERHASIL + SEBAGIAN sama-sama relevan di sini (beda dari
+M3.1) - GAGAL_TEKNIS dipakai untuk kegagalan teknis Langkah 1 total.
+Validator `HasilKecocokanMakna` SATU ARAH (bukan dua arah seperti
+`AtomicIntentDomains`) - status BERHASIL dengan `kecocokan=[]` tetap
+valid (M3.1 memang bisa tidak menemukan kandidat sama sekali). Lihat
+milestones/3.2-kecocokan-makna/decisions.md Keputusan 7-10.
 """
 
 from enum import Enum
@@ -62,5 +72,39 @@ class HasilPencarianKandidat(BaseModel):
                 "fallback_terpicu=False wajib status=berhasil - BM25 tidak "
                 "punya mode gagal-sebagian, status=sebagian hanya muncul "
                 "kalau fallback embedding terpicu dan gagal teknis"
+            )
+        return self
+
+
+class LabelKecocokanMakna(str, Enum):
+    DITEMUKAN = "ditemukan"
+    SEBAGIAN = "sebagian"
+    TIDAK_DITEMUKAN = "tidak_ditemukan"
+
+
+class KecocokanKandidat(BaseModel):
+    kandidat: KandidatView
+    label: LabelKecocokanMakna
+    alasan: str
+
+
+class HasilKecocokanMakna(BaseModel):
+    atomic_intent: AtomicIntent
+    kecocokan: list[KecocokanKandidat]
+    status: StatusEksekusi
+
+    @model_validator(mode="after")
+    def kecocokan_konsisten_dengan_status(self) -> Self:
+        if self.status == StatusEksekusi.GAGAL_TEKNIS and self.kecocokan:
+            raise ValueError("status=gagal_teknis wajib kecocokan kosong")
+        if self.status not in (
+            StatusEksekusi.BERHASIL,
+            StatusEksekusi.SEBAGIAN,
+            StatusEksekusi.GAGAL_TEKNIS,
+        ):
+            raise ValueError(
+                "status HasilKecocokanMakna hanya boleh berhasil/sebagian/"
+                "gagal_teknis - M3.2 tidak membuat keputusan otorisasi/"
+                "ketergantungan"
             )
         return self

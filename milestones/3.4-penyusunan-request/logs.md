@@ -153,3 +153,27 @@ Tidak ada.
 **Commit:** `16b7258` (konstanta) + `967a04b` (prompt).
 
 ---
+
+## Checkpoint 5 — Fungsi LLM Call + Filter Defensif + Orkestrator
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 11-13 — Implementasi
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`src/layers/query_engine/penyusunan_request.py`: `_call_llm()` (panggilan mentah, dipisah untuk reuse eval), `_parse_response()` (parse `{"params": {...}}`, gagal total kalau JSON rusak/skema salah), `_saring_params_tidak_dikenal()` (exact match terhadap `PARAM_WHITELIST_VIEW[view_name]`, strip paksa `PARAM_TERLARANG`), `susun_request_atomic_intent()` (orkestrator: span `"chat"` dengan `request.domain`/`request.view_name`/`prompt.id`/`prompt.version`, `domain` diturunkan `view_ke_domain()[view_name]`, `tanggal_referensi` default WIB `timezone(timedelta(hours=7))` — dipilih fixed-offset ketimbang `zoneinfo`/`Asia/Jakarta` supaya tidak butuh package `tzdata` tambahan di Windows, ekuivalen persis karena Indonesia tidak menerapkan DST).
+
+**Temuan**
+Tidak ada penyimpangan dari plan.
+
+**Error/Kegagalan**
+Tidak ada — seluruh 16 test lolos pada percobaan pertama.
+
+**Hasil Verifikasi**
+`pytest tests/layers/query_engine/ -v` → 35 passed (12 whitelist + 7 skema + 16 orkestrator). Regresi lintas subpackage (`tests/layers/query_engine/ tests/layers/retriever/ tests/config/ tests/layers/verification_gate/`) → 182 passed.
+
+**Commit:** `5b70cdf` (feat) + `b0d1ecf` (test).
+
+---

@@ -257,6 +257,16 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 
 ---
 
+## Addendum Checkpoint 6-7 (Eval + Reliability Testing): Prompt Berakhir di Versi 2
+
+Eval nyata (Checkpoint 6) menemukan model (prompt v1) salah menafsirkan "Nirwana" (nama grup, Nirwana Hospitality Group, disebut generik di kebutuhan seperti "venue yang dimiliki Nirwana") sebagai nilai filter `property_id` — padahal bukan nama properti spesifik. Direplikasi independen lewat Promptfoo (Checkpoint 7, skenario terpisah dengan teks sama). **Diperbaiki**: prompt v2 menambah aturan eksplisit membedakan nama grup vs nama properti spesifik. Hasil setelah perbaikan: eval nyata `params={}` benar, Promptfoo 4/4 lolos (dari 3/4).
+
+Dua temuan LAIN dari eval Checkpoint 6 (skenario S04) SENGAJA TIDAK memicu revisi prompt lebih lanjut: (a) model memilih `property_name` alih-alih `property_id` untuk resolusi nama properti — ditinjau ulang BUKAN bug (keduanya parameter valid, model tidak pernah diberi tabel nama→kode di konteks prompt manapun); (b) nilai parameter nonsensikal (`occupancy_rate: "nilai_tunggal"`) — temuan kualitas nyata tapi SENGAJA dibiarkan, karena validasi kewajaran NILAI per parameter (bukan cuma nama key) adalah ruang kesalahan terbuka yang secara arsitektur menjadi tanggung jawab Milestone 3.5 (verifikasi independen), bukan celah M3.4 yang perlu ditambal sendiri. Detail lengkap: `evals/3.4-penyusunan-request/audit.md`.
+
+**Opsi yang Dipertimbangkan tapi Ditolak (untuk addendum ini)**
+- **Menambah validasi nilai per-parameter di M3.4 (Checkpoint 5) untuk mencegah kasus seperti temuan (b)** — dipertimbangkan, ditolak karena ruang kesalahan nilai (tipe data benar tapi makna salah, mis. "nilai_tunggal" masuk ke kolom numerik) genuinely terbuka (tidak bisa didaftar sebagai aturan tertutup di depan tanpa duplikasi logic verifikasi independen M3.5) — forced prinsip ruang-kesalahan-tertutup-vs-terbuka (`CLAUDE.md`), bukan celah yang lupa ditangani.
+- **Berhenti di prompt v1 dan terima 3/4 Promptfoo sebagai temuan didokumentasikan (pola M3.2 14/16)** — dipertimbangkan, ditolak karena root cause temuan "Nirwana" jelas teridentifikasi dan mudah diperbaiki (beda dari temuan M3.2 yang lebih inheren) — mirror keputusan serupa M3.3 Addendum Checkpoint 7.
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |

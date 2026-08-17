@@ -176,6 +176,13 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 
 ---
 
+## Addendum Checkpoint 7 (Reliability Testing): Prompt Fallback Berakhir di Versi 3
+
+Eval Promptfoo nyata (Checkpoint 7) menemukan DAN memperbaiki dua gap berurutan pada prompt `retriever/kecukupan_struktural_fallback.md`: (a) v1 tidak menjelaskan batasan arsitektur "`chatbot_api` tidak melakukan agregasi sisi klien" — model salah menilai `cukup=true` untuk kandidat row-level (`v_lookup_bookings`) berdasar penalaran BI umum; (b) v2 (perbaikan a) overcorrection — model salah menolak kandidat yang genuinely cukup (`v_reservation_room_type_daily`) karena menyalahartikan granularitas periode grain (harian) harus persis cocok kata dalam kebutuhan ("bulan"/"tahun"). v3 menegaskan granularitas periode bukan kriteria kecukupan. **Hasil final: 4/4 skenario Promptfoo lolos, 6/6 skenario eval `evals/3.3-.../` lolos.** Detail lengkap tiap percobaan: `logs.md` Checkpoint 7.
+
+**Opsi yang Dipertimbangkan tapi Ditolak (untuk addendum ini)**
+- **Berhenti di v2 dan terima 2/4 sebagai temuan didokumentasikan (pola M3.2 14/16)** — dipertimbangkan (proyek ini punya preseden tidak mengejar 100% pass rate), tapi ditolak karena overcorrection v2 punya akar masalah yang jelas teridentifikasi dan mudah diperbaiki (beda dari temuan M3.2 yang lebih inheren/sulit — non-determinisme model, batas koreksi pada input adversarial) — memperbaiki root cause yang jelas lebih baik daripada menerima kegagalan yang sebenarnya bisa dihindari.
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |

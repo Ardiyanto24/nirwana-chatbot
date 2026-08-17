@@ -12,6 +12,12 @@ penuh ke Query Engine, Checkpoint 6) diuji terpisah di
 test_klasifikasi_respons_revisi.py - constraint/view_name di sini semua
 diisi placeholder (None/tidak relevan) karena 400 TIDAK PERNAH terpicu
 oleh skenario file ini.
+
+Revisit (2026-08-17): `panggil_meta_chatbot_api` di-monkeypatch default
+"tidak diketahui" (both None) di SELURUH test 200 di sini - skenario
+SEBAGIAN dari sinyal _meta (flagged/stale) diuji terpisah di
+test_klasifikasi_respons_kualitas_data.py, mirror pola pemisahan jalur
+400 (test_klasifikasi_respons_revisi.py).
 """
 
 import uuid
@@ -21,7 +27,7 @@ import pytest
 from src.layers.execution import klasifikasi_respons as modul
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
-from src.schemas.execution import HasilPemanggilanChatbotAPI
+from src.schemas.execution import HasilMetaChatbotAPI, HasilPemanggilanChatbotAPI
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 from src.schemas.verification_gate import QueryEngineRequest
 
@@ -95,12 +101,24 @@ def _patch_raw(monkeypatch, urutan_hasil: list[HasilPemanggilanChatbotAPI]):
     return dipanggil
 
 
+def _patch_meta_tidak_diketahui(monkeypatch):
+    """Default untuk seluruh test di file ini - _meta "tidak diketahui"
+    (both None), supaya status tetap BERHASIL murni dari jalur data
+    utama, tidak tercampur skenario SEBAGIAN (diuji file terpisah)."""
+    monkeypatch.setattr(
+        modul,
+        "panggil_meta_chatbot_api",
+        lambda request, role_title, employee_id: HasilMetaChatbotAPI(status_code=200),
+    )
+
+
 # --- 200 -> berhasil ------------------------------------------------------
 
 
 def test_200_langsung_berhasil(monkeypatch):
     body = [{"property_id": "P01", "occupancy_rate": 0.75}]
     dipanggil = _patch_raw(monkeypatch, [HasilPemanggilanChatbotAPI(status_code=200, body=body)])
+    _patch_meta_tidak_diketahui(monkeypatch)
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
@@ -120,6 +138,7 @@ def test_200_body_kosong_tetap_berhasil(monkeypatch):
     """Lihat decisions.md Keputusan 1: 0 baris legitimate tetap berhasil,
     bukan sebagian."""
     _patch_raw(monkeypatch, [HasilPemanggilanChatbotAPI(status_code=200, body=[])])
+    _patch_meta_tidak_diketahui(monkeypatch)
     _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
@@ -199,6 +218,7 @@ def test_500_lalu_sukses_percobaan_kedua_berhasil(monkeypatch):
             HasilPemanggilanChatbotAPI(status_code=200, body=[{"a": 1}]),
         ],
     )
+    _patch_meta_tidak_diketahui(monkeypatch)
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(

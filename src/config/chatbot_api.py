@@ -14,6 +14,16 @@ alasan yang sama - lihat milestones/4.2-klasifikasi-respons-dan-
 penanganan-kegagalan/decisions.md Keputusan 6. EXECUTION_MAX_RETRY_INFRA
 mirror preseden numerik _MAX_ATTEMPTS=3 (decompose.py, M1.6 Keputusan 3):
 1 percobaan awal + hingga 2 retry/revisi.
+
+EXECUTION_DATA_STALENESS_THRESHOLD_JAM (Revisit 2026-08-17, M4.2
+Keputusan 11): ambang batas kesegaran `last_refreshed_at` (endpoint
+`_meta` tim database) - starting point NON-EMPIRIS, provisional, WAJIB
+dikomunikasikan ke tim database (lihat docs/keputusan-tertunda.md #3
+addendum kedua, draf pesan sudah disiapkan). 67 view kemungkinan besar
+punya kadensi refresh sangat berbeda (reservasi harian vs referensi
+properti jarang berubah) - nilai 48 jam dipilih sebagai starting point
+yang tidak terlalu ketat (menghindari SEBAGIAN muncul terlalu sering
+sebelum ada data nyata untuk kalibrasi).
 """
 
 import os
@@ -24,6 +34,7 @@ CHATBOT_API_TIMEOUT_DETIK = 30.0
 EXECUTION_MAX_RETRY_INFRA = 2
 EXECUTION_RETRY_DELAY_DETIK = 1.0
 EXECUTION_MAX_REVISI = 3
+EXECUTION_DATA_STALENESS_THRESHOLD_JAM = 48
 
 load_dotenv()
 

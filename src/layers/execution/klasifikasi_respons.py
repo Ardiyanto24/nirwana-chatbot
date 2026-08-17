@@ -18,17 +18,29 @@ lewat context propagation OTel (mirror pola `retriever.py`).
 Batas retry infra: `EXECUTION_MAX_RETRY_INFRA`. Batas revisi 400:
 `EXECUTION_MAX_REVISI` (1 percobaan awal + hingga N-1 revisi). Keduanya
 independen - tiap percobaan revisi punya jatah retry infra sendiri.
+
+Revisit (2026-08-17, Keputusan 11): SETELAH 200 sukses, `_meta` (endpoint
+tim database) dipanggil SEKALI (tanpa retry, lihat
+`panggil_meta_chatbot_api()`) untuk menentukan `berhasil` vs `sebagian`
+- `flagged`/data stale (lewat `EXECUTION_DATA_STALENESS_THRESHOLD_JAM`)
+-> `sebagian`; `null`/kegagalan `_meta` -> TETAP `berhasil` (TIDAK PERNAH
+`sebagian` dari ketidaktahuan semata).
 """
 
 import time
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from src.config.chatbot_api import (
+    EXECUTION_DATA_STALENESS_THRESHOLD_JAM,
     EXECUTION_MAX_RETRY_INFRA,
     EXECUTION_MAX_REVISI,
     EXECUTION_RETRY_DELAY_DETIK,
 )
-from src.layers.execution.pemanggilan_chatbot_api import _panggil_chatbot_api_raw
+from src.layers.execution.pemanggilan_chatbot_api import (
+    _panggil_chatbot_api_raw,
+    panggil_meta_chatbot_api,
+)
 from src.layers.query_engine.penyusunan_request import susun_request_atomic_intent
 from src.layers.query_engine.verifikasi_bentuk_request import (
     verifikasi_bentuk_request_atomic_intent,
@@ -71,6 +83,38 @@ def _panggil_dengan_retry_infra(
             return hasil, percobaan
         percobaan += 1
         time.sleep(EXECUTION_RETRY_DELAY_DETIK)
+
+
+def _data_basi(last_refreshed_at: str) -> bool:
+    """True kalau last_refreshed_at melewati
+    EXECUTION_DATA_STALENESS_THRESHOLD_JAM dari sekarang (UTC). Parse
+    gagal (format tak terduga) -> False (TIDAK dianggap basi) - kegagalan
+    parsing murni ketidaktahuan, bukan sinyal kualitas data, sudah
+    ditangani jalur null/gagal terpisah (Keputusan 11)."""
+    try:
+        waktu = datetime.fromisoformat(last_refreshed_at)
+    except ValueError:
+        return False
+    if waktu.tzinfo is None:
+        waktu = waktu.replace(tzinfo=timezone.utc)
+    usia = datetime.now(timezone.utc) - waktu
+    return usia > timedelta(hours=EXECUTION_DATA_STALENESS_THRESHOLD_JAM)
+
+
+def _tentukan_kualitas_data(
+    data_quality_status: str | None, last_refreshed_at: str | None
+) -> tuple[StatusEksekusi, str | None]:
+    """Keputusan 11 (Revisit): `flagged` ATAU stale -> SEBAGIAN
+    (closed-rule, keduanya independen, bisa trigger sendiri-sendiri
+    tanpa dobel-hitung). `null`/tidak ada `last_refreshed_at` -> BERHASIL,
+    TIDAK PERNAH SEBAGIAN dari ketidaktahuan semata - supaya sinyal
+    SEBAGIAN tetap jarang+berarti (2 view guests-* dikonfirmasi tim
+    database akan sering null bukan karena masalah)."""
+    if data_quality_status == "flagged":
+        return StatusEksekusi.SEBAGIAN, "data_quality_flagged"
+    if last_refreshed_at is not None and _data_basi(last_refreshed_at):
+        return StatusEksekusi.SEBAGIAN, "data_stale"
+    return StatusEksekusi.BERHASIL, None
 
 
 def _ekstrak_alasan_400(body: Any) -> str:
@@ -163,12 +207,33 @@ def eksekusi_atomic_intent(
             status_code = hasil_http.status_code
 
             if status_code == 200:
+                hasil_meta = panggil_meta_chatbot_api(current_request, role_title, employee_id)
+                status_akhir, alasan_kualitas = _tentukan_kualitas_data(
+                    hasil_meta.data_quality_status, hasil_meta.last_refreshed_at
+                )
+
+                if hasil_meta.data_quality_status is not None:
+                    span.set_attribute(
+                        "execution.data_quality_status", hasil_meta.data_quality_status
+                    )
+                if hasil_meta.last_refreshed_at is not None:
+                    span.set_attribute(
+                        "execution.last_refreshed_at", hasil_meta.last_refreshed_at
+                    )
+                if status_akhir == StatusEksekusi.SEBAGIAN:
+                    span.set_attribute("error.type", "sebagian")
+                    # BUKAN execution.kegagalan_alasan (nama itu khusus
+                    # GAGAL_TEKNIS di jalur lain) - SEBAGIAN bukan kegagalan.
+                    span.set_attribute("execution.alasan_sebagian", alasan_kualitas)
+
                 return HasilEksekusiAtomicIntent(
                     atomic_intent=atomic_intent,
-                    status=StatusEksekusi.BERHASIL,
+                    status=status_akhir,
                     nilai_hasil=hasil_http.body,
                     retry_count_infra=total_retry_infra,
                     revisi_count=revisi_count,
+                    data_quality_status=hasil_meta.data_quality_status,
+                    last_refreshed_at=hasil_meta.last_refreshed_at,
                 )
 
             if status_code in (403, 404):

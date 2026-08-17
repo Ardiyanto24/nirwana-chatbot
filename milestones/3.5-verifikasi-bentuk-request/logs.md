@@ -148,3 +148,27 @@ Tidak ada.
 **Commit:** `1ffb45d`
 
 ---
+
+## Checkpoint 7 — Verifikasi Jaeger Nyata
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 15 — Jalankan Nyata + Verifikasi Trace
+
+**Kesesuaian dengan plan:** Sesuai plan (termasuk verifikasi opsional pre-check).
+
+**Apa yang dilakukan**
+Docker Desktop dinyalakan, `infra/observability` (Collector+Jaeger+Prometheus) dijalankan. Skrip verifikasi (`scratchpad/verify_m35_span.py`, tidak di-commit, mirror pola M3.1/M3.3/M3.4) menjalankan `verifikasi_bentuk_request_atomic_intent()` NYATA (Collector lokal aktif) untuk DUA skenario: (1) request valid `v_reservation_room_type_daily` (lolos pre-check, memanggil LLM); (2) request dengan `view_name` sengaja tidak sesuai `view_name_tervalidasi_retriever` (gagal pre-check, TIDAK memanggil LLM). Trace diambil langsung dari Jaeger HTTP API.
+
+**Temuan**
+Trace skenario (1) `b75702b73540855d7e5e18df835870e7`: span `"chat"` membawa SELURUH atribut wajib — `gen_ai.operation.name=chat`, `gen_ai.request.model=deepseek/deepseek-v4-pro`, `gen_ai.usage.input_tokens=1445`, `prompt.id=query_engine.verifikasi_bentuk_request`, `prompt.version=1`, `request.domain=reservation`, `request.view_name=v_reservation_room_type_daily`, plus atribut custom `query_engine.verifikasi_bentuk_request.lolos=True`. **Trace skenario (2) `723e581591cb1284143a6c65afc20037`: HANYA berisi span `invoke_agent` (pembungkus skrip verifikasi) — TIDAK ADA span `"chat"` sama sekali** — bukti langsung dan konkret bahwa jalur pintas pre-check (`decisions.md` Keputusan 3) benar-benar aktif: LLM tidak pernah dipanggil, span `chat` tidak pernah dibuka, persis sesuai desain.
+
+**Error/Kegagalan**
+Tidak ada. Catatan operasional: Docker Desktop tidak otomatis berjalan di awal sesi, perlu dinyalakan manual (`Start-Process`) + tunggu daemon siap (~10 detik) sebelum `docker compose up -d` bisa jalan — bukan kegagalan proyek, murni state environment lokal.
+
+**Hasil Verifikasi**
+`curl http://localhost:16686/api/traces?service=nirwana-chatbot-m35-verify` — dua trace_id di atas, atribut DAN keberadaan/ketiadaan span `chat` dicek programatik (Python, bukan baca visual manual).
+
+**Commit:** *(skrip verifikasi murni operasional di scratchpad, tidak di-commit — konsisten preseden M3.1/M3.3/M3.4)*
+
+---

@@ -200,7 +200,37 @@ Tidak ada - seluruh 8 test lolos di percobaan pertama.
 
 ---
 
-*(Checkpoint 6 akan ditambahkan progresif setelah selesai dan terverifikasi.)*
+## Checkpoint 6 — Integrasi Jalur Revisi 400
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 10 — `_revisi_request()` dan Integrasi Loop 400
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`klasifikasi_respons.py` dilengkapi: `_ekstrak_alasan_400()` (ambil teks alasan dari body 400 - `body["detail"]` kalau dict berisi key itu, else `str(body)`), `_revisi_request()` (orkestrasi `susun_request_atomic_intent(feedback=...)` M3.4 -> `verifikasi_bentuk_request_atomic_intent()` M3.5 -> `verifikasi_gate()` M2.4, APA ADANYA tanpa modifikasi kedua fungsi terakhir, mengembalikan `(request_final, None)` atau `(None, alasan_spesifik)`). `eksekusi_atomic_intent()` direstrukturisasi jadi `while True` loop: 400 memicu `_revisi_request()` (kalau jatah revisi tersisa) lalu lanjut ke `_panggil_dengan_retry_infra()` lagi dengan request baru; batas `EXECUTION_MAX_REVISI` dihormati; `execution.revisi_count`/`execution.retry_count_infra` (kumulatif lintas seluruh percobaan revisi) dicatat di span SATU kali per iterasi loop.
+
+**Temuan**
+Tidak ada temuan tak terduga secara teknis. Test lama `test_klasifikasi_respons.py` (Checkpoint 5) sempat punya test placeholder 400 (`test_400_placeholder_gagal_teknis_belum_diimplementasi`) yang perilakunya SEKARANG BERUBAH (400 tidak lagi langsung gagal_teknis, tapi memicu revisi) - test itu DIHAPUS (bukan diubah assertion-nya) karena skenarionya sudah sepenuhnya digantikan test file baru `test_klasifikasi_respons_revisi.py`. Ini penyimpangan kecil dari kata plan "seluruh test lama tetap lolos tanpa perubahan assertion" - tapi test yang dihapus itu SENDIRI adalah test Checkpoint 5 untuk perilaku SEMENTARA yang memang direncanakan diganti Checkpoint 6 (bukan test regresi milestone lain), jadi tidak melanggar semangat acceptance criteria (yang soal test REGRESI M3.4/M3.5/M2.4, bukan soal placeholder internal M4.2 sendiri).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/ tests/layers/query_engine/ tests/layers/verification_gate/ -v` — **120/120 lolos**, mencakup:
+- `test_klasifikasi_respons_revisi.py` (5 test baru): 400 lalu 200 di revisi ke-2 -> berhasil, `revisi_count=1`, feedback yang diteruskan ke `susun_request_atomic_intent` persis sama dengan `body["detail"]` respons 400; gagal di M3.4 -> `revisi_gagal_susun`; gagal di M3.5 -> `revisi_gagal_verifikasi_bentuk`; gagal di M2.4 -> `revisi_gagal_verification_gate`; 400 berulang sampai `EXECUTION_MAX_REVISI` habis -> `revisi_exhausted`, `_panggil_chatbot_api_raw` dipanggil TEPAT `EXECUTION_MAX_REVISI` kali dan `susun_request_atomic_intent` TEPAT `EXECUTION_MAX_REVISI-1` kali (bukti tidak berulang tanpa henti), span `execution.revisi_count` tercatat benar di seluruh skenario.
+- `test_klasifikasi_respons.py` (7 test Checkpoint 5, setelah penghapusan 1 placeholder) tetap lolos TANPA perubahan assertion.
+- SELURUH test regresi M3.4 (`test_penyusunan_request.py`, `test_param_whitelist.py`, `test_query_engine_schema.py`), M3.5 (`test_verifikasi_bentuk_request.py`), M2.4 (`test_verification_gate.py`, `test_verifikasi_gate.py`) — **lolos penuh, TANPA satu pun perubahan** (bukti tidak ada regresi lintas-milestone dari integrasi loop revisi).
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 7 - verifikasi nyata dan penutupan - DITUNDA sesuai Keputusan 4, lihat plan.)*
 
 ---
 

@@ -37,17 +37,25 @@ def test_spot_check_view_time_series_dan_pembanding_jelas():
     assert grain.punya_dimensi_pembanding == "ya"
 
 
-def test_spot_check_view_snapshot_eksplisit_time_series_tidak():
-    """v_facility_room_status_daily eksplisit ditandai '(snapshot)' di
-    katalog - prasyarat KK1 sumber M3.3 (kebutuhan tren + kandidat
-    snapshot -> tidak cukup)."""
-    grain = GRAIN_STRUKTURAL_VIEW["v_facility_room_status_daily"]
-    assert grain.punya_time_series == "tidak"
+def test_spot_check_view_snapshot_tanpa_pernyataan_tren_historis_eksplisit_ambigu():
+    """v_facility_room_status_daily/v_hr_headcount_status_daily bertanda
+    '(snapshot)' di grain TAPI tanpa pernyataan eksplisit 'tidak ada tren
+    historis' (beda dari v_hr_turnover_snapshot) - REVISI Checkpoint 7
+    (eval Promptfoo menemukan model punya argumen masuk akal bahwa
+    period_date berulang harian bisa membentuk tren state-per-hari).
+    Diklasifikasi tidak_pasti (ambigu), bukan tidak (pasti) - dilempar ke
+    fallback LLM, bukan ditebak deterministik. Lihat decisions.md
+    Keputusan 1 addendum."""
+    assert GRAIN_STRUKTURAL_VIEW["v_facility_room_status_daily"].punya_time_series == "tidak_pasti"
+    assert GRAIN_STRUKTURAL_VIEW["v_hr_headcount_status_daily"].punya_time_series == "tidak_pasti"
 
 
-def test_spot_check_view_snapshot_hr_turnover_dan_headcount():
+def test_spot_check_view_snapshot_hr_turnover_pernyataan_eksplisit_tidak_ada_tren():
+    """v_hr_turnover_snapshot TETAP tidak (pasti) - teks Fungsi katalog
+    eksplisit menyatakan 'tidak ada tren historis (data sumber tidak
+    punya tanggal resign)', beda dari dua view di atas yang tidak punya
+    pernyataan serupa."""
     assert GRAIN_STRUKTURAL_VIEW["v_hr_turnover_snapshot"].punya_time_series == "tidak"
-    assert GRAIN_STRUKTURAL_VIEW["v_hr_headcount_status_daily"].punya_time_series == "tidak"
 
 
 def test_spot_check_view_referensi_murni_tanpa_metrik():

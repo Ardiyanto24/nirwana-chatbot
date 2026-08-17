@@ -154,9 +154,9 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
     ),
     # --- facility (12) ---
     "v_facility_room_status_daily": KarakteristikGrain(
-        punya_time_series="tidak",
+        punya_time_series="tidak_pasti",
         punya_dimensi_pembanding="ya",
-        catatan="grain eksplisit '(snapshot)' - satu titik waktu, bukan deret; kamar tetap dimensi pembanding.",
+        catatan="grain 'kamar x tanggal (snapshot)' - REVISI Checkpoint 7 (eval Promptfoo): beda dari v_hr_turnover_snapshot yang Fungsi-nya eksplisit menyatakan 'tidak ada tren historis', view ini TIDAK punya pernyataan serupa - period_date berulang tiap hari (nama _daily, sumber fact_..._daily) genuinely bisa dibaca sebagai state-per-hari yang membentuk tren (mis. tren jumlah kamar out-of-order per hari), bukan snapshot tunggal. Ambigu, sengaja dilempar ke fallback LLM alih-alih ditebak deterministik.",
     ),
     "v_housekeeping_room_type_daily": KarakteristikGrain(
         punya_time_series="ya",
@@ -270,12 +270,12 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
     "v_hr_turnover_snapshot": KarakteristikGrain(
         punya_time_series="tidak",
         punya_dimensi_pembanding="ya",
-        catatan="grain eksplisit '(snapshot)' - properti x departemen tetap dimensi pembanding.",
+        catatan="grain '(snapshot)' DIPERKUAT pernyataan eksplisit di teks Fungsi katalog: 'snapshot, tidak ada tren historis (data sumber tidak punya tanggal resign)' - beda dari v_facility_room_status_daily/v_hr_headcount_status_daily (Checkpoint 7) yang cuma bertanda '(snapshot)' tanpa pernyataan serupa, sehingga TETAP diklasifikasi tidak (pasti), bukan tidak_pasti. properti x departemen tetap dimensi pembanding.",
     ),
     "v_hr_headcount_status_daily": KarakteristikGrain(
-        punya_time_series="tidak",
+        punya_time_series="tidak_pasti",
         punya_dimensi_pembanding="ya",
-        catatan="grain eksplisit '(snapshot)' - departemen x status tetap dimensi pembanding.",
+        catatan="grain 'properti x departemen x status x tanggal (snapshot)' - REVISI Checkpoint 7 (eval Promptfoo, pola sama v_facility_room_status_daily): TANPA pernyataan eksplisit 'tidak ada tren historis' seperti v_hr_turnover_snapshot, period_date berulang tiap hari genuinely bisa membentuk tren (mis. tren jumlah karyawan resigned per hari). Ambigu, dilempar ke fallback LLM.",
     ),
     "v_hr_performance_department_semester": KarakteristikGrain(
         punya_time_series="ya",

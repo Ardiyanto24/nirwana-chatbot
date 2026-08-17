@@ -247,8 +247,8 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 
 | # | Judul | Jenis | Checkpoint Terkait |
 |---|---|---|---|
-| 1 | Mekanisme pencarian kandidat: Hybrid BM25 + fallback embedding | A | Checkpoint 5-6, 10 |
-| 2 | Model embedding fallback: dibandingkan empiris, dikunci provisional | A | Checkpoint 6-9 |
+| 1 | Mekanisme pencarian kandidat: Hybrid BM25 + fallback embedding (+ addendum stopword filtering Checkpoint 9) | A | Checkpoint 5-6, 9-10 |
+| 2 | Model embedding fallback: dibandingkan empiris, dikunci provisional (text-embedding-3-small) | A | Checkpoint 6-9 |
 | 3 | Relokasi DAFTAR_VIEW_PER_DOMAIN ke src/config/ | B | Checkpoint 2 |
 | 4 | Fungsi utama menerima satu AtomicIntent, bukan _semua() | B | Checkpoint 10 |
 | 5 | Parameter list[Domain], bukan AtomicIntentAuthorization utuh | B | Checkpoint 10 |

@@ -172,3 +172,45 @@ Tidak ada. Catatan operasional: Docker Desktop tidak otomatis berjalan di awal s
 **Commit:** *(skrip verifikasi murni operasional di scratchpad, tidak di-commit — konsisten preseden M3.1/M3.3/M3.4)*
 
 ---
+
+## Checkpoint 8 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 16 — Finalisasi `decisions.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`decisions.md` sudah memuat "Daftar Isi Keputusan" penuh (13 keputusan) sejak Checkpoint 1 — dikonfirmasi ulang tidak perlu addendum (prompt TIDAK direvisi sepanjang milestone, tetap v1).
+
+### Task 17 — Tulis `logs.md`
+
+**Apa yang dilakukan**
+Dokumen ini sendiri — dibangun bertahap per checkpoint sepanjang milestone berjalan (commit `c1d9bc4`, `d2827fd`, `2b1978e`, `befb9da`, `2a6d424`, `55d6ef8`); entri Checkpoint 8 ini melengkapi bagian penutup.
+
+### Task 18 — Tulis `report.md`
+
+**Apa yang dilakukan**
+`milestones/3.5-verifikasi-bentuk-request/report.md` — enam bagian: ringkasan, KK1-2 vs bukti nyata, keputusan final relevan, perubahan dari plan (tidak ada — prompt tidak direvisi), keterbatasan/item provisional (ketidakkonsistenan S04/S05, jalur perbaikan tetap di luar cakupan), diagram arsitektur Mermaid, dan **konfirmasi eksplisit Catatan Serah Terima `rancangan-retrieval-query.md` TERPENUHI PENUH** — PIC 3 (Retriever + Query Engine, M3.1-3.5) SELESAI SEPENUHNYA.
+
+### Task 19 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Apa yang dilakukan**
+Tabel "Struktur Repository" diperbarui: baris `milestones/` (tambah M3.5), baris `src/` (subpackage `query_engine/verifikasi_bentuk_request.py` + `src/schemas/query_engine.py` diperluas), baris `src/prompts/` (`verifikasi_bentuk_request.md` v1), baris `tests/` (62 test total `tests/layers/query_engine/`), baris `evals/` (`evals/3.5-.../`, 5/5 lolos), baris `prompt_reliability/` (13 config). Section "Status Saat Ini": bullet baru "Milestone 3.5 (Verifikasi Bentuk Request) SELESAI" (mirror pola M3.1-3.4), bullet "Urutan pengerjaan yang disarankan" diperbarui menunjuk Milestone 4.x (Execution & Interpretation) sebagai langkah berikutnya, bullet "Keputusan tertunda" ditambah mention #3 (sebelumnya terlewat di prosa meski sudah ada di tabel struktur repo), bullet "Model per langkah dan provider routing" diperbarui menyebut model M3.4+M3.5 dan mengganti "Milestone 3.4+" jadi "Milestone 4.x". `AGENT.md` disinkronkan persis (`cp` + `diff -q` — identik, nol perbedaan).
+
+**Hasil Verifikasi** `diff -q CLAUDE.md AGENT.md` → tidak ada output (identik).
+
+**Commit:** *(CLAUDE.md/AGENT.md sengaja TIDAK di-track git — diperbarui di working tree saja, dibaca sistem tiap sesi, bukan artefak git)*
+
+---
+
+## Ringkasan Penutupan Milestone 3.5
+
+- **8 checkpoint, 19 task** — seluruhnya selesai dan terverifikasi nyata (bukan simulasi/mock untuk bagian yang sifatnya perilaku LLM).
+- **62 unit test** di `tests/layers/query_engine/` (46 M3.4 + 16 M3.5 baru) — seluruhnya hijau, nol network call nyata (mocked LLM), termasuk pembuktian pre-check short-circuit via monkeypatch raise.
+- **Eval nyata**: 5 skenario, 5/5 lolos di run pertama — termasuk replikasi PERSIS temuan nyata S04 M3.4 (`occupancy_rate: "nilai_tunggal"`) yang berhasil ditangkap dengan reasoning grain-mismatch lebih dalam dari ekspektasi.
+- **Promptfoo**: 4 skenario, 4/4 lolos di run pertama — 4 baris terverifikasi di `prompt_eval_runs` Supabase, prompt TIDAK direvisi (tetap v1).
+- **Jaeger**: DUA trace nyata — satu membuktikan span `chat` lengkap (`b75702b73540855d7e5e18df835870e7`), satu membuktikan span `chat` TIDAK ADA SAMA SEKALI saat pre-check short-circuit (`723e581591cb1284143a6c65afc20037`) — bukti konkret arsitektur hybrid bekerja sesuai desain.
+- **Satu observasi kualitas** (ketidakkonsistenan verdict S04 vs S05, gap struktural serupa) dicatat transparan, tidak memicu revisi (baru 1 titik data, dampak rendah, tidak melanggar KK sumber manapun).
+- **PIC 3 (Retriever + Query Engine, Milestone 3.1-3.5) SELESAI SEPENUHNYA.** Catatan Serah Terima `rancangan-retrieval-query.md` terpenuhi penuh — dikonfirmasi eksplisit di `report.md`. Langkah berikutnya yang disarankan: Milestone 4.x (Execution & Interpretation, PIC 4).

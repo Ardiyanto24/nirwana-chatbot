@@ -452,3 +452,29 @@ Review manual — setiap dimensi di tabel "Yang Diuji" punya skenario pembukti, 
 ---
 
 ---
+
+## Checkpoint 12 — Eksekusi Eval
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 20 — Tulis + Jalankan `run_eval.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `evals/3.2-kecocokan-makna/run_eval.py` (reuse `nilai_kecocokan_makna_atomic_intent()` produksi langsung, filter opsional per-skenario lewat argv mirror `evals/2.1-.../run_eval.py`). Sanity-check import module (tanpa panggilan LLM) lolos duluan. Dijalankan S02 sendirian dulu sebagai smoke test sebelum batch penuh (validasi wiring end-to-end dengan biaya minimal) — LOLOS. Baru kemudian seluruh 8 skenario dijalankan sekaligus.
+
+**Temuan**
+**8/8 skenario LOLOS** pada percobaan pertama, termasuk kedua kriteria wajib tanpa toleransi (S01 KK1, S02 KK2, S04, S08). S06 (domain padat 10 kandidat) hasil LEBIH BAIK dari toleransi yang diizinkan — 0 dari 9 kandidat non-fokus salah dilabel `ditemukan` (toleransi mengizinkan hingga 2), seluruhnya presisi: 1 `ditemukan` (`v_hr_watchlist_monthly`, benar), 2 `sebagian` (kandidat yang genuinely dekat), 7 `tidak_ditemukan`. S07 (observasional) menunjukkan bukti NYATA mekanisme koreksi dua arah bekerja — `alasan` payload eksplisit menyebut "Penilaian awal terlalu ragu, koreksi ke 'ditemukan'" (Langkah 1 sempat menilai `sebagian`, Langkah 2 mengoreksi naik ke `ditemukan`) — TAPI `alasan` final TIDAK menyinggung nuansa join/nullable `property_id` yang jadi fokus observasional S07, murni soal grain/kolom yang tersedia. Dicatat sebagai temuan kualitatif jujur di `audit.md` (Checkpoint 13), bukan disembunyikan meski skenario tetap `match=True` sesuai kriteria pass/fail yang didefinisikan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Console: `8/8 skenario lolos`. Payload lengkap tersimpan `evals/3.2-kecocokan-makna/payloads/{S01..S08}.json` — respons API nyata (bukan mock), termasuk `alasan` tekstual penuh tiap kandidat untuk audit kualitatif.
+
+**Commit:** `985f7f9` — `test(milestone-3.2): eksekusi eval kecocokan makna`
+
+---
+
+---

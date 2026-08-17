@@ -1,89 +1,415 @@
-description: "Reliability testing - retriever.kecocokan_makna_verifikasi (M3.2 Langkah 2) - koreksi dua arah, skenario awal, akan diselaraskan penuh dengan evals/3.2-kecocokan-makna/ di Checkpoint 14"
-
+description: Reliability testing - retriever.kecocokan_makna_verifikasi (M3.2 Langkah 2) - diselaraskan penuh dengan 8 skenario evals/3.2-kecocokan-makna/rancangan.md (Checkpoint 14), penilaian awal Langkah 1 sengaja diadversarialkan per skenario untuk menguji koreksi dua arah
 providers:
-  - id: python:../provider.py
-    config:
-      prompt_id: retriever.kecocokan_makna_verifikasi
-      model: deepseek/deepseek-v4-pro
-      response_format: { type: json_object }
-      extra_body: { reasoning: { effort: high } }
-      render_context: src.layers.retriever.kecocokan_makna._render_context_verifikasi
-
+- id: python:../provider.py
+  config:
+    prompt_id: retriever.kecocokan_makna_verifikasi
+    model: deepseek/deepseek-v4-pro
+    response_format:
+      type: json_object
+    extra_body:
+      reasoning:
+        effort: high
+    render_context: src.layers.retriever.kecocokan_makna._render_context_verifikasi
 tests:
-  # Setiap skenario menyuplai penilaian awal Langkah 1 yang SENGAJA salah
-  # arah (terlalu longgar / terlalu ragu) untuk menguji Langkah 2 benar-
-  # benar mengoreksi, bukan sekadar menyalin penilaian awal (anchoring).
+- description: S01_KK1_sumber_persis
+  vars:
+    user_prompt: |-
+      Kebutuhan: Tampilkan breakdown okupansi per tipe kamar untuk properti Bali bulan ini (bentuk jawaban: komposisi)
 
-  - description: S01_koreksi_arah_turun_grain_mismatch_terlewat_langkah_1
-    vars:
-      user_prompt: |
-        Kebutuhan: Tampilkan breakdown okupansi per tipe kamar untuk properti Bali bulan ini (bentuk jawaban: komposisi)
+      Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
 
-        Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+      ### v_reservation_room_type_daily
+      *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti × tipe kamar × tanggal.*
+      **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari — "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
 
-        ### v_reservation_property_daily
-        *Sumber: `fact_revenue_property_daily` + `dim_property` — grain: properti × tanggal.*
-        **Fungsi**: ringkasan performa harian 1 properti — lead time booking, pertumbuhan MoM/YoY, ranking dibanding 4 properti lain, tingkat tamu berulang.
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id` | Kode properti (P01–P05; P06 kantor pusat tidak punya kamar). |
+      | `property_name` | Nama hotel. |
+      | `region` | Wilayah properti. |
+      | `room_type_name` | `Standard`, `Deluxe`, `Suite`, atau `Villa`. **Villa hanya ada di P01/P04/P05** — Jakarta (P02) & Yogyakarta (P03) tidak punya. |
+      | `period_date` | Tanggal. |
+      | `rooms_sold` | Jumlah kamar tipe ini terjual pada tanggal itu. |
+      | `total_rooms_available` | Jumlah kamar tipe ini yang tersedia untuk dijual. |
+      | `occupancy_rate` | `rooms_sold ÷ total_rooms_available`, rentang 0–1. |
+      | `adr` | **Average Daily Rate** — rata-rata tarif kamar terjual (Rupiah). |
+      | `revpar` | **Revenue Per Available Room** = `adr × occupancy_rate` — metrik profitabilitas utama industri hotel. |
+      | `revenue` | Total pendapatan kamar tipe ini pada tanggal itu. |
+      | `room_type_revenue_share_pct` | Kontribusi tipe kamar ini terhadap total revenue kamar properti hari itu. |
 
-        | Kolom | Deskripsi |
-        |---|---|
-        | `property_id`, `property_name`, `region` | Identitas properti. |
-        | `period_date` | Tanggal. |
-        | `mom_occupancy_growth` / `yoy_occupancy_growth` | Pertumbuhan okupansi bulan-ke-bulan / tahun-ke-tahun. |
+      Penilaian awal (Langkah 1): label="ditemukan", alasan="cocok"
 
-        Penilaian awal (Langkah 1): label="ditemukan", alasan="sama-sama soal okupansi, jadi cocok"
-    assert:
-      - type: is-json
-      - type: javascript
-        value: |
-          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_reservation_property_daily");
-          return p !== undefined && p.label !== "ditemukan";
+      ### v_reservation_property_daily
+      *Sumber: `fact_revenue_property_daily` + `dim_property` — grain: properti × tanggal.*
+      **Fungsi**: ringkasan performa harian 1 properti — lead time booking, pertumbuhan MoM/YoY, ranking dibanding 4 properti lain, tingkat tamu berulang.
 
-  - description: S02_koreksi_arah_naik_keraguan_tidak_berdasar
-    vars:
-      user_prompt: |
-        Kebutuhan: Berapa okupansi per tipe kamar di Bali bulan ini? (bentuk jawaban: nilai_tunggal)
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name`, `region` | Identitas properti. |
+      | `period_date` | Tanggal. |
+      | `avg_lead_time_days` / `median_lead_time_days` | Rata-rata/median jarak hari antara `booking_date` dan `check_in_date`. |
+      | `mom_occupancy_growth` / `yoy_occupancy_growth` | Pertumbuhan okupansi bulan-ke-bulan / tahun-ke-tahun. |
+      | `mom_adr_growth` / `yoy_adr_growth` | Pertumbuhan ADR MoM/YoY. |
+      | `mom_revpar_growth` / `yoy_revpar_growth` | Pertumbuhan RevPAR MoM/YoY. |
+      | `repeat_guest_rate` | Proporsi booking dari tamu yang sudah pernah menginap sebelumnya. |
+      | `revpar_rank_group` / `adr_rank_group` / `occupancy_rank_group` | Kelompok ranking properti ini dibanding 5 properti lain untuk metrik terkait. |
 
-        Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+      Penilaian awal (Langkah 1): label="ditemukan", alasan="sama-sama soal okupansi, jadi cocok"
+  assert:
+  - type: is-json
+  - type: javascript
+    value: |-
+      const d=JSON.parse(output).penilaian;
+      const a=d.find(e=>e.view_name==="v_reservation_room_type_daily");
+      const b=d.find(e=>e.view_name==="v_reservation_property_daily");
+      return a && a.label==="ditemukan" && b && b.label!=="ditemukan";
+- description: S02_KK2_sumber_persis
+  vars:
+    user_prompt: |-
+      Kebutuhan: Berapa okupansi Suite di Bali bulan ini? (bentuk jawaban: nilai_tunggal)
 
-        ### v_reservation_room_type_daily
-        *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti × tipe kamar × tanggal.*
-        **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari — "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
+      Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
 
-        | Kolom | Deskripsi |
-        |---|---|
-        | `property_id` | Kode properti (P01–P05; P06 kantor pusat tidak punya kamar). |
-        | `room_type_name` | `Standard`, `Deluxe`, `Suite`, atau `Villa`. |
-        | `occupancy_rate` | `rooms_sold ÷ total_rooms_available`, rentang 0–1. |
+      ### v_reservation_room_type_daily
+      *Sumber: `fact_revenue_room_type_daily` + `dim_property` + `dim_room_type` — grain: properti × tipe kamar × tanggal.*
+      **Fungsi**: okupansi/ADR/RevPAR per tipe kamar per hari — "berapa okupansi Suite di Bali bulan ini", tipe kamar mana penyumbang revenue terbesar.
 
-        Penilaian awal (Langkah 1): label="sebagian", alasan="kurang yakin apakah grain-nya benar-benar per tipe kamar"
-    assert:
-      - type: is-json
-      - type: javascript
-        value: |
-          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_reservation_room_type_daily");
-          return p !== undefined && p.label === "ditemukan";
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id` | Kode properti (P01–P05; P06 kantor pusat tidak punya kamar). |
+      | `property_name` | Nama hotel. |
+      | `region` | Wilayah properti. |
+      | `room_type_name` | `Standard`, `Deluxe`, `Suite`, atau `Villa`. **Villa hanya ada di P01/P04/P05** — Jakarta (P02) & Yogyakarta (P03) tidak punya. |
+      | `period_date` | Tanggal. |
+      | `rooms_sold` | Jumlah kamar tipe ini terjual pada tanggal itu. |
+      | `total_rooms_available` | Jumlah kamar tipe ini yang tersedia untuk dijual. |
+      | `occupancy_rate` | `rooms_sold ÷ total_rooms_available`, rentang 0–1. |
+      | `adr` | **Average Daily Rate** — rata-rata tarif kamar terjual (Rupiah). |
+      | `revpar` | **Revenue Per Available Room** = `adr × occupancy_rate` — metrik profitabilitas utama industri hotel. |
+      | `revenue` | Total pendapatan kamar tipe ini pada tanggal itu. |
+      | `room_type_revenue_share_pct` | Kontribusi tipe kamar ini terhadap total revenue kamar properti hari itu. |
 
-  - description: S03_konfirmasi_penilaian_awal_sudah_benar
-    vars:
-      user_prompt: |
-        Kebutuhan: Berapa tingkat turnover karyawan departemen HR bulan ini? (bentuk jawaban: nilai_tunggal)
+      Penilaian awal (Langkah 1): label="sebagian", alasan="kurang yakin apakah grain-nya benar-benar per tipe kamar"
+  assert:
+  - type: is-json
+  - type: javascript
+    value: |-
+      const p=JSON.parse(output).penilaian.find(e=>e.view_name==="v_reservation_room_type_daily");
+      return p && p.label==="ditemukan";
+- description: S03_Kolom_turunan_tetap_valid_(anti_false-negative)
+  vars:
+    user_prompt: |-
+      Kebutuhan: Berapa batas SLA (dalam jam) untuk tiket prioritas critical? (bentuk jawaban: nilai_tunggal)
 
-        Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+      Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
 
-        ### v_hr_turnover_snapshot
-        *Sumber: `fact_hr_turnover_snapshot` + `dim_property` + `dim_department` — grain: properti × departemen × tanggal (snapshot).*
-        **Fungsi**: tingkat turnover per departemen per properti — snapshot, tidak ada tren historis (data sumber tidak punya tanggal resign).
+      ### v_maintenance_ticket_daily
+      *Sumber: `fact_maintenance_ticket_daily` + `dim_property` + `dim_facility_area` + `dim_issue_type` + `dim_priority` — grain: properti × area × jenis isu × prioritas × tanggal.*
+      **Fungsi**: volume tiket baru, rata-rata durasi penyelesaian, dan apakah SLA terlampaui — sudah menyertakan threshold SLA & flag pelanggaran terhitung langsung di view.
 
-        | Kolom | Deskripsi |
-        |---|---|
-        | `department_name` | Departemen. |
-        | `turnover_rate` | Rasio karyawan keluar (resigned/terminated) di departemen ini. |
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `facility_area_name` | Lokasi kerusakan (`Room`, `Pool`, `Lobby`, `Elevator`, `Restaurant`, `Gym`, `Parking`). |
+      | `issue_type_name` | Jenis kerusakan (`AC`, `Plumbing`, `Electrical`, `Furniture`, `TV/Elektronik`, `Kunci/Lock`, `Lainnya`). |
+      | `priority_name` | `critical`, `high`, `medium`, `low`. |
+      | `period_date` | Tanggal. |
+      | `new_ticket_count` | Jumlah tiket baru. |
+      | `avg_sla_duration_hours` | Rata-rata durasi penyelesaian (jam). |
+      | `pending_count` | Jumlah tiket masih `open`/`in-progress`. |
+      | `sla_threshold_hours` | **Kolom turunan** — batas SLA sesuai prioritas: `critical`=8 jam, `high`=24 jam, `medium`=48 jam, `low`=72 jam. |
+      | `avg_exceeds_sla_threshold` | **Kolom turunan** (boolean) — apakah `avg_sla_duration_hours` melebihi `sla_threshold_hours`. NULL jika durasi belum ada. |
 
-        Penilaian awal (Langkah 1): label="ditemukan", alasan="grain properti x departemen x snapshot sesuai kebutuhan nilai tunggal turnover HR"
-    assert:
-      - type: is-json
-      - type: javascript
-        value: |
-          const p = JSON.parse(output).penilaian.find(e => e.view_name === "v_hr_turnover_snapshot");
-          return p !== undefined && p.label === "ditemukan";
+      Penilaian awal (Langkah 1): label="sebagian", alasan="sla_threshold_hours kolom turunan, mungkin bukan nilai asli"
+  assert:
+  - type: is-json
+  - type: javascript
+    value: |-
+      const p=JSON.parse(output).penilaian.find(e=>e.view_name==="v_maintenance_ticket_daily");
+      return p && p.label==="ditemukan";
+- description: S04_Snapshot_vs_kebutuhan_tren_historis
+  vars:
+    user_prompt: |-
+      Kebutuhan: Bagaimana TREN turnover karyawan departemen HR selama setahun terakhir? (bentuk jawaban: tren)
+
+      Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+
+      ### v_hr_turnover_snapshot
+      *Sumber: `fact_hr_turnover_snapshot` + `dim_property` + `dim_department` — grain: properti × departemen × tanggal (snapshot).*
+      **Fungsi**: tingkat turnover per departemen per properti — snapshot, tidak ada tren historis (data sumber tidak punya tanggal resign).
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `department_name` | Departemen. |
+      | `period_date` | Tanggal snapshot. |
+      | `turnover_rate` | Rasio karyawan keluar (resigned/terminated) di departemen ini. |
+
+      Penilaian awal (Langkah 1): label="ditemukan", alasan="sama-sama soal turnover, jadi cocok"
+  assert:
+  - type: is-json
+  - type: javascript
+    value: |-
+      const p=JSON.parse(output).penilaian.find(e=>e.view_name==="v_hr_turnover_snapshot");
+      return p && p.label!=="ditemukan";
+- description: S05_Snapshot_cocok_untuk_kebutuhan_point-in-time_(counter-case_S04)
+  vars:
+    user_prompt: |-
+      Kebutuhan: Berapa tingkat turnover departemen HR bulan ini? (bentuk jawaban: nilai_tunggal)
+
+      Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+
+      ### v_hr_turnover_snapshot
+      *Sumber: `fact_hr_turnover_snapshot` + `dim_property` + `dim_department` — grain: properti × departemen × tanggal (snapshot).*
+      **Fungsi**: tingkat turnover per departemen per properti — snapshot, tidak ada tren historis (data sumber tidak punya tanggal resign).
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `department_name` | Departemen. |
+      | `period_date` | Tanggal snapshot. |
+      | `turnover_rate` | Rasio karyawan keluar (resigned/terminated) di departemen ini. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="kurang yakin karena namanya snapshot"
+  assert:
+  - type: is-json
+  - type: javascript
+    value: |-
+      const p=JSON.parse(output).penilaian.find(e=>e.view_name==="v_hr_turnover_snapshot");
+      return p && p.label==="ditemukan";
+- description: S06_Domain_padat_kandidat_(10_kandidat_sekaligus)
+  vars:
+    user_prompt: |-
+      Kebutuhan: Karyawan mana saja yang pola absensinya menyimpang jauh dari kebiasaan pribadinya bulan ini? (bentuk jawaban: peringkat)
+
+      Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+
+      ### v_hr_attendance_daily
+      *Sumber: `fact_hr_attendance_daily` + `dim_property` + `dim_department` — grain: properti × departemen × tanggal.*
+      **Fungsi**: ringkasan kehadiran harian per departemen — jumlah hadir/telat/cuti/absen dan total jam lembur.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `department_name` | Salah satu dari 8 departemen: `Housekeeping`, `F&B`, `Revenue`, `Spa&Event`, `Facility`, `HR`, `Finance`, `Corporate`. |
+      | `period_date` | Tanggal. |
+      | `present_count` / `late_count` / `leave_count` / `absent_count` | Jumlah karyawan per status kehadiran hari itu. |
+      | `overtime_hours_total` | Total jam lembur departemen hari itu. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+
+      ### v_hr_employee_monthly
+      *Sumber: `fact_hr_employee_monthly` + `dim_employee` + `dim_property` + `dim_department` — grain: karyawan × bulan.*
+      **Fungsi**: performa kehadiran 1 karyawan dibanding rata-rata departemennya — sinyal gejala pra-resign (lembur/telat berlebihan).
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `employee_id`, `full_name` | Identitas karyawan. |
+      | `department_name` | Departemen. |
+      | `property_id`, `property_name` | Properti tempat bertugas. |
+      | `period_date` | Bulan. |
+      | `overtime_hours` | Total jam lembur bulan itu. |
+      | `overtime_vs_dept_avg` | Perbandingan terhadap rata-rata departemen. |
+      | `late_rate` | Rasio keterlambatan bulan itu. |
+      | `late_vs_dept_avg` | Perbandingan terhadap rata-rata departemen. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+
+      ### v_hr_employee_performance_semester
+      *Sumber: `fact_hr_employee_performance_semester` + `dim_employee` + `dim_property` + `dim_department` — grain: karyawan × periode review.*
+      **Fungsi**: skor & catatan penilaian kinerja 1 karyawan per semester.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `employee_id`, `full_name` | Identitas karyawan. |
+      | `department_name` | Departemen. |
+      | `property_id`, `property_name` | Properti. |
+      | `review_period` | Format `YYYY-S1` (Jan–Jun) atau `YYYY-S2` (Jul–Des). |
+      | `score` | Skor 1.00–5.00: 4.3–5.0 sangat baik, 3.5–4.29 baik, 2.5–3.49 cukup, 1.0–2.49 di bawah standar. |
+      | `notes` | Catatan kualitatif, konsisten dengan rentang skor. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+
+      ### v_hr_headcount_status_daily
+      *Sumber: `fact_hr_headcount_status_daily` + `dim_property` + `dim_department` + `dim_employee_status` — grain: properti × departemen × status × tanggal (snapshot).*
+      **Fungsi**: jumlah karyawan per status kepegawaian, per departemen per properti.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `department_name` | Departemen. |
+      | `status_name` | `active`, `resigned`, atau `terminated`. |
+      | `period_date` | Tanggal snapshot. |
+      | `employee_count` | Jumlah karyawan dengan status ini. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+
+      ### v_hr_performance_by_status_semester
+      *Sumber: `fact_hr_performance_by_status_semester` + `dim_property` + `dim_employee_status` — grain: properti × status kepegawaian × periode review.*
+      **Fungsi**: apakah karyawan yang resign/terminated punya pola skor kinerja berbeda dari yang masih aktif (skor cenderung menurun menjelang resign).
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `status_name` | `active`, `resigned`, `terminated`. |
+      | `review_period` | `YYYY-S1`/`YYYY-S2`. |
+      | `avg_performance_score` | Rata-rata skor kelompok status ini. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+
+      ### v_hr_performance_department_semester
+      *Sumber: `fact_hr_performance_department_semester` + `dim_property` + `dim_department` — grain: properti × departemen × periode review.*
+      **Fungsi**: rata-rata skor kinerja per departemen — benchmark antar departemen dalam 1 properti.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `department_name` | Departemen. |
+      | `review_period` | `YYYY-S1`/`YYYY-S2`. |
+      | `avg_performance_score` | Rata-rata skor kinerja departemen ini periode itu. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+
+      ### v_hr_turnover_snapshot
+      *Sumber: `fact_hr_turnover_snapshot` + `dim_property` + `dim_department` — grain: properti × departemen × tanggal (snapshot).*
+      **Fungsi**: tingkat turnover per departemen per properti — snapshot, tidak ada tren historis (data sumber tidak punya tanggal resign).
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `department_name` | Departemen. |
+      | `period_date` | Tanggal snapshot. |
+      | `turnover_rate` | Rasio karyawan keluar (resigned/terminated) di departemen ini. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+
+      ### v_hr_watchlist_monthly
+      *Sumber: `fact_hr_watchlist_monthly` + `dim_employee` + `dim_property` + `dim_department` — grain: karyawan × bulan.*
+      **Fungsi**: daftar pantau karyawan dengan pola absensi/keterlambatan menyimpang jauh dari baseline pribadinya — sinyal dini risiko resign.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `employee_id`, `full_name` | Identitas karyawan. |
+      | `department_name` | Departemen. |
+      | `property_id`, `property_name` | Properti. |
+      | `period_date` | Bulan. |
+      | `current_absence_rate` / `baseline_absence_rate` | Tingkat absensi bulan berjalan vs baseline historis karyawan ini. |
+      | `current_late_rate` / `baseline_late_rate` | Tingkat keterlambatan bulan berjalan vs baseline. |
+      | `absence_deviation_ratio` / `late_deviation_ratio` | Rasio penyimpangan dari baseline. |
+      | `in_watchlist` | Boolean — masuk daftar pantau jika deviasi >5x baseline. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="kurang yakin apakah deviasi baseline dihitung persis"
+
+      ### v_lookup_employee_performance
+      *Sumber: `mart_cleaned.employee_performance` LEFT JOIN `employees` — grain: 1 baris = 1 review.*
+      **Fungsi**: skor & catatan performa terakhir 1 karyawan tertentu.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `review_id` | ID review. |
+      | `employee_id` | Karyawan. |
+      | `property_id` | **Di-join dari `employees`**. |
+      | `review_period` | `YYYY-S1`/`YYYY-S2`. |
+      | `score`, `notes` | Skor 1.00–5.00 dan catatan kualitatif. |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+
+      ### v_lookup_staff_shifts
+      *Sumber: `mart_cleaned.staff_shifts` LEFT JOIN `employees` — grain: 1 baris = 1 karyawan × 1 hari kerja.*
+      **Fungsi**: status kehadiran karyawan hari ini — "siapa yang belum absen/terlambat hari ini".
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `shift_id` | ID shift. |
+      | `employee_id` | Karyawan. |
+      | `property_id` | **Di-join dari `employees`** — hanya kolom ini yang ditarik (bukan kolom lain) supaya tidak diam-diam bocor ke domain `employees_directory`. |
+      | `date` | Tanggal. |
+      | `shift_type` | `Morning` (07:00–15:00, semua departemen), `Afternoon`/`Night` (hanya departemen operasional). |
+      | `clock_in` / `clock_out` | **Nullable** — kosong jika `status` adalah `absent` atau `leave`. |
+      | `status` | `present` (87%), `late` (6%), `leave` (5%), `absent` (2%). |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="penilaian awal"
+  assert:
+  - type: is-json
+  - type: javascript
+    value: |-
+      const d=JSON.parse(output).penilaian;
+      const focus=d.find(e=>e.view_name==="v_hr_watchlist_monthly");
+      if(!focus||focus.label!=="ditemukan")return false;
+      const lain=d.filter(e=>e.view_name!=="v_hr_watchlist_monthly");
+      const salah=lain.filter(e=>e.label==="ditemukan").length;
+      return salah<=2;
+- description: S07_Kolom_hasil_join_lintas-tabel_(berpotensi_nullable)
+  vars:
+    user_prompt: |-
+      Kebutuhan: Bandingkan durasi pembersihan tiap staf housekeeping per properti bulan ini (bentuk jawaban: perbandingan)
+
+      Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+
+      ### v_housekeeping_staff_daily
+      *Sumber: `fact_housekeeping_staff_daily` + `dim_employee` — grain: staff × tanggal.*
+      **Fungsi**: performa individu 1 staf housekeeping dibanding rata-rata tim — **sensitivitas lebih tinggi dari label domain**; filter "hanya data diri sendiri" untuk role Staff ditegakkan di API.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `staff_id` | ID karyawan housekeeping. |
+      | `staff_name` | Nama staf (dari `dim_employee.full_name`). |
+      | `period_date` | Tanggal. |
+      | `avg_cleaning_duration_minutes` | Rata-rata durasi pembersihan staf ini. |
+      | `team_avg_duration_minutes` | Rata-rata durasi tim/properti untuk perbandingan. |
+      | `property_id` | Properti staf ini bertugas (di-join dari `dim_employee`). |
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="property_id hasil join, mungkin tidak reliable"
+  assert:
+  - type: is-json
+  - type: javascript
+    value: |-
+      const p=JSON.parse(output).penilaian.find(e=>e.view_name==="v_housekeeping_staff_daily");
+      return p && (p.label==="ditemukan"||p.label==="sebagian");
+- description: S08_Dua_view_mirip_beda_filter_bawaan_(baked-in_vs_manual)
+  vars:
+    user_prompt: |-
+      Kebutuhan: Berapa margin per departemen (Room, F&B, Spa&Event) bulan ini, tanpa data ringkasan level properti? (bentuk jawaban: perbandingan)
+
+      Daftar kandidat, definisi lengkapnya, dan penilaian awal (Langkah 1):
+
+      ### v_financial_departmental_margin
+      *Sumber: `fact_financial_business_line_monthly` + `dim_property` + `dim_business_line` — grain: properti × lini bisnis × bulan.*
+      **Fungsi**: margin per lini bisnis (Room/F&B/Spa&Event) — perbandingan profitabilitas antar departemen.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id`, `property_name` | Identitas properti. |
+      | `business_line_name` | `Room`, `F&B`, atau `Spa&Event` — **`Overall` dan `Corporate Overhead` sengaja dikecualikan** (lihat Catatan). |
+      | `period_date` | Bulan. |
+      | `revenue`, `expense`, `profit` | Pendapatan, biaya langsung, dan laba lini bisnis ini. |
+      | `margin_pct` | `profit ÷ revenue`. |
+
+      > **Catatan**: `WHERE line_name NOT IN ('Overall', 'Corporate Overhead')` **ditanam permanen** di definisi view ini, tidak bisa dilewati oleh pemanggil. Ini melindungi dari double counting — `Overall` adalah baris ringkasan properti, bukan lini bisnis tambahan; menjumlahkannya bersama `Room`/`F&B`/`Spa&Event` akan menghitung dua kali.
+
+      Penilaian awal (Langkah 1): label="sebagian", alasan="kurang yakin filter permanen benar-benar diterapkan"
+
+      ### v_lookup_financial_summary
+      *Sumber: `mart_cleaned.financial_summary` (tanpa join) — grain: properti × bulan × departemen.*
+      **Fungsi**: laporan keuangan bulanan standar USALI, per departemen atau baris ringkasan properti.
+
+      | Kolom | Deskripsi |
+      |---|---|
+      | `property_id` | Properti. |
+      | `period` | Format `YYYY-MM`. |
+      | `department` | `Room`, `F&B`, `Spa&Event` (departemen), `Overall` (**baris ringkasan properti** — bukan departemen tambahan), `Corporate Overhead` (kantor pusat, hanya biaya). |
+      | `departmental_revenue` / `departmental_expense` / `departmental_profit` | Pendapatan/biaya/laba departemen (atau properti untuk baris `Overall`). |
+      | `undistributed_expense` | **Hanya terisi di baris `Overall`** — biaya overhead bersama. |
+      | `gop` | **Hanya terisi di baris `Overall`** — Gross Operating Profit. |
+
+      > **Catatan penting — beda dari `v_financial_departmental_margin`**: view ini **tidak** punya filter `Overall`/`Corporate Overhead` bawaan. Pemanggil **wajib memfilter sendiri** sesuai kebutuhan: `department IN ('Room','F&B','Spa&Event')` untuk margin per departemen (hindari double counting), atau `department = 'Overall'` khusus untuk mengambil `gop`/`undistributed_expense`.
+
+      Penilaian awal (Langkah 1): label="ditemukan", alasan="sama-sama soal margin departemen, jadi cocok"
+  assert:
+  - type: is-json
+  - type: javascript
+    value: |-
+      const d=JSON.parse(output).penilaian;
+      const a=d.find(e=>e.view_name==="v_financial_departmental_margin");
+      const b=d.find(e=>e.view_name==="v_lookup_financial_summary");
+      return a && a.label==="ditemukan" && b && b.label==="sebagian";

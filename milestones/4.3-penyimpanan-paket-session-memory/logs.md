@@ -127,7 +127,31 @@ Test baru `tests/config/test_catatan_nullable_bermakna.py` (4 test): view_name t
 
 ---
 
-*(Checkpoint 4-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
+## Checkpoint 4 — Fungsi Penyusun Paket
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 7 — `penyimpanan_paket.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`src/layers/execution/penyimpanan_paket.py`: `_bungkus_nilai_hasil()` (list->`{"rows":[...]}`, None->`{"rows":[]}`, bentuk tak terduga dibungkus defensif), `_catatan_interpretasi_untuk_hasil(view_name, nilai_hasil)` (dict lookup: HANYA kolom null yang terdaftar katalog Checkpoint 3), `susun_dan_simpan_paket(atomic_intent, session_id, turn_index, status, view_name=None, nilai_hasil=None)` (bangun `SessionMemoryPackage`, panggil `store_session_memory()`, `sumber` selalu `"eksekusi_baru"`).
+
+**Temuan**
+Tidak ada temuan tak terduga - desain mengikuti persis apa yang sudah dipetakan Keputusan 1-3.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/execution/test_penyimpanan_paket.py -v` — **13/13 lolos**: wrapping list/None/list-kosong; catatan_interpretasi benar untuk kolom null terdaftar VS tidak terdaftar VS kolom terdaftar tapi TIDAK null (bukti tidak over-triggering) VS `view_name=None`/view tidak terdaftar/nilai_hasil kosong (semua menghasilkan `[]`, bukan crash); orkestrator lengkap (seluruh field `SessionMemoryPackage` benar, `store_session_memory` menerima package identik dengan yang dikembalikan); `status=GAGAL_TEKNIS` tanpa `nilai_hasil` menghasilkan paket valid; exception `store_session_memory` diteruskan APA ADANYA (tidak ditelan).
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 5-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
 
 ---
 

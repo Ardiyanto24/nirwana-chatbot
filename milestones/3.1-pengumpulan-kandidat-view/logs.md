@@ -395,3 +395,44 @@ Tidak ada (ditangkap sebelum commit, bukan test yang gagal).
 `pytest tests/layers/retriever/ tests/config/ tests/layers/verification_gate/ -v` — 48/48 lolos (signature `cari_embedding()` tak berubah). `grep` project-wide untuk 2 konstanta lama — nol hasil.
 
 **Commit:** `c893f41` — `refactor(milestone-3.1): sederhanakan config ke satu model final`
+
+---
+
+## Checkpoint 9 — Catat Keputusan Tertunda + Revisi Threshold Berbasis Bukti
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 18 — Entri `docs/keputusan-tertunda.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri #2: model embedding final Retriever provisional, 3 pemicu peninjauan ulang eksplisit (pola kegagalan produksi, model baru dirilis OpenRouter, evaluasi biaya/latensi volume nyata) + rujukan silang ke pemicu #4 (kalau trigger BM25 direvisi, volume pemakaian model berubah).
+
+**Hasil Verifikasi**
+Review manual - format konsisten entri #1 (M1.5).
+
+**Commit:** *(digabung Task 19, satu commit `docs`)*
+
+---
+
+### Task 19 — Revisi `BM25_SKOR_MINIMUM` Berbasis Bukti `audit.md`
+
+**Kesesuaian dengan plan:** Menyimpang dari plan secara signifikan (dalam arti baik) - draf awal plan hanya mengantisipasi revisi NILAI NUMERIK threshold. Investigasi nyata menemukan root cause yang jauh lebih mendasar: BUG TOKENIZER (tanpa stopword filtering), bukan nilai threshold itu sendiri yang keliru.
+
+**Apa yang dilakukan**
+Sebelum merevisi, memverifikasi ULANG klaim `audit.md` terhadap `cari_bm25()` ASLI (bukan skrip eksplorasi) - ditemukan DISKREPANSI: `rancangan.md`/`audit.md` (Checkpoint 7) ternyata mendokumentasikan baseline BM25 dari skrip eksplorasi dengan stopword filtering yang **tidak pernah diterapkan** ke `pencarian_bm25.py` yang sesungguhnya di-commit Checkpoint 5. Diverifikasi ulang: implementasi ASLI (tanpa stopword) gagal memicu trigger di **SEMUA 5 skenario B1-B5** (bukan 4/5 seperti draf awal). Root cause: kata fungsi umum ("yang"/"dan"/"di") muncul di hampir seluruh 67 teks korpus, skor BM25 selalu positif untuk query apa pun. Perbaikan: `_STOPWORDS_ID` (~50 kata) ditambahkan ke `_tokenisasi()`. `BM25_SKOR_MINIMUM` DIPERTAHANKAN `0.0` (bukan dinaikkan) - dengan stopword filtering, skor positif kini benar-benar berarti overlap kata bermakna.
+
+**Temuan**
+Setelah perbaikan, diverifikasi ulang: 4/5 skenario membaik (B3 kini benar memicu trigger - regresi eksplisit ditambahkan sebagai test). **B1 tetap gagal ditemukan bahkan pasca-perbaikan** (paraphrase tanpa satu kata bermakna pun yang overlap dengan target) - ini BUKAN bug tokenizer, batas struktural inheren metode leksikal murni. Dicatat sebagai keterbatasan diterima baru (`docs/keterbatasan-diterima.md` #11), BUKAN dipaksa diperbaiki lebih lanjut di checkpoint ini (akan butuh redesain trigger yang mengubah arsitektur Hybrid yang sudah disetujui user).
+
+**Error/Kegagalan**
+Kesalahan proses (ditemukan, bukan disembunyikan): dokumentasi eval Checkpoint 7 (`rancangan.md` ditulis SEBELUM eksekusi, `audit.md` ditulis SETELAH) mengklaim baseline BM25 yang TIDAK merepresentasikan kode yang sesungguhnya di-commit - root cause: skrip eksplorasi ad-hoc (dipakai merancang skenario B1-B5 sebelum menulis `rancangan.md`) memakai tokenizer dengan stopword filtering yang belum pernah disalin ke `pencarian_bm25.py` produksi.
+
+**Diagnosis dan Perbaikan**
+Ditemukan saat memverifikasi `cari_bm25()` ASLI secara langsung (bukan mempercayai catatan `audit.md` begitu saja) sebelum memutuskan revisi threshold. `rancangan.md` DIPERTAHANKAN apa adanya (jejak rancangan asli) dengan catatan koreksi eksplisit ditambahkan di atas teksnya; `audit.md` ditambah bagian "Koreksi Checkpoint 9" dengan tabel sebelum/sesudah yang benar.
+
+**Hasil Verifikasi**
+`pytest tests/layers/retriever/test_pencarian_bm25.py -v` — 8/8 lolos (6 test lama tetap hijau tanpa perubahan assertion + 2 test baru: query murni stopword, regresi typo B3). `pytest tests/layers/retriever/ tests/config/ tests/layers/verification_gate/ -v` — 50/50 lolos, regresi penuh tanpa perubahan assertion di suite lain.
+
+**Commit:** `56d70e9` (`fix`, kode) + `ba4b400` (`docs`, koreksi dokumentasi + entri keputusan-tertunda/keterbatasan-diterima).

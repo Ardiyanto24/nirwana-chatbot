@@ -61,7 +61,49 @@ Review manual — entri #12 mengikuti format 4 bagian (konteks penemuan, kenapa 
 
 ---
 
-*(Checkpoint 2-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
+## Checkpoint 2 — Span `memory.store` + Penanganan Kegagalan
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 4 — Span + try/except di `store_session_memory()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`store_session_memory()` (`session_memory.py`, file M1.5) dimodifikasi: buka span `memory.store` (tracer `context_resolution.session_memory`, sama dengan `memory.retrieve`), set atribut `session.id`/`turn.index`/`atomic_intent_id` SEBELUM percobaan commit (supaya tetap tercatat meski gagal), bungkus `session.add()+commit()` dalam `try/except Exception`, set `error.type=gagal_teknis` lalu `raise` (bukan exception baru, exception ASLI diteruskan).
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe -m pytest tests/layers/context_resolution/ -v` — **12/12 lolos**, termasuk `test_kelompok_a_simpan_lalu_ambil_kembali_identik` (M1.5, REAL Supabase) yang TETAP lolos tanpa perubahan assertion — bukti konkret modifikasi `store_session_memory()` tidak merusak perilaku produksi nyata (bukan cuma lolos test mocked).
+
+**Commit:** *(pending)*
+
+### Task 5 — Test Skenario Gagal
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian struktural (dicatat di bawah).
+
+**Apa yang dilakukan**
+Test baru `tests/layers/context_resolution/test_session_memory_kegagalan.py`: `_SessionGagal` (fake context manager, `commit()` selalu raise), diverifikasi `error.type=gagal_teknis` tercatat span DAN exception ASLI (bukan exception baru) tetap ter-raise ke pemanggil; test kedua memverifikasi atribut identitas (`session.id`/`turn.index`/`atomic_intent_id`) tercatat span WALAUPUN operasinya gagal (penting untuk korelasi trace ke atomic intent yang gagal disimpan).
+
+**Temuan**
+Plan menyebut lokasi test di FILE YANG SAMA (`test_session_memory.py`) — disesuaikan jadi FILE TERPISAH (`test_session_memory_kegagalan.py`). Alasan: `test_session_memory.py` punya `pytestmark = pytest.mark.skipif(not DATABASE_URL)` di level MODUL, yang otomatis berlaku ke SELURUH test dalam file itu, termasuk yang murni mocked. Skenario kegagalan Checkpoint 2 sengaja TIDAK butuh `DATABASE_URL` sama sekali (justru dirancang supaya bisa diverifikasi tanpa DB nyata) - kalau ditaruh di file yang sama, test ini akan ikut ter-skip di environment tanpa `DATABASE_URL`, padahal seharusnya selalu bisa jalan. File terpisah menghindari itu.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+2/2 test baru lolos (bagian dari 12/12 total di atas).
+
+**Commit:** *(pending)*
+
+---
+
+*(Checkpoint 3-6 akan ditambahkan progresif setelah masing-masing selesai dan terverifikasi.)*
 
 ---
 

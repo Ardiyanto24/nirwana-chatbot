@@ -10,6 +10,17 @@ sudah dipenuhi pemanggil.
 Mengembalikan respons mentah (status_code + body) APA ADANYA, tanpa
 klasifikasi/interpretasi - itu tanggung jawab Milestone 4.2 (di luar
 cakupan modul ini).
+
+Direfactor Milestone 4.2 (Checkpoint 2, lihat milestones/4.2-.../
+decisions.md Keputusan 5): logic murni diekstrak ke
+`_panggil_chatbot_api_raw()` (TANPA span sendiri) - mirror pola refactor
+M3.1/M3.3 (Keputusan 4 M3.3, `_kumpulkan_kandidat()`) - supaya M4.2 bisa
+membungkus SATU span `execute_tool` untuk seluruh retry+revisi loop,
+bukan span baru tiap percobaan. `panggil_chatbot_api()` publik (fungsi
+di bawah) TIDAK berubah perilaku/signature/span sama sekali untuk
+pemanggil standalone - tetap membuka span sendiri via wrapper tipis,
+regresi test_pemanggilan_chatbot_api.py dijalankan penuh tanpa perubahan
+assertion untuk membuktikannya.
 """
 
 import httpx
@@ -23,13 +34,13 @@ from src.schemas.verification_gate import QueryEngineRequest
 _TRACER_NAME = "execution.pemanggilan_chatbot_api"
 
 
-def panggil_chatbot_api(
+def _panggil_chatbot_api_raw(
     request: QueryEngineRequest, role_title: str, employee_id: str
 ) -> HasilPemanggilanChatbotAPI:
-    """Satu panggilan GET ke chatbot_api. role_title/employee_id adalah
-    identitas caller (dari TurnPayload, mengalir sejak M1.2) - parameter
-    EKSPLISIT terpisah dari request.params (yang berisi filter data hasil
-    ekstraksi Query Engine M3.4), lihat decisions.md Keputusan 4."""
+    """Logic murni M4.1 (HTTP GET + parsing), TANPA membuka span
+    `execute_tool` sendiri - dipakai ulang M4.2 (`klasifikasi_respons.py`)
+    untuk membungkus banyak percobaan (retry infra + revisi 400) dalam
+    SATU span pembungkus, lihat decisions.md M4.2 Keputusan 5."""
     slug = VIEW_NAME_KE_SLUG_CHATBOT_API[request.view_name]
     url = f"{get_chatbot_api_base_url()}/chatbot/{request.domain.value}/{slug}"
 
@@ -37,24 +48,41 @@ def panggil_chatbot_api(
     query_params["role_title"] = role_title
     query_params["employee_id"] = employee_id
 
+    try:
+        with httpx.Client(timeout=CHATBOT_API_TIMEOUT_DETIK) as client:
+            response = client.get(url, params=query_params)
+    except httpx.TimeoutException:
+        return HasilPemanggilanChatbotAPI(status_code=None, kegagalan_transport="timeout")
+    except httpx.TransportError:
+        return HasilPemanggilanChatbotAPI(status_code=None, kegagalan_transport="connection_error")
+
+    try:
+        body = response.json()
+    except ValueError:
+        body = response.text
+
+    return HasilPemanggilanChatbotAPI(status_code=response.status_code, body=body)
+
+
+def panggil_chatbot_api(
+    request: QueryEngineRequest, role_title: str, employee_id: str
+) -> HasilPemanggilanChatbotAPI:
+    """Entry point standalone M4.1 - wrapper tipis di atas
+    `_panggil_chatbot_api_raw()`, membuka+menutup span `execute_tool`
+    sendiri (perilaku/signature/atribut span IDENTIK dengan sebelum
+    refactor Checkpoint 2 M4.2). Dipakai kalau satu panggilan HTTP
+    DIBUTUHKAN BERDIRI SENDIRI (mis. test M4.1) - jalur produksi penuh
+    lewat orkestrator M4.2 (`klasifikasi_respons.eksekusi_atomic_intent()`)
+    yang membungkus banyak percobaan dalam satu span.
+
+    role_title/employee_id adalah identitas caller (dari TurnPayload,
+    mengalir sejak M1.2) - parameter EKSPLISIT terpisah dari
+    request.params (yang berisi filter data hasil ekstraksi Query Engine
+    M3.4), lihat decisions.md M4.1 Keputusan 4."""
     tracer = get_tracer(_TRACER_NAME)
 
     with tracer.start_as_current_span("execute_tool") as span:
-        try:
-            with httpx.Client(timeout=CHATBOT_API_TIMEOUT_DETIK) as client:
-                response = client.get(url, params=query_params)
-        except httpx.TimeoutException:
-            return HasilPemanggilanChatbotAPI(status_code=None, kegagalan_transport="timeout")
-        except httpx.TransportError:
-            return HasilPemanggilanChatbotAPI(
-                status_code=None, kegagalan_transport="connection_error"
-            )
-
-        span.set_attribute("http.response.status_code", response.status_code)
-
-        try:
-            body = response.json()
-        except ValueError:
-            body = response.text
-
-        return HasilPemanggilanChatbotAPI(status_code=response.status_code, body=body)
+        hasil = _panggil_chatbot_api_raw(request, role_title, employee_id)
+        if hasil.status_code is not None:
+            span.set_attribute("http.response.status_code", hasil.status_code)
+        return hasil

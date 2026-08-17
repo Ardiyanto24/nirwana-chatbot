@@ -334,3 +334,49 @@ Tidak ada.
 ---
 
 ---
+
+## Checkpoint 9 — Orkestrator Single-Item
+
+**Mulai:** 2026-08-17 · **Selesai:** 2026-08-17
+
+### Task 15 — Implementasi `nilai_kecocokan_makna_atomic_intent`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Extend `kecocokan_makna.py`: `nilai_kecocokan_makna_atomic_intent()` — jalur pintas `kandidat=[]` (BERHASIL+kosong, nol panggilan LLM), lalu Langkah 1 → (kalau gagal: GAGAL_TEKNIS+kosong) → Langkah 2 → (kalau gagal: SEBAGIAN+hasil Langkah 1 utuh) → (sukses: BERHASIL+hasil Langkah 2, MENGGANTIKAN bukan menggabung Langkah 1).
+
+**Temuan**
+Tidak ada temuan di luar dugaan. `CLAUDE.md`/`AGENT.md` diperbarui.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -m pytest tests/layers/retriever/ tests/config/` — 70 test lolos (4 baru + 66 sisa tanpa regresi).
+
+**Commit:** `826c3ca` — `feat(milestone-3.2): orkestrator single-item kecocokan makna`
+
+---
+
+### Task 16 — Test Orkestrator Single-Item
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Extend test — kandidat kosong dibuktikan NOL panggilan LLM via monkeypatch raise pada `_langkah_generate`/`_langkah_verifikasi` (pola pembuktian pre-filter M2.3, bukan hanya cek hasil akhir), sukses penuh memastikan keluaran = hasil Langkah 2 (bukan Langkah 1 — membuktikan replacement, bukan union), Langkah 1 gagal total → `_langkah_verifikasi` TIDAK dipanggil (dibuktikan monkeypatch raise juga) + status `GAGAL_TEKNIS`, Langkah 2 gagal → status `SEBAGIAN` + `kecocokan` persis sama objek hasil Langkah 1.
+
+**Temuan**
+Tidak ada temuan di luar dugaan.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Sama seperti Task 15 di atas (dijalankan bersamaan) — 70/70 lolos.
+
+**Commit:** `2746b79` — `test(milestone-3.2): orkestrator single-item kecocokan makna`
+
+---
+
+---

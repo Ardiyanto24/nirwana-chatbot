@@ -1,0 +1,79 @@
+{
+  "scenario_id": "B5",
+  "bagian": "B",
+  "model_key": "qwen3-8b",
+  "model_id": "qwen/qwen3-embedding-8b",
+  "deskripsi": "Partial-stem/kosakata umum lintas-view: turnover HR (hr)",
+  "teks_kebutuhan": "berapa banyak karyawan yang keluar atau berhenti kerja di tiap departemen",
+  "domain_diizinkan": [
+    "hr"
+  ],
+  "target": "v_hr_turnover_snapshot",
+  "gagal": false,
+  "recall": true,
+  "posisi_target": 2,
+  "total_kandidat": 10,
+  "latensi_detik": 0.767,
+  "kandidat": [
+    {
+      "view_name": "v_hr_headcount_status_daily",
+      "domain": "hr",
+      "skor": 0.6025736288483202,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_hr_turnover_snapshot",
+      "domain": "hr",
+      "skor": 0.5496422211013583,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_hr_performance_by_status_semester",
+      "domain": "hr",
+      "skor": 0.5199164122119776,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_hr_attendance_daily",
+      "domain": "hr",
+      "skor": 0.5116999827548456,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_hr_employee_monthly",
+      "domain": "hr",
+      "skor": 0.46054910649994624,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_hr_performance_department_semester",
+      "domain": "hr",
+      "skor": 0.42315356721265185,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_staff_shifts",
+      "domain": "hr",
+      "skor": 0.4068153944314436,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_hr_watchlist_monthly",
+      "domain": "hr",
+      "skor": 0.39399391703780157,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_employee_performance",
+      "domain": "hr",
+      "skor": 0.3519246240058882,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_hr_employee_performance_semester",
+      "domain": "hr",
+      "skor": 0.3081812650488571,
+      "sumber": "embedding_fallback"
+    }
+  ]
+}

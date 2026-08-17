@@ -1,0 +1,37 @@
+{
+  "scenario_id": "A1",
+  "bagian": "A",
+  "deskripsi": "KK1: okupansi Bali bulan ini",
+  "teks_kebutuhan": "okupansi Bali bulan ini",
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "kandidat": [
+    {
+      "view_name": "v_reservation_room_type_daily",
+      "domain": "reservation",
+      "skor": 10.969967967276064,
+      "sumber": "bm25"
+    },
+    {
+      "view_name": "v_reservation_gop_impact_monthly",
+      "domain": "reservation",
+      "skor": 4.319690469459614,
+      "sumber": "bm25"
+    },
+    {
+      "view_name": "v_lookup_bookings",
+      "domain": "reservation",
+      "skor": 1.6315180325782102,
+      "sumber": "bm25"
+    },
+    {
+      "view_name": "v_lookup_daily_occupancy",
+      "domain": "reservation",
+      "skor": 1.6315180325782102,
+      "sumber": "bm25"
+    }
+  ],
+  "perlu_fallback": false,
+  "match": true
+}

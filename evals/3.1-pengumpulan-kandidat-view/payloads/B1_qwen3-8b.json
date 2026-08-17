@@ -1,0 +1,79 @@
+{
+  "scenario_id": "B1",
+  "bagian": "B",
+  "model_key": "qwen3-8b",
+  "model_id": "qwen/qwen3-embedding-8b",
+  "deskripsi": "Sinonim non-literal: kanal booking (reservation)",
+  "teks_kebutuhan": "tamu-tamu ini pesannya lewat mana aja ya, langsung ke kita apa lewat aplikasi pihak ketiga",
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "target": "v_reservation_channel_daily",
+  "gagal": false,
+  "recall": true,
+  "posisi_target": 4,
+  "total_kandidat": 10,
+  "latensi_detik": 7.023,
+  "kandidat": [
+    {
+      "view_name": "v_lookup_bookings",
+      "domain": "reservation",
+      "skor": 0.3405336980306496,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_daily_occupancy",
+      "domain": "reservation",
+      "skor": 0.2833551906521241,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_nationality_daily",
+      "domain": "reservation",
+      "skor": 0.26832298416018613,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_channel_daily",
+      "domain": "reservation",
+      "skor": 0.25082968978674214,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_property_daily",
+      "domain": "reservation",
+      "skor": 0.2488161636029539,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_los_daily",
+      "domain": "reservation",
+      "skor": 0.22744580560171732,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_loyalty_daily",
+      "domain": "reservation",
+      "skor": 0.2253070933677756,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_pricing_deviation",
+      "domain": "reservation",
+      "skor": 0.20155310615962838,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_room_type_daily",
+      "domain": "reservation",
+      "skor": 0.17997453271182653,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_gop_impact_monthly",
+      "domain": "reservation",
+      "skor": 0.1391824495160959,
+      "sumber": "embedding_fallback"
+    }
+  ]
+}

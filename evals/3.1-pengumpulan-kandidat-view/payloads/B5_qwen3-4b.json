@@ -1,0 +1,18 @@
+{
+  "scenario_id": "B5",
+  "bagian": "B",
+  "model_key": "qwen3-4b",
+  "model_id": "qwen/qwen3-embedding-4b",
+  "deskripsi": "Partial-stem/kosakata umum lintas-view: turnover HR (hr)",
+  "teks_kebutuhan": "berapa banyak karyawan yang keluar atau berhenti kerja di tiap departemen",
+  "domain_diizinkan": [
+    "hr"
+  ],
+  "target": "v_hr_turnover_snapshot",
+  "gagal": true,
+  "recall": false,
+  "posisi_target": null,
+  "total_kandidat": 0,
+  "latensi_detik": 0.223,
+  "kandidat": []
+}

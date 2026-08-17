@@ -1,0 +1,18 @@
+{
+  "scenario_id": "B4",
+  "bagian": "B",
+  "model_key": "qwen3-4b",
+  "model_id": "qwen/qwen3-embedding-4b",
+  "deskripsi": "Framing bisnis abstrak: diskon vs margin (reservation)",
+  "teks_kebutuhan": "kenapa untung kita turun padahal harga kamar lagi didiskon gede-gedean",
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "target": "v_reservation_gop_impact_monthly",
+  "gagal": true,
+  "recall": false,
+  "posisi_target": null,
+  "total_kandidat": 0,
+  "latensi_detik": 0.247,
+  "kandidat": []
+}

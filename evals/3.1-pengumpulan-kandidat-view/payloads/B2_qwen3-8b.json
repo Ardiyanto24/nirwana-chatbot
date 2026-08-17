@@ -1,0 +1,85 @@
+{
+  "scenario_id": "B2",
+  "bagian": "B",
+  "model_key": "qwen3-8b",
+  "model_id": "qwen/qwen3-embedding-8b",
+  "deskripsi": "Bahasa sehari-hari vs istilah teknis: waste F&B (fnb)",
+  "teks_kebutuhan": "berapa duit yang kebuang percuma gara-gara bahan makanan gak kepake, dan kenapa bisa gitu",
+  "domain_diizinkan": [
+    "fnb"
+  ],
+  "target": "v_fnb_waste_daily",
+  "gagal": false,
+  "recall": true,
+  "posisi_target": 1,
+  "total_kandidat": 11,
+  "latensi_detik": 4.495,
+  "kandidat": [
+    {
+      "view_name": "v_fnb_waste_daily",
+      "domain": "fnb",
+      "skor": 0.5802355827553607,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_fnb_menu_item_daily",
+      "domain": "fnb",
+      "skor": 0.43701981181363736,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_recipe_bom",
+      "domain": "fnb",
+      "skor": 0.4082474773093423,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_fnb_inventory",
+      "domain": "fnb",
+      "skor": 0.37687423026965566,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_fnb_ingredient_price_daily",
+      "domain": "fnb",
+      "skor": 0.3653676694301369,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_fnb_category_daily",
+      "domain": "fnb",
+      "skor": 0.33711189817418497,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_fnb_transactions",
+      "domain": "fnb",
+      "skor": 0.31818316029155214,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_fnb_inventory_status",
+      "domain": "fnb",
+      "skor": 0.30905093359496855,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_fnb_customer_type_daily",
+      "domain": "fnb",
+      "skor": 0.2657051450751659,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_fnb_outlet_daily",
+      "domain": "fnb",
+      "skor": 0.24593738672945487,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_fnb_hourly",
+      "domain": "fnb",
+      "skor": 0.23784241601296063,
+      "sumber": "embedding_fallback"
+    }
+  ]
+}

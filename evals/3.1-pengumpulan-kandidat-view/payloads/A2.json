@@ -1,0 +1,25 @@
+{
+  "scenario_id": "A2",
+  "bagian": "A",
+  "deskripsi": "KK2: zero-leakage domain ditolak",
+  "teks_kebutuhan": "okupansi Bali bulan ini",
+  "domain_diizinkan": [
+    "fnb"
+  ],
+  "kandidat": [
+    {
+      "view_name": "v_lookup_fnb_transactions",
+      "domain": "fnb",
+      "skor": 1.67874144608777,
+      "sumber": "bm25"
+    },
+    {
+      "view_name": "v_fnb_menu_item_daily",
+      "domain": "fnb",
+      "skor": 1.5045480983586368,
+      "sumber": "bm25"
+    }
+  ],
+  "perlu_fallback": false,
+  "match": true
+}

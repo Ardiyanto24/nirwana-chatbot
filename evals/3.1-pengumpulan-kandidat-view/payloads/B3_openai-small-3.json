@@ -1,0 +1,79 @@
+{
+  "scenario_id": "B3",
+  "bagian": "B",
+  "model_key": "openai-small-3",
+  "model_id": "openai/text-embedding-3-small",
+  "deskripsi": "Typo/variasi ejaan: okupansi (reservation)",
+  "teks_kebutuhan": "okupasi hotel minggu ini gimana",
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "target": "v_reservation_room_type_daily",
+  "gagal": false,
+  "recall": true,
+  "posisi_target": 2,
+  "total_kandidat": 10,
+  "latensi_detik": 0.973,
+  "kandidat": [
+    {
+      "view_name": "v_lookup_daily_occupancy",
+      "domain": "reservation",
+      "skor": 0.48967255036683466,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_room_type_daily",
+      "domain": "reservation",
+      "skor": 0.4806119650835588,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_bookings",
+      "domain": "reservation",
+      "skor": 0.46780647858202207,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_nationality_daily",
+      "domain": "reservation",
+      "skor": 0.44543639122568335,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_property_daily",
+      "domain": "reservation",
+      "skor": 0.4306892072553577,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_los_daily",
+      "domain": "reservation",
+      "skor": 0.40656838084550945,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_channel_daily",
+      "domain": "reservation",
+      "skor": 0.39987564325371827,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_loyalty_daily",
+      "domain": "reservation",
+      "skor": 0.38808310819939107,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_gop_impact_monthly",
+      "domain": "reservation",
+      "skor": 0.32619287826535576,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_pricing_deviation",
+      "domain": "reservation",
+      "skor": 0.2790575696007745,
+      "sumber": "embedding_fallback"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "scenario_id": "B3",
+  "bagian": "B",
+  "model_key": "qwen3-4b",
+  "model_id": "qwen/qwen3-embedding-4b",
+  "deskripsi": "Typo/variasi ejaan: okupansi (reservation)",
+  "teks_kebutuhan": "okupasi hotel minggu ini gimana",
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "target": "v_reservation_room_type_daily",
+  "gagal": true,
+  "recall": false,
+  "posisi_target": null,
+  "total_kandidat": 0,
+  "latensi_detik": 0.185,
+  "kandidat": []
+}

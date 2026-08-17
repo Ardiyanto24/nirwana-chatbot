@@ -1,0 +1,79 @@
+{
+  "scenario_id": "B4",
+  "bagian": "B",
+  "model_key": "openai-small-3",
+  "model_id": "openai/text-embedding-3-small",
+  "deskripsi": "Framing bisnis abstrak: diskon vs margin (reservation)",
+  "teks_kebutuhan": "kenapa untung kita turun padahal harga kamar lagi didiskon gede-gedean",
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "target": "v_reservation_gop_impact_monthly",
+  "gagal": false,
+  "recall": true,
+  "posisi_target": 2,
+  "total_kandidat": 10,
+  "latensi_detik": 1.004,
+  "kandidat": [
+    {
+      "view_name": "v_lookup_daily_occupancy",
+      "domain": "reservation",
+      "skor": 0.48785074243116877,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_gop_impact_monthly",
+      "domain": "reservation",
+      "skor": 0.48749544664593,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_room_type_daily",
+      "domain": "reservation",
+      "skor": 0.48261001605761095,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_nationality_daily",
+      "domain": "reservation",
+      "skor": 0.45503054036204316,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_pricing_deviation",
+      "domain": "reservation",
+      "skor": 0.4224292890972659,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_property_daily",
+      "domain": "reservation",
+      "skor": 0.4143173247201246,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_loyalty_daily",
+      "domain": "reservation",
+      "skor": 0.4139003246566024,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_los_daily",
+      "domain": "reservation",
+      "skor": 0.41030416073708664,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_channel_daily",
+      "domain": "reservation",
+      "skor": 0.3960170350134491,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_bookings",
+      "domain": "reservation",
+      "skor": 0.3957247605107759,
+      "sumber": "embedding_fallback"
+    }
+  ]
+}

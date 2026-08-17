@@ -1,0 +1,79 @@
+{
+  "scenario_id": "B1",
+  "bagian": "B",
+  "model_key": "openai-small-3",
+  "model_id": "openai/text-embedding-3-small",
+  "deskripsi": "Sinonim non-literal: kanal booking (reservation)",
+  "teks_kebutuhan": "tamu-tamu ini pesannya lewat mana aja ya, langsung ke kita apa lewat aplikasi pihak ketiga",
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "target": "v_reservation_channel_daily",
+  "gagal": false,
+  "recall": true,
+  "posisi_target": 2,
+  "total_kandidat": 10,
+  "latensi_detik": 3.261,
+  "kandidat": [
+    {
+      "view_name": "v_reservation_nationality_daily",
+      "domain": "reservation",
+      "skor": 0.31500035809695476,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_channel_daily",
+      "domain": "reservation",
+      "skor": 0.3031403752867077,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_los_daily",
+      "domain": "reservation",
+      "skor": 0.29448169180126926,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_pricing_deviation",
+      "domain": "reservation",
+      "skor": 0.28916208145244765,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_loyalty_daily",
+      "domain": "reservation",
+      "skor": 0.2806582063097283,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_bookings",
+      "domain": "reservation",
+      "skor": 0.2627721630703022,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_lookup_daily_occupancy",
+      "domain": "reservation",
+      "skor": 0.26076604551819416,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_gop_impact_monthly",
+      "domain": "reservation",
+      "skor": 0.2538042823531337,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_property_daily",
+      "domain": "reservation",
+      "skor": 0.2465497418184883,
+      "sumber": "embedding_fallback"
+    },
+    {
+      "view_name": "v_reservation_room_type_daily",
+      "domain": "reservation",
+      "skor": 0.2302145374596781,
+      "sumber": "embedding_fallback"
+    }
+  ]
+}

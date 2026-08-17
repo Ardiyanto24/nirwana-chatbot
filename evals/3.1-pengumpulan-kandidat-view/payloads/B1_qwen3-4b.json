@@ -1,0 +1,18 @@
+{
+  "scenario_id": "B1",
+  "bagian": "B",
+  "model_key": "qwen3-4b",
+  "model_id": "qwen/qwen3-embedding-4b",
+  "deskripsi": "Sinonim non-literal: kanal booking (reservation)",
+  "teks_kebutuhan": "tamu-tamu ini pesannya lewat mana aja ya, langsung ke kita apa lewat aplikasi pihak ketiga",
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "target": "v_reservation_channel_daily",
+  "gagal": true,
+  "recall": false,
+  "posisi_target": null,
+  "total_kandidat": 0,
+  "latensi_detik": 0.9,
+  "kandidat": []
+}

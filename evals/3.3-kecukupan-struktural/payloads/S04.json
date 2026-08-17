@@ -1,0 +1,54 @@
+{
+  "scenario_id": "S04",
+  "deskripsi": "Perbandingan antar tipe kamar (dimensi pembanding jelas)",
+  "timestamp": "2026-08-17T05:32:38.714967+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "782295e7-54f5-407d-b60e-8512ab7a79e9",
+    "teks_kebutuhan": "Bandingkan performa revenue antar tipe kamar di Bali bulan ini",
+    "label_bentuk_jawaban": "perbandingan",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "782295e7-54f5-407d-b60e-8512ab7a79e9",
+      "teks_kebutuhan": "Bandingkan performa revenue antar tipe kamar di Bali bulan ini",
+      "label_bentuk_jawaban": "perbandingan",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecukupan": [
+      {
+        "kandidat": {
+          "view_name": "v_reservation_room_type_daily",
+          "domain": "reservation",
+          "skor": 12.976648322644959,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "ditemukan",
+        "cukup": true,
+        "alasan": "grain punya dimensi pembanding, cukup untuk perbandingan",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_lookup_daily_occupancy",
+          "domain": "reservation",
+          "skor": 6.803552517446754,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "ditemukan",
+        "cukup": true,
+        "alasan": "grain punya dimensi pembanding, cukup untuk perbandingan",
+        "sumber_keputusan": "deterministik"
+      }
+    ],
+    "view_name_final": "v_reservation_room_type_daily",
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

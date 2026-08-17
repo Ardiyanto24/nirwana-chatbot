@@ -1,0 +1,90 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "Jalur fallback LLM genuinely terpicu (grain row-level ambigu)",
+  "timestamp": "2026-08-17T05:30:25.565284+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "f66dd750-f477-4bf2-a722-3d908df91de7",
+    "teks_kebutuhan": "Bagaimana tren booking di Bali 3 bulan terakhir?",
+    "label_bentuk_jawaban": "tren",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "f66dd750-f477-4bf2-a722-3d908df91de7",
+      "teks_kebutuhan": "Bagaimana tren booking di Bali 3 bulan terakhir?",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecukupan": [
+      {
+        "kandidat": {
+          "view_name": "v_reservation_room_type_daily",
+          "domain": "reservation",
+          "skor": 5.931229143329007,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "sebagian",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_reservation_channel_daily",
+          "domain": "reservation",
+          "skor": 4.419088287327718,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "ditemukan",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_reservation_loyalty_daily",
+          "domain": "reservation",
+          "skor": 2.3920718683138524,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "sebagian",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_reservation_nationality_daily",
+          "domain": "reservation",
+          "skor": 2.3920718683138524,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "sebagian",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_lookup_bookings",
+          "domain": "reservation",
+          "skor": 2.9336985307609753,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "sebagian",
+        "cukup": false,
+        "alasan": "Grain view ini adalah 1 baris = 1 reservasi (row-level event), bukan ringkasan per periode. Tidak cukup untuk tren karena memerlukan agregasi manual per tanggal/periode.",
+        "sumber_keputusan": "llm"
+      }
+    ],
+    "view_name_final": "v_reservation_channel_daily",
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": "kalau v_lookup_bookings dilempar ke fallback LLM dan model tetap menjawab cukup=True, dicatat sebagai temuan nyata (bukan fail keras) - prompt sudah direvisi sekali (v2) berdasar bukti Checkpoint 7"
+}

@@ -1,0 +1,90 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Tie-break nyata (dua kandidat sama-sama cukup)",
+  "timestamp": "2026-08-17T05:34:18.278871+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "24282379-b659-4093-a011-0ec6ca8ee079",
+    "teks_kebutuhan": "Tren revenue dan okupansi kamar di Bali 3 bulan terakhir",
+    "label_bentuk_jawaban": "tren",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "24282379-b659-4093-a011-0ec6ca8ee079",
+      "teks_kebutuhan": "Tren revenue dan okupansi kamar di Bali 3 bulan terakhir",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecukupan": [
+      {
+        "kandidat": {
+          "view_name": "v_reservation_room_type_daily",
+          "domain": "reservation",
+          "skor": 13.312445317844602,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "ditemukan",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_lookup_daily_occupancy",
+          "domain": "reservation",
+          "skor": 3.0267242479174388,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "sebagian",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_reservation_channel_daily",
+          "domain": "reservation",
+          "skor": 2.546807170939363,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "sebagian",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_reservation_loyalty_daily",
+          "domain": "reservation",
+          "skor": 2.090282630758904,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "sebagian",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      },
+      {
+        "kandidat": {
+          "view_name": "v_reservation_nationality_daily",
+          "domain": "reservation",
+          "skor": 2.090282630758904,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "sebagian",
+        "cukup": true,
+        "alasan": "grain punya dimensi waktu berulang, cukup untuk tren",
+        "sumber_keputusan": "deterministik"
+      }
+    ],
+    "view_name_final": "v_reservation_room_type_daily",
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": "hasil M3.2 (kandidat mana yang ditemukan/sebagian) tidak dikontrol penuh - yang diverifikasi ketat adalah konsistensi view_name_final TERHADAP aturan tie-break dari kecukupan yang benar-benar dihasilkan"
+}

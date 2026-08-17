@@ -1,0 +1,42 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "KK1 sumber persis: tren + kandidat snapshot tanpa dimensi waktu berulang",
+  "timestamp": "2026-08-17T05:26:25.057933+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "e3f29bfd-009a-4e4a-9573-a1f09186016a",
+    "teks_kebutuhan": "Bagaimana tren turnover departemen Housekeeping di Bali 3 bulan terakhir?",
+    "label_bentuk_jawaban": "tren",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "domain_diizinkan": [
+    "hr"
+  ],
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "e3f29bfd-009a-4e4a-9573-a1f09186016a",
+      "teks_kebutuhan": "Bagaimana tren turnover departemen Housekeeping di Bali 3 bulan terakhir?",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecukupan": [
+      {
+        "kandidat": {
+          "view_name": "v_hr_headcount_status_daily",
+          "domain": "hr",
+          "skor": 2.3429168870555697,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "ditemukan",
+        "cukup": true,
+        "alasan": "Grain view berbentuk properti × departemen × status × tanggal (snapshot), sehingga satu baris merepresentasikan satu entitas (departemen/properti/status) per tanggal. Cocok untuk tren karena data berulang per periode waktu.",
+        "sumber_keputusan": "llm"
+      }
+    ],
+    "view_name_final": "v_hr_headcount_status_daily",
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": "kalau v_hr_turnover_snapshot tidak muncul sama sekali di kandidat M3.1/M3.2, dicatat sebagai catatan (bukan fail) - fokus KK1 adalah PERLAKUAN kandidat itu KALAU muncul"
+}

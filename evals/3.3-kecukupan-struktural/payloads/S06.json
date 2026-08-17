@@ -1,0 +1,29 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Tidak ada kandidat cukup sama sekali (kejujuran keterbatasan)",
+  "timestamp": "2026-08-17T05:34:52.578536+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "2c677c33-6b7c-44e1-b034-c7cf6f495469",
+    "teks_kebutuhan": "Tren nama dan region seluruh properti dari waktu ke waktu",
+    "label_bentuk_jawaban": "tren",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "domain_diizinkan": [
+    "properties_ref"
+  ],
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "2c677c33-6b7c-44e1-b034-c7cf6f495469",
+      "teks_kebutuhan": "Tren nama dan region seluruh properti dari waktu ke waktu",
+      "label_bentuk_jawaban": "tren",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecukupan": [],
+    "view_name_final": null,
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

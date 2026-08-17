@@ -1,0 +1,42 @@
+{
+  "scenario_id": "S02",
+  "deskripsi": "KK2 sumber persis: nilai_tunggal + grain sesuai",
+  "timestamp": "2026-08-17T05:27:11.405709+00:00",
+  "atomic_intent": {
+    "atomic_intent_id": "5ba6d58c-4825-49f9-96a1-b037961fbe0b",
+    "teks_kebutuhan": "Berapa okupansi Suite di Bali bulan ini?",
+    "label_bentuk_jawaban": "nilai_tunggal",
+    "relasi": "independen",
+    "bergantung_pada": null
+  },
+  "domain_diizinkan": [
+    "reservation"
+  ],
+  "result": {
+    "atomic_intent": {
+      "atomic_intent_id": "5ba6d58c-4825-49f9-96a1-b037961fbe0b",
+      "teks_kebutuhan": "Berapa okupansi Suite di Bali bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    "kecukupan": [
+      {
+        "kandidat": {
+          "view_name": "v_reservation_room_type_daily",
+          "domain": "reservation",
+          "skor": 15.52800317319181,
+          "sumber": "bm25"
+        },
+        "kecocokan_label": "ditemukan",
+        "cukup": true,
+        "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+        "sumber_keputusan": "deterministik"
+      }
+    ],
+    "view_name_final": "v_reservation_room_type_daily",
+    "status": "berhasil"
+  },
+  "match": true,
+  "toleransi": null
+}

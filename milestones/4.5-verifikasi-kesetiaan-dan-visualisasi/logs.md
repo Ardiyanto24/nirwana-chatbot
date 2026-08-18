@@ -27,3 +27,47 @@ Review manual: seluruh 14 entri menyebut sumber paksaan eksplisit. Entri baru `d
 **Commit:** `808e835` — `docs(milestone-4.5): keputusan desain verifikasi kesetiaan dan visualisasi`
 
 ---
+
+## Checkpoint 2 — Skema dan Konstanta Model
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 2 — Skema `HasilVerifikasiNarasi` + `DataVisualisasi`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambah `HasilVerifikasiNarasi` (mirror persis `HasilVerifikasiBentukRequest` M3.5, validator status↔lolos↔alasan) dan `DataVisualisasi` (`nilai_tunggal`/`deret`, validator memaksa tepat satu terisi sesuai label) ke `src/schemas/interpretation.py`.
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Pemanggilan manual: 3 kasus valid `HasilVerifikasiNarasi` (lolos=True, lolos=False+alasan, gagal_teknis) berhasil; 2 kasus valid `DataVisualisasi` (nilai_tunggal, tren/deret) berhasil; 2 kasus invalid (nilai_tunggal label tapi deret terisi; lolos=False tanpa alasan) benar-benar `raise pydantic.ValidationError`.
+
+**Commit:** `a78ebff` — `feat(milestone-4.5): skema HasilVerifikasiNarasi + DataVisualisasi + konstanta model`
+
+---
+
+### Task 3 — `OPENROUTER_MODEL_VERIFIKASI_KESETIAAN`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menambah `OPENROUTER_MODEL_VERIFIKASI_KESETIAAN = "deepseek/deepseek-v4-pro"` + entri docstring ke `src/config/llm.py`.
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Import + validasi digabung dengan Task 2 dalam satu pemanggilan manual — semua berhasil.
+
+**Commit:** `a78ebff` — `feat(milestone-4.5): skema HasilVerifikasiNarasi + DataVisualisasi + konstanta model`
+
+---

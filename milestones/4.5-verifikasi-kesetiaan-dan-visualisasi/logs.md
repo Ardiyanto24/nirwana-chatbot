@@ -261,3 +261,27 @@ Tidak ada.
 **Commit:** `70cfb28` — `test(milestone-4.5): eksekusi eval + audit verifikasi kesetiaan (termasuk temuan+perbaikan prompt v2)`
 
 ---
+
+## Checkpoint 9 — Prompt Reliability
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 14 — `prompt_reliability/interpretation/verifikasi_kesetiaan.promptfooconfig.yaml`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis config Promptfoo (`providers` reuse `provider.py`, `response_format: json_object` + `extra_body.reasoning.effort: high` — beda `narasi.promptfooconfig.yaml` M4.4), 10 test case reuse `user_prompt` PERSIS hasil `verifikasi_kesetiaan._build_user_prompt()` untuk seluruh skenario `rancangan.md`, memakai prompt **v2** (setelah perbaikan Kriteria 3, bukan v1 yang sudah terbukti salah). Dijalankan `npx promptfoo eval`, push `prompt_eval_runs` via `push_results.py` dengan `prompt_version=2` eksplisit.
+
+**Temuan**
+Tidak ada bug assertion baru (berbeda dari M4.4 Checkpoint 8 yang menemukan 3 bug assertion) — pelajaran dari M4.4 langsung diterapkan: assertion `javascript` ditulis sebagai bare expression (`"JSON.parse(output).lolos === false"`, TANPA kata kunci `return` eksplisit) sejak awal, menghindari bug double-`return` yang ditemukan M4.4 Checkpoint 8.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Run pertama: `npx promptfoo eval -c interpretation/verifikasi_kesetiaan.promptfooconfig.yaml` — **10/10 PASSED (100%)**, tanpa iterasi perbaikan assertion. `python prompt_reliability/push_results.py interpretation/verifikasi_kesetiaan_output.json interpretation.verifikasi_kesetiaan 2 deepseek/deepseek-v4-pro --git-commit-hash 863d8e8` — "Berhasil push 10 baris ke prompt_eval_runs" (Supabase, `prompt_version=2` dicatat eksplisit sesuai versi prompt yang benar-benar diuji).
+
+**Commit:** `863d8e8` — `test(milestone-4.5): config prompt reliability verifikasi kesetiaan`
+
+---

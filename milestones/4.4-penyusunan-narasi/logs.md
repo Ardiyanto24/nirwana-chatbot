@@ -74,3 +74,27 @@ Tidak ada.
 **Commit:** `c3d8b8c` — `feat(milestone-4.4): skema HasilNarasi + konstanta model narasi`
 
 ---
+
+## Checkpoint 3 — System Prompt Narasi
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 4 — Tulis `src/prompts/interpretation/narasi.md`
+
+**Kesesuaian dengan plan:** Sesuai plan. Plan menyebut "6 instruksi wajib" di teks Task tapi rincinya sendiri menghitung 7 (5 arsitektur + rujukan lintas-turn + kontras nada) — konsisten dengan Kriteria Keberhasilan/Lingkup sumber M4.4 yang memang menyebut "5 ketentuan wajib... ditambah satu ketentuan yang lahir khusus dari kebutuhan multi-turn". Prompt final menulis 7 aturan bernomor eksplisit (status non-normal, parsial, ditolak_otorisasi, gagal_teknis dengan nada beda eksplisit dari ditolak_otorisasi, larangan klaim sebab-akibat, kebutuhan gagal karena dependency, rujukan lintas-turn) + instruksi tambahan soal catatan interpretasi.
+
+**Apa yang dilakukan**
+Menulis frontmatter (`id: interpretation.narasi`, `version: 1`, `milestone: "4.4"`, `model_compat: ["qwen/qwen3-32b"]`) + body: penjelasan peran, bentuk input yang akan diterima (daftar kebutuhan dengan status/nilai_hasil/catatan_interpretasi/sumber/prasyarat), instruksi format output (prosa Bahasa Indonesia biasa, BUKAN JSON), lalu 7 aturan bernomor.
+
+**Temuan**
+Tidak ada temuan tak terduga — isi prompt murni menerjemahkan 5+1 ketentuan dari `rancangan-execution-interpretation.md` Lingkup M4.4 + kontras nada ditolak_otorisasi vs gagal_teknis dari Kriteria Keberhasilan sumber, ke instruksi eksplisit bernomor.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`load_prompt("interpretation.narasi").render()` berhasil parse frontmatter YAML + body Jinja2 tanpa error (body statis, tidak ada variabel Jinja2 — konsisten Keputusan 8). Checklist manual: ketujuh aturan tersurat sebagai butir bernomor terpisah, kontras nada aturan 3 vs 4 eksplisit disebutkan dalam teks aturan 4 itu sendiri ("nada kalimatnya harus terasa BEDA dari... aturan 3").
+
+**Commit:** `9ca96db` — `feat(milestone-4.4): system prompt penyusunan narasi`
+
+---

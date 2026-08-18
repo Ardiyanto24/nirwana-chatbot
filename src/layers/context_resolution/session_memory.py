@@ -51,18 +51,25 @@ def store_session_memory(package: SessionMemoryPackage) -> None:
 def retrieve_session_memory(session_id: str, turn_index: int) -> list[SessionMemoryPackage]:
     """Kembalikan seluruh paket Session Memory milik {session_id, turn_index}.
     List kosong (BUKAN exception) kalau turn belum pernah ada/tidak py data -
-    forced by Kriteria Keberhasilan sumber."""
+    forced by Kriteria Keberhasilan sumber. Kegagalan DB (beda dari "tidak
+    py data") ditangkap, ditandai error.type=gagal_teknis pada span, LALU
+    di-raise ulang apa adanya - mirror persis store_session_memory() (celah
+    ditemukan+diperbaiki Milestone 7.7, lihat decisions.md Keputusan 6)."""
     tracer = get_tracer(_TRACER_NAME)
     with tracer.start_as_current_span("memory.retrieve") as span:
         span.set_attribute("session.id", session_id)
         span.set_attribute("turn.index", turn_index)
 
-        with Session(get_engine()) as session:
-            statement = select(SessionMemoryPackageRow).where(
-                SessionMemoryPackageRow.session_id == session_id,
-                SessionMemoryPackageRow.turn_index == turn_index,
-            )
-            rows = session.exec(statement).all()
+        try:
+            with Session(get_engine()) as session:
+                statement = select(SessionMemoryPackageRow).where(
+                    SessionMemoryPackageRow.session_id == session_id,
+                    SessionMemoryPackageRow.turn_index == turn_index,
+                )
+                rows = session.exec(statement).all()
+        except Exception:
+            span.set_attribute("error.type", "gagal_teknis")
+            raise
 
         span.set_attribute("memory.packages_found", len(rows))
         return [

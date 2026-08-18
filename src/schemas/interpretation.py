@@ -69,15 +69,23 @@ class DataVisualisasi(BaseModel):
 
     @model_validator(mode="after")
     def bentuk_sesuai_label(self) -> Self:
-        if self.label_bentuk_jawaban == LabelBentukJawaban.NILAI_TUNGGAL:
-            if self.nilai_tunggal is None or self.deret is not None:
-                raise ValueError(
-                    "label=nilai_tunggal wajib field nilai_tunggal terisi, deret=None"
-                )
-        else:
-            if self.deret is None or self.nilai_tunggal is not None:
-                raise ValueError(
-                    f"label={self.label_bentuk_jawaban.value} wajib field deret terisi, "
-                    "nilai_tunggal=None"
-                )
+        """Tepat satu dari nilai_tunggal/deret wajib terisi. Untuk 4 label
+        selain nilai_tunggal, HANYA deret yang boleh terisi (tidak ada
+        fallback - list selalu valid apa adanya). Untuk label nilai_tunggal,
+        BOLEH salah satu dari keduanya - deret adalah fallback jujur saat
+        ekstraksi scalar ambigu (>1 baris/>1 kolom), bukan menebak (lihat
+        src/layers/interpretation/visualisasi.py)."""
+        if (self.nilai_tunggal is None) == (self.deret is None):
+            raise ValueError(
+                "tepat satu dari nilai_tunggal/deret wajib terisi, bukan keduanya atau "
+                "tidak sama sekali"
+            )
+        if (
+            self.label_bentuk_jawaban != LabelBentukJawaban.NILAI_TUNGGAL
+            and self.nilai_tunggal is not None
+        ):
+            raise ValueError(
+                f"label={self.label_bentuk_jawaban.value} tidak boleh mengisi nilai_tunggal "
+                "(bukan label nilai_tunggal, wajib deret)"
+            )
         return self

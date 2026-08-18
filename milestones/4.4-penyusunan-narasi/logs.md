@@ -328,4 +328,4 @@ Tidak ada.
 **Hasil Verifikasi**
 `trace_id=c21e3cbba4a508f98f711435e601956d` (sukses, durasi 11.39s) dan `trace_id=406d557d193716b66c896f1f5d85c111` (gagal, durasi 20ms) — keduanya dikonfirmasi NYATA via Jaeger API, bukan simulasi. Detail lengkap ditulis sebagai Addendum di `report.md`.
 
-**Commit:** `<diisi setelah commit>` — `docs(milestone-4.4): addendum verifikasi visual Jaeger`
+**Commit:** `7def65a` — `docs(milestone-4.4): addendum verifikasi visual Jaeger`

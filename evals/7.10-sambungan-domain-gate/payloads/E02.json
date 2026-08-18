@@ -1,0 +1,151 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Seluruh match perlu_eksekusi",
+  "timestamp": "2026-08-18T17:10:05.940094+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.10-e02",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.10-e02",
+      "turn_index": 1,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa occupancy rate properti kita bulan Juni 2026?",
+      "history": []
+    },
+    "ketergantungan": {
+      "is_dependent": false,
+      "referenced_turn_index": null
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa tingkat keterisian properti kami pada bulan Juni tahun 2026?"
+    },
+    "session_memory": null,
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "a2f7cbec-8e3a-443b-bdb9-5d8b37fc6aad",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "7692e658-809e-4b93-b5f8-b5c5e5b55c66",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "66c35622-bc73-4c38-8c76-0f152ec05ccc",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti (dihitung sebagai rasio jumlah terisi terhadap total properti) pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "a2f7cbec-8e3a-443b-bdb9-5d8b37fc6aad",
+            "7692e658-809e-4b93-b5f8-b5c5e5b55c66"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 2
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "a2f7cbec-8e3a-443b-bdb9-5d8b37fc6aad",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7692e658-809e-4b93-b5f8-b5c5e5b55c66",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "66c35622-bc73-4c38-8c76-0f152ec05ccc",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti (dihitung sebagai rasio jumlah terisi terhadap total properti) pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "a2f7cbec-8e3a-443b-bdb9-5d8b37fc6aad",
+            "7692e658-809e-4b93-b5f8-b5c5e5b55c66"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "a2f7cbec-8e3a-443b-bdb9-5d8b37fc6aad",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7692e658-809e-4b93-b5f8-b5c5e5b55c66",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "66c35622-bc73-4c38-8c76-0f152ec05ccc",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti (dihitung sebagai rasio jumlah terisi terhadap total properti) pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "a2f7cbec-8e3a-443b-bdb9-5d8b37fc6aad",
+            "7692e658-809e-4b93-b5f8-b5c5e5b55c66"
+          ]
+        },
+        "domains": [
+          "reservation",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      }
+    ]
+  },
+  "jumlah_matches": 3,
+  "jumlah_domain_gate": 3,
+  "trace_id": "3bcc53bc5dfe55ac5e454e8bc61d033e",
+  "domain_gate_span_ditemukan": true,
+  "intent_count_dari_span": 3,
+  "error": null
+}

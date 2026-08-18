@@ -1,0 +1,173 @@
+{
+  "kejadian_id": "E03",
+  "deskripsi": "Seluruh match selesai - semua ditahan, TIDAK diteruskan",
+  "timestamp": "2026-08-18T17:16:25.171525+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.10-e03",
+    "turn_index": 2,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa lagi occupancy April 2026 itu?",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa occupancy rate bulan April 2026?",
+        "answer": "Occupancy April 2026 mencapai 78%."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.10-e03",
+      "turn_index": 2,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa lagi occupancy April 2026 itu?",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa occupancy rate bulan April 2026?",
+          "answer": "Occupancy April 2026 mencapai 78%."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa occupancy rate bulan April 2026?"
+    },
+    "session_memory": [
+      {
+        "atomic_intent_id": "6176336f-f574-4dca-a829-28c19c1f828e",
+        "session_id": "eval-7.10-e03",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "occupancy_rate": 78
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "7fbcf7b2-b873-4124-a484-17d88e8aedbb",
+          "teks_kebutuhan": "Berapa jumlah kamar terisi bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "2c66c881-d24a-4464-ad13-55475d1b12b4",
+          "teks_kebutuhan": "Berapa total kamar yang tersedia bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "0a995426-14c7-458b-aba6-796da5ebde87",
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7fbcf7b2-b873-4124-a484-17d88e8aedbb",
+            "2c66c881-d24a-4464-ad13-55475d1b12b4"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 1
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7fbcf7b2-b873-4124-a484-17d88e8aedbb",
+          "teks_kebutuhan": "Berapa jumlah kamar terisi bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2c66c881-d24a-4464-ad13-55475d1b12b4",
+          "teks_kebutuhan": "Berapa total kamar yang tersedia bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "0a995426-14c7-458b-aba6-796da5ebde87",
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7fbcf7b2-b873-4124-a484-17d88e8aedbb",
+            "2c66c881-d24a-4464-ad13-55475d1b12b4"
+          ]
+        },
+        "status": "selesai",
+        "paket": {
+          "atomic_intent_id": "6176336f-f574-4dca-a829-28c19c1f828e",
+          "session_id": "eval-7.10-e03",
+          "turn_index": 1,
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_hasil": {
+            "occupancy_rate": 78
+          },
+          "catatan_interpretasi": [],
+          "status": "berhasil",
+          "sumber": "eksekusi_baru"
+        }
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7fbcf7b2-b873-4124-a484-17d88e8aedbb",
+          "teks_kebutuhan": "Berapa jumlah kamar terisi bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2c66c881-d24a-4464-ad13-55475d1b12b4",
+          "teks_kebutuhan": "Berapa total kamar yang tersedia bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation"
+        ],
+        "status": "berhasil"
+      }
+    ]
+  },
+  "jumlah_matches": 3,
+  "jumlah_domain_gate": 2,
+  "trace_id": "f4ec0e1c2473ce22beea254bd2ec5db1",
+  "domain_gate_span_ditemukan": true,
+  "intent_count_dari_span": 2,
+  "error": null
+}

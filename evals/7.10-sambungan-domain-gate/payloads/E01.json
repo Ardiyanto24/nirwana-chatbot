@@ -1,0 +1,176 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Campuran dua status - bukti KK literal utama (reuse M7.9 E06)",
+  "timestamp": "2026-08-18T17:03:30.787546+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.10-e01",
+    "turn_index": 2,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Bandingkan dengan occupancy satu tahun sebelumnya.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa occupancy rate bulan April 2026?",
+        "answer": "Occupancy April 2026 mencapai 78%."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.10-e01",
+      "turn_index": 2,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Bandingkan dengan occupancy satu tahun sebelumnya.",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa occupancy rate bulan April 2026?",
+          "answer": "Occupancy April 2026 mencapai 78%."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    },
+    "rewrite": {
+      "rewritten_question": "Bandingkan occupancy rate April 2026 dengan occupancy rate April 2025."
+    },
+    "session_memory": [
+      {
+        "atomic_intent_id": "4996e989-65d8-40ed-b15b-7adc16db90e9",
+        "session_id": "eval-7.10-e01",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "occupancy_rate": 78
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "decomposition": {
+      "klasifikasi": "majemuk_bergantung",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "51639cb9-dfcc-413d-a3d9-6cc2fdf1f45e",
+          "teks_kebutuhan": "Berapa occupancy rate April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "6fd0c3f6-5795-4fac-ba18-3aefb4f60bb0",
+          "teks_kebutuhan": "Berapa occupancy rate April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "18710f18-93f8-4973-a082-0108a7fbb561",
+          "teks_kebutuhan": "Bagaimana perbandingan occupancy rate April 2026 dengan April 2025?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "51639cb9-dfcc-413d-a3d9-6cc2fdf1f45e",
+            "6fd0c3f6-5795-4fac-ba18-3aefb4f60bb0"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "51639cb9-dfcc-413d-a3d9-6cc2fdf1f45e",
+          "teks_kebutuhan": "Berapa occupancy rate April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "6fd0c3f6-5795-4fac-ba18-3aefb4f60bb0",
+          "teks_kebutuhan": "Berapa occupancy rate April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "selesai",
+        "paket": {
+          "atomic_intent_id": "4996e989-65d8-40ed-b15b-7adc16db90e9",
+          "session_id": "eval-7.10-e01",
+          "turn_index": 1,
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_hasil": {
+            "occupancy_rate": 78
+          },
+          "catatan_interpretasi": [],
+          "status": "berhasil",
+          "sumber": "eksekusi_baru"
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "18710f18-93f8-4973-a082-0108a7fbb561",
+          "teks_kebutuhan": "Bagaimana perbandingan occupancy rate April 2026 dengan April 2025?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "51639cb9-dfcc-413d-a3d9-6cc2fdf1f45e",
+            "6fd0c3f6-5795-4fac-ba18-3aefb4f60bb0"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "51639cb9-dfcc-413d-a3d9-6cc2fdf1f45e",
+          "teks_kebutuhan": "Berapa occupancy rate April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "18710f18-93f8-4973-a082-0108a7fbb561",
+          "teks_kebutuhan": "Bagaimana perbandingan occupancy rate April 2026 dengan April 2025?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "51639cb9-dfcc-413d-a3d9-6cc2fdf1f45e",
+            "6fd0c3f6-5795-4fac-ba18-3aefb4f60bb0"
+          ]
+        },
+        "domains": [
+          "reservation"
+        ],
+        "status": "berhasil"
+      }
+    ]
+  },
+  "jumlah_matches": 3,
+  "jumlah_domain_gate": 2,
+  "trace_id": "671d4cdd94d3a793eef9e611021f5893",
+  "domain_gate_span_ditemukan": true,
+  "intent_count_dari_span": 2,
+  "error": null
+}

@@ -1,0 +1,62 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "Klaim sebab-akibat tidak berdasar (KK sumber, paling kritis)",
+  "timestamp": "2026-08-18T03:44:37.043431+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "09564b1d-5582-498c-b620-f87a8bbc8a30",
+      "teks_kebutuhan": "Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "f8e76b28-6857-46f2-9a2e-712d938d1697",
+      "teks_kebutuhan": "Revenue F&B April 2026 juga naik 8% dibanding bulan sebelumnya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "09564b1d-5582-498c-b620-f87a8bbc8a30",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "kenaikan_persen": 10
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "f8e76b28-6857-46f2-9a2e-712d938d1697",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Revenue F&B April 2026 juga naik 8% dibanding bulan sebelumnya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "kenaikan_persen": 8
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi_diuji": "Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya. Kenaikan ini MENYEBABKAN revenue F&B juga naik 8% pada periode yang sama.",
+  "ekspektasi_lolos": false,
+  "hasil_lolos": false,
+  "hasil_alasan": "Narasi melanggar kriteria 3: klaim sebab-akibat yang tidak berdasar antara dua metrik berbeda. Narasi menyebut 'Kenaikan ini MENYEBABKAN revenue F&B juga naik 8%' yang menghubungkan kenaikan occupancy rate dengan kenaikan revenue F&B, padahal data sumber hanya memberikan dua nilai deskriptif terpisah (kenaikan_persen 10 untuk occupancy dan 8 untuk revenue F&B) tanpa pernyataan hubungan kausal apa pun.",
+  "match": true
+}

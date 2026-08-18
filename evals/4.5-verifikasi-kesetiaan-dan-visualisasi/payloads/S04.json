@@ -1,0 +1,38 @@
+{
+  "scenario_id": "S04",
+  "deskripsi": "Angka dikarang/salah (95% vs data asli 82%)",
+  "timestamp": "2026-08-18T03:44:49.091219+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "5cea8323-cd8b-4a9a-a134-2e6b1c6a30c7",
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "5cea8323-cd8b-4a9a-a134-2e6b1c6a30c7",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "occupancy_rate": 0.82
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi_diuji": "Occupancy rate bulan ini 95%.",
+  "ekspektasi_lolos": false,
+  "hasil_lolos": false,
+  "hasil_alasan": "Narasi menyebut occupancy rate bulan ini 95%, padahal data sumber menunjukkan occupancy_rate 0.82 (82%). Angka yang disebutkan tidak berasal dari data sumber, melanggar kriteria 4.",
+  "match": true
+}

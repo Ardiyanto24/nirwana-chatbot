@@ -1,0 +1,62 @@
+{
+  "scenario_id": "S02",
+  "deskripsi": "Kontrol negatif S01 - tanpa klaim kausal",
+  "timestamp": "2026-08-18T03:44:40.294047+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "381809e7-3809-4423-93ea-e8f7a1ecd044",
+      "teks_kebutuhan": "Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "6ea96df1-fc90-4495-9e65-8b333fa5f56c",
+      "teks_kebutuhan": "Revenue F&B April 2026 juga naik 8% dibanding bulan sebelumnya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "381809e7-3809-4423-93ea-e8f7a1ecd044",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "kenaikan_persen": 10
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "6ea96df1-fc90-4495-9e65-8b333fa5f56c",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Revenue F&B April 2026 juga naik 8% dibanding bulan sebelumnya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "kenaikan_persen": 8
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi_diuji": "Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya. Revenue F&B April 2026 juga naik 8% pada periode yang sama.",
+  "ekspektasi_lolos": true,
+  "hasil_lolos": true,
+  "hasil_alasan": null,
+  "match": true
+}

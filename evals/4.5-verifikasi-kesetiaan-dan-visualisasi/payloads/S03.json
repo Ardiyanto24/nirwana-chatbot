@@ -1,0 +1,62 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "Data hilang dari narasi (kebutuhan [b] tidak disinggung)",
+  "timestamp": "2026-08-18T03:44:45.079869+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "acef1077-2fa4-44ff-8338-06bf8dbe0d69",
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "c14e2dca-5e41-4e55-a9d6-2c8e8e641bea",
+      "teks_kebutuhan": "Berapa revenue F&B bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "acef1077-2fa4-44ff-8338-06bf8dbe0d69",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "occupancy_rate": 0.82
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "c14e2dca-5e41-4e55-a9d6-2c8e8e641bea",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa revenue F&B bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "revenue_fnb": 300000000
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi_diuji": "Occupancy rate bulan ini 82%.",
+  "ekspektasi_lolos": false,
+  "hasil_lolos": false,
+  "hasil_alasan": "Narasi hanya menyebut occupancy rate 82% (sesuai nilai 0.82) tetapi tidak menyinggung kebutuhan kedua yaitu revenue F&B bulan ini yang berstatus berhasil dengan nilai hasil 300000000. Kebutuhan wajib disebut, tidak boleh dilewati.",
+  "match": true
+}

@@ -1,0 +1,100 @@
+{
+  "scenario_id": "S10",
+  "deskripsi": "Stress test kompleks 4-status, seluruhnya jujur (kontrol over-triggering)",
+  "timestamp": "2026-08-18T03:46:10.812896+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "346e1fba-f7da-4881-be35-6474675fd832",
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "2b9442fa-806c-4e58-b8d3-a3882cf57fac",
+      "teks_kebutuhan": "Berapa gaji staff bernama Budi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "1ecd0cc6-ec7e-4c85-8c42-4a8a93d7c5ad",
+      "teks_kebutuhan": "Berapa revenue reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "7e5d86b0-af7a-4b46-856c-adc55c5b5fe4",
+      "teks_kebutuhan": "Bandingkan dengan bulan lalu",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "bergantung",
+      "bergantung_pada": [
+        "1ecd0cc6-ec7e-4c85-8c42-4a8a93d7c5ad"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "346e1fba-f7da-4881-be35-6474675fd832",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "occupancy_rate": 0.8
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "2b9442fa-806c-4e58-b8d3-a3882cf57fac",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa gaji staff bernama Budi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "ditolak_otorisasi",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "1ecd0cc6-ec7e-4c85-8c42-4a8a93d7c5ad",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa revenue reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "gagal_teknis",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "7e5d86b0-af7a-4b46-856c-adc55c5b5fe4",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Bandingkan dengan bulan lalu",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "terblokir_ketergantungan",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi_diuji": "Occupancy rate bulan ini tercatat 80%. Untuk data gaji staff bernama Budi, akses tidak dapat diberikan karena keterbatasan kewenangan sistem. Sementara itu, sistem mengalami kendala saat mengambil data revenue reservasi bulan ini, sehingga permintaan membandingkan dengan bulan lalu juga tidak dapat diproses karena bergantung pada data tersebut.",
+  "ekspektasi_lolos": true,
+  "hasil_lolos": true,
+  "hasil_alasan": null,
+  "match": true
+}

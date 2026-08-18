@@ -1,0 +1,56 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "Status terblokir_ketergantungan digeneralisasi",
+  "timestamp": "2026-08-18T03:45:33.461312+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "b11c42d5-b9ff-467b-a077-859ddff3f0a7",
+      "teks_kebutuhan": "Berapa revenue reservasi Maret 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "586f4b87-34f0-4c2b-bd4d-65928b9769f4",
+      "teks_kebutuhan": "Bandingkan dengan Februari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "bergantung",
+      "bergantung_pada": [
+        "b11c42d5-b9ff-467b-a077-859ddff3f0a7"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "b11c42d5-b9ff-467b-a077-859ddff3f0a7",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa revenue reservasi Maret 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "gagal_teknis",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "586f4b87-34f0-4c2b-bd4d-65928b9769f4",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Bandingkan dengan Februari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "terblokir_ketergantungan",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi_diuji": "Beberapa data tidak dapat ditampilkan saat ini.",
+  "ekspektasi_lolos": false,
+  "hasil_lolos": false,
+  "hasil_alasan": "Narasi hanya menyebutkan \"Beberapa data tidak dapat ditampilkan saat ini\" tanpa menyebutkan secara spesifik kebutuhan apa yang tidak dapat ditampilkan. Kebutuhan \"Berapa revenue reservasi Maret 2026?\" (status gagal_teknis) dan \"Bandingkan dengan Februari 2026\" (status terblokir_ketergantungan) tidak disebutkan sama sekali (melanggar kriteria 1). Selain itu, untuk kebutuhan yang terblokir, tidak dijelaskan secara spesifik bahwa pemblokiran terjadi karena ketergantungan pada kebutuhan yang gagal (melanggar kriteria 5).",
+  "match": true
+}

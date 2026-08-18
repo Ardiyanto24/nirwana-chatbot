@@ -1,0 +1,40 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Kontrol S05 - status sebagian disampaikan jujur",
+  "timestamp": "2026-08-18T03:45:13.016058+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "c2209f63-0491-4846-b6dc-a2639f77064f",
+      "teks_kebutuhan": "Berapa jumlah reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "c2209f63-0491-4846-b6dc-a2639f77064f",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa jumlah reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "jumlah_reservasi": 120
+          }
+        ]
+      },
+      "catatan_interpretasi": [
+        "Status kualitas data untuk hasil ini ditandai perlu perhatian oleh tim database engineering."
+      ],
+      "status": "sebagian",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi_diuji": "Jumlah reservasi bulan ini tercatat 120, namun data ini ditandai perlu perhatian tim database sehingga mungkin belum akurat sepenuhnya.",
+  "ekspektasi_lolos": true,
+  "hasil_lolos": true,
+  "hasil_alasan": null,
+  "match": true
+}

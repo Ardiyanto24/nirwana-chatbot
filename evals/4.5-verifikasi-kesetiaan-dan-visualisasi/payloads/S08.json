@@ -1,0 +1,56 @@
+{
+  "scenario_id": "S08",
+  "deskripsi": "Kontrol S07 - status terblokir disampaikan spesifik",
+  "timestamp": "2026-08-18T03:45:45.533958+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "318a3abd-19b0-42c6-8acf-cb576a1f8698",
+      "teks_kebutuhan": "Berapa revenue reservasi Maret 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "ad039014-5880-48d1-8f95-f3fa67cec84f",
+      "teks_kebutuhan": "Bandingkan dengan Februari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "bergantung",
+      "bergantung_pada": [
+        "318a3abd-19b0-42c6-8acf-cb576a1f8698"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "318a3abd-19b0-42c6-8acf-cb576a1f8698",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Berapa revenue reservasi Maret 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "gagal_teknis",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "ad039014-5880-48d1-8f95-f3fa67cec84f",
+      "session_id": "eval-m45",
+      "turn_index": 1,
+      "teks_kebutuhan": "Bandingkan dengan Februari 2026",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "terblokir_ketergantungan",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi_diuji": "Sistem mengalami kendala mengambil data revenue reservasi Maret, sehingga permintaan membandingkan dengan Februari juga tidak dapat diproses karena bergantung pada data itu.",
+  "ekspektasi_lolos": true,
+  "hasil_lolos": true,
+  "hasil_alasan": null,
+  "match": true
+}

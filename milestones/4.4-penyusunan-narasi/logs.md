@@ -306,3 +306,26 @@ Update tabel Struktur Repository (`src/layers/<nama_layer>/` — 8 subpackage, t
 **Commit:** `d936f73` — `docs(milestone-4.4): logs, report, status project`
 
 ---
+
+## Task/Checkpoint di Luar Plan
+
+### Revisit — Konfirmasi Visual Jaeger (2026-08-18, setelah penutupan milestone)
+
+**Kenapa ini tidak masuk plan sejak awal:** Bukan estimasi awal yang kurang tepat — plan (Checkpoint 4, Risiko & Mitigasi) SUDAH eksplisit mengantisipasi Docker mungkin tidak aktif saat implementasi (mirror preseden M4.1-M4.3) dan mencatatnya sebagai keterbatasan provisional di `report.md` Bagian 5 dengan follow-up wajib eksplisit ("begitu Docker+Collector/Jaeger aktif, jalankan skenario nyata..."). User mengaktifkan Docker Desktop SETELAH milestone ditutup (Checkpoint 9 sudah commit), memicu follow-up itu dieksekusi sebagai pekerjaan terpisah.
+
+**Apa yang dilakukan**
+1. `docker ps` dikonfirmasi Docker aktif (berisi container proyek lain, bukan punya proyek ini).
+2. `cd infra/observability && docker compose up -d` — tiga service (`nirwana-otel-collector`, `nirwana-jaeger`, `nirwana-prometheus`) berhasil dinyalakan, dikonfirmasi `docker ps --filter name=nirwana` + `curl` Jaeger UI (`HTTP 200`).
+3. Skrip verifikasi ad-hoc (scratchpad, TIDAK di-commit — mirror sifat sekali-pakai `infra/observability/smoke_test/`, tapi khusus layer ini bukan smoke test generik) memanggil `setup_tracing()` produksi (`src/observability/tracing.py`) + `susun_narasi()` NYATA dua kali: (a) skenario sukses campuran sumber, (b) skenario `APIError` disimulasikan (monkeypatch `narasi_module._call_llm`).
+4. Kedua trace dikonfirmasi lewat query langsung Jaeger API (`GET localhost:16686/api/traces?service=milestone-4.4-verifikasi-jaeger`), mengikuti pola `infra/observability/README.md`.
+
+**Temuan**
+Seluruh 7 atribut kontrak observability Bagian 2 terisi benar di skenario sukses (termasuk `narrative.turn_reference=[2]`, mengonfirmasi deteksi rujukan lintas-turn benar-benar sampai ke span nyata, bukan cuma lolos di test mocked). Skenario gagal mengonfirmasi `error.type="gagal_teknis"` DAN `otel.status_code="ERROR"` (OTel SDK otomatis menandai status error karena exception keluar dari `with` block span — perilaku default yang belum pernah dikonfirmasi visual sebelumnya, hanya diasumsikan dari dokumentasi OTel).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`trace_id=c21e3cbba4a508f98f711435e601956d` (sukses, durasi 11.39s) dan `trace_id=406d557d193716b66c896f1f5d85c111` (gagal, durasi 20ms) — keduanya dikonfirmasi NYATA via Jaeger API, bukan simulasi. Detail lengkap ditulis sebagai Addendum di `report.md`.
+
+**Commit:** `<diisi setelah commit>` — `docs(milestone-4.4): addendum verifikasi visual Jaeger`

@@ -193,3 +193,47 @@ Tidak ada eksekusi di checkpoint ini (murni dokumen desain). Review manual: kedu
 **Commit:** `3271209` — `docs(milestone-4.4): rancangan eval penyusunan narasi`
 
 ---
+
+## Checkpoint 7 — Eksekusi Eval dan Audit
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 9 — `run_eval.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `evals/4.4-penyusunan-narasi/run_eval.py` — 13 skenario (S01-S13) sesuai `rancangan.md`, reuse `susun_narasi()`/`_turn_reference()` produksi langsung (tidak ada duplikasi logic), heuristik kata-kunci ringan per skenario sebagai lapis tambahan (bukan verdict akhir). Dijalankan nyata (`uv run`/venv proyek) — 13 panggilan LLM sungguhan ke OpenRouter, payload+narasi lengkap disimpan `payloads/S01.json`..`S13.json`.
+
+**Temuan**
+Sebelum diketahui hasilnya sendiri (temuan substantif dicatat di `audit.md`), temuan operasional: seluruh 13 panggilan LLM berjalan lancar tanpa timeout/APIError (~10 detik per skenario, total run <2 menit) — tidak mengalami masalah hang berkepanjangan yang pernah tercatat `docs/keterbatasan-diterima.md` #7.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`./.venv/Scripts/python.exe evals/4.4-penyusunan-narasi/run_eval.py` — 13/13 skenario selesai, 11/13 heuristik LOLOS otomatis (2 REVIEW: S05, S10 — dianalisis Task 10 sebagai false-negative heuristik, bukan kegagalan narasi). Payload lengkap 13 file JSON tersimpan `payloads/`.
+
+**Commit:** `bff9385` — `test(milestone-4.4): eksekusi eval + audit penyusunan narasi`
+
+---
+
+### Task 10 — Tulis `audit.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Membaca seluruh 13 payload (`payloads/*.json`), menulis `audit.md`: tabel ringkasan (heuristik vs verdict manual), analisis mendalam 5 skenario penting (S04, S11 — dua skenario paling kritis, keduanya bersih; S09 — melampaui ekspektasi minimum; S05, S10 — false-negative heuristik dianalisis eksplisit kenapa; S03, S08 — temuan minor "klaim tindakan proaktif tidak berdasar"), bagian "Temuan Pola" (5 poin) dan "Rekomendasi" (4 poin).
+
+**Temuan**
+**13/13 skenario LOLOS audit manual** — seluruh 7 instruksi wajib prompt bekerja benar termasuk kedua skenario paling kritis (S04 kontras nada, S11 larangan klaim sebab-akibat). Satu temuan minor genuinely baru (bukan diantisipasi `rancangan.md`): model cenderung menambahkan klaim tindakan proaktif tak berdasar ("tim sedang meninjau") pada narasi `gagal_teknis` (S03, S08) — dicatat sebagai item pantauan (bukan `docs/keterbatasan-diterima.md`, dampak kecil), lihat `report.md`.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`audit.md` selesai ditulis, seluruh 13 skenario punya verdict eksplisit (bukan ringkasan agregat semata) — kedua KK sumber M4.4 terbukti lolos lewat S01 (KK1) dan S02/S03/S04 (KK2, S04 paling representatif).
+
+**Commit:** `bff9385` — `test(milestone-4.4): eksekusi eval + audit penyusunan narasi`
+
+---

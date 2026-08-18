@@ -98,3 +98,50 @@ Tidak ada.
 **Commit:** `9ca96db` — `feat(milestone-4.4): system prompt penyusunan narasi`
 
 ---
+
+## Checkpoint 4 — Implementasi `susun_narasi()`
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 5 — `_build_user_prompt()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Implementasi `_build_user_prompt(atomic_intents, packages)` di `src/layers/interpretation/narasi.py` — merakit daftar kebutuhan (teks, label bentuk jawaban, status, sumber, nilai_hasil, catatan_interpretasi) + relasi `bergantung_pada` (dicocokkan ke `atomic_intent_id` lain dalam daftar yang sama, ditampilkan sebagai teks kebutuhan+status prasyarat, bukan ID mentah — supaya LLM tidak perlu "menerka" makna ID). Menegakkan kontrak 1:1 atomic_intent<->package secara eksplisit lewat `ValueError` (Risiko & Mitigasi plan).
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Dua pemanggilan manual (bukan pytest, verifikasi cepat sebelum lanjut Task 6): (a) 2 atomic intent (1 independen, 1 bergantung) menghasilkan teks yang benar menyertakan baris "Bergantung pada" dengan status prasyarat; (b) atomic_intent tanpa package pasangan memicu `ValueError("atomic_intent tanpa package pasangan (kontrak 1:1 dilanggar): ['a1']")` — sesuai desain.
+
+**Commit:** `9cca2f4` — `feat(milestone-4.4): implementasi susun_narasi()`
+
+---
+
+### Task 6 — `susun_narasi()` orkestrator
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Implementasi `susun_narasi(atomic_intents, packages, session_id, turn_index) -> HasilNarasi` — span `chat` dengan atribut kontrak (`session.id`, `turn.index`, `gen_ai.operation.name`, `gen_ai.request.model`, `prompt.id`/`prompt.version`, `narrative.turn_reference`, `gen_ai.usage.*`), panggilan `OPENROUTER_MODEL_NARASI` `temperature=0` tanpa `response_format`. Ditambah konstanta atribut custom `NARRATIVE_TURN_REFERENCE = "narrative.turn_reference"` di `src/observability/genai_semconv.py` (tidak eksplisit disebut di plan, tapi forced langsung oleh kontrak observability Bagian 2 — konsisten pola `REQUEST_DOMAIN`/`REQUEST_VIEW_NAME` M3.4). `APIError` ditangkap, `error.type=gagal_teknis` di-set pada span, lalu di-raise ulang apa adanya (mirror `store_session_memory()`).
+
+**Temuan**
+`_turn_reference()` menghasilkan `list[int]` (turn_index unik dari paket bersumber `"session_memory (turn N)"`) — di span OTel, list otomatis disimpan sebagai tuple immutable (`(3,)`) saat dibaca balik dari `InMemorySpanExporter`, bukan penyimpangan, murni perilaku OTel SDK menyimpan attribute sequence.
+
+**Error/Kegagalan (jika ada)**
+Percobaan pertama memanggil `python` (sistem, bukan venv proyek) gagal `ModuleNotFoundError: No module named 'opentelemetry.exporter.otlp.proto.grpc'` — bukan bug kode, environment sistem tidak punya dependency proyek terpasang.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Verifikasi diulang pakai `.venv/Scripts/python.exe` (virtualenv proyek, konsisten catatan `prompt_reliability/README.md` soal `PROMPTFOO_PYTHON`) — berhasil tanpa error.
+
+**Hasil Verifikasi**
+(1) Panggilan NYATA `susun_narasi()` (bukan mock) dengan 2 atomic intent campuran sumber (`session_memory (turn 3)` + `eksekusi_baru`) menghasilkan narasi yang secara manual dibaca masuk akal dan eksplisit membedakan "berdasarkan data yang telah dihitung sebelumnya (turn 3)" vs "hasil perhitungan terkini dari sistem" — memenuhi KK1 sumber di titik ini. (2) Docker Desktop TIDAK aktif sesi ini (`docker ps` gagal) — mirror keterbatasan M4.1-M4.3, verifikasi visual Jaeger TERTUNDA. Sebagai gantinya, dipakai `InMemorySpanExporter` (OTel SDK) langsung: span `chat` tunggal tercatat dengan seluruh 9 atribut kontrak terisi benar (`session.id='s1'`, `turn.index=5`, `gen_ai.operation.name='chat'`, `gen_ai.request.model='qwen/qwen3-32b'`, `prompt.id='interpretation.narasi'`, `prompt.version=1`, `narrative.turn_reference=(3,)`, `gen_ai.usage.input_tokens=1171`, `gen_ai.usage.output_tokens=248`).
+
+**Commit:** `9cca2f4` — `feat(milestone-4.4): implementasi susun_narasi()`
+
+---

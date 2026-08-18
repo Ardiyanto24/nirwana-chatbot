@@ -1,0 +1,135 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Kasus elipsis/koreferensi - bukti KK literal M7.8 (konten)",
+  "timestamp": "2026-08-18T16:00:31.363692+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.8-e01",
+    "turn_index": 2,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Bandingkan dengan occupancy satu tahun sebelumnya.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa occupancy rate bulan April 2026?",
+        "answer": "Occupancy April 2026 mencapai 78%."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.8-e01",
+      "turn_index": 2,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Bandingkan dengan occupancy satu tahun sebelumnya.",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa occupancy rate bulan April 2026?",
+          "answer": "Occupancy April 2026 mencapai 78%."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    },
+    "rewrite": {
+      "rewritten_question": "Bagaimana tingkat occupancy April 2026 dibandingkan dengan tingkat occupancy April 2025?"
+    },
+    "session_memory": [],
+    "decomposition": {
+      "klasifikasi": "majemuk_bergantung",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "e359b53e-1dac-4f8a-a26d-bcb8d0e6f89b",
+          "teks_kebutuhan": "Berapa tingkat occupancy April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "6e91920e-b3d3-45e2-b27e-fcccd3e8eca7",
+          "teks_kebutuhan": "Berapa tingkat occupancy April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "b7fc0e13-f410-4b98-a0f3-abb0c6ce58e9",
+          "teks_kebutuhan": "Bagaimana perbandingan tingkat occupancy April 2026 dengan April 2025?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "e359b53e-1dac-4f8a-a26d-bcb8d0e6f89b",
+            "6e91920e-b3d3-45e2-b27e-fcccd3e8eca7"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    }
+  },
+  "teks_kebutuhan_gabungan": "berapa tingkat occupancy april 2025? | berapa tingkat occupancy april 2026? | bagaimana perbandingan tingkat occupancy april 2026 dengan april 2025?",
+  "cek_konten": {
+    "required_phrases_ditemukan": {
+      "april": true,
+      "2025": true
+    },
+    "forbidden_phrases_ditemukan": {
+      "satu tahun sebelumnya": false,
+      "2026": true
+    },
+    "semua_required_ada": true,
+    "ada_forbidden_muncul": true,
+    "lolos_konten": false
+  },
+  "trace_id": "06c731a65a8103a9dfdbed8fa41373ff",
+  "span_structure_jaeger": [
+    {
+      "spanID": "23b228a531991a07",
+      "operationName": "chat",
+      "parentSpanID": "4cb042dba46e8ae5"
+    },
+    {
+      "spanID": "4cb042dba46e8ae5",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    },
+    {
+      "spanID": "88b0b9c64e744c27",
+      "operationName": "input.validate",
+      "parentSpanID": "4cb042dba46e8ae5"
+    },
+    {
+      "spanID": "3e912153c9d4decf",
+      "operationName": "chat",
+      "parentSpanID": "4cb042dba46e8ae5"
+    },
+    {
+      "spanID": "4a662d9c28b14a0a",
+      "operationName": "memory.retrieve",
+      "parentSpanID": "4cb042dba46e8ae5"
+    },
+    {
+      "spanID": "866db10cc6c6b3cc",
+      "operationName": "chat",
+      "parentSpanID": "4cb042dba46e8ae5"
+    },
+    {
+      "spanID": "b03f3fcdaff81ef3",
+      "operationName": "chat",
+      "parentSpanID": "4cb042dba46e8ae5"
+    },
+    {
+      "spanID": "0416dbddb9917e7b",
+      "operationName": "chat",
+      "parentSpanID": "4cb042dba46e8ae5"
+    }
+  ],
+  "jumlah_span_chat_ditemukan": 5,
+  "semua_span_chat_anak_invoke_agent": true,
+  "error": null
+}

@@ -1,0 +1,98 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Kasus sudah mandiri - baseline kontras",
+  "timestamp": "2026-08-18T16:05:17.044257+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.8-e02",
+    "turn_index": 1,
+    "role_title": "Corporate Revenue Director",
+    "employee_id": "emp-eval",
+    "question": "Berapa revenue reservasi bulan Maret 2026?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.8-e02",
+      "turn_index": 1,
+      "role_title": "Corporate Revenue Director",
+      "employee_id": "emp-eval",
+      "question": "Berapa revenue reservasi bulan Maret 2026?",
+      "history": []
+    },
+    "ketergantungan": {
+      "is_dependent": false,
+      "referenced_turn_index": null
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa revenue reservasi bulan Maret 2026?"
+    },
+    "session_memory": null,
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "3e0432a5-0921-4e98-be46-2614277e5fa3",
+          "teks_kebutuhan": "Berapa revenue reservasi bulan Maret 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    }
+  },
+  "teks_kebutuhan_gabungan": "berapa revenue reservasi bulan maret 2026?",
+  "cek_konten": {
+    "required_phrases_ditemukan": {
+      "reservasi": true,
+      "maret": true,
+      "2026": true
+    },
+    "forbidden_phrases_ditemukan": {},
+    "semua_required_ada": true,
+    "ada_forbidden_muncul": false,
+    "lolos_konten": true
+  },
+  "trace_id": "d9bf0ba3b5d28c2bff024d7d325b4290",
+  "span_structure_jaeger": [
+    {
+      "spanID": "27f22f6d3d690876",
+      "operationName": "chat",
+      "parentSpanID": "4dfa58bb28fbbb49"
+    },
+    {
+      "spanID": "5e6bac560737d8df",
+      "operationName": "chat",
+      "parentSpanID": "4dfa58bb28fbbb49"
+    },
+    {
+      "spanID": "fdd355a8e38654ef",
+      "operationName": "chat",
+      "parentSpanID": "4dfa58bb28fbbb49"
+    },
+    {
+      "spanID": "33f0592a6ad01b5b",
+      "operationName": "chat",
+      "parentSpanID": "4dfa58bb28fbbb49"
+    },
+    {
+      "spanID": "2e1d6c7d35336061",
+      "operationName": "chat",
+      "parentSpanID": "4dfa58bb28fbbb49"
+    },
+    {
+      "spanID": "4dfa58bb28fbbb49",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    },
+    {
+      "spanID": "0142e8e99243787a",
+      "operationName": "input.validate",
+      "parentSpanID": "4dfa58bb28fbbb49"
+    }
+  ],
+  "jumlah_span_chat_ditemukan": 5,
+  "semua_span_chat_anak_invoke_agent": true,
+  "error": null
+}

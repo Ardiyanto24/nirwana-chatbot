@@ -145,3 +145,27 @@ Verifikasi diulang pakai `.venv/Scripts/python.exe` (virtualenv proyek, konsiste
 **Commit:** `9cca2f4` — `feat(milestone-4.4): implementasi susun_narasi()`
 
 ---
+
+## Checkpoint 5 — Unit Test
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 7 — `tests/layers/interpretation/test_narasi.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis 8 test: (a) `_turn_reference()` — kosong kalau seluruh `eksekusi_baru`, unik+terurut untuk campuran sumber; (b) `_build_user_prompt()` — memuat status/sumber/catatan_interpretasi, menyertakan relasi `bergantung_pada` (dengan status prasyarat), raise `ValueError` kalau package pasangan hilang; (c) `susun_narasi()` (mocked `_call_llm`, mirror pola `test_penyusunan_request.py` M3.4) — hasil sukses normal, atribut span lengkap sesuai kontrak (mocked tracer, mirror `_SpanRekam`/`_TracerRekam` `test_klasifikasi_respons.py` M4.2), `APIError` diteruskan ke pemanggil DAN `error.type=gagal_teknis` tercatat di span.
+
+**Temuan**
+Tidak ada temuan tak terduga — kedua pola precedent (mock `_call_llm` M3.4, mock tracer M4.2) langsung applicable tanpa penyesuaian struktural.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -m pytest tests/layers/interpretation/ -v` — 8/8 PASSED.
+
+**Commit:** `ffa2e78` — `test(milestone-4.4): unit test susun_narasi()`
+
+---

@@ -268,3 +268,41 @@ Run final: `npx promptfoo eval -c interpretation/narasi.promptfooconfig.yaml` �
 **Commit:** `37dbc21` — `test(milestone-4.4): config prompt reliability narasi`
 
 ---
+
+## Checkpoint 9 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 12 — Finalisasi `logs.md`
+
+**Kesesuaian dengan plan:** Sesuai plan — logs sudah ditulis inkremental per checkpoint (Task 12 murni review kelengkapan, bukan ditulis dari nol).
+
+**Apa yang dilakukan**
+Review seluruh 8 checkpoint sebelumnya di file ini: setiap task punya "Kesesuaian dengan plan", "Apa yang dilakukan", "Temuan", "Error/Kegagalan", "Hasil Verifikasi", dan "Commit" terisi (hash nyata, bukan placeholder) — tidak ada section kosong tanpa penjelasan eksplisit "Tidak ada".
+
+**Hasil Verifikasi**
+9 checkpoint (1-9), 14 task, seluruhnya terdokumentasi lengkap dengan hash commit nyata.
+
+### Task 13 — Tulis `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `milestones/4.4-penyusunan-narasi/report.md` — Bagian 1-6 lengkap: ringkasan hasil, KK sumber vs bukti nyata (tabel), cara kerja + diagram mermaid, perubahan dari plan (3 penyimpangan operasional kecil), keterbatasan (6 item termasuk visual Jaeger tertunda), follow-up (5 item termasuk konfirmasi ke M4.5). Dicatat eksplisit bahwa "Catatan Serah Terima ke Pekerjaan Lain" dokumen sumber DITUNDA ke report M4.5 (M4.4 bukan milestone terakhir di `rancangan-execution-interpretation.md`).
+
+**Hasil Verifikasi**
+Kedua Kriteria Keberhasilan sumber dipetakan eksplisit ke bukti nyata (Bagian 2 report) — tidak ada KK yang terlewat tanpa bukti.
+
+### Task 14 — Perbarui `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Update tabel Struktur Repository (`src/layers/<nama_layer>/` — 8 subpackage, tambah `interpretation/`; `src/schemas/`, `src/config/`, `src/prompts/`, `evals/`, `prompt_reliability/` — kontribusi diperluas ke M4.4). Update tabel Status Proyek: baris `4.4-4.5` gabungan dipecah jadi baris `4.4` (Selesai, link report.md) + baris `4.5` (Berikutnya). Update paragraf "Sedang berjalan / berikutnya". `AGENT.md` disinkronkan lewat `cp CLAUDE.md AGENT.md` (dikonfirmasi `diff` kosong setelahnya) — bukan diedit terpisah, menghindari risiko drift antara dua file yang wajib identik.
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` — tidak ada perbedaan, kedua file identik setelah update.
+
+**Commit:** `<diisi setelah commit>` — `docs(milestone-4.4): logs, report, status project`
+
+---

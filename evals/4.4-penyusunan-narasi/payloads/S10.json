@@ -1,0 +1,39 @@
+{
+  "scenario_id": "S10",
+  "deskripsi": "Catatan nullable-bermakna disampaikan jujur",
+  "timestamp": "2026-08-18T01:59:49.576326+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "c91c78ca-cf48-4163-a550-e13db52c01c4",
+      "teks_kebutuhan": "Berapa jumlah tiket kerusakan fasilitas umum bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "c91c78ca-cf48-4163-a550-e13db52c01c4",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa jumlah tiket kerusakan fasilitas umum bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [
+        "Kosong jika tidak ada tiket kerusakan tercatat pada periode ini - bukan indikasi data hilang."
+      ],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi": "Bulan ini tidak ada tiket kerusakan fasilitas umum yang tercatat. Hasil ini menunjukkan bahwa tidak ada laporan yang diterima pada periode yang dimaksud, bukan karena data tidak tersedia atau sistem mengalami kendala. Jumlah tiket yang ditemukan adalah 0.",
+  "heuristik_hasil": {
+    "tidak_bilang_data_hilang": false
+  },
+  "heuristik_lolos": false,
+  "turn_reference_aktual": [],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

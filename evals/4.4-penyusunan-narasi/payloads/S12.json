@@ -1,0 +1,57 @@
+{
+  "scenario_id": "S12",
+  "deskripsi": "Seluruh atomic intent turn ini gagal/ditolak (kejujuran total)",
+  "timestamp": "2026-08-18T02:00:10.130598+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "c881d62e-c013-403e-9ed6-750ebf57abd3",
+      "teks_kebutuhan": "Berapa gaji staff bernama Budi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "758ff28a-b7d7-4cfd-9ac7-1954f4e8802b",
+      "teks_kebutuhan": "Berapa revenue reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "c881d62e-c013-403e-9ed6-750ebf57abd3",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa gaji staff bernama Budi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "ditolak_otorisasi",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "758ff28a-b7d7-4cfd-9ac7-1954f4e8802b",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa revenue reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "gagal_teknis",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi": "Saya tidak dapat memberikan informasi mengenai gaji staff bernama Budi bulan ini karena akses ke data tersebut dibatasi oleh sistem. Untuk revenue reservasi bulan ini, sistem mengalami kendala teknis saat mengambil data, sehingga nilai tidak tersedia. Kedua informasi ini dihitung berdasarkan permintaan terkini dan belum pernah diproses sebelumnya.",
+  "heuristik_hasil": {
+    "tidak_ada_angka_hasil": true
+  },
+  "heuristik_lolos": true,
+  "turn_reference_aktual": [],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

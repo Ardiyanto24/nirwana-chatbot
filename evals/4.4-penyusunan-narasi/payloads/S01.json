@@ -1,0 +1,67 @@
+{
+  "scenario_id": "S01",
+  "deskripsi": "Campuran sumber sederhana (KK1 dasar)",
+  "timestamp": "2026-08-18T01:57:21.231670+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "2ad8538b-db0e-468d-bf3a-e121ad4c1e0a",
+      "teks_kebutuhan": "Berapa occupancy rate April 2026 di Nirwana Resort Bali?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "cb59d5c0-6e4c-435e-b7a5-af528f896767",
+      "teks_kebutuhan": "Berapa revenue F&B bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "2ad8538b-db0e-468d-bf3a-e121ad4c1e0a",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa occupancy rate April 2026 di Nirwana Resort Bali?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "occupancy_rate": 0.82
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "cb59d5c0-6e4c-435e-b7a5-af528f896767",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa revenue F&B bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "revenue_fnb": 452000000
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "session_memory (turn 3)"
+    }
+  ],
+  "narasi": "Occupancy rate di Nirwana Resort Bali untuk April 2026 adalah 82%, berdasarkan perhitungan baru yang dilakukan sistem. Sementara itu, revenue F&B bulan ini sebesar Rp 452.000.000, yang diambil dari data yang telah dihitung sebelumnya (turn 3) dalam sesi ini. Kedua informasi tersebut tersedia secara lengkap dan dapat digunakan untuk analisis lebih lanjut.",
+  "heuristik_hasil": {
+    "angka_82_dan_452_hadir": true
+  },
+  "heuristik_lolos": true,
+  "turn_reference_aktual": [
+    3
+  ],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

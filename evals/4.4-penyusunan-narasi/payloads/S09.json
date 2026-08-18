@@ -1,0 +1,79 @@
+{
+  "scenario_id": "S09",
+  "deskripsi": "terblokir_ketergantungan rantai 2 level (C<-B<-A)",
+  "timestamp": "2026-08-18T01:59:35.129783+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "04f95610-5ab3-41fb-8df6-2e08b198fd6c",
+      "teks_kebutuhan": "Berapa occupancy rate April 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "2f0a6094-e3a8-4ba7-b212-e4321c2e980e",
+      "teks_kebutuhan": "Bandingkan dengan Maret 2026",
+      "label_bentuk_jawaban": "perbandingan",
+      "relasi": "bergantung",
+      "bergantung_pada": [
+        "04f95610-5ab3-41fb-8df6-2e08b198fd6c"
+      ]
+    },
+    {
+      "atomic_intent_id": "cc150abd-0fd7-40be-aefa-59f7135c3215",
+      "teks_kebutuhan": "Berapa persen kenaikannya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "bergantung",
+      "bergantung_pada": [
+        "2f0a6094-e3a8-4ba7-b212-e4321c2e980e"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "04f95610-5ab3-41fb-8df6-2e08b198fd6c",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa occupancy rate April 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "gagal_teknis",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "2f0a6094-e3a8-4ba7-b212-e4321c2e980e",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Bandingkan dengan Maret 2026",
+      "label_bentuk_jawaban": "perbandingan",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "terblokir_ketergantungan",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "cc150abd-0fd7-40be-aefa-59f7135c3215",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa persen kenaikannya",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "terblokir_ketergantungan",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi": "Sistem mengalami kendala teknis saat menghitung occupancy rate April 2026, sehingga data tersebut tidak dapat diperoleh. Kebutuhan perbandingan dengan Maret 2026 dan persentase kenaikan juga tidak dapat diproses karena bergantung pada data April 2026 yang gagal diambil. Kami akan terus memantau dan mencoba mengakses data terkini untuk memberikan informasi yang lebih lengkap.",
+  "heuristik_hasil": {},
+  "heuristik_lolos": null,
+  "turn_reference_aktual": [],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

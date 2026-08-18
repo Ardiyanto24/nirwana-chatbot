@@ -1,0 +1,37 @@
+{
+  "scenario_id": "S03",
+  "deskripsi": "gagal_teknis disampaikan jujur tanpa detail teknis (KK2b)",
+  "timestamp": "2026-08-18T01:58:01.941478+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "db53c786-baf6-4019-8c40-21fc38298a99",
+      "teks_kebutuhan": "Berapa revenue reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "db53c786-baf6-4019-8c40-21fc38298a99",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa revenue reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "gagal_teknis",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi": "Saat ini sistem mengalami kendala teknis dalam mengambil data revenue reservasi bulan ini. Kami belum dapat menyajikan informasi tersebut karena proses pengambilan data terganggu. Tim teknis sedang meninjau masalah ini, dan kami akan berusaha memberikan data yang diminta pada kesempatan berikutnya.",
+  "heuristik_hasil": {
+    "tidak_menyebut_istilah_teknis": true
+  },
+  "heuristik_lolos": true,
+  "turn_reference_aktual": [],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

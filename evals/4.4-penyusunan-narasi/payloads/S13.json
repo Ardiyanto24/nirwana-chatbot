@@ -1,0 +1,93 @@
+{
+  "scenario_id": "S13",
+  "deskripsi": "Lintas-turn ganda (2 turn berbeda dirujuk sekaligus)",
+  "timestamp": "2026-08-18T02:00:20.223099+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "01a55326-edba-4400-919a-4f2cac5b4c89",
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "0a3481d4-33dc-492c-a48e-3ab7c6f24672",
+      "teks_kebutuhan": "Berapa revenue F&B bulan lalu?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "644578a6-5576-4442-b483-808f45d5504f",
+      "teks_kebutuhan": "Berapa jumlah staff aktif dua bulan lalu?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "01a55326-edba-4400-919a-4f2cac5b4c89",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "occupancy_rate": 0.78
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "0a3481d4-33dc-492c-a48e-3ab7c6f24672",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa revenue F&B bulan lalu?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "revenue_fnb": 280000000
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "session_memory (turn 2)"
+    },
+    {
+      "atomic_intent_id": "644578a6-5576-4442-b483-808f45d5504f",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa jumlah staff aktif dua bulan lalu?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "jumlah_staff": 42
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "session_memory (turn 4)"
+    }
+  ],
+  "narasi": "Occupancy rate bulan ini adalah 78%. Revenue F&B bulan lalu sebesar Rp280.000.000,00, data ini diambil dari hasil perhitungan sebelumnya (turn 2). Jumlah staff aktif dua bulan lalu tercatat 42 orang, informasi ini merujuk pada data yang telah disimpan dari turn 4. Semua nilai disajikan berdasarkan data yang tersedia.",
+  "heuristik_hasil": {},
+  "heuristik_lolos": null,
+  "turn_reference_aktual": [
+    2,
+    4
+  ],
+  "turn_reference_ekspektasi": [
+    2,
+    4
+  ],
+  "turn_reference_lolos": true
+}

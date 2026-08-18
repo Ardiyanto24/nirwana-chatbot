@@ -1,0 +1,89 @@
+{
+  "scenario_id": "S07",
+  "deskripsi": "Berhasil murni, multi-atomic-intent (baseline jangan over-flag)",
+  "timestamp": "2026-08-18T01:58:57.391472+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "b750814c-b68a-4bec-978d-f07ff355eb67",
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "1f9a50eb-4e28-4a73-a7ea-cccaad7f3c66",
+      "teks_kebutuhan": "Berapa revenue F&B bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "98b4f012-0108-4012-9366-a1c4b7c375f1",
+      "teks_kebutuhan": "Berapa jumlah staff aktif bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "b750814c-b68a-4bec-978d-f07ff355eb67",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa occupancy rate bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "occupancy_rate": 0.8
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "1f9a50eb-4e28-4a73-a7ea-cccaad7f3c66",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa revenue F&B bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "revenue_fnb": 300000000
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "98b4f012-0108-4012-9366-a1c4b7c375f1",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa jumlah staff aktif bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "jumlah_staff": 45
+          }
+        ]
+      },
+      "catatan_interpretasi": [],
+      "status": "berhasil",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi": "Bulan ini, tingkat occupancy rate (tingkat hunian) mencapai 80%. Pendapatan dari sektor F&B tercatat sebesar Rp300.000.000. Sementara itu, jumlah staff aktif yang terdata adalah 45 orang. Semua data tersebut dihitung berdasarkan informasi terkini yang tersedia dalam sistem.",
+  "heuristik_hasil": {
+    "tidak_over_flag": true
+  },
+  "heuristik_lolos": true,
+  "turn_reference_aktual": [],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

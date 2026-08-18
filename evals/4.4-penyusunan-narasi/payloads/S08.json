@@ -1,0 +1,59 @@
+{
+  "scenario_id": "S08",
+  "deskripsi": "terblokir_ketergantungan 1 level",
+  "timestamp": "2026-08-18T01:59:03.204475+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "1b41a8a1-9e17-4a93-ad53-b100afe1081a",
+      "teks_kebutuhan": "Berapa revenue reservasi Maret 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    },
+    {
+      "atomic_intent_id": "5ea82db5-1aaa-41ac-83eb-f799f5c08acb",
+      "teks_kebutuhan": "Bandingkan dengan Februari 2026",
+      "label_bentuk_jawaban": "perbandingan",
+      "relasi": "bergantung",
+      "bergantung_pada": [
+        "1b41a8a1-9e17-4a93-ad53-b100afe1081a"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "1b41a8a1-9e17-4a93-ad53-b100afe1081a",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa revenue reservasi Maret 2026?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "gagal_teknis",
+      "sumber": "eksekusi_baru"
+    },
+    {
+      "atomic_intent_id": "5ea82db5-1aaa-41ac-83eb-f799f5c08acb",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Bandingkan dengan Februari 2026",
+      "label_bentuk_jawaban": "perbandingan",
+      "nilai_hasil": {
+        "rows": []
+      },
+      "catatan_interpretasi": [],
+      "status": "terblokir_ketergantungan",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi": "Sistem mengalami kendala saat mengambil data revenue reservasi Maret 2026, sehingga nilai tersebut tidak dapat ditampilkan. Kebutuhan untuk membandingkan dengan Februari 2026 juga tidak dapat diproses karena bergantung pada data Maret 2026 yang gagal diakses. Kami sedang meninjau masalah teknis ini agar dapat memberikan informasi yang lengkap di masa mendatang.",
+  "heuristik_hasil": {
+    "menyebut_kata_sebab": true
+  },
+  "heuristik_lolos": true,
+  "turn_reference_aktual": [],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

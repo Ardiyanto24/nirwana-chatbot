@@ -1,0 +1,43 @@
+{
+  "scenario_id": "S05",
+  "deskripsi": "Hasil sebagian - catatan kualitas data flagged",
+  "timestamp": "2026-08-18T01:58:42.083209+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "a7079e6b-a2db-4ddc-b199-3d35f909a883",
+      "teks_kebutuhan": "Berapa jumlah reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "a7079e6b-a2db-4ddc-b199-3d35f909a883",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa jumlah reservasi bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "jumlah_reservasi": 120
+          }
+        ]
+      },
+      "catatan_interpretasi": [
+        "Status kualitas data untuk hasil ini ditandai perlu perhatian oleh tim database engineering (data_quality_status=flagged)."
+      ],
+      "status": "sebagian",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi": "Jumlah reservasi bulan ini tercatat sebanyak 120. Namun, perlu dicatat bahwa data ini saat ini ditandai perlu perhatian oleh tim database engineering karena kualitas data yang belum sepenuhnya memenuhi standar. Artinya, angka ini mungkin belum mencerminkan keadaan akurat atau lengkap, dan sistem sedang melakukan evaluasi lebih lanjut terhadap sumber data tersebut. Jika ada kebutuhan tambahan terkait reservasi, mohon beri tahu agar kami bisa membantu lebih lanjut.",
+  "heuristik_hasil": {
+    "menyebut_kata_parsial": false
+  },
+  "heuristik_lolos": false,
+  "turn_reference_aktual": [],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

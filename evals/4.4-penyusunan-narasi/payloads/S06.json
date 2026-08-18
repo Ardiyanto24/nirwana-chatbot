@@ -1,0 +1,43 @@
+{
+  "scenario_id": "S06",
+  "deskripsi": "Hasil sebagian - catatan staleness (last_refreshed_at)",
+  "timestamp": "2026-08-18T01:58:49.755906+00:00",
+  "atomic_intents": [
+    {
+      "atomic_intent_id": "a263e10d-59c3-45d5-95af-789ce3114e40",
+      "teks_kebutuhan": "Berapa jumlah tamu check-in bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "relasi": "independen",
+      "bergantung_pada": null
+    }
+  ],
+  "packages": [
+    {
+      "atomic_intent_id": "a263e10d-59c3-45d5-95af-789ce3114e40",
+      "session_id": "eval-m44",
+      "turn_index": 6,
+      "teks_kebutuhan": "Berapa jumlah tamu check-in bulan ini?",
+      "label_bentuk_jawaban": "nilai_tunggal",
+      "nilai_hasil": {
+        "rows": [
+          {
+            "jumlah_checkin": 340
+          }
+        ]
+      },
+      "catatan_interpretasi": [
+        "Data terakhir diperbarui 2026-08-10T00:00:00Z, melewati ambang kesegaran yang ditetapkan (48 jam)."
+      ],
+      "status": "sebagian",
+      "sumber": "eksekusi_baru"
+    }
+  ],
+  "narasi": "Jumlah tamu yang telah check-in bulan ini tercatat sebanyak 340 orang. Namun, perlu dicatat bahwa data ini bersifat parsial karena terakhir diperbarui pada 10 Agustus 2026, yang melewati ambang kesegaran sistem (48 jam). Artinya, angka ini mungkin belum mencerminkan seluruh aktivitas check-in terkini di bulan ini. Jika Anda memerlukan data yang lebih mutakhir, kami sarankan untuk memeriksa kembali setelah sistem memperbarui informasi.",
+  "heuristik_hasil": {
+    "menyebut_kata_kesegaran_waktu": true
+  },
+  "heuristik_lolos": true,
+  "turn_reference_aktual": [],
+  "turn_reference_ekspektasi": null,
+  "turn_reference_lolos": null
+}

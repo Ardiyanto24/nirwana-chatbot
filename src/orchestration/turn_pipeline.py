@@ -34,12 +34,23 @@ Tarik Memory, sehingga tidak butuh paralelisme baru maupun propagasi
 context manual (span `chat` dari ketiga sub-langkah Decomposition
 otomatis jadi anak `invoke_agent` karena tetap di thread yang sama). Lihat
 milestones/7.8-sambungan-rewrite-decomposition/decisions.md.
+
+Milestone 7.9: `match_and_archive()` dipanggil SEKUENSIAL setelah
+`decomposition_result` final - titik pertemuan pertama, Pencocokan
+genuinely butuh KEDUA jalur (Decomposition M7.8 + Tarik Memory M7.7)
+sebagai argumen. `session_memory_result or []` mengonversi `None`->`[]`
+(forced signature `match_and_archive()`, bukan `Optional`). BEDA dari
+`rewrite`/`decomposition`: panggilan ini SENDIRI bisa raise (arsip ulang
+lewat `store_session_memory()` genuinely raise pada kegagalan DB) -
+TIDAK dibungkus try/except baru, mirror preseden kegagalan cabang M7.7.
+Lihat milestones/7.9-sambungan-pencocokan/decisions.md.
 """
 
 from concurrent.futures import ThreadPoolExecutor
 
 from opentelemetry import context as otel_context
 
+from src.layers.context_resolution.matching import match_and_archive
 from src.layers.context_resolution.rewrite import rewrite_to_standalone
 from src.layers.context_resolution.session_memory import retrieve_session_memory
 from src.layers.context_resolution.turn_dependency import detect_turn_dependency
@@ -109,10 +120,18 @@ def proses_turn(raw: dict) -> KeadaanTurn:
 
         decomposition_result = decompose_question(rewrite_result.rewritten_question)
 
+        matches = match_and_archive(
+            decomposition_result.atomic_intents,
+            session_memory_result or [],
+            payload.session_id,
+            payload.turn_index,
+        )
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
             rewrite=rewrite_result,
             session_memory=session_memory_result,
             decomposition=decomposition_result,
+            matches=matches,
         )

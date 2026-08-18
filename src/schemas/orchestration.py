@@ -26,11 +26,20 @@ tahap, tidak pernah raise ke pemanggilnya. Dipanggil dengan
 asli - forced KK M7.8 eksplisit ("bukan makna kalimat asli sebelum
 di-rewrite"). Lihat
 milestones/7.8-sambungan-rewrite-decomposition/decisions.md Keputusan 2+4.
+
+Field M7.9 (`matches`): selalu terisi KALAU `proses_turn()` selesai tanpa
+exception - BEDA dari `rewrite`/`decomposition`, `match_and_archive()`
+SENDIRI bisa raise (arsip ulang lewat `store_session_memory()` genuinely
+raise pada kegagalan DB, tidak full-fallback). Dipanggil dengan
+`session_memory or []` (konversi wajib - `match_and_archive()` menerima
+`list`, bukan `Optional`). Lihat
+milestones/7.9-sambungan-pencocokan/decisions.md Keputusan 1+3.
 """
 
 from pydantic import BaseModel
 
 from src.schemas.decomposition import DecompositionResult
+from src.schemas.matching import AtomicIntentMatch
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import SessionMemoryPackage
 from src.schemas.turn_dependency import TurnDependencyResult
@@ -43,3 +52,4 @@ class KeadaanTurn(BaseModel):
     rewrite: RewriteResult
     session_memory: list[SessionMemoryPackage] | None
     decomposition: DecompositionResult
+    matches: list[AtomicIntentMatch]

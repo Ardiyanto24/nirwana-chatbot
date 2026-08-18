@@ -72,6 +72,10 @@ Empat penyimpangan dari plan, semuanya koreksi/penyesuaian teknis di tempat (tid
 - **`response_format json_object` (bukan `json_schema` strict)** — bergantung pada validasi Pydantic defensif + prompt yang eksplisit menjelaskan bentuk JSON, bukan garansi struktural dari provider. Terbukti bekerja di seluruh skenario uji, tapi robustness jangka panjang terhadap variasi output model belum teruji ekstensif (baru 6 pemanggilan API nyata total sepanjang milestone ini: 2 smoke test + 3 test suite + 1 verifikasi span).
 - **Belum wired ke endpoint HTTP manapun** — `detect_turn_dependency()` berdiri sendiri, dipanggil langsung (bukan lewat `POST /v1/turns`), sesuai Batasan Mengikat plan. Pipeline penuh (9 layer tersambung) adalah pekerjaan milestone mendatang.
 
+## Addendum (2026-08-18) — Fix Kegagalan Teknis LLM Tanpa Fallback
+
+Milestone 7.6 (menyambungkan layer ini ke Input Layer) menemukan `detect_turn_dependency()` tidak punya `try/except` di sekitar pemanggilan LLM-nya — beda dari semua layer LLM lain project. Celah ini diperbaiki DI SINI (bukan di M7.6, karena logic internal layer ini tetap tanggung jawab milestone pemilik) atas instruksi eksplisit user: `try/except APIError` ditambahkan, reuse fallback aman `is_dependent=False` yang sudah ada untuk kegagalan parse/bounds (Keputusan 9), tanpa mengubah skema `TurnDependencyResult`. Lihat `decisions.md` Keputusan 12 dan `logs.md` Addendum untuk detail lengkap + bukti test. `docs/keterbatasan-diterima.md` #14 diperbarui status jadi DIPERBAIKI.
+
 ## Bagian 6 — Follow-up
 
 - Milestone 1.4 (Rewrite Mandiri) dan Milestone 1.5 (Tarik Session Memory) — keduanya menunggu langsung keluaran milestone ini (lihat Bagian 3, Integrasi), perlu membaca `src/schemas/turn_dependency.py` dan `src/schemas/turn_payload.py` (`history` baru) langsung.

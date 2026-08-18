@@ -178,6 +178,28 @@ Dicatat sebagai catatan untuk milestone mendatang yang akan mewiring beberapa la
 
 ---
 
+## Keputusan 12 (Addendum): `detect_turn_dependency()` Diberi `try/except APIError` — Fallback Aman Sama Seperti Kegagalan Parse/Bounds
+
+**Status:** Ditemukan di Milestone 7.6 (2026-08-18, saat memetakan kejadian struktural untuk menyambungkan Input Layer ke Pemetaan Ketergantungan Turn), diperbaiki di sini atas instruksi eksplisit user — bukan ditutup di M7.6 sendiri, karena perbaikan logic internal M1.3 adalah tanggung jawab milestone pemilik layer ini, bukan milestone penyambung.
+
+**Latar Belakang**
+Investigasi M7.6 menemukan `detect_turn_dependency()` TIDAK punya `try/except` sama sekali di sekitar `_call_llm(payload)` — beda dari SEMUA layer LLM lain di project (yang menangkap `openai.APIError` dan mendegradasi ke status gagal teknis), kecuali `susun_narasi()` (M4.4, sengaja tanpa fallback, terdokumentasi eksplisit di `decisions.md`-nya sendiri). Dokumen `decisions.md` M1.3 ini (Keputusan 9 di atas) hanya mendokumentasikan fallback untuk kegagalan PARSE/BOUNDS (JSON rusak atau `referenced_turn_index` di luar histori valid) — TIDAK PERNAH membahas kegagalan API/jaringan teknis. Dibuktikan nyata lewat kejadian E04 M7.6 (`evals/7.6-sambungan-input-layer-pemetaan-ketergantungan/payloads/E04.json`, sebelum fix ini): `_call_llm` dipaksa raise `openai.APIError`, exception menjalar keluar TANPA ditangkap di titik mana pun — dicatat sempat sebagai `docs/keterbatasan-diterima.md` #14 (kini berstatus DIPERBAIKI, lihat file itu).
+
+**Keputusan yang Dipilih**
+`_call_llm(payload)` dibungkus `try/except APIError`, mengembalikan `TurnDependencyResult(is_dependent=False)` + mencatat span attribute `dependency.forced_independent_reason=f"api_error: {exc}"` — REUSE persis mekanisme fallback aman yang sudah ada untuk kegagalan parse/bounds (Keputusan 9), bukan menambah field/status baru ke skema `TurnDependencyResult`.
+
+**Alasan**
+`TurnDependencyResult` sengaja hanya `{is_dependent, referenced_turn_index}` tanpa field `status` (beda dari skema layer lain yang punya `StatusEksekusi`) — menambah field baru untuk membedakan "gagal teknis" dari "berhasil, independen" berarti mengubah skema yang sudah dipakai `KeadaanTurn` (M7.6, `src/schemas/orchestration.py`) dan berpotensi konsumen lain nanti. `is_dependent=False` sebagai fallback aman sudah konsisten dengan filosofi modul ini sejak awal ("lebih aman under-trigger daripada over-trigger dengan rujukan salah", Keputusan 9) — kegagalan teknis genuinely tidak beda konsekuensinya dari kegagalan parse dari sudut pandang pemanggil: keduanya sama-sama "tidak bisa dipercaya menentukan dependency, aman diasumsikan independen". Span attribute `dependency.forced_independent_reason` tetap membedakan alasan (`api_error: ...` vs alasan parse/bounds) untuk keperluan observability/debugging, tanpa mengubah kontrak tipe.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Menambah field `status: StatusEksekusi` ke `TurnDependencyResult`** — ditolak, perubahan skema breaking yang merembet ke `KeadaanTurn` (M7.6) dan konsumen masa depan, tidak sepadan untuk kasus yang sudah bisa direpresentasikan lewat mekanisme fallback yang sudah ada.
+- **Membiarkan exception menjalar apa adanya (status quo)** — ditolak eksplisit oleh user: "sekalian saja perbaiki celah tersebut."
+
+**Dampak**
+`tests/layers/context_resolution/test_turn_dependency_kegagalan.py` (baru, mocked, mirror pola `test_session_memory_kegagalan.py`) membuktikan fallback ini. `docs/keterbatasan-diterima.md` #14 diperbarui status jadi DIPERBAIKI. `milestones/7.6-.../report.md` diberi catatan silang bahwa temuannya sudah ditutup di sini, bukan lagi "diterima, tidak diperbaiki".
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -192,4 +214,5 @@ Dicatat sebagai catatan untuk milestone mendatang yang akan mewiring beberapa la
 | 8 | Span `chat`, atribut `gen_ai.*` | B | Plan |
 | 9 | Bounds-check `referenced_turn_index` → fallback aman | B | Plan |
 | 10 | `src/layers/context_resolution/` subpackage | B | Checkpoint 2 |
+| 12 | Addendum M7.6: `try/except APIError`, reuse fallback aman | A | Addendum 2026-08-18 |
 | 11 | `openai` SDK + API key via env var | B | Plan |

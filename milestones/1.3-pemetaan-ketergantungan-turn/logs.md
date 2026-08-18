@@ -384,3 +384,29 @@ File Task 17, 19-21 di-stage bersama: `docs/keterbatasan-diterima.md`, `mileston
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada checkpoint baru di luar plan. Penyimpangan task (semuanya koreksi/penyesuaian di dalam task yang sudah direncanakan, dicatat eksplisit di masing-masing entri): skenario sukses tambahan Task 5; smoke test kedua Task 12a-b; pilihan `json_object` alih-alih `json_schema` Task 12; kebutuhan `setup_tracing()` eksplisit Task 16; perbaikan path stale `genai_semconv.py` di Task 20.
+
+---
+
+## Addendum (2026-08-18) — Fix `try/except APIError` di `detect_turn_dependency()`
+
+**Ditemukan:** Milestone 7.6 (Checkpoint 1, investigasi sebelum plan), dibuktikan nyata Checkpoint 5 M7.6 (`evals/7.6-.../payloads/E04.json`) — `detect_turn_dependency()` tidak punya `try/except` sama sekali di sekitar `_call_llm()`, celah yang sebelumnya tidak terdokumentasi (lihat `decisions.md` Keputusan 12 untuk detail lengkap).
+
+**Apa yang dilakukan:** Atas instruksi eksplisit user ("sekalian saja perbaiki celah tersebut, dokumentasinya dimasukkan ke milestone yang menangani bagian tersebut"), `src/layers/context_resolution/turn_dependency.py::detect_turn_dependency()` diberi `try/except APIError` — reuse mekanisme fallback aman yang sudah ada (`TurnDependencyResult(is_dependent=False)` + span attribute `dependency.forced_independent_reason`), tanpa mengubah skema `TurnDependencyResult`. Test baru `tests/layers/context_resolution/test_turn_dependency_kegagalan.py` (mocked, mirror pola `test_session_memory_kegagalan.py` M4.3) membuktikan fallback bekerja tanpa exception menjalar.
+
+**Hasil Verifikasi**
+```
+$ .venv/Scripts/python.exe -m pytest tests/layers/context_resolution/test_turn_dependency_kegagalan.py -v
+test_api_error_fallback_aman_tanpa_exception_menjalar PASSED
+1 passed in 14.84s
+
+$ .venv/Scripts/python.exe -m pytest tests/layers/context_resolution/test_turn_dependency.py -v
+test_kelompok_a_rujukan_eksplisit_ke_turn_sebelumnya PASSED
+test_kelompok_b_berdiri_sendiri_tanpa_rujukan PASSED
+test_kelompok_c_rujukan_ke_turn_jauh_bukan_terdekat PASSED
+3 passed in 28.00s
+```
+Regresi nol — ketiga test LLM sungguhan M1.3 asli tetap lolos, tidak ada perubahan perilaku pada jalur sukses.
+
+**Dampak lintas-dokumen:** `docs/keterbatasan-diterima.md` #14 diperbarui status jadi DIPERBAIKI. `milestones/7.6-sambungan-input-layer-pemetaan-ketergantungan/report.md` diberi catatan silang bahwa temuannya sudah ditutup di sini (M1.3), bukan lagi "diterima, tidak diperbaiki" — historical record M7.6 sendiri (kejadian E04, `audit.md`) TIDAK diubah, tetap mencerminkan kondisi nyata saat milestone itu dijalankan.
+
+**Commit:** lihat commit `fix(milestone-1.3): ...` di root repo.

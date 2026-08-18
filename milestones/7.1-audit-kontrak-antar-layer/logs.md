@@ -30,3 +30,23 @@ Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 1".
 | M1.7 Matching | `test_matching.py::test_kelompok_c_rantai_arsip_ulang_turn_tujuh_lima_tiga` (skenario rantai arsip, LLM+DB) | 1 passed | 28.61s |
 
 Seluruh 6 unit PIC 1 lolos panggilan nyata — tidak ada skip/mock terdeteksi (durasi tiap test konsisten dengan pemanggilan API/DB sungguhan, bukan instan seperti mock).
+
+## Checkpoint 3 — Audit PIC 2 (Domain Gate, Verification Gate)
+
+**Task 5 — Audit source.** Dibaca langsung: `src/layers/domain_gate/{domain_gate,identifikasi,verifikasi_titik_buta,otorisasi,cakupan_individu,deteksi_cakupan_individu,verifikasi_cakupan_individu}.py`, `src/layers/verification_gate/verifikasi_gate.py`. Temuan kunci dikonfirmasi langsung dari kode:
+- M2.1: penggabungan Langkah 1+2 union aditif via `dict.fromkeys()` (dedup, urutan dipertahankan), status `SEBAGIAN` kalau verifikasi gagal teknis. Langkah 2 di-skip total kalau Langkah 1 gagal (bukan dipanggil dengan domain kosong).
+- M2.3: dua pre-filter deterministik persis sesuai ringkasan awal — `ROLE_STAFF_TIER` (7 role) dan domain relevan `{FACILITY, HR}`; fail-closed (`terdeteksi=True`) hanya kalau KEDUA langkah LLM gagal teknis sekaligus (arah fail-safe berlawanan dari M1.7).
+- M2.4: 4 cek berlapis dikonfirmasi tepat urutannya (statis→kepatuhan sumber→tegakkan constraint→verifikasi kelengkapan), `LIMIT_MAKSIMUM=1000` eksplisit di kode, early-exit hanya di Cek 1-2 (Cek 3 tidak pernah menolak, hanya mengoreksi paksa).
+
+Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 2".
+
+**Task 6 — Panggilan nyata minimal per unit:**
+
+| Unit | Test dijalankan | Hasil | Durasi |
+|---|---|---|---|
+| M2.1 Domain Gate | `test_domain_gate.py::test_kelompok_a_union_domain_berhasil` (real LLM, 2 langkah) | 1 passed | 42.26s |
+| M2.2 Otorisasi | `test_otorisasi.py::test_kk2_multi_domain_sebagian_diizinkan_sebagian_ditolak` (real DB role_permissions) | 1 passed | 3.26s |
+| M2.3 Cakupan Individu | `test_cakupan_individu.py::test_kk1_staff_kebutuhan_individu_menghasilkan_constraint_eksplisit` (real LLM, 2 langkah) | 1 passed | 27.82s |
+| M2.4 Verification Gate | `test_verifikasi_gate.py::test_orkestrator_kk1_constraint_terdeteksi_dikoreksi_paksa` (real DB employee fixture) | 1 passed | 2.02s |
+
+Seluruh 4 unit PIC 2 lolos panggilan nyata.

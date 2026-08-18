@@ -70,3 +70,49 @@ Dokumen ini adalah rujukan tunggal kontrak aktual (dari kode nyata, bukan dokume
 - **Penyimpangan:** tidak ada bug — hanya konfirmasi eksplisit bahwa `match_and_archive()` belum dirangkai ke `src/main.py` (sesuai ekspektasi status project, bukan gap baru).
 
 ---
+
+## PIC 2 — Domain Gate, Verification Gate (Milestone 2.1-2.4)
+
+### M2.1 — Domain Gate: Identifikasi Domain + Verifikasi Titik Buta
+
+- **File:** `src/layers/domain_gate/{domain_gate,identifikasi,verifikasi_titik_buta}.py`, `src/schemas/domain_gate.py`.
+- **Orkestrator:** `domain_gate.py::identifikasi_domain_atomic_intent(atomic_intent) -> AtomicIntentDomains` — Langkah 2 (verifikasi titik buta) **TIDAK dipanggil** kalau Langkah 1 gagal total (tidak ada `domain_awal` untuk diverifikasi) → langsung `status=GAGAL_TEKNIS`, `domains=[]`. `identifikasi_domain_semua(matches: list[AtomicIntentMatch]) -> list[AtomicIntentDomains]` — filter ke `status==PERLU_EKSEKUSI` (hasil M1.7) saja, proses satu per satu (bukan batch).
+- **Penggabungan hasil:** `domains_gabungan = list(dict.fromkeys(hasil_awal.domains + hasil_verifikasi.domain_tambahan))` — **union aditif** (dedup via dict, urutan dipertahankan), BUKAN replace. `status = SEBAGIAN` kalau `hasil_verifikasi.gagal`, else `BERHASIL`.
+- **LLM call:** 2 berurutan — `identifikasi.py::identifikasi_domain()` (model `OPENROUTER_MODEL_DOMAIN_IDENTIFIKASI`, qwen3-32b) lalu `verifikasi_titik_buta.py::verifikasi_titik_buta()` (model `OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA`, deepseek-v4-pro reasoning=high) — dikonfirmasi tepat 2 (tidak ada retry loop di sini, beda dari M1.6).
+- **Skema:** `Domain` (enum 10 nilai); `AtomicIntentDomains {atomic_intent, domains: list[Domain], status}` — validator: `GAGAL_TEKNIS ⟺ domains kosong`.
+- **Bukti nyata:** Checkpoint 3, Task 6.
+- **Penyimpangan:** tidak ada.
+
+### M2.2 — Pemeriksaan Otorisasi
+
+- **File:** `src/layers/domain_gate/otorisasi.py`, `src/schemas/authorization.py`.
+- **Fungsi:** `periksa_domain(domain, role_title) -> DomainAuthorization` (murni, tanpa span). `periksa_otorisasi_atomic_intent(atomic_intent_domains, role_title) -> AtomicIntentAuthorization` — span `authorization.check` PER domain (atribut `rbac.domain`/`rbac.decision`, `error.type=ditolak_otorisasi` bila ditolak). `periksa_otorisasi_semua(atomic_intent_domains_list, role_title) -> list[AtomicIntentAuthorization]` — melewati entri `status==GAGAL_TEKNIS` (M2.1).
+- **LLM call:** 0 — murni lookup `role_permissions` (`load_role_permissions()`), ruang kesalahan tertutup (20 role × 10 domain).
+- **Skema:** `DomainAuthorization {domain, diizinkan: bool, alasan: str|None}` — validator: `alasan` wajib ada iff `diizinkan=False`. Output granular PER domain (bukan satu keputusan per atomic intent).
+- **Bukti nyata:** Checkpoint 3, Task 6.
+- **Penyimpangan:** tidak ada.
+
+### M2.3 — Deteksi Cakupan Individu
+
+- **File:** `src/layers/domain_gate/{cakupan_individu,deteksi_cakupan_individu,verifikasi_cakupan_individu}.py`, `src/schemas/cakupan_individu.py`.
+- **Orkestrator:** `cakupan_individu.py::deteksi_constraint_atomic_intent(atomic_intent_authorization, role_title) -> AtomicIntentConstraint`. **Dua pre-filter deterministik SEBELUM panggilan LLM apa pun** (dikonfirmasi langsung dari kode): (1) `role_title not in ROLE_STAFF_TIER` (frozenset 7 role persis: Front Office/F&B/Housekeeping/Maintenance/Spa & Event/HR/Finance Staff) → `terdeteksi=False`, 0 LLM call; (2) `_domain_diizinkan_relevan()` — tidak ada domain `{FACILITY, HR}` yang diizinkan → `terdeteksi=False`, 0 LLM call. `deteksi_constraint_semua(...) -> list[AtomicIntentConstraint]` — proses satu per satu.
+- **LLM call:** 0 (kalau salah satu pre-filter gagal) atau 2 berurutan (kalau lolos keduanya) — `deteksi_cakupan_individu.py` (model `OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI`, qwen3-32b) lalu `verifikasi_cakupan_individu.py` (model `OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI`, deepseek-v4-pro reasoning=high).
+- **Penggabungan hasil:** union aditif (OR-merge) — `terdeteksi = hasil_awal.terdeteksi or hasil_verifikasi.terdeteksi_tambahan`. **Fail-closed**: kalau KEDUA langkah LLM gagal teknis, `terdeteksi=True` dipaksa (`forced_fallback_reason="gagal_teknis_kedua_langkah_fail_closed"`) — arah fail-safe berlawanan dari M1.7 (yang fail ke `PERLU_EKSEKUSI`, bukan fail ke "constraint terdeteksi").
+- **Skema:** `ConstraintCakupanIndividu {terdeteksi: bool, alasan: str|None}`; `AtomicIntentConstraint {atomic_intent, domain_decisions: list[DomainAuthorization], constraint}`.
+- **Bukti nyata:** Checkpoint 3, Task 6.
+- **Penyimpangan:** tidak ada.
+
+### M2.4 — Verification Gate
+
+- **File:** `src/layers/verification_gate/verifikasi_gate.py`, `src/schemas/verification_gate.py`.
+- **Fungsi:** `verifikasi_gate(request: QueryEngineRequest, constraint, employee_id, view_name_tervalidasi_retriever) -> HasilVerifikasiGate` — 4 cek berlapis, **early-exit tolak** kalau Cek 1 atau Cek 2 gagal (Cek 3-4 tidak dijalankan), lanjut Cek 3→4 kalau keduanya lolos.
+  - Cek 1 `verifikasi_bentuk_request_statis()`: `view_name` terdaftar di `DAFTAR_VIEW_PER_DOMAIN[domain]`; `params["limit"]` (kalau ada) ≤ `LIMIT_MAKSIMUM=1000`.
+  - Cek 2 `verifikasi_kepatuhan_sumber()`: `request.view_name` == `view_name_tervalidasi_retriever` (parameter, BUKAN query M3.x langsung).
+  - Cek 3 `tegakkan_constraint_cakupan_individu()`: kalau `constraint.terdeteksi=True` dan `params["employee_id"] != employee_id` → **timpa paksa** (bukan tolak), kembalikan `(request_terkoreksi, terkoreksi=True)`.
+  - Cek 4 `verifikasi_kelengkapan_penegakan()`: re-cek Cek 3 benar-benar diterapkan (defensif, menangkap bug internal Cek 3 sendiri).
+- **LLM call:** 0 — sepenuhnya deterministik, ruang kesalahan tertutup. Span `verification_gate.check` per cek (`verification.check_name`, `error.type=gagal_teknis` bila gagal) di dalam span pembungkus `verification_gate.verifikasi_gate`.
+- **Skema:** `QueryEngineRequest {domain: Domain, view_name: str, params: dict}`; `HasilVerifikasiGate {request_final: QueryEngineRequest|None, lolos: bool, terkoreksi: bool, alasan_penolakan: str|None}` — validator dua arah: `lolos ⟺ request_final ada, alasan_penolakan tidak ada`.
+- **Bukti nyata:** Checkpoint 3, Task 6.
+- **Penyimpangan:** tidak ada — konvensi `employee_id` di `params` masih PROVISIONAL (dicatat `decisions.md` M2.4 Keputusan 1, konsisten `docs/keputusan-tertunda.md`), bukan penyimpangan baru dari audit ini.
+
+---

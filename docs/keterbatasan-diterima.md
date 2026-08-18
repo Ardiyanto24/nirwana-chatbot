@@ -220,7 +220,7 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 
 ---
 
-## 14. `detect_turn_dependency()` (Milestone 1.3) Tanpa `try/except` di Sekitar Pemanggilan LLM — Kegagalan Teknis Menjalar Tidak Tertangani
+## 14. `detect_turn_dependency()` (Milestone 1.3) Tanpa `try/except` di Sekitar Pemanggilan LLM — DIPERBAIKI (2026-08-18)
 
 **Ditemukan di:** Milestone 7.6, Checkpoint 1 (investigasi sebelum plan) dan dikonfirmasi nyata Checkpoint 5 (`evals/7.6-sambungan-input-layer-pemetaan-ketergantungan/payloads/E04.json`, 2026-08-18), saat memetakan kejadian struktural untuk menyambungkan Input Layer ke Pemetaan Ketergantungan Turn.
 
@@ -230,4 +230,6 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 
 **Dampak + mitigasi:** Kegagalan teknis (network timeout, rate limit, API down) pada langkah Pemetaan Ketergantungan Turn akan membuat `proses_turn()` (dan seluruh pipeline turn yang memanggilnya, sampai M7.17 saat endpoint disambungkan) crash dengan exception tak tertangani, alih-alih graceful-degrade ke `GAGAL_TEKNIS` seperti layer lain — beda perlakuan kegagalan teknis antar-layer yang tidak konsisten. Mitigasi saat ini: tidak ada perbaikan aktif; dicatat eksplisit di sini supaya sesi kerja mendatang tidak menganggapnya sebagai kesengajaan M4.4-style.
 
-**Pemicu peninjauan ulang:** (a) kalau Milestone 1.3/Context Resolution disentuh lagi untuk alasan lain (bug/fitur), tambahkan `try/except APIError` yang konsisten dengan pola layer lain sebagai bagian pekerjaan itu; (b) sebelum M7.17 (Membangun Endpoint API) menyambungkan `src/main.py` ke `proses_turn()`, evaluasi ulang apakah celah ini masih dapat diterima untuk endpoint publik yang benar-benar melayani traffic, atau perlu ditutup terlebih dahulu.
+**Pemicu peninjauan ulang (sudah terpicu, lihat Status Perbaikan di bawah):** (a) kalau Milestone 1.3/Context Resolution disentuh lagi untuk alasan lain (bug/fitur), tambahkan `try/except APIError` yang konsisten dengan pola layer lain sebagai bagian pekerjaan itu; (b) sebelum M7.17 (Membangun Endpoint API) menyambungkan `src/main.py` ke `proses_turn()`, evaluasi ulang apakah celah ini masih dapat diterima untuk endpoint publik yang benar-benar melayani traffic, atau perlu ditutup terlebih dahulu.
+
+**Status Perbaikan: DIPERBAIKI (2026-08-18), langsung setelah temuan — atas instruksi eksplisit user.** `src/layers/context_resolution/turn_dependency.py::detect_turn_dependency()` sekarang menangkap `openai.APIError` dan mengembalikan `TurnDependencyResult(is_dependent=False)` (reuse mekanisme fallback aman yang sudah ada untuk kegagalan parse/bounds, tanpa mengubah skema). Didokumentasikan di `milestones/1.3-pemetaan-ketergantungan-turn/decisions.md` Keputusan 12 (Addendum) dan `logs.md` — bukan di M7.6, karena perbaikan logic internal layer ini tetap tanggung jawab milestone pemilik (M1.3), sesuai prinsip yang sama yang membuat M7.6 sendiri semula tidak menutup celah ini. Dibuktikan `tests/layers/context_resolution/test_turn_dependency_kegagalan.py` (baru, mocked) + regresi nol pada 3 test LLM sungguhan M1.3 asli. Catatan historis M7.6 (kejadian E04, `evals/7.6-.../payloads/E04.json`, `audit.md`) TIDAK diubah — tetap mencerminkan kondisi nyata saat milestone itu dijalankan (log adalah catatan peristiwa).

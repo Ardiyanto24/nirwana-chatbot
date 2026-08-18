@@ -31,7 +31,7 @@ Pengujian terbagi dua jalur sesuai kebutuhan: `tests/orchestration/test_turn_pip
 
 ## Bagian 5 — Keterbatasan dan Item Provisional
 
-- **`detect_turn_dependency()` (M1.3) tanpa `try/except APIError`** — dicatat `docs/keterbatasan-diterima.md` #14 (temuan baru milestone ini, bukan keputusan sengaja seperti M4.4). Pemicu peninjauan ulang eksplisit sebelum M7.17 menyambungkan endpoint publik.
+- **`detect_turn_dependency()` (M1.3) tanpa `try/except APIError`** — temuan baru milestone ini (bukan keputusan sengaja seperti M4.4). **Status: DIPERBAIKI (2026-08-18), langsung setelah temuan, atas instruksi eksplisit user** — perbaikan kode DAN dokumentasinya dilakukan di `milestones/1.3-pemetaan-ketergantungan-turn/` (decisions.md Keputusan 12, logs.md Addendum), bukan di sini, karena logic internal layer tetap tanggung jawab milestone pemiliknya, konsisten prinsip yang sama yang membuat M7.6 semula tidak menutup celah ini sendiri. `docs/keterbatasan-diterima.md` #14 sekarang berstatus DIPERBAIKI. Kejadian E04 (`payloads/E04.json`, `audit.md`) di folder ini TETAP TIDAK DIUBAH — catatan historis yang mencerminkan kondisi nyata saat milestone ini dijalankan, bukan dokumen hidup yang di-update mengikuti kode terkini.
 - **`KeadaanTurn`/span `invoke_agent` didesain dengan informasi tidak lengkap** (baru 2 dari 9 layer) — field dijaga minimal sesuai `decisions.md` Keputusan 2, tiap milestone Sambungan berikutnya adalah otoritas penuh untuk field tambahannya sendiri.
 
 ## Bagian 6 — Follow-up

@@ -237,3 +237,34 @@ Tidak ada.
 **Commit:** `bff9385` — `test(milestone-4.4): eksekusi eval + audit penyusunan narasi`
 
 ---
+
+## Checkpoint 8 — Prompt Reliability
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 11 — `prompt_reliability/interpretation/narasi.promptfooconfig.yaml`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan tiga putaran perbaikan assertion di tengah jalan (dicatat di bawah — bukan penyimpangan dari scope, murni debugging assertion sebelum config final).
+
+**Apa yang dilakukan**
+Menulis config Promptfoo (`providers` reuse `provider.py` generik, TANPA `response_format` — Keputusan 3), 13 test case reuse `user_prompt` PERSIS hasil `_build_user_prompt()` untuk seluruh skenario `evals/4.4-.../rancangan.md` (dibangkitkan nyata lewat pemanggilan fungsi produksi, bukan ditulis ulang manual). Dijalankan `npx promptfoo eval` (bash, `PROMPTFOO_PYTHON` mengarah venv proyek).
+
+**Temuan**
+Tiga bug ditemukan DI ASSERTION (bukan di `susun_narasi()`/prompt), semua diperbaiki sebelum config final:
+1. **Bug sintaks JS**: assertion satu-baris yang diawali kata kunci `return` eksplisit ("`return !/[3-5]\d{2}/.test(output);`") memicu double-`return` dari auto-wrap Promptfoo ("Unexpected token 'return'") — diperbaiki jadi bare expression tanpa `return` eksplisit.
+2. **False-positive substring "api"**: kata Indonesia biasa "tet**api**" (artinya "tapi") mengandung substring "api", memicu `not-icontains: "api"` gagal padahal narasi TIDAK pernah menyebut istilah teknis "API" — diperbaiki jadi regex word-boundary `\bapi\b`.
+3. **Negation-blindness berulang (S10)**: DUA formulasi heuristik berbeda (positif "bukan"/"memang", lalu negatif `not-icontains "data hilang"`) SAMA-SAMA gagal di run terpisah karena substring-match tidak paham konteks negasi (mis. "**bukan karena** data hilang" tetap mengandung substring "data hilang" walau maknanya justru menyangkalnya) — S10 akhirnya TANPA assertion otomatis sama sekali (mirror pola S04, murni audit manual), dicatat eksplisit di komentar YAML kenapa.
+4. **Konfirmasi nyata non-determinisme `temperature=0`**: S09/S10 menghasilkan variasi kata (mis. "bergantung" vs "tergantung") antar-run promptfoo yang berbeda dari eval `run_eval.py` sebelumnya (Checkpoint 7) meski input identik — konsisten `docs/keterbatasan-diterima.md` #3 addendum, bukan bug config.
+
+**Error/Kegagalan (jika ada)**
+Empat run promptfoo dijalankan total: run 1 (2 gagal: bug #1 + S10 heuristik positif), run 2 (1 gagal: bug #2 "api"), run 3 (1 gagal: S10 heuristik negatif), run 4 (final, 0 gagal setelah S10 assertion dihapus). Lihat "Temuan" di atas untuk detail tiap bug.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tiap kegagalan diperiksa lewat `narasi_output.json` (output mentah Promptfoo, `gradingResult.componentResults` per assertion) untuk memastikan akar masalah ada di ASSERTION (bukan model/prompt) sebelum memutuskan perbaikan — dikonfirmasi eksplisit sebelum tiap perubahan, bukan asal ganti heuristik.
+
+**Hasil Verifikasi**
+Run final: `npx promptfoo eval -c interpretation/narasi.promptfooconfig.yaml` — **13/13 PASSED (100%)**. `python prompt_reliability/push_results.py interpretation/narasi_output.json interpretation.narasi 1 qwen/qwen3-32b --git-commit-hash 37dbc21` — "Berhasil push 13 baris ke prompt_eval_runs" (Supabase, dikonfirmasi lewat output skrip; skrip sendiri sudah teruji M1.3-M3.5, reuse tanpa modifikasi).
+
+**Commit:** `37dbc21` — `test(milestone-4.4): config prompt reliability narasi`
+
+---

@@ -24,6 +24,6 @@ Tidak ada.
 **Hasil Verifikasi**
 Review manual: seluruh 14 entri menyebut sumber paksaan eksplisit. Entri baru `docs/keputusan-tertunda.md` #4 konsisten format 3 entri sebelumnya (status, muncul di, konteks kemunculan, kenapa belum ditutup permanen, pemicu peninjauan ulang).
 
-**Commit:** *(diisi setelah commit)*
+**Commit:** `808e835` — `docs(milestone-4.5): keputusan desain verifikasi kesetiaan dan visualisasi`
 
 ---

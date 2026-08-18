@@ -93,3 +93,25 @@ Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 4" (M4.3-4.5).
 | M4.5 Verifikasi Kesetiaan + Visualisasi | `verifikasi_dan_susun_visualisasi()` dipanggil dengan narasi hasil M4.4 di atas | `status=BERHASIL, lolos=True`; visualisasi dihasilkan `DataVisualisasi(nilai_tunggal=72.5, deret=None)` |
 
 Satu rantai panggilan M4.4→M4.5→visualisasi berhasil membuktikan alur penuh secara nyata dalam satu eksekusi (narasi asli dari M4.4 benar-benar dinilai M4.5, bukan narasi buatan terpisah).
+
+## Checkpoint 6 — Audit PIC 4, bagian bergantung `chatbot_api` lokal (Execution M4.1 + M4.2)
+
+**Task 11 — Cek ketersediaan + audit source.**
+
+1. Dibaca langsung: `src/layers/execution/{pemanggilan_chatbot_api,klasifikasi_respons}.py`.
+2. Cek ketersediaan `chatbot_api` lokal:
+   ```
+   $ curl -s -o /dev/null -w "%{http_code}\n" --max-time 5 http://127.0.0.1:8000/
+   000 (CONN_FAILED)
+   $ python -c "httpx.get('http://127.0.0.1:8000/', timeout=5)"
+   ConnectError [WinError 10061] No connection could be made because the target machine actively refused it
+   ```
+   **Tidak reachable.** Sesuai Keputusan 7 (`decisions.md`), fallback ke dokumentasi keterbatasan diterima — TIDAK memblokir Checkpoint 7.
+3. Audit `eksekusi_atomic_intent()` (M4.2) mengonfirmasi: memanggil `_panggil_chatbot_api_raw()` langsung (bukan wrapper publik M4.1); pemetaan status 200/`403`+`404`/`400`/lainnya dikonfirmasi persis dari kode; jalur `400` memanggil balik M3.4→M3.5→M2.4 (cross-layer call-back, dicatat sebagai temuan penting untuk M7.14).
+4. **Koreksi temuan di tempat**: klaim awal ("file `pemanggilan_chatbot_api.py` tidak berubah sejak M4.1") diperiksa ulang lewat `git log -- src/layers/execution/pemanggilan_chatbot_api.py` — **klaim itu KELIRU**. File berubah 2x setelah commit awal M4.1 (`6e2d71f`, 2026-08-17 19:11): refactor `bc9c855` (2026-08-17 21:29, regresi-tested behavior-preserving) dan penambahan `panggil_meta_chatbot_api()` di `3329ff9` (**2026-08-18**, SEHARI setelah tanggal laporan bukti nyata M4.1 Checkpoint 5). Konsekuensi: `panggil_meta_chatbot_api()` belum pernah dibuktikan panggilan nyata sama sekali — dikoreksi di `audit-kontrak-antar-layer.md` dan digabung ke entri keterbatasan yang sama (bukan entri terpisah, karena fungsi ini hanya dipanggil dari `eksekusi_atomic_intent()`).
+
+**Task 12 — Catat hasil.**
+
+- Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 4" (M4.1-M4.2), termasuk koreksi temuan `git log` di atas.
+- Ditulis entri baru `docs/keterbatasan-diterima.md` #13 — celah `eksekusi_atomic_intent()`/`panggil_meta_chatbot_api()` tanpa bukti nyata `chatbot_api`, dengan trigger revisit eksplisit (sebelum Milestone 7.14 dimulai).
+- M4.1 (fungsi `_panggil_chatbot_api_raw()`/`panggil_chatbot_api()`) TETAP dianggap terbukti nyata lewat kutipan sah Milestone 4.1 Checkpoint 5 (trace_id konkret, refactor regresi-tested) — HANYA `panggil_meta_chatbot_api()` dan `eksekusi_atomic_intent()` yang jadi celah tercatat.

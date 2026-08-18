@@ -50,3 +50,27 @@ Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 2".
 | M2.4 Verification Gate | `test_verifikasi_gate.py::test_orkestrator_kk1_constraint_terdeteksi_dikoreksi_paksa` (real DB employee fixture) | 1 passed | 2.02s |
 
 Seluruh 4 unit PIC 2 lolos panggilan nyata.
+
+## Checkpoint 4 — Audit PIC 3 (Retriever, Query Engine)
+
+**Task 7 — Audit source.** Dibaca langsung: `src/layers/retriever/{retriever,kecocokan_makna,kecukupan_struktural}.py`, `src/layers/query_engine/{penyusunan_request,verifikasi_bentuk_request}.py`. Temuan kunci:
+- Entry point produksi Retriever bukan `cari_kandidat_view()` (M3.1 standalone) melainkan `kecukupan_struktural.py::proses_retrieval_atomic_intent()` — membungkus M3.1+M3.2+M3.3 dalam satu span `retriever.cari_kandidat_view`. Penting untuk M7.11/M7.12 (Sambungan 6-7) supaya tidak salah pakai wrapper standalone.
+- M3.2 Langkah 2 (verifikasi) MENGGANTIKAN Langkah 1 sepenuhnya (koreksi dua arah) — beda pola dari union aditif M2.1/M2.3.
+- M3.5 sengaja duplikat cek string M2.4 (`_view_name_sesuai_retriever` vs `verifikasi_kepatuhan_sumber`) — didokumentasikan eksplisit sebagai redundansi disengaja, bukan dead code.
+
+**Cek infrastruktur test:** dikonfirmasi seluruh file test PIC 3 (`test_kecocokan_makna.py`, `test_kecukupan_struktural.py`, `test_pencarian_embedding.py`, `test_penyusunan_request.py`, `test_verifikasi_bentuk_request.py`) memakai `monkeypatch` — TIDAK ada test `skipif`-gated real-call untuk PIC 3 (beda dari PIC 1/2). Bukti nyata untuk PIC 3 karena itu diambil dari `evals/3.x-*/run_eval.py` (yang eksplisit "NYATA, bukan mock" di docstring-nya) dan panggilan langsung fungsi produksi.
+
+Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 3".
+
+**Task 8 — Panggilan nyata minimal per unit** (panggilan langsung fungsi produksi, mereplikasi pola skenario `evals/3.x-*/run_eval.py` tanpa menjalankan seluruh batch skenario):
+
+| Unit | Panggilan | Hasil |
+|---|---|---|
+| M3.1-3.3 (jalur BM25+deterministik) | `proses_retrieval_atomic_intent()` skenario S02 eval 3.3 ("okupansi Suite Bali") | `status=BERHASIL`, `view_name_final=v_reservation_room_type_daily`, 1 kandidat `cukup=True sumber=DETERMINISTIK` |
+| M3.1 (jalur embedding fallback) | `cari_bm25()` (0 hasil, `perlu_fallback=True`) → `cari_embedding()` query typo sengaja | `gagal=False`, 10 kandidat nyata (top: `v_lookup_daily_occupancy` skor 0.309) |
+| M3.4 | `susun_request_atomic_intent()` skenario setara S02, `tanggal_referensi=2026-08-17` | `status=BERHASIL`, `request.params` terisi (`region=Bali, room_type_name=Suite, period_date_from/to, occupancy_rate`) |
+| M3.5 | `verifikasi_bentuk_request_atomic_intent()` request hasil M3.4 di atas | `status=BERHASIL, lolos=True, alasan=None` |
+
+Catatan non-blocking: param `occupancy_rate` hasil M3.4 bernilai literal `"occupancy_rate"` (nama field sebagai value) — kemungkinan artefak ekstraksi LLM untuk skenario spesifik ini, BUKAN penyimpangan kontrak (struktur `params: dict` tetap sesuai skema; whitelist filtering bekerja benar). Dicatat sebagai observasi kualitas output, bukan bug kontrak — di luar cakupan M7.1 untuk diperbaiki.
+
+Seluruh unit PIC 3 lolos panggilan nyata (real LLM/embedding, bukan mock).

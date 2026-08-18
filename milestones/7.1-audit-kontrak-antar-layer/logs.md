@@ -74,3 +74,22 @@ Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 3".
 Catatan non-blocking: param `occupancy_rate` hasil M3.4 bernilai literal `"occupancy_rate"` (nama field sebagai value) — kemungkinan artefak ekstraksi LLM untuk skenario spesifik ini, BUKAN penyimpangan kontrak (struktur `params: dict` tetap sesuai skema; whitelist filtering bekerja benar). Dicatat sebagai observasi kualitas output, bukan bug kontrak — di luar cakupan M7.1 untuk diperbaiki.
 
 Seluruh unit PIC 3 lolos panggilan nyata (real LLM/embedding, bukan mock).
+
+## Checkpoint 5 — Audit PIC 4, bagian tanpa dependensi `chatbot_api` lokal (M4.3, M4.4, M4.5)
+
+**Task 9 — Audit source.** Dibaca langsung: `src/layers/execution/penyimpanan_paket.py`, `src/layers/interpretation/{narasi,verifikasi_kesetiaan,visualisasi}.py`. Temuan kunci dikonfirmasi langsung dari kode:
+- **Docstring basi dikonfirmasi nyata**: `narasi.py` baris 6 masih tertulis "Dipisah dari verifikasinya (Milestone 4.5, **belum dibangun**)" — dibaca langsung dari file saat ini (bukan cache/ringkasan), M4.5 sudah lengkap dibangun. Dicatat sebagai penyimpangan dokumentasi (non-fungsional) di `audit-kontrak-antar-layer.md`.
+- `susun_narasi()` (M4.4) dikonfirmasi sebagai satu-satunya pemanggilan LLM di seluruh codebase TANPA fallback aman — `APIError` di-raise ulang apa adanya, bukan ditangkap.
+- `verifikasi_dan_susun_visualisasi()` (M4.5) memakai `hasil_verifikasi.lolos is True` (bukan truthy check) — `lolos=None` (dari `GAGAL_TEKNIS`) juga menghasilkan visualisasi `None`, dikonfirmasi bukan bug.
+
+Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 4" (M4.3-4.5).
+
+**Task 10 — Panggilan nyata minimal per unit:**
+
+| Unit | Panggilan | Hasil |
+|---|---|---|
+| M4.3 Penyimpanan Paket | `tests/layers/execution/test_penyimpanan_paket_integrasi.py::test_kk1_round_trip_identik` (real Supabase) | 1 passed, 3.65s |
+| M4.4 Penyusunan Narasi | `susun_narasi()` dipanggil langsung, 1 atomic_intent + 1 package (`nilai_tunggal` okupansi) | Narasi nyata dihasilkan: "Okupansi Suite di Bali bulan ini adalah 72,5%..." |
+| M4.5 Verifikasi Kesetiaan + Visualisasi | `verifikasi_dan_susun_visualisasi()` dipanggil dengan narasi hasil M4.4 di atas | `status=BERHASIL, lolos=True`; visualisasi dihasilkan `DataVisualisasi(nilai_tunggal=72.5, deret=None)` |
+
+Satu rantai panggilan M4.4→M4.5→visualisasi berhasil membuktikan alur penuh secara nyata dalam satu eksekusi (narasi asli dari M4.4 benar-benar dinilai M4.5, bukan narasi buatan terpisah).

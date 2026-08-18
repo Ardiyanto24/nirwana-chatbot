@@ -143,3 +143,37 @@ Dokumen ini adalah rujukan tunggal kontrak aktual (dari kode nyata, bukan dokume
 - **Penyimpangan:** tidak ada.
 
 ---
+
+## PIC 4 — Execution, Interpretation (Milestone 4.1-4.5)
+
+### M4.3 — Penyimpanan Paket ke Session Memory
+
+- **File:** `src/layers/execution/penyimpanan_paket.py` (reuse skema `SessionMemoryPackage` dari M1.5, tanpa file skema baru).
+- **Fungsi:** `susun_dan_simpan_paket(atomic_intent, session_id, turn_index, status, view_name=None, nilai_hasil=None, data_quality_status=None, last_refreshed_at=None) -> SessionMemoryPackage` — `status`/`nilai_hasil` diterima sebagai parameter eksplisit (bukan langsung mengonsumsi `HasilEksekusiAtomicIntent` M4.2), forced diagram arsitektur §5.
+- **LLM call:** 0 — murni deterministik: `_bungkus_nilai_hasil()` (list-of-row → `{"rows": [...]}`), `_catatan_interpretasi_untuk_hasil()` (dict lookup `CATATAN_NULLABLE_BERMAKNA`, HANYA kolom yang benar-benar `None` DAN terdaftar katalog), `_catatan_kualitas_data()` (Revisit 2026-08-17: nada teks beda untuk `SEBAGIAN` terkonfirmasi vs `BERHASIL` kualitas-tidak-diketahui). `sumber` SELALU `"eksekusi_baru"` (hardcode). Memanggil `store_session_memory()` (M1.5) — exception diteruskan apa adanya, TIDAK ditelan.
+- **Bukti nyata:** Checkpoint 5, Task 10.
+- **Penyimpangan:** tidak ada — Revisit `_catatan_kualitas_data()` (2026-08-17) sudah terdokumentasi eksplisit di kode+`decisions.md` M4.3 Keputusan 9, dikonfirmasi ulang di sini, bukan temuan baru.
+
+### M4.4 — Penyusunan Narasi
+
+- **File:** `src/layers/interpretation/narasi.py`, `src/schemas/interpretation.py`.
+- **Fungsi:** `susun_narasi(atomic_intents, packages, session_id, turn_index) -> HasilNarasi`.
+- **LLM call:** 1 — model `OPENROUTER_MODEL_NARASI` (qwen3-32b), TANPA `response_format` (output teks bebas — SATU-SATUNYA layer LLM di seluruh project dengan output non-JSON), TANPA retry/parameter `feedback` internal.
+- **Fallback:** **TIDAK ADA** — `APIError` ditandai `error.type=gagal_teknis` pada span LALU **di-raise ulang** (satu-satunya pemanggilan LLM di seluruh codebase tanpa jalur fallback aman).
+- **Kontrak input ketat:** `_build_user_prompt()` menegakkan 1:1 `atomic_intent`↔`package` (by `atomic_intent_id`) — melempar `ValueError` eksplisit (bukan diam-diam skip) kalau ada `atomic_intent` tanpa `package` pasangan.
+- **⚠️ PENYIMPANGAN DITEMUKAN (dokumentasi basi, bukan bug fungsional):** docstring modul baris 6 **masih tertulis** "Dipisah dari verifikasinya (Milestone 4.5, **belum dibangun**)" — **dikonfirmasi langsung dari kode saat ini**, M4.5 (`verifikasi_kesetiaan.py`) SUDAH dibangun dan selesai (lihat entri M4.5 di bawah). Tidak berdampak fungsional (tidak ada logic yang bergantung pada docstring), tapi berisiko menyesatkan pembaca kode berikutnya (termasuk milestone 7.5 yang menyambungkan M4.4→M4.5) kalau tidak dikoreksi.
+- **Skema:** `HasilNarasi {narasi: str}`.
+- **Bukti nyata:** Checkpoint 5, Task 10.
+
+### M4.5 — Verifikasi Kesetiaan Data + Visualisasi
+
+- **File:** `src/layers/interpretation/{verifikasi_kesetiaan,visualisasi}.py`.
+- **Fungsi verifikasi:** `verifikasi_kesetiaan_narasi(narasi, atomic_intents, packages, session_id, turn_index) -> HasilVerifikasiNarasi` — **1 LLM call**, model `OPENROUTER_MODEL_VERIFIKASI_KESETIAAN` (deepseek-v4-pro, reasoning=high), `response_format=json_object`. `_build_user_prompt()` **reuse langsung** `narasi.py::_build_user_prompt()` (impor sebagai `_build_user_prompt_narasi`) — verifier menerima konteks ground-truth PERSIS sama dengan yang dipakai menyusun narasi. TANPA retry balik ke `susun_narasi()` (mirror pola M3.5). Fallback pada API error/parse gagal → `GAGAL_TEKNIS` (BEDA dari M4.4 yang tidak punya fallback sama sekali).
+- **Orkestrator gabungan:** `verifikasi_dan_susun_visualisasi(narasi, atomic_intents, packages, session_id, turn_index) -> tuple[HasilVerifikasiNarasi, list[DataVisualisasi]|None]` — visualisasi **HANYA** dipanggil kalau `hasil_verifikasi.lolos is True` (perbandingan eksplisit dengan `is True`, bukan truthy check — `lolos=None` dari `GAGAL_TEKNIS` juga menghasilkan `None` visualisasi, bukan error).
+- **Fungsi visualisasi:** `visualisasi.py::susun_data_visualisasi(package) -> DataVisualisasi` + `susun_data_visualisasi_semua(packages) -> list[DataVisualisasi]` — **0 LLM**, transformasi struktur murni dari `nilai_hasil["rows"]`. Untuk `label_bentuk_jawaban=NILAI_TUNGGAL`: ekstrak scalar HANYA kalau tepat 1 baris × 1 kolom (tidak ambigu); kasus lain (termasuk 4 label non-`nilai_tunggal`) fallback ke `deret=rows` apa adanya.
+- **Skema:** `HasilVerifikasiNarasi {narasi, status, lolos: bool|None, alasan: str|None}`; `DataVisualisasi {atomic_intent_id, label_bentuk_jawaban, nilai_tunggal: ...|None, deret: list[dict]|None}` — validator: tepat satu dari `nilai_tunggal`/`deret` terisi. Skema `deret` untuk 3 label selain `tren` masih PROVISIONAL (`docs/keputusan-tertunda.md` #4, dikonfirmasi masih terbuka, menunggu PIC 5).
+- **LLM call total M4.4+M4.5:** 2 berurutan, sesuai framing dokumen orkestrasi. `susun_data_visualisasi_semua()` (0 LLM) berjalan kondisional setelahnya.
+- **Bukti nyata:** Checkpoint 5, Task 10.
+- **Penyimpangan:** tidak ada baru — status PROVISIONAL skema `deret` sudah tercatat di `docs/keputusan-tertunda.md`, dikonfirmasi ulang bukan ditemukan baru.
+
+---

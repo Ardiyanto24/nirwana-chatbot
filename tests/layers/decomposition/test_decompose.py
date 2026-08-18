@@ -7,10 +7,13 @@ Di-skip otomatis kalau `OPENROUTER_API_KEY` tidak tersedia di environment.
 
 import os
 import uuid
+from unittest.mock import patch
 
 import pytest
 
 from src.layers.decomposition.decompose import decompose_question
+from src.layers.decomposition.klasifikasi import klasifikasi_kebutuhan
+from src.layers.decomposition.pemecahan import pecah_atomik
 from src.layers.decomposition.verifikasi import verifikasi_pemecahan
 from src.schemas.decomposition import AtomicIntent, PemecahanResult, RelasiKebutuhan
 from src.schemas.session_memory import LabelBentukJawaban
@@ -72,3 +75,52 @@ def test_kelompok_b_verifikasi_menangkap_pemecahan_keliru():
 
     assert verifikasi.valid is False
     assert verifikasi.alasan, "verifikasi invalid wajib menyertakan alasan spesifik"
+
+
+def test_konektivitas_klasifikasi_pemecahan_verifikasi_jalur_normal():
+    """Milestone 7.2: buktikan hand-off NILAI PERSIS di titik sambung
+    Klasifikasi->Pemecahan->Verifikasi - beda dari test_kelompok_a di atas
+    yang hanya membuktikan hasil akhir konsisten (UUID silang cocok), bukan
+    argumen spesifik yang diterima tiap langkah. Spy (side_effect/wraps)
+    merekam objek return tiap langkah SAMBIL tetap memanggil LLM sungguhan,
+    lalu memeriksa objek itu PERSIS (identity, bukan cuma equality) yang
+    diterima langkah berikutnya - membuktikan tidak ada rekonstruksi manual
+    di antara langkah."""
+    question = "Bandingkan revenue reservasi Maret 2026 dengan Februari 2026."
+
+    klasifikasi_returns = []
+    pemecahan_returns = []
+
+    def _rekam_klasifikasi(*args, **kwargs):
+        hasil = klasifikasi_kebutuhan(*args, **kwargs)
+        klasifikasi_returns.append(hasil)
+        return hasil
+
+    def _rekam_pemecahan(*args, **kwargs):
+        hasil = pecah_atomik(*args, **kwargs)
+        pemecahan_returns.append(hasil)
+        return hasil
+
+    with (
+        patch(
+            "src.layers.decomposition.decompose.klasifikasi_kebutuhan",
+            side_effect=_rekam_klasifikasi,
+        ),
+        patch(
+            "src.layers.decomposition.decompose.pecah_atomik",
+            side_effect=_rekam_pemecahan,
+        ) as spy_pecah,
+        patch(
+            "src.layers.decomposition.decompose.verifikasi_pemecahan",
+            wraps=verifikasi_pemecahan,
+        ) as spy_verifikasi,
+    ):
+        decompose_question(question)
+
+    # Boundary 1: argumen `klasifikasi` yang diterima pecah_atomik() percobaan
+    # pertama harus objek PERSIS yang dikembalikan klasifikasi_kebutuhan().
+    assert spy_pecah.call_args_list[0].args[1] is klasifikasi_returns[0]
+
+    # Boundary 2: argumen `hasil` yang diterima verifikasi_pemecahan() percobaan
+    # pertama harus objek PERSIS yang dikembalikan pecah_atomik().
+    assert spy_verifikasi.call_args_list[0].args[1] is pemecahan_returns[0]

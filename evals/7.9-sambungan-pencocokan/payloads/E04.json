@@ -1,0 +1,144 @@
+{
+  "kejadian_id": "E04",
+  "deskripsi": "Anti false-positive - kandidat ada, topik beda, TIDAK match",
+  "timestamp": "2026-08-18T16:37:45.830778+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.9-e04",
+    "turn_index": 2,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Sekarang gimana dengan revenue F&B bulan yang sama?",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa occupancy rate bulan April 2026?",
+        "answer": "Occupancy April 2026 mencapai 78%."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.9-e04",
+      "turn_index": 2,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Sekarang gimana dengan revenue F&B bulan yang sama?",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa occupancy rate bulan April 2026?",
+          "answer": "Occupancy April 2026 mencapai 78%."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa revenue F&B April 2026?"
+    },
+    "session_memory": [
+      {
+        "atomic_intent_id": "1546f016-1de5-4ac3-9729-9925ec4be80c",
+        "session_id": "eval-7.9-e04",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "occupancy_rate": 78
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "9ca5f7d2-e831-4a19-a8ce-283dea0621da",
+          "teks_kebutuhan": "Berapa revenue F&B April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9ca5f7d2-e831-4a19-a8ce-283dea0621da",
+          "teks_kebutuhan": "Berapa revenue F&B April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ]
+  },
+  "status_per_intent": [
+    "perlu_eksekusi"
+  ],
+  "trace_id": "a1ff9e953e718ac9c2c2429527974097",
+  "span_structure_jaeger": [
+    {
+      "spanID": "f0f81010175874ec",
+      "operationName": "memory.retrieve",
+      "parentSpanID": "f292955da4ea38a8"
+    },
+    {
+      "spanID": "008b3d7fd289437b",
+      "operationName": "chat",
+      "parentSpanID": "f292955da4ea38a8"
+    },
+    {
+      "spanID": "5154658978a91209",
+      "operationName": "chat",
+      "parentSpanID": "f292955da4ea38a8"
+    },
+    {
+      "spanID": "0cb3c3da202fc246",
+      "operationName": "chat",
+      "parentSpanID": "a221b0a640ed4ff9"
+    },
+    {
+      "spanID": "a221b0a640ed4ff9",
+      "operationName": "matching.evaluate",
+      "parentSpanID": "f292955da4ea38a8"
+    },
+    {
+      "spanID": "3d31fe2f4ad475b4",
+      "operationName": "input.validate",
+      "parentSpanID": "f292955da4ea38a8"
+    },
+    {
+      "spanID": "a6fd50090dfd7b35",
+      "operationName": "chat",
+      "parentSpanID": "f292955da4ea38a8"
+    },
+    {
+      "spanID": "8de0eede97051482",
+      "operationName": "chat",
+      "parentSpanID": "f292955da4ea38a8"
+    },
+    {
+      "spanID": "69f4a52d25b64757",
+      "operationName": "chat",
+      "parentSpanID": "f292955da4ea38a8"
+    },
+    {
+      "spanID": "f292955da4ea38a8",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    }
+  ],
+  "jumlah_matching_evaluate": 1,
+  "jumlah_chat_matching": 1,
+  "error": null
+}

@@ -1,0 +1,161 @@
+{
+  "kejadian_id": "E03",
+  "deskripsi": "Match nyata - bukti KK literal utama",
+  "timestamp": "2026-08-18T16:35:56.149631+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.9-e03",
+    "turn_index": 2,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa lagi occupancy April 2026 itu?",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa occupancy rate bulan April 2026?",
+        "answer": "Occupancy April 2026 mencapai 78%."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.9-e03",
+      "turn_index": 2,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa lagi occupancy April 2026 itu?",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa occupancy rate bulan April 2026?",
+          "answer": "Occupancy April 2026 mencapai 78%."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa occupancy rate bulan April 2026?"
+    },
+    "session_memory": [
+      {
+        "atomic_intent_id": "a6d4482e-649a-424d-afd2-04994347d276",
+        "session_id": "eval-7.9-e03",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "occupancy_rate": 78
+        },
+        "catatan_interpretasi": [],
+        "status": "berhasil",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "e64786ea-a177-4c0e-ae3f-aee68b02a54b",
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "e64786ea-a177-4c0e-ae3f-aee68b02a54b",
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "selesai",
+        "paket": {
+          "atomic_intent_id": "a6d4482e-649a-424d-afd2-04994347d276",
+          "session_id": "eval-7.9-e03",
+          "turn_index": 1,
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_hasil": {
+            "occupancy_rate": 78
+          },
+          "catatan_interpretasi": [],
+          "status": "berhasil",
+          "sumber": "eksekusi_baru"
+        }
+      }
+    ]
+  },
+  "status_per_intent": [
+    "selesai"
+  ],
+  "trace_id": "f2499243f2ebd966370740db0de116c1",
+  "span_structure_jaeger": [
+    {
+      "spanID": "383d3033e2e7cc17",
+      "operationName": "chat",
+      "parentSpanID": "53f817e41689dd01"
+    },
+    {
+      "spanID": "78780a3782884089",
+      "operationName": "memory.retrieve",
+      "parentSpanID": "53f817e41689dd01"
+    },
+    {
+      "spanID": "132e03bc52c602f4",
+      "operationName": "chat",
+      "parentSpanID": "53f817e41689dd01"
+    },
+    {
+      "spanID": "b2cd46e0936543bc",
+      "operationName": "chat",
+      "parentSpanID": "af590bc2fd91cd84"
+    },
+    {
+      "spanID": "53f817e41689dd01",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    },
+    {
+      "spanID": "e1ecd6252571d71c",
+      "operationName": "input.validate",
+      "parentSpanID": "53f817e41689dd01"
+    },
+    {
+      "spanID": "e39ec3e15046b511",
+      "operationName": "chat",
+      "parentSpanID": "53f817e41689dd01"
+    },
+    {
+      "spanID": "8ffd179c685b3bcc",
+      "operationName": "chat",
+      "parentSpanID": "53f817e41689dd01"
+    },
+    {
+      "spanID": "a06559a6053f82ea",
+      "operationName": "chat",
+      "parentSpanID": "53f817e41689dd01"
+    },
+    {
+      "spanID": "af590bc2fd91cd84",
+      "operationName": "matching.evaluate",
+      "parentSpanID": "53f817e41689dd01"
+    },
+    {
+      "spanID": "1446f30d67538c9b",
+      "operationName": "memory.store",
+      "parentSpanID": "53f817e41689dd01"
+    }
+  ],
+  "jumlah_matching_evaluate": 1,
+  "jumlah_chat_matching": 1,
+  "error": null
+}

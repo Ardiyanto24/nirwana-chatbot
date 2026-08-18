@@ -1,0 +1,132 @@
+{
+  "kejadian_id": "E05",
+  "deskripsi": "Kandidat ada tapi status!=berhasil - terfilter internal",
+  "timestamp": "2026-08-18T16:39:00.034261+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.9-e05",
+    "turn_index": 2,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa lagi occupancy April 2026 itu?",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa occupancy rate bulan April 2026?",
+        "answer": "Occupancy April 2026 mencapai 78%."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.9-e05",
+      "turn_index": 2,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa lagi occupancy April 2026 itu?",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa occupancy rate bulan April 2026?",
+          "answer": "Occupancy April 2026 mencapai 78%."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa occupancy rate bulan April 2026?"
+    },
+    "session_memory": [
+      {
+        "atomic_intent_id": "d8769362-c523-472b-9ffc-e56c53ac22aa",
+        "session_id": "eval-7.9-e05",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {},
+        "catatan_interpretasi": [],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "98ab6bbe-209d-4104-a483-6d282cbd50c4",
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "98ab6bbe-209d-4104-a483-6d282cbd50c4",
+          "teks_kebutuhan": "Berapa occupancy rate bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ]
+  },
+  "status_per_intent": [
+    "perlu_eksekusi"
+  ],
+  "trace_id": "a86654e2df176150ba3fc2259a11e136",
+  "span_structure_jaeger": [
+    {
+      "spanID": "94dce90482ffbb44",
+      "operationName": "input.validate",
+      "parentSpanID": "0e0ef3296c9ce279"
+    },
+    {
+      "spanID": "4cbff907c980198d",
+      "operationName": "chat",
+      "parentSpanID": "0e0ef3296c9ce279"
+    },
+    {
+      "spanID": "2530b21922c25b3c",
+      "operationName": "chat",
+      "parentSpanID": "0e0ef3296c9ce279"
+    },
+    {
+      "spanID": "49d008ff153ca6d8",
+      "operationName": "chat",
+      "parentSpanID": "0e0ef3296c9ce279"
+    },
+    {
+      "spanID": "7f6d3b9f3e63415b",
+      "operationName": "chat",
+      "parentSpanID": "0e0ef3296c9ce279"
+    },
+    {
+      "spanID": "b09ad5bbf48c2661",
+      "operationName": "chat",
+      "parentSpanID": "0e0ef3296c9ce279"
+    },
+    {
+      "spanID": "0e0ef3296c9ce279",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    },
+    {
+      "spanID": "25ae4fc80babe592",
+      "operationName": "memory.retrieve",
+      "parentSpanID": "0e0ef3296c9ce279"
+    }
+  ],
+  "jumlah_matching_evaluate": 0,
+  "jumlah_chat_matching": 0,
+  "error": null
+}

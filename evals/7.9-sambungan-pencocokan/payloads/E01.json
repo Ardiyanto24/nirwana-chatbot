@@ -1,0 +1,102 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Tarik Memory tidak dipanggil (fast-path)",
+  "timestamp": "2026-08-18T16:33:35.476311+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.9-e01",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.9-e01",
+      "turn_index": 1,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa occupancy rate properti kita bulan Juni 2026?",
+      "history": []
+    },
+    "ketergantungan": {
+      "is_dependent": false,
+      "referenced_turn_index": null
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?"
+    },
+    "session_memory": null,
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "871a4691-de47-421c-834c-260b474ea5e0",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "871a4691-de47-421c-834c-260b474ea5e0",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ]
+  },
+  "status_per_intent": [
+    "perlu_eksekusi"
+  ],
+  "trace_id": "4520c447e9b7ac9c6a6348622b0d6126",
+  "span_structure_jaeger": [
+    {
+      "spanID": "4549009f98386f9c",
+      "operationName": "input.validate",
+      "parentSpanID": "76f8cc2462587e7e"
+    },
+    {
+      "spanID": "76f8cb93baecd42c",
+      "operationName": "chat",
+      "parentSpanID": "76f8cc2462587e7e"
+    },
+    {
+      "spanID": "b27009e5713f56d7",
+      "operationName": "chat",
+      "parentSpanID": "76f8cc2462587e7e"
+    },
+    {
+      "spanID": "d67d1219625fdca1",
+      "operationName": "chat",
+      "parentSpanID": "76f8cc2462587e7e"
+    },
+    {
+      "spanID": "abea2afb3f7bb4c5",
+      "operationName": "chat",
+      "parentSpanID": "76f8cc2462587e7e"
+    },
+    {
+      "spanID": "69ff946383e0ab01",
+      "operationName": "chat",
+      "parentSpanID": "76f8cc2462587e7e"
+    },
+    {
+      "spanID": "76f8cc2462587e7e",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    }
+  ],
+  "jumlah_matching_evaluate": 0,
+  "jumlah_chat_matching": 0,
+  "error": null
+}

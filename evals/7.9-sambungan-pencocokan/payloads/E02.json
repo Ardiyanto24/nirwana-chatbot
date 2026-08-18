@@ -1,0 +1,164 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Tarik Memory dipanggil, genuinely kosong (fast-path)",
+  "timestamp": "2026-08-18T16:34:31.632781+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.9-e02",
+    "turn_index": 2,
+    "role_title": "Corporate Revenue Director",
+    "employee_id": "emp-eval",
+    "question": "Bandingkan dengan bulan sebelumnya.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa revenue reservasi bulan Maret 2026?",
+        "answer": "Revenue reservasi Maret 2026 sebesar Rp 800 juta."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.9-e02",
+      "turn_index": 2,
+      "role_title": "Corporate Revenue Director",
+      "employee_id": "emp-eval",
+      "question": "Bandingkan dengan bulan sebelumnya.",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa revenue reservasi bulan Maret 2026?",
+          "answer": "Revenue reservasi Maret 2026 sebesar Rp 800 juta."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa revenue reservasi bulan Februari 2026 dibandingkan dengan Maret 2026?"
+    },
+    "session_memory": [],
+    "decomposition": {
+      "klasifikasi": "majemuk_bergantung",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "c99fda0c-9339-4b4e-824e-09541eb77501",
+          "teks_kebutuhan": "Berapa revenue reservasi bulan Februari 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "db862111-5a56-4bec-b740-40e9919d0555",
+          "teks_kebutuhan": "Berapa revenue reservasi bulan Maret 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "338df585-d7e0-4611-adc5-f014da6f5a05",
+          "teks_kebutuhan": "Bagaimana perbandingan revenue reservasi bulan Februari 2026 dengan Maret 2026?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "c99fda0c-9339-4b4e-824e-09541eb77501",
+            "db862111-5a56-4bec-b740-40e9919d0555"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c99fda0c-9339-4b4e-824e-09541eb77501",
+          "teks_kebutuhan": "Berapa revenue reservasi bulan Februari 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "db862111-5a56-4bec-b740-40e9919d0555",
+          "teks_kebutuhan": "Berapa revenue reservasi bulan Maret 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "338df585-d7e0-4611-adc5-f014da6f5a05",
+          "teks_kebutuhan": "Bagaimana perbandingan revenue reservasi bulan Februari 2026 dengan Maret 2026?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "c99fda0c-9339-4b4e-824e-09541eb77501",
+            "db862111-5a56-4bec-b740-40e9919d0555"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ]
+  },
+  "status_per_intent": [
+    "perlu_eksekusi",
+    "perlu_eksekusi",
+    "perlu_eksekusi"
+  ],
+  "trace_id": "1dcf20899c2c7c1453285da15fee77db",
+  "span_structure_jaeger": [
+    {
+      "spanID": "947cdb83e9ba78ef",
+      "operationName": "chat",
+      "parentSpanID": "a26f972d62ad4bb1"
+    },
+    {
+      "spanID": "bf9a209501cd3f45",
+      "operationName": "chat",
+      "parentSpanID": "a26f972d62ad4bb1"
+    },
+    {
+      "spanID": "3f9c1900e46b31b6",
+      "operationName": "chat",
+      "parentSpanID": "a26f972d62ad4bb1"
+    },
+    {
+      "spanID": "a26f972d62ad4bb1",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    },
+    {
+      "spanID": "84f84832f339200b",
+      "operationName": "input.validate",
+      "parentSpanID": "a26f972d62ad4bb1"
+    },
+    {
+      "spanID": "8578458783f5cd4d",
+      "operationName": "chat",
+      "parentSpanID": "a26f972d62ad4bb1"
+    },
+    {
+      "spanID": "3c7ed5d9f41aa1a5",
+      "operationName": "memory.retrieve",
+      "parentSpanID": "a26f972d62ad4bb1"
+    },
+    {
+      "spanID": "5646defb8c4e346f",
+      "operationName": "chat",
+      "parentSpanID": "a26f972d62ad4bb1"
+    }
+  ],
+  "jumlah_matching_evaluate": 0,
+  "jumlah_chat_matching": 0,
+  "error": null
+}

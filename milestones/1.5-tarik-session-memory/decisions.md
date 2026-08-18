@@ -214,6 +214,28 @@ Tabel `session_memory_packages` di Supabase perlu dibuat ulang (drop+recreate) k
 
 ---
 
+## Keputusan 14 (Addendum): `retrieve_session_memory()` Diberi `try/except` — Mirror Persis `store_session_memory()`
+
+**Status:** Ditemukan di Milestone 7.7 (2026-08-18, saat memetakan percabangan paralel Rewrite+Tarik Memory untuk disambungkan ke orkestrator lintas-layer), diperbaiki di sini atas keputusan langsung — bukan ditutup di M7.7 sendiri, karena perbaikan logic internal M1.5 adalah tanggung jawab milestone pemilik layer ini, mengikuti preseden persis penanganan celah `detect_turn_dependency()` (M1.3, Addendum, ditemukan+diperbaiki sesi sebelumnya).
+
+**Latar Belakang**
+Investigasi M7.7 menemukan `retrieve_session_memory()` TIDAK punya `try/except` sama sekali di sekitar query DB-nya (`Session(get_engine())`/`session.exec()`) — beda dari fungsi kembarnya di file yang sama, `store_session_memory()`, yang sudah menangkap exception, menandai `error.type=gagal_teknis` di span, baru raise ulang (Keputusan 13 tidak menyentuh soal ini — celah murni terlewat saat `retrieve_session_memory()` ditulis, bukan pertimbangan sadar). Celah ini LEBIH SEMPIT dari celah `detect_turn_dependency()` (M1.3): exception tetap menjalar keluar di kedua kondisi (dengan atau tanpa fix) — perilaku eksternal terhadap pemanggil sama — cuma sebelum fix, span `memory.retrieve` tidak pernah ditandai `error.type` dulu sebelum exception menjalar, sehingga kegagalan teknis di titik ini tidak akan terlihat lewat query span berbasis `error.type` di observability (Jaeger/dashboard), meski trace-nya sendiri tetap tercatat.
+
+**Keputusan yang Diikuti**
+`retrieve_session_memory()` dibungkus `try/except Exception: span.set_attribute("error.type", "gagal_teknis"); raise` — identik pola `store_session_memory()`, tanpa mengubah signature/tipe return.
+
+**Alasan**
+Konsistensi murni antar dua fungsi kembar di file yang sama — tidak ada pertanyaan desain baru (beda dari M1.3's `detect_turn_dependency()` yang butuh keputusan soal fallback value karena `TurnDependencyResult` tidak py field `status`; di sini return type `list[SessionMemoryPackage]` tidak berubah sama sekali, murni menambah observability + mempertahankan raise-on-failure yang sudah terjadi secara implisit).
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Fallback ke `[]` (list kosong) saat DB gagal, alih-alih raise** — ditolak, akan mengaburkan "genuinely tidak ada data" (`[]` yang valid, forced KK M1.5 asli) dengan "gagal mengecek karena DB down" (situasi teknis berbeda total) — silent data loss risk: pemanggil bisa salah menyimpulkan "tidak ada histori relevan" padahal query-nya sendiri gagal dijalankan.
+- **Tidak diperbaiki, dicatat sebagai keterbatasan diterima** (mirror penuh preseden M1.3) — ditolak, tidak ada alasan menunda ketika perbaikannya sudah jelas dan sempit (tinggal mirror pola yang sudah ada persis di baris atas fungsi ini) — beda situasi dari M1.3 yang ditemukan di tengah milestone lain yang genuinely tidak menyentuh area itu.
+
+**Dampak**
+Test baru `tests/layers/context_resolution/test_session_memory_kegagalan.py::test_kegagalan_db_saat_retrieve_menghasilkan_error_type_lalu_raise_ulang` (mirror fixture `_TracerRekam`/`_SpanRekam` yang sudah ada di file, `_SessionExecGagal` baru untuk mensimulasikan `exec()` gagal). Dicatat juga secara ringkas di `milestones/7.7-.../decisions.md` Keputusan 6 sebagai catatan silang (kenapa `session_memory.py` berubah di bawah commit ber-tag M7.7 padahal isinya perbaikan M1.5). **TIDAK ada entri baru di `docs/keterbatasan-diterima.md`** — celah ini ditutup sebelum M7.7 sendiri selesai, tidak pernah benar-benar berstatus "diterima sebagai keterbatasan".
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |

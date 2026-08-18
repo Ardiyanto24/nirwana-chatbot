@@ -233,3 +233,23 @@ Entri Checkpoint 1-10 di atas ditulis sebagai bagian Task 19. Lihat `report.md`,
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada checkpoint baru di luar plan. Penyimpangan task (semuanya koreksi/penyesuaian di dalam task yang sudah direncanakan, dicatat eksplisit di masing-masing entri): normalisasi dialect + pooler Checkpoint 3; perbaikan penyimpanan enum + insiden near-miss `DROP TYPE` Checkpoint 5; konsolidasi 2 commit rencana jadi 1 commit nyata Checkpoint 10 (tidak ada diff terpisah untuk verifikasi murni).
+
+---
+
+## Addendum (2026-08-18) — Fix `try/except` di `retrieve_session_memory()`
+
+**Ditemukan:** Milestone 7.7 (investigasi sebelum plan, saat memetakan percabangan paralel Rewrite+Tarik Memory) — `retrieve_session_memory()` tidak punya `try/except` sama sekali di sekitar query DB-nya, beda dari `store_session_memory()` di file yang sama (lihat `decisions.md` Keputusan 14 untuk detail lengkap).
+
+**Apa yang dilakukan:** `src/layers/context_resolution/session_memory.py::retrieve_session_memory()` dibungkus `try/except Exception: span.set_attribute("error.type", "gagal_teknis"); raise` — mirror persis pola `store_session_memory()`. Test baru `tests/layers/context_resolution/test_session_memory_kegagalan.py::test_kegagalan_db_saat_retrieve_menghasilkan_error_type_lalu_raise_ulang` (mock `_SessionExecGagal` baru, mirror fixture `_TracerRekam`/`_SpanRekam` yang sudah ada).
+
+**Hasil Verifikasi**
+```
+$ .venv/Scripts/python.exe -m pytest tests/layers/context_resolution/test_session_memory_kegagalan.py -v
+test_kegagalan_db_menghasilkan_error_type_lalu_raise_ulang PASSED
+test_kegagalan_db_atribut_session_turn_atomic_intent_tetap_tercatat PASSED
+test_kegagalan_db_saat_retrieve_menghasilkan_error_type_lalu_raise_ulang PASSED
+3 passed in 3.64s
+```
+Regresi dicek lewat full suite `tests/layers/context_resolution/` (14 test) — 13 passed, 1 gagal (`test_matching.py::test_kelompok_c_rantai_arsip_ulang_turn_tujuh_lima_tiga`, M1.7 Pencocokan Atomic Intent) TIDAK TERKAIT perubahan ini: perubahan hanya membungkus jalur sukses `retrieve_session_memory()` yang sudah ada dalam `try/except` tanpa mengubah logic/return value sama sekali saat tidak ada exception. Diverifikasi ulang dengan menjalankan test itu sendirian dua kali — gagal dengan alasan BERBEDA tiap kali (`assert 2 == 1`, ternyata menemukan 2 baris duplikat dengan `atomic_intent_id` identik untuk `session_id="test-m17-kelompok-c"` yang di-hardcode, bukan di-randomize per-run seperti fixture test lain) — mengonfirmasi ini murni masalah isolasi test M1.7 pra-eksisting (data menumpuk di Supabase nyata antar-run test karena `session_id` tetap, bukan kegagalan yang disebabkan perubahan `session_memory.py`). Dicatat sebagai observasi, tidak diperbaiki di sini (di luar Lingkup M7.7/addendum M1.5 ini, kepemilikan test itu ada di M1.7).
+
+**Commit:** `2ef5012` (fix), `5be7f0d` (test).

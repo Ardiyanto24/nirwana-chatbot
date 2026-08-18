@@ -72,6 +72,10 @@ Empat penyimpangan dari plan, semuanya koreksi/penyesuaian teknis di tempat (tid
 - **Project Supabase dipakai bersama rencana M5.x/M6.x** — nama tabel (`session_memory_packages`, `roles`) sudah dipilih tidak bertabrakan dengan `traces`/`spans`, tapi ini perlu diperiksa ulang saat M5/M6 benar-benar mulai mengimplementasikan skemanya.
 - **Model database TIDAK ditest untuk concurrent write** — skala proyek ini (solo, portofolio) belum butuh, tapi kalau nanti API produksi menerima banyak request paralel yang menulis Session Memory bersamaan, perilaku belum diverifikasi.
 
+## Addendum (2026-08-18) — Fix `try/except` di `retrieve_session_memory()`
+
+Milestone 7.7 (menyambungkan Rewrite+Tarik Memory jadi percabangan paralel lintas-layer) menemukan `retrieve_session_memory()` tidak punya `try/except` di sekitar query DB-nya — beda dari `store_session_memory()` di file yang sama. Diperbaiki DI SINI (bukan di M7.7), mirror persis pola `store_session_memory()`: `error.type=gagal_teknis` ditandai di span `memory.retrieve` sebelum exception di-raise ulang, tanpa mengubah signature/return type. Lihat `decisions.md` Keputusan 14 dan `logs.md` Addendum untuk detail lengkap + bukti test. Tidak ada entri `docs/keterbatasan-diterima.md` baru — celah ditutup sebelum sempat berstatus "diterima".
+
 ## Bagian 6 — Follow-up
 
 - Milestone 1.7 (Pencocokan Atomic Intent × Data Memory) — menunggu langsung `list[SessionMemoryPackage]` dari `retrieve_session_memory()`, perlu membaca `src/schemas/session_memory.py` dan `src/layers/context_resolution/session_memory.py` langsung.

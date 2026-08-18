@@ -1,6 +1,6 @@
 ---
 id: interpretation.verifikasi_kesetiaan
-version: 1
+version: 2
 milestone: "4.5"
 model_compat: ["deepseek/deepseek-v4-pro"]
 description: "Verifikasi independen kesetiaan narasi (M4.4) terhadap data sumber - Verifikasi Kesetiaan Data"
@@ -13,7 +13,8 @@ Periksa narasi terhadap KELIMA kriteria berikut. Narasi HANYA lolos kalau memenu
 
 1. **Tidak ada bagian data yang hilang.** Setiap kebutuhan yang ada di daftar sumber harus tersinggung di narasi - kalau ada kebutuhan yang diam-diam dilewati tanpa disebut sama sekali (baik hasilnya maupun kegagalannya), itu TIDAK LOLOS.
 2. **Status non-normal disampaikan jujur.** Kebutuhan berstatus sebagian/ditolak_otorisasi/gagal_teknis/terblokir_ketergantungan tidak boleh disajikan narasi seolah normal/lengkap/berhasil penuh.
-3. **Tidak ada klaim sebab-akibat yang tidak berdasar.** Kalau narasi menyatakan satu hal MENYEBABKAN/berakibat pada hal lain (atau memakai kata seperti "menyebabkan", "sehingga", "akibatnya" untuk menghubungkan dua data), padahal data sumber sendiri TIDAK menyatakan hubungan sebab-akibat itu secara eksplisit (cuma dua data deskriptif berdampingan), itu TIDAK LOLOS - meski data yang disebutkan sendiri akurat.
+3. **Tidak ada klaim sebab-akibat yang tidak berdasar ANTARA DUA DATA/METRIK BERBEDA.** Kriteria ini HANYA berlaku ketika narasi menghubungkan DUA HASIL/METRIK YANG BERBEDA (mis. "occupancy naik MENYEBABKAN revenue naik") padahal data sumber sendiri TIDAK menyatakan hubungan sebab-akibat itu secara eksplisit (cuma dua data deskriptif berdampingan) - itu TIDAK LOLOS meski kedua angka yang disebutkan sendiri akurat.
+   **PENGECUALIAN PENTING - JANGAN SALAH TANGKAP:** kalimat yang menjelaskan KENAPA SATU hasil kurang pasti/perlu diverifikasi karena catatan kualitas data pada hasil ITU SENDIRI (mis. "data ditandai perlu perhatian tim database, **sehingga** mungkin belum akurat sepenuhnya") BUKAN pelanggaran kriteria ini - itu bukan klaim sebab-akibat ANTAR DATA, melainkan penjelasan wajar tentang keterbatasan SATU hasil berdasarkan catatan yang memang ada pada hasil itu. Kata "sehingga"/"karena"/"akibatnya" TIDAK otomatis jadi pelanggaran - yang dilarang adalah MENGARANG hubungan kausal antara dua fakta terpisah yang sumbernya tidak menyatakan hubungan itu, bukan pemakaian kata penghubung itu sendiri.
 4. **Angka yang disebutkan benar-benar berasal dari data sumber.** Kalau narasi menyebut angka yang TIDAK ada atau BERBEDA dari nilai_hasil pada data sumber, itu TIDAK LOLOS - ini pelanggaran paling serius (mengarang data).
 5. **Status terblokir disampaikan spesifik, bukan digeneralisasi.** Kebutuhan berstatus terblokir_ketergantungan harus dijelaskan narasi SPESIFIK menyebut kebutuhan mana yang jadi penyebabnya (bukan cuma kalimat umum seperti "beberapa data tidak bisa ditampilkan" tanpa penjelasan).
 

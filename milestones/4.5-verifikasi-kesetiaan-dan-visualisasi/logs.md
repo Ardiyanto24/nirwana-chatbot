@@ -194,3 +194,27 @@ Tidak ada.
 **Commit:** `f6d9dbe` — `test(milestone-4.5): unit test verifikasi kesetiaan + visualisasi`
 
 ---
+
+## Checkpoint 8 — Rancangan dan Eksekusi Eval
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 11 — Tulis `evals/4.5-verifikasi-kesetiaan-dan-visualisasi/rancangan.md`
+
+**Kesesuaian dengan plan:** Sesuai plan (10 skenario, sesuai target "~10-12" plan). Cakupan LEBIH SEMPIT dari M4.4 karena `susun_data_visualisasi()` deterministik sudah tuntas via unit test (Checkpoint 7) — eval di sini murni untuk `verifikasi_kesetiaan_narasi()`.
+
+**Apa yang dilakukan**
+Menulis 10 skenario (S01-S10): S01/S02 klaim sebab-akibat (KK paling kritis, + kontrol negatif), S03 data hilang, S04 angka dikarang, S05/S06 status sebagian disamarkan vs jujur, S07/S08 status terblokir digeneralisasi vs spesifik, S09 ditolak_otorisasi disamarkan gagal_teknis, S10 stress test kompleks 4-status seluruhnya jujur (kontrol over-triggering).
+
+**Temuan**
+Tidak ada temuan tak terduga — struktur pasangan uji/kontrol (mis. S05 uji vs S06 kontrol) dipilih supaya setiap pelanggaran yang diuji punya versi jujur berdampingan sebagai pembanding langsung, mempertajam interpretasi hasil.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Tidak ada eksekusi di checkpoint ini (murni dokumen desain). Review manual: KK1 sumber (klaim sebab-akibat) punya 2 skenario eksplisit (S01+S02); kelima kriteria prompt masing-masing punya minimal 1 skenario uji.
+
+**Commit:** `0aa5f78` — `docs(milestone-4.5): rancangan eval verifikasi kesetiaan`
+
+---

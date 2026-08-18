@@ -17,10 +17,20 @@ tidak ada referensi terdeteksi) dari `[]` (dipanggil, genuinely tidak
 menemukan data) - forced KK M7.7 eksplisit. Lihat
 milestones/7.7-sambungan-percabangan-paralel-rewrite-tarik-memory/
 decisions.md Keputusan 3.
+
+Field M7.8 (`decomposition`): selalu terisi, mirror `rewrite` -
+`decompose_question()` (ketiga sub-langkahnya: klasifikasi_kebutuhan,
+pecah_atomik, verifikasi_pemecahan) py fallback APIError penuh di tiap
+tahap, tidak pernah raise ke pemanggilnya. Dipanggil dengan
+`rewrite.rewritten_question` (hasil Rewrite), BUKAN `payload.question`
+asli - forced KK M7.8 eksplisit ("bukan makna kalimat asli sebelum
+di-rewrite"). Lihat
+milestones/7.8-sambungan-rewrite-decomposition/decisions.md Keputusan 2+4.
 """
 
 from pydantic import BaseModel
 
+from src.schemas.decomposition import DecompositionResult
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import SessionMemoryPackage
 from src.schemas.turn_dependency import TurnDependencyResult
@@ -32,3 +42,4 @@ class KeadaanTurn(BaseModel):
     ketergantungan: TurnDependencyResult
     rewrite: RewriteResult
     session_memory: list[SessionMemoryPackage] | None
+    decomposition: DecompositionResult

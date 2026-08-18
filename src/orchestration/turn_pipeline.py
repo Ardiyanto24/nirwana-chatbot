@@ -1,11 +1,11 @@
 """Orkestrator Turn PIC 7 Level 2: Input Layer (M1.2) -> Pemetaan
 Ketergantungan Turn (M1.3) -> Percabangan Paralel (Rewrite M1.4 + Tarik
-Session Memory M1.5).
+Session Memory M1.5) -> Decomposition (M1.6).
 
 Fungsi ini membuka span `invoke_agent` PERTAMA KALI di `src/` produksi
 (Milestone 7.6) - pembungkus "operasi orkestrasi keseluruhan" per turn
 sesuai kontrak Bagian 2 rancangan-observability-ai-chatbot.md. Tumbuh
-bertahap tiap milestone Sambungan berikutnya (M7.8-7.16) hingga mencakup
+bertahap tiap milestone Sambungan berikutnya (M7.9-7.16) hingga mencakup
 seluruh sembilan layer. `src/main.py` SENGAJA belum memanggil fungsi ini -
 penyambungan endpoint ditunda ke Milestone 7.17.
 
@@ -25,6 +25,15 @@ ganda (kedua cabang gagal bersamaan) TIDAK ditangani secara khusus -
 `.result()` dipanggil berurutan, exception pertama yang menjalar. Lihat
 milestones/7.7-sambungan-percabangan-paralel-rewrite-tarik-memory/
 decisions.md.
+
+Milestone 7.8: setelah blok `ThreadPoolExecutor` selesai (`rewrite_result`
+final), `decompose_question()` dipanggil SEKUENSIAL di thread utama
+dengan `rewrite_result.rewritten_question` (bukan `payload.question`
+asli) - Decomposition murni bergantung data pada hasil Rewrite, bukan
+Tarik Memory, sehingga tidak butuh paralelisme baru maupun propagasi
+context manual (span `chat` dari ketiga sub-langkah Decomposition
+otomatis jadi anak `invoke_agent` karena tetap di thread yang sama). Lihat
+milestones/7.8-sambungan-rewrite-decomposition/decisions.md.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -34,6 +43,7 @@ from opentelemetry import context as otel_context
 from src.layers.context_resolution.rewrite import rewrite_to_standalone
 from src.layers.context_resolution.session_memory import retrieve_session_memory
 from src.layers.context_resolution.turn_dependency import detect_turn_dependency
+from src.layers.decomposition.decompose import decompose_question
 from src.layers.input_layer import validate_turn_payload
 from src.observability.tracing import get_tracer
 from src.schemas.orchestration import KeadaanTurn
@@ -97,9 +107,12 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             rewrite_result = rewrite_future.result()
             session_memory_result = memory_future.result() if memory_future else None
 
+        decomposition_result = decompose_question(rewrite_result.rewritten_question)
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
             rewrite=rewrite_result,
             session_memory=session_memory_result,
+            decomposition=decomposition_result,
         )

@@ -13,6 +13,7 @@ error space, tidak butuh LLM kedua.
 
 import json
 
+from openai import APIError
 from pydantic import ValidationError
 
 from src.config.llm import OPENROUTER_MODEL, get_openrouter_client
@@ -96,7 +97,11 @@ def detect_turn_dependency(payload: TurnPayload) -> TurnDependencyResult:
         span.set_attribute(PROMPT_ID, prompt.id)
         span.set_attribute(PROMPT_VERSION, prompt.version)
 
-        response = _call_llm(payload)
+        try:
+            response = _call_llm(payload)
+        except APIError as exc:
+            span.set_attribute("dependency.forced_independent_reason", f"api_error: {exc}")
+            return TurnDependencyResult(is_dependent=False)
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)

@@ -34,11 +34,20 @@ raise pada kegagalan DB, tidak full-fallback). Dipanggil dengan
 `session_memory or []` (konversi wajib - `match_and_archive()` menerima
 `list`, bukan `Optional`). Lihat
 milestones/7.9-sambungan-pencocokan/decisions.md Keputusan 1+3.
+
+Field M7.10 (`domain_gate`): selalu terisi, mirror `rewrite`/`decomposition`
+- `identifikasi_domain_semua()` (M2.1) tidak pernah raise (sub-langkahnya
+py fallback APIError penuh). Panjang list BISA lebih kecil dari `matches`
+- filter ke `status=PERLU_EKSEKUSI` adalah tanggung jawab INTERNAL
+`identifikasi_domain_semua()` sendiri (sudah ada sejak M2.1), `matches`
+diteruskan APA ADANYA tanpa filter oleh orkestrator. Lihat
+milestones/7.10-sambungan-domain-gate/decisions.md Keputusan 1+3.
 """
 
 from pydantic import BaseModel
 
 from src.schemas.decomposition import DecompositionResult
+from src.schemas.domain_gate import AtomicIntentDomains
 from src.schemas.matching import AtomicIntentMatch
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import SessionMemoryPackage
@@ -53,3 +62,4 @@ class KeadaanTurn(BaseModel):
     session_memory: list[SessionMemoryPackage] | None
     decomposition: DecompositionResult
     matches: list[AtomicIntentMatch]
+    domain_gate: list[AtomicIntentDomains]

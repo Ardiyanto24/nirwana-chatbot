@@ -44,6 +44,12 @@ sebagai argumen. `session_memory_result or []` mengonversi `None`->`[]`
 lewat `store_session_memory()` genuinely raise pada kegagalan DB) -
 TIDAK dibungkus try/except baru, mirror preseden kegagalan cabang M7.7.
 Lihat milestones/7.9-sambungan-pencocokan/decisions.md.
+
+Milestone 7.10: `identifikasi_domain_semua(matches)` dipanggil SEKUENSIAL
+setelah `matches` final, `matches` diteruskan APA ADANYA (filter ke
+status=PERLU_EKSEKUSI adalah tanggung jawab INTERNAL fungsi itu sendiri,
+sudah ada sejak M2.1 - orkestrator TIDAK ikut memfilter, mencegah
+duplikasi logic). Lihat milestones/7.10-sambungan-domain-gate/decisions.md.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -55,6 +61,7 @@ from src.layers.context_resolution.rewrite import rewrite_to_standalone
 from src.layers.context_resolution.session_memory import retrieve_session_memory
 from src.layers.context_resolution.turn_dependency import detect_turn_dependency
 from src.layers.decomposition.decompose import decompose_question
+from src.layers.domain_gate.domain_gate import identifikasi_domain_semua
 from src.layers.input_layer import validate_turn_payload
 from src.observability.tracing import get_tracer
 from src.schemas.orchestration import KeadaanTurn
@@ -127,6 +134,8 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             payload.turn_index,
         )
 
+        domain_gate_result = identifikasi_domain_semua(matches)
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
@@ -134,4 +143,5 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             session_memory=session_memory_result,
             decomposition=decomposition_result,
             matches=matches,
+            domain_gate=domain_gate_result,
         )

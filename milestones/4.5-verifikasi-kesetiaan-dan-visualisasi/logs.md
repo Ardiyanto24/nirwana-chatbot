@@ -170,3 +170,27 @@ Panggilan nyata end-to-end DUA kali: (1) narasi lolos → `visualisasi` terisi 2
 **Commit:** `46fbac0` — `feat(milestone-4.5): implementasi verifikasi_kesetiaan_narasi() + penyusunan visualisasi + orkestrator`
 
 ---
+
+## Checkpoint 7 — Unit Test
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 8-10 — Unit test verifikasi kesetiaan + visualisasi + orkestrator
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan penggabungan Task 10 (test orkestrator) ke `test_verifikasi_kesetiaan.py` alih-alih file terpisah — plan sendiri mencatat ini sebagai opsi eksplisit ("atau ditambahkan ke test_verifikasi_kesetiaan.py"), bukan penyimpangan.
+
+**Apa yang dilakukan**
+`test_verifikasi_kesetiaan.py` (13 test): `lolos=true`, `lolos=false`+alasan, `lolos=false` tanpa alasan dari LLM (fallback generik), `APIError`→`GAGAL_TEKNIS`, JSON rusak→`GAGAL_TEKNIS`, `empty_choices`→`GAGAL_TEKNIS`, atribut span lengkap, orkestrator (`lolos=True`→visualisasi terisi; `lolos=False`→visualisasi `None` DAN `susun_data_visualisasi_semua()` dikonfirmasi TIDAK dipanggil via spy; `GAGAL_TEKNIS`→visualisasi `None`; narasi disalin utuh ke hasil, parametrized 2 kasus). `test_visualisasi.py` (10 test): seluruh 5 label, kasus ambigu (multi-kolom, multi-baris), `rows=[]`, `atomic_intent_id` diteruskan, batch.
+
+**Temuan**
+Tidak ada temuan tak terduga — pola mock `_call_llm`+`_TracerRekam` dari `test_narasi.py`/`test_verifikasi_bentuk_request.py` (M3.5, tidak dibaca langsung tapi pola sudah dikenal dari M4.4) langsung applicable.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`.venv/Scripts/python.exe -m pytest tests/layers/interpretation/ -v` — 30/30 PASSED (8 dari M4.4 + 22 baru M4.5).
+
+**Commit:** `f6d9dbe` — `test(milestone-4.5): unit test verifikasi kesetiaan + visualisasi`
+
+---

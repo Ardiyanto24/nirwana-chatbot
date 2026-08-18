@@ -51,3 +51,9 @@ PROMPT_VERSION = "prompt.version"
 # gen_ai.*), mengikuti pola PROMPT_ID/PROMPT_VERSION.
 REQUEST_DOMAIN = "request.domain"
 REQUEST_VIEW_NAME = "request.view_name"
+
+# Milestone 4.4 (Interpretation - Narasi) - forced kontrak
+# rancangan-observability-ai-chatbot.md Bagian 2, baris "Interpretation
+# (Narasi, Verifikasi Kesetiaan)": mengacu field `sumber` paket Session
+# Memory. Custom (bukan gen_ai.*), mengikuti pola PROMPT_ID/PROMPT_VERSION.
+NARRATIVE_TURN_REFERENCE = "narrative.turn_reference"

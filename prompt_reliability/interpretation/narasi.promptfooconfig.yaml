@@ -1,0 +1,313 @@
+description: "Reliability testing - interpretation.narasi (M4.4)"
+
+# Tanpa response_format - output teks bebas (Keputusan 3 milestones/4.4-.../decisions.md),
+# beda dari config lain di bawah prompt_reliability/ yang seluruhnya minta json_object.
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: interpretation.narasi
+      model: qwen/qwen3-32b
+
+# user_prompt tiap test case adalah output PERSIS _build_user_prompt() untuk skenario
+# yang sama di evals/4.4-penyusunan-narasi/rancangan.md (Keputusan 12) - dibangkitkan
+# nyata dari fungsi produksi, bukan ditulis ulang manual, supaya tidak drift.
+# Assertion di sini mengikuti (dan pada S10 memperbaiki) heuristik run_eval.py sesuai
+# rekomendasi audit.md - tetap lapis tambahan, bukan pengganti audit manual.
+tests:
+  - description: S01_campuran_sumber_KK1
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa occupancy rate April 2026 di Nirwana Resort Bali?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"occupancy_rate": 0.82}]}
+
+        2. Kebutuhan: Berapa revenue F&B bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: session_memory (turn 3)
+           Nilai hasil: {"rows": [{"revenue_fnb": 452000000}]}
+    assert:
+      - type: icontains
+        value: "82"
+      - type: icontains
+        value: "452"
+
+  - description: S02_ditolak_otorisasi_spesifik_KK2a
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa gaji staff bernama Budi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: ditolak_otorisasi
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return ["akses", "kewenangan", "izin", "otorisasi"].some(k => lower.includes(k));
+
+  - description: S03_gagal_teknis_tanpa_detail_teknis_KK2b
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa revenue reservasi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: gagal_teknis
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+    # not-icontains "api" ditolak (false-positive nyata: kata Indonesia biasa
+    # "tetAPI" mengandung substring "api") - diganti javascript regex word-boundary.
+    assert:
+      - type: javascript
+        value: "!/\\bapi\\b/i.test(output)"
+      - type: not-icontains
+        value: "endpoint"
+      - type: not-icontains
+        value: "database"
+      - type: javascript
+        value: "!/[3-5]\\d{2}/.test(output)"
+
+  - description: S04_kontras_nada_berdampingan_KK2_kritis
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa gaji staff bernama Budi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: ditolak_otorisasi
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        2. Kebutuhan: Berapa revenue reservasi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: gagal_teknis
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        3. Kebutuhan: Berapa occupancy rate bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"occupancy_rate": 0.75}]}
+    # Murni audit manual (mirror rancangan.md) - skenario paling kritis, tidak ada
+    # heuristik otomatis yang cukup andal menilai kontras nada.
+    assert:
+      - type: icontains
+        value: "75"
+
+  - description: S05_sebagian_flagged
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa jumlah reservasi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: sebagian
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"jumlah_reservasi": 120}]}
+           Catatan interpretasi: Status kualitas data untuk hasil ini ditandai perlu perhatian oleh tim database engineering (data_quality_status=flagged).
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return ["parsial", "sebagian", "perlu perhatian", "belum sepenuhnya", "perlu dicek", "evaluasi lebih lanjut"].some(k => lower.includes(k));
+
+  - description: S06_sebagian_stale
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa jumlah tamu check-in bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: sebagian
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"jumlah_checkin": 340}]}
+           Catatan interpretasi: Data terakhir diperbarui 2026-08-10T00:00:00Z, melewati ambang kesegaran yang ditetapkan (48 jam).
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return ["diperbarui", "terbaru", "kesegaran", "2026-08-10"].some(k => lower.includes(k));
+
+  - description: S07_berhasil_murni_baseline_negatif
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa occupancy rate bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"occupancy_rate": 0.8}]}
+
+        2. Kebutuhan: Berapa revenue F&B bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"revenue_fnb": 300000000}]}
+
+        3. Kebutuhan: Berapa jumlah staff aktif bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"jumlah_staff": 45}]}
+    assert:
+      - type: not-icontains
+        value: "sebagian"
+      - type: not-icontains
+        value: "parsial"
+      - type: not-icontains
+        value: "kendala"
+
+  - description: S08_terblokir_ketergantungan_1_level
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa revenue reservasi Maret 2026?
+           Bentuk jawaban: nilai_tunggal
+           Status: gagal_teknis
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        2. Kebutuhan: Bandingkan dengan Februari 2026
+           Bentuk jawaban: perbandingan
+           Status: terblokir_ketergantungan
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+           Bergantung pada: "Berapa revenue reservasi Maret 2026?" (status: gagal_teknis)
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return ["karena", "disebabkan", "bergantung", "tergantung", "akibat"].some(k => lower.includes(k));
+
+  - description: S09_terblokir_ketergantungan_rantai_2_level
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa occupancy rate April 2026?
+           Bentuk jawaban: nilai_tunggal
+           Status: gagal_teknis
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        2. Kebutuhan: Bandingkan dengan Maret 2026
+           Bentuk jawaban: perbandingan
+           Status: terblokir_ketergantungan
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+           Bergantung pada: "Berapa occupancy rate April 2026?" (status: gagal_teknis)
+
+        3. Kebutuhan: Berapa persen kenaikannya
+           Bentuk jawaban: nilai_tunggal
+           Status: terblokir_ketergantungan
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+           Bergantung pada: "Bandingkan dengan Maret 2026" (status: terblokir_ketergantungan)
+    # Nuansa kedalaman penjelasan (menelusuri sampai akar A) murni audit manual,
+    # mirror rancangan.md - heuristik cuma memastikan ada rujukan sebab sama sekali.
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return ["karena", "disebabkan", "bergantung", "tergantung", "akibat"].some(k => lower.includes(k));
+
+  - description: S10_nullable_bermakna_jujur
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa jumlah tiket kerusakan fasilitas umum bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+           Catatan interpretasi: Kosong jika tidak ada tiket kerusakan tercatat pada periode ini - bukan indikasi data hilang.
+    # TANPA assertion otomatis - murni audit manual (mirror pola S04/S09-nuansa).
+    # Dua percobaan heuristik berbeda (positif "bukan"/"memang", lalu negatif
+    # not-icontains "data hilang") SAMA-SAMA gagal jadi false-positive di run
+    # berbeda: substring-match sederhana tidak bisa membedakan klaim genuinely
+    # dilarang ("data ini hilang") dari negasinya yang justru BENAR ("bukan
+    # karena data hilang") - masalah struktural, bukan kesalahan narasi. Lihat
+    # audit.md untuk verdict manual eksplisit skenario ini (LOLOS).
+
+  - description: S11_larangan_klaim_sebab_akibat_kritis
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"occupancy_rate_naik_persen": 10}]}
+
+        2. Kebutuhan: Revenue F&B April 2026 juga naik 8% dibanding bulan sebelumnya
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"revenue_fnb_naik_persen": 8}]}
+    assert:
+      - type: javascript
+        value: |
+          const lower = output.toLowerCase();
+          return !["menyebabkan", "sehingga revenue", "akibatnya revenue", "karena naiknya occupancy"].some(k => lower.includes(k));
+
+  - description: S12_kejujuran_total_kegagalan
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa gaji staff bernama Budi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: ditolak_otorisasi
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        2. Kebutuhan: Berapa revenue reservasi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: gagal_teknis
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+    assert:
+      - type: not-icontains
+        value: "75%"
+
+  - description: S13_lintas_turn_ganda
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa occupancy rate bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"occupancy_rate": 0.78}]}
+
+        2. Kebutuhan: Berapa revenue F&B bulan lalu?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: session_memory (turn 2)
+           Nilai hasil: {"rows": [{"revenue_fnb": 280000000}]}
+
+        3. Kebutuhan: Berapa jumlah staff aktif dua bulan lalu?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: session_memory (turn 4)
+           Nilai hasil: {"rows": [{"jumlah_staff": 42}]}
+    assert:
+      - type: icontains
+        value: "78"
+      - type: icontains
+        value: "280"
+      - type: icontains
+        value: "42"

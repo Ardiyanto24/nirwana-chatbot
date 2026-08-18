@@ -92,6 +92,15 @@ gampang diganti tanpa menyentuh logic layer.
   serupa, beda dari mayoritas milestone lain yang murni ekstraksi/
   klasifikasi terstruktur. Lihat milestones/4.4-penyusunan-narasi/
   decisions.md Keputusan 1.
+- OPENROUTER_MODEL_VERIFIKASI_KESETIAAN: DeepSeek V4 Pro (reuse pola
+  M1.6 Langkah 6/M2.1/M2.3/M3.2 Langkah 2/M3.5 Langkah 2), dipakai
+  verifikasi_kesetiaan.py (M4.5, Interpretation) dengan reasoning="high" -
+  verifikasi independen SATU panggilan terhadap narasi hasil M4.4, TANPA
+  retry balik ke M4.4 (mirror M3.5 - jalur revisi di luar cakupan).
+  Sengaja TIDAK diajukan ulang ke user (beda M4.4) - tugas verifier tetap
+  berbentuk sama (lolos/alasan) seperti 5 preseden sebelumnya. Lihat
+  milestones/4.5-verifikasi-kesetiaan-dan-visualisasi/decisions.md
+  Keputusan 1.
 
 Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
 get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
@@ -129,6 +138,7 @@ OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL = "qwen/qwen3-32b"
 OPENROUTER_MODEL_PENYUSUNAN_REQUEST = "qwen/qwen3-32b"
 OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_NARASI = "qwen/qwen3-32b"
+OPENROUTER_MODEL_VERIFIKASI_KESETIAAN = "deepseek/deepseek-v4-pro"
 
 load_dotenv()
 

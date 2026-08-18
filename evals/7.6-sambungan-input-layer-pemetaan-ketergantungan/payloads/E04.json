@@ -1,0 +1,23 @@
+{
+  "kejadian_id": "E04",
+  "deskripsi": "Kegagalan teknis LLM (openai.APIError) saat Pemetaan Ketergantungan",
+  "timestamp": "2026-08-18T09:53:29.488342+00:00",
+  "raw_payload": {
+    "session_id": "eval-e04",
+    "turn_index": 2,
+    "role_title": "Corporate Revenue Director",
+    "employee_id": "emp-eval",
+    "question": "Bandingkan dengan bulan sebelumnya.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa revenue reservasi bulan Maret 2026?",
+        "answer": "Revenue reservasi Maret 2026 sebesar Rp 800 juta."
+      }
+    ]
+  },
+  "hasil": null,
+  "trace_id": "75b852f3557743e303f85231114eb0ae",
+  "error": "simulasi kegagalan API - kejadian E04",
+  "menjalar_tanpa_ditangkap": true
+}

@@ -1,0 +1,28 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Payload valid, turn pertama (tanpa histori)",
+  "timestamp": "2026-08-18T09:53:01.062863+00:00",
+  "raw_payload": {
+    "session_id": "eval-e01",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-e01",
+      "turn_index": 1,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa occupancy rate properti kita bulan Juni 2026?",
+      "history": []
+    },
+    "ketergantungan": {
+      "is_dependent": false,
+      "referenced_turn_index": null
+    }
+  },
+  "trace_id": "73ebea2fc98331410d5f5379d149d8e6",
+  "error": null
+}

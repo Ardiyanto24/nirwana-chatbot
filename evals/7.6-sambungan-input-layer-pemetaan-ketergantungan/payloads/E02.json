@@ -1,0 +1,61 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Payload valid, turn kedua dengan histori (skenario KK literal M7.6)",
+  "timestamp": "2026-08-18T09:53:29.351585+00:00",
+  "raw_payload": {
+    "session_id": "eval-e02",
+    "turn_index": 2,
+    "role_title": "Corporate Revenue Director",
+    "employee_id": "emp-eval",
+    "question": "Bandingkan dengan bulan sebelumnya.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa revenue reservasi bulan Maret 2026?",
+        "answer": "Revenue reservasi Maret 2026 sebesar Rp 800 juta."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-e02",
+      "turn_index": 2,
+      "role_title": "Corporate Revenue Director",
+      "employee_id": "emp-eval",
+      "question": "Bandingkan dengan bulan sebelumnya.",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa revenue reservasi bulan Maret 2026?",
+          "answer": "Revenue reservasi Maret 2026 sebesar Rp 800 juta."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    }
+  },
+  "trace_id": "7fd067cab445721fd302defa26329a39",
+  "span_structure_jaeger": [
+    {
+      "spanID": "aa7d5eed1978631c",
+      "operationName": "input.validate",
+      "parentSpanID": "291b010645607d11"
+    },
+    {
+      "spanID": "083562ee523b8269",
+      "operationName": "chat",
+      "parentSpanID": "291b010645607d11"
+    },
+    {
+      "spanID": "291b010645607d11",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    }
+  ],
+  "span_invoke_agent_ditemukan": true,
+  "span_input_validate_ditemukan": true,
+  "span_chat_ditemukan": true,
+  "error": null
+}

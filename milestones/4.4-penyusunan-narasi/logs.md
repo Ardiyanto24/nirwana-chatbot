@@ -169,3 +169,27 @@ Tidak ada.
 **Commit:** `ffa2e78` — `test(milestone-4.4): unit test susun_narasi()`
 
 ---
+
+## Checkpoint 6 — Rancangan Eval
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 8 — Tulis `evals/4.4-penyusunan-narasi/rancangan.md`
+
+**Kesesuaian dengan plan:** Sesuai plan (13 skenario, sesuai target "~12-14" plan).
+
+**Apa yang dilakukan**
+Menulis 13 skenario (S01-S13) mencakup kedua KK sumber (S01 untuk KK1, S02-S04 untuk KK2) plus dimensi tambahan (sebagian+flagged/stale, berhasil murni baseline negatif, terblokir_ketergantungan 1 level + rantai 2 level, nullable-bermakna, jebakan sebab-akibat, kejujuran total kegagalan, lintas-turn ganda). Karena output `susun_narasi()` adalah teks bebas (beda dari SELURUH eval milestone sebelumnya yang menilai keputusan terstruktur), setiap skenario memakai heuristik ringan (kehadiran/ketiadaan kata kunci) SEBAGAI PELENGKAP, bukan pengganti audit manual — kolom "Audit Manual Wajib" ditambahkan eksplisit di ringkasan (tidak ada di preseden M1.6/M1.7 karena keduanya punya ekspektasi terstruktur yang bisa di-assert penuh otomatis).
+
+**Temuan**
+Penyesuaian struktural dari preseden: karena narasi adalah teks bebas, "check" otomatis tidak bisa jadi satu-satunya sumber kebenaran match/mismatch seperti M1.6/M1.7 — didesain sebagai lapis tambahan, verdict akhir tetap dari audit manual (dicatat eksplisit di rancangan.md, bukan penyimpangan diam-diam).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+Tidak ada eksekusi di checkpoint ini (murni dokumen desain). Review manual: kedua KK sumber masing-masing punya ≥1 skenario pembukti eksplisit (S01 untuk KK1; S02, S03, S04 untuk KK2 — S04 paling representatif karena menguji kontras BERDAMPINGAN persis seperti kalimat KK2 sumber).
+
+**Commit:** `3271209` — `docs(milestone-4.4): rancangan eval penyusunan narasi`
+
+---

@@ -4,6 +4,22 @@ Dokumen ini mencatat keputusan teknis yang genuinely terbuka tapi **belum saatny
 
 ---
 
+## 4. Skema `DataVisualisasi` untuk 3 Label Selain `tren`/`nilai_tunggal` (Milestone 4.5) — Provisional, Menunggu PIC 5
+
+**Status:** AKTIF — skema SUDAH dipakai produksi (`DataVisualisasi`, `src/schemas/interpretation.py`: `nilai_tunggal` scalar untuk label `nilai_tunggal`, `deret: list[dict]` untuk 4 label lain), TAPI perluasan bentuk `deret` ke `perbandingan`/`peringkat`/`komposisi` eksplisit BUKAN kontrak resmi — instruksi diri sendiri (agen) dicatat sadar sebagai provisional, mirror pola `docs/keputusan-tertunda.md` #2/#3.
+
+**Muncul di:** Milestone 4.5 (Verifikasi Kesetiaan Data + Penyusunan Visualisasi), Checkpoint 1-2 (2026-08-18).
+
+**Konteks kemunculan:** Kriteria Keberhasilan sumber M4.5 eksplisit hanya memberi bentuk minimum mengikat untuk 2 dari 5 nilai `label_bentuk_jawaban`: `tren` → harus "deret" (list, bisa digambar grafik garis), `nilai_tunggal` → harus "angka tunggal" (scalar). Tidak ada spesifikasi eksplisit untuk `perbandingan`/`peringkat`/`komposisi` di dokumen manapun — PIC 5 (Observability Dashboard, konsumen sesungguhnya bentuk chart data ini) belum mulai sama sekali. Diputuskan (`milestones/4.5-.../decisions.md` Keputusan 8-9) memperlakukan ketiga label itu SAMA seperti `tren` (bentuk `deret`) lewat penalaran analogi (ketiganya secara inheren multi-nilai/multi-kategori), BUKAN dari kontrak eksplisit.
+
+**Kenapa belum ditutup permanen:** Belum ada bukti nyata kebutuhan chart library/frontend sesungguhnya (PIC 5 belum mulai) — bentuk `deret` generik (`list[dict]`, apa adanya dari `nilai_hasil["rows"]`) adalah pendekatan pragmatis TERSEDIA sekarang, bukan klaim ini bentuk optimal untuk kebutuhan render chart nyata nanti (mis. mungkin perlu field eksplisit `x`/`y`, atau `kategori`/`nilai` bernama, bukan sekadar row mentah).
+
+**Pemicu peninjauan ulang:**
+1. Milestone 5.x (Observability Dashboard) benar-benar mulai dan menentukan kebutuhan chart library nyata — revisit bentuk `deret` untuk 3 label ini (dan mungkin juga `tren`) berdasar kebutuhan render sesungguhnya, bukan tebakan.
+2. Kalau eval/produksi M4.5 menunjukkan `deret` generik (row mentah tanpa struktur x/y eksplisit) sulit dikonsumsi konsisten lintas 67 view (kolom berbeda-beda nama), pertimbangkan skema lebih terstruktur (mis. field `label`/`nilai` universal) lebih awal, tidak perlu menunggu PIC 5.
+
+---
+
 ## 1. Database untuk Proyek Ini (Session Memory + Kemungkinan Migrasi Daftar Role) — ✅ SELESAI (M1.5)
 
 **Status:** SELESAI di Milestone 1.5 (2026-08-15). Keputusan final: **Supabase** (Postgres terkelola, project sama dengan rencana dashboard observability M5.x/M6.x) diakses lewat **SQLModel**; `src/config/roles.yaml` **dimigrasi penuh** ke tabel `roles` di database yang sama (file YAML dihapus). Detail lengkap + opsi yang dipertimbangkan tapi ditolak: `milestones/1.5-tarik-session-memory/decisions.md` Keputusan 1-3, 9.

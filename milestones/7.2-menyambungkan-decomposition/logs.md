@@ -26,3 +26,25 @@ $ uv run pytest tests/layers/decomposition/test_decompose.py -v   # regresi penu
 ```
 
 Kedua assertion boundary lolos dengan LLM sungguhan — membuktikan hand-off nilai persis, bukan cuma "hasil akhir terlihat benar" (yang sudah dibuktikan `test_kelompok_a...` sejak M1.6/M7.1).
+
+## Checkpoint 3 — Test Connectivity: Jalur Retry/Feedback
+
+**Task 3.** Ditambahkan `test_konektivitas_retry_feedback_mengalir_ke_pecah_atomik_berikutnya` ke `tests/layers/decomposition/test_decompose.py`.
+
+**Desain test:** `verifikasi_pemecahan()` di-patch dengan `side_effect=_paksa_invalid_lalu_asli` — percobaan PERTAMA dipaksa `VerifikasiResult(valid=False, alasan=_MARKER_ALASAN_RETRY)` (marker distinctive, bukan hasil LLM), percobaan KEDUA dst memanggil balik fungsi asli (real LLM). `pecah_atomik()` di-spy dengan `side_effect=pecah_atomik` (real LLM, kedua percobaan) untuk merekam `call_args_list`.
+
+**Assertion boundary:**
+- `call_count["verifikasi"] >= 2` — verifikasi_pemecahan() genuinely dipanggil ulang setelah dipaksa invalid.
+- `spy_pecah.call_args_list[1].args[2] == _MARKER_ALASAN_RETRY` — argumen `feedback` yang diterima `pecah_atomik()` percobaan kedua PERSIS sama dengan `alasan` yang dipaksakan di percobaan pertama `verifikasi_pemecahan()`.
+- `result.retry_count >= 1` — sanity check retry benar-benar tercatat di hasil akhir.
+
+**Hasil run nyata:**
+```
+$ uv run pytest tests/layers/decomposition/test_decompose.py::test_konektivitas_retry_feedback_mengalir_ke_pecah_atomik_berikutnya -v
+PASSED [100%]  (52.14s — konsisten 2 pemanggilan LLM nyata untuk pecah_atomik percobaan 1+2)
+
+$ uv run pytest tests/layers/decomposition/test_decompose.py -v   # regresi penuh file, 4 test
+4 passed in 177.02s (0:02:57)
+```
+
+Jalur retry/feedback (bagian paling "connection-specific" dari desain M1.6 Keputusan 3) sekarang terbukti nyata secara deterministik — sebelumnya tidak py test otomatis sama sekali (temuan Checkpoint 1).

@@ -15,8 +15,15 @@ from src.layers.decomposition.decompose import decompose_question
 from src.layers.decomposition.klasifikasi import klasifikasi_kebutuhan
 from src.layers.decomposition.pemecahan import pecah_atomik
 from src.layers.decomposition.verifikasi import verifikasi_pemecahan
-from src.schemas.decomposition import AtomicIntent, PemecahanResult, RelasiKebutuhan
+from src.schemas.decomposition import (
+    AtomicIntent,
+    PemecahanResult,
+    RelasiKebutuhan,
+    VerifikasiResult,
+)
 from src.schemas.session_memory import LabelBentukJawaban
+
+_MARKER_ALASAN_RETRY = "MARKER_TEST_KONEKTIVITAS_7_2_RETRY_FEEDBACK"
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("OPENROUTER_API_KEY"),
@@ -124,3 +131,47 @@ def test_konektivitas_klasifikasi_pemecahan_verifikasi_jalur_normal():
     # Boundary 2: argumen `hasil` yang diterima verifikasi_pemecahan() percobaan
     # pertama harus objek PERSIS yang dikembalikan pecah_atomik().
     assert spy_verifikasi.call_args_list[0].args[1] is pemecahan_returns[0]
+
+
+def test_konektivitas_retry_feedback_mengalir_ke_pecah_atomik_berikutnya():
+    """Milestone 7.2: buktikan jalur retry/feedback - `verifikasi.alasan`
+    dari percobaan gagal genuinely mengalir sebagai `feedback` ke
+    pecah_atomik() percobaan berikutnya. Retry natural jarang terjadi dari
+    LLM (evals/1.6-decomposition/audit.md menemukan retry tidak reliable
+    terpicu) - jadi PERCOBAAN PERTAMA verifikasi_pemecahan() dipaksa invalid
+    lewat mock dengan alasan bertanda distinctive (bukan hasil LLM), TAPI
+    pecah_atomik() percobaan KEDUA tetap panggilan LLM sungguhan, dan
+    verifikasi_pemecahan() percobaan kedua dst juga tetap fungsi asli
+    (side_effect memanggil balik verifikasi_pemecahan() nyata). Tujuan
+    eksplisit BUKAN menguji kualitas retry (evals/ sudah menutup itu),
+    melainkan menguji wiring pengiriman feedback."""
+    question = "Bandingkan revenue reservasi Maret 2026 dengan Februari 2026."
+
+    call_count = {"verifikasi": 0}
+
+    def _paksa_invalid_lalu_asli(question_arg, hasil_arg):
+        call_count["verifikasi"] += 1
+        if call_count["verifikasi"] == 1:
+            return VerifikasiResult(valid=False, alasan=_MARKER_ALASAN_RETRY)
+        return verifikasi_pemecahan(question_arg, hasil_arg)
+
+    with (
+        patch(
+            "src.layers.decomposition.decompose.pecah_atomik",
+            side_effect=pecah_atomik,
+        ) as spy_pecah,
+        patch(
+            "src.layers.decomposition.decompose.verifikasi_pemecahan",
+            side_effect=_paksa_invalid_lalu_asli,
+        ),
+    ):
+        result = decompose_question(question)
+
+    assert call_count["verifikasi"] >= 2, (
+        "verifikasi_pemecahan() harus dipanggil ulang setelah dipaksa invalid di percobaan pertama"
+    )
+    assert spy_pecah.call_args_list[1].args[2] == _MARKER_ALASAN_RETRY, (
+        "feedback yang diterima pecah_atomik() percobaan kedua harus PERSIS "
+        "alasan yang dipaksakan di percobaan pertama verifikasi_pemecahan()"
+    )
+    assert result.retry_count >= 1

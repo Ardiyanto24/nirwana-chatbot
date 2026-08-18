@@ -115,3 +115,15 @@ Satu rantai panggilan M4.4→M4.5→visualisasi berhasil membuktikan alur penuh 
 - Ditulis ke `audit-kontrak-antar-layer.md` bagian "PIC 4" (M4.1-M4.2), termasuk koreksi temuan `git log` di atas.
 - Ditulis entri baru `docs/keterbatasan-diterima.md` #13 — celah `eksekusi_atomic_intent()`/`panggil_meta_chatbot_api()` tanpa bukti nyata `chatbot_api`, dengan trigger revisit eksplisit (sebelum Milestone 7.14 dimulai).
 - M4.1 (fungsi `_panggil_chatbot_api_raw()`/`panggil_chatbot_api()`) TETAP dianggap terbukti nyata lewat kutipan sah Milestone 4.1 Checkpoint 5 (trace_id konkret, refactor regresi-tested) — HANYA `panggil_meta_chatbot_api()` dan `eksekusi_atomic_intent()` yang jadi celah tercatat.
+
+## Checkpoint 7 — Konsolidasi dan Penutupan
+
+**Task 13.** "Ringkasan Kontrak" (tabel 18 baris unit lintas 9 layer) dan section "Penyimpangan Ditemukan" (4 entri, masing-masing dengan rujukan checkpoint asal + milestone 7.x terdampak) ditambahkan di bagian atas `audit-kontrak-antar-layer.md`.
+
+**Task 14.** Log ini (Checkpoint 1-7) final — kronologi lengkap tersedia di atas, termasuk satu koreksi temuan di tengah jalan (Checkpoint 6, klaim git log yang semula keliru).
+
+**Task 15.** `report.md` ditulis — Kriteria Keberhasilan sumber vs bukti, keterbatasan, follow-up untuk M7.2/M7.5/M7.14.
+
+**Task 16.** `CLAUDE.md`/`AGENT.md` diperbarui — baris M7.1 (Selesai) + kerangka M7.2-7.18 (Berikutnya) ditambahkan ke tabel Status Proyek.
+
+**Ringkasan angka akhir milestone:** 6 checkpoint audit (2-6, dibagi per grup PIC) + 1 checkpoint persiapan (1) + 1 checkpoint penutupan (7) = 8 commit `docs`/`test` total. 18 baris unit kerja diaudit, 16 terbukti nyata, 2 tercatat sebagai celah (keterbatasan diterima #13), 4 penyimpangan ditemukan dan dicatat eksplisit, 0 didiamkan.

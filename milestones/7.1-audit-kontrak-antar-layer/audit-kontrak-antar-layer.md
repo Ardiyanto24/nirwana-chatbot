@@ -2,7 +2,39 @@
 
 Dokumen ini adalah rujukan tunggal kontrak aktual (dari kode nyata, bukan dokumen `rancangan-*.md`) untuk seluruh unit kerja di 9 layer (Milestone 1.2-4.5) yang dipakai Milestone 7.2-7.18. Setiap entri diverifikasi lewat pembacaan langsung source file (Checkpoint 2-6, Task 3/5/7/9/11) dan minimal satu panggilan nyata (Checkpoint 2-6, Task 4/6/8/10/11-12).
 
-> Ringkasan Kontrak (tabel lintas-unit) dan section Penyimpangan Ditemukan disusun di Checkpoint 7 (Task 13), setelah seluruh PIC selesai diaudit.
+## Ringkasan Kontrak (Rujukan Cepat)
+
+| Unit | Milestone | Entry point produksi | LLM call (kondisi normal) | Bukti nyata |
+|---|---|---|---|---|
+| Input Layer | 1.2 | `src/main.py::submit_turn` → `input_layer.py::validate_turn_payload` | 0 | ✅ Real HTTP (`TestClient`) |
+| Pemetaan Ketergantungan Turn | 1.3 | `turn_dependency.py::detect_turn_dependency` | 1 | ✅ Real LLM |
+| Rewrite Mandiri | 1.4 | `rewrite.py::rewrite_to_standalone` | 1 | ✅ Real LLM |
+| Tarik Session Memory | 1.5 | `session_memory.py::retrieve_session_memory`/`store_session_memory` | 0 | ✅ Real Supabase |
+| Decomposition | 1.6 | `decompose.py::decompose_question` | 1 + hingga 3×2 = **hingga 7** (⚠️ lihat Penyimpangan #1) | ✅ Real LLM (rantai penuh) |
+| Pencocokan Atomic Intent | 1.7 | `matching.py::match_and_archive` | 0 atau 1/atomic_intent | ✅ Real LLM+DB |
+| Domain Gate | 2.1 | `domain_gate.py::identifikasi_domain_semua` | 2 berurutan | ✅ Real LLM |
+| Pemeriksaan Otorisasi | 2.2 | `otorisasi.py::periksa_otorisasi_semua` | 0 | ✅ Real DB |
+| Deteksi Cakupan Individu | 2.3 | `cakupan_individu.py::deteksi_constraint_semua` | 0 atau 2 (pre-filter kondisional) | ✅ Real LLM |
+| Verification Gate | 2.4 | `verifikasi_gate.py::verifikasi_gate` | 0 | ✅ Real DB (fixture) |
+| Retriever (M3.1-3.3) | 3.1-3.3 | `kecukupan_struktural.py::proses_retrieval_atomic_intent` | 0-4 (embedding kondisional + 2 M3.2 + 1 M3.3 kondisional) | ✅ Real LLM+embedding (2 skenario) |
+| Query Engine (M3.4-3.5) | 3.4-3.5 | `penyusunan_request.py`+`verifikasi_bentuk_request.py` | 2 berurutan | ✅ Real LLM |
+| Execution: Pemanggilan chatbot_api | 4.1 | `pemanggilan_chatbot_api.py::_panggil_chatbot_api_raw`/`panggil_chatbot_api` | 0 (murni HTTP) | ✅ Dikutip sah (M4.1 Checkpoint 5, 2/67 view) |
+| Execution: `_meta` endpoint | 4.1 | `pemanggilan_chatbot_api.py::panggil_meta_chatbot_api` | 0 (murni HTTP) | ❌ **CELAH** (lihat keterbatasan #13) |
+| Execution: Klasifikasi Respons | 4.2 | `klasifikasi_respons.py::eksekusi_atomic_intent` | 0 langsung, hingga (N-1)×2 tidak langsung (jalur revisi 400) | ❌ **CELAH** (lihat keterbatasan #13) |
+| Penyimpanan Paket | 4.3 | `penyimpanan_paket.py::susun_dan_simpan_paket` | 0 | ✅ Real Supabase |
+| Interpretation: Narasi | 4.4 | `narasi.py::susun_narasi` | 1 | ✅ Real LLM |
+| Interpretation: Verifikasi + Visualisasi | 4.5 | `verifikasi_kesetiaan.py::verifikasi_dan_susun_visualisasi` | 1 | ✅ Real LLM (rantai M4.4→M4.5→viz) |
+
+**16 dari 18 baris unit** (menghitung M4.1 dan `_meta` sebagai entri terpisah karena status bukti berbeda) punya bukti panggilan nyata genuinely terverifikasi di Milestone 7.1 ini. 2 baris (`panggil_meta_chatbot_api()`, `eksekusi_atomic_intent()`) tercatat sebagai celah — didokumentasikan `docs/keterbatasan-diterima.md` #13, TIDAK memblokir penutupan milestone sesuai Keputusan 7.
+
+## Penyimpangan Ditemukan (Ringkasan Lintas-Unit)
+
+1. **Decomposition (M1.6) bisa sampai 7 pemanggilan LLM, bukan 3** — `decompose_question()` (klasifikasi 1x + retry loop pemecahan/verifikasi hingga 3×2) menyimpang dari framing "3 pemanggilan LLM berurutan" di `rancangan-orkestrasi-api.md` §Level 1. **Rujukan:** audit bagian M1.6 (Checkpoint 2); relevan untuk **Milestone 7.2** (Level 1, penyambungan internal Decomposition) — wajib memperhitungkan retry loop, bukan pipa linear 3-langkah.
+2. **Execution M4.2 pada jalur revisi `400` memanggil balik M3.4→M3.5→M2.4** — cross-layer call-back yang tidak eksplisit disebut di dokumen orkestrasi. **Rujukan:** audit bagian M4.2 (Checkpoint 6); relevan untuk **Milestone 7.14** (Level 2 Sambungan 9, Verification Gate → Execution) — span `execute_tool` M4.2 membungkus span `chat` M3.4/M3.5 lewat context propagation, bukan span terpisah tanpa konteks.
+3. **Docstring `narasi.py` (M4.4) basi** — masih menyebut M4.5 "belum dibangun", padahal sudah selesai sejak Milestone 4.5. Non-fungsional (tidak ada logic bergantung padanya), tapi berisiko menyesatkan pembaca **Milestone 7.5** (Level 1, penyambungan internal Interpretation). **Rujukan:** audit bagian M4.4 (Checkpoint 5). **Tidak diperbaiki di M7.1** (di luar cakupan — audit mencatat, tidak merefactor kode layer 1-9).
+4. **`panggil_meta_chatbot_api()` (M4.1, ditambahkan 2026-08-18) dan `eksekusi_atomic_intent()` (M4.2) belum pernah dibuktikan panggilan nyata ke `chatbot_api` sama sekali** — ditemukan lewat audit real-call (Checkpoint 6) + koreksi klaim awal via `git log`. **Rujukan:** `docs/keterbatasan-diterima.md` #13; trigger revisit eksplisit sebelum **Milestone 7.14** dimulai.
+
+**Tidak ditemukan:** TODO/FIXME/HACK literal di `src/` (dicek grep, Checkpoint 2 awal); penyimpangan kontrak I/O (signature/skema) dari dokumen desain di PIC 1-3 dan M4.3-4.5 — seluruhnya konsisten.
 
 ---
 

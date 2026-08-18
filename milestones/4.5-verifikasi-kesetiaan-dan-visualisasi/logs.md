@@ -71,3 +71,27 @@ Import + validasi digabung dengan Task 2 dalam satu pemanggilan manual — semua
 **Commit:** `a78ebff` — `feat(milestone-4.5): skema HasilVerifikasiNarasi + DataVisualisasi + konstanta model`
 
 ---
+
+## Checkpoint 3 — System Prompt Verifikasi Kesetiaan
+
+**Mulai:** 2026-08-18 · **Selesai:** 2026-08-18
+
+### Task 4 — Tulis `src/prompts/interpretation/verifikasi_kesetiaan.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis frontmatter (`id: interpretation.verifikasi_kesetiaan`, `version: 1`, `milestone: "4.5"`, `model_compat: ["deepseek/deepseek-v4-pro"]`) + body: penjelasan peran (menilai independen, tidak melihat proses generate), 5 kriteria bernomor persis dari Lingkup sumber (data hilang, status non-normal jujur, larangan klaim sebab-akibat, angka sesuai data asli, status terblokir spesifik), format output JSON `{"lolos": bool, "alasan": str|null}` mirror pola `verifikasi_bentuk_request.md` (M3.5).
+
+**Temuan**
+Tidak ada temuan tak terduga — isi prompt murni menerjemahkan 5 kriteria Lingkup M4.5 sumber ke instruksi eksplisit bernomor, mengikuti format JSON preseden verifier lain.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`load_prompt("interpretation.verifikasi_kesetiaan").render()` berhasil parse tanpa error. Checklist manual: kelima kriteria tersurat sebagai butir bernomor terpisah, format JSON output eksplisit dicontohkan.
+
+**Commit:** `8efed77` — `feat(milestone-4.5): system prompt verifikasi kesetiaan`
+
+---

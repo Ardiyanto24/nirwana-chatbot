@@ -1,12 +1,22 @@
 """Test orkestrator Query Engine (Milestone 7.4) -
 src/layers/query_engine/query_engine.py. Checkpoint 2: unit test dasar
-(mocked, tanpa LLM sungguhan) untuk wiring/short-circuit.
+(mocked, tanpa LLM sungguhan) untuk wiring/short-circuit. Checkpoint 3:
+test connectivity Kriteria Keberhasilan sumber (LLM sungguhan) - lihat
+bagian bawah file.
 """
 
+import os
 import uuid
+from unittest.mock import patch
+
+import pytest
 
 import src.layers.query_engine.query_engine as query_engine_module
+from src.layers.query_engine.penyusunan_request import susun_request_atomic_intent
 from src.layers.query_engine.query_engine import susun_dan_verifikasi_request_atomic_intent
+from src.layers.query_engine.verifikasi_bentuk_request import (
+    verifikasi_bentuk_request_atomic_intent,
+)
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
@@ -164,3 +174,52 @@ def test_view_name_tervalidasi_retriever_eksplisit_berbeda_diteruskan(monkeypatc
     )
 
     assert diterima["view_name_tervalidasi_retriever"] == _VIEW_LAIN
+
+
+# --- Checkpoint 3: test connectivity Kriteria Keberhasilan (LLM nyata) --
+
+
+@pytest.mark.skipif(
+    not os.environ.get("OPENROUTER_API_KEY"),
+    reason="OPENROUTER_API_KEY tidak diset - skip test yang butuh panggilan LLM nyata",
+)
+def test_konektivitas_mismatch_view_name_tertangkap_verifikasi_nyata():
+    """Milestone 7.4: reuse skenario KK1 Milestone 3.5
+    (test_pre_check_gagal_llm_tidak_pernah_dipanggil /
+    evals/3.5-verifikasi-bentuk-request/payloads/S01.json) - request
+    mengalir dari susun_request_atomic_intent() NYATA (LLM sungguhan),
+    diverifikasi dengan view_name_tervalidasi_retriever BERBEDA, membuktikan
+    mismatch tertangkap TANPA input Verifikasi disusun manual terpisah dari
+    output Susun (KK M7.4, literal)."""
+    atomic_intent = _buat_atomic_intent()
+
+    susun_returns = []
+
+    def _rekam_susun(*args, **kwargs):
+        hasil = susun_request_atomic_intent(*args, **kwargs)
+        susun_returns.append(hasil)
+        return hasil
+
+    with (
+        patch(
+            "src.layers.query_engine.query_engine.susun_request_atomic_intent",
+            side_effect=_rekam_susun,
+        ),
+        patch(
+            "src.layers.query_engine.query_engine.verifikasi_bentuk_request_atomic_intent",
+            wraps=verifikasi_bentuk_request_atomic_intent,
+        ) as spy_verifikasi,
+    ):
+        hasil_susun, hasil_verifikasi = susun_dan_verifikasi_request_atomic_intent(
+            atomic_intent,
+            view_name=_VIEW,
+            view_name_tervalidasi_retriever=_VIEW_LAIN,
+        )
+
+    assert hasil_susun.status == StatusEksekusi.BERHASIL
+    # Boundary: request yang diterima verifikasi harus objek PERSIS dari susun() nyata.
+    assert spy_verifikasi.call_args_list[0].args[2] is susun_returns[0].request
+
+    assert hasil_verifikasi is not None
+    assert hasil_verifikasi.lolos is False
+    assert _VIEW_LAIN in hasil_verifikasi.alasan

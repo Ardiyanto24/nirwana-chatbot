@@ -82,6 +82,16 @@ gampang diganti tanpa menyentuh logic layer.
   M3.4, dipicu HANYA setelah pre-check kepatuhan sumber deterministik
   lolos. Lihat
   milestones/3.5-verifikasi-bentuk-request/decisions.md Keputusan 5.
+- OPENROUTER_MODEL_NARASI: Qwen3-32B (reuse, konstanta terisolasi sendiri
+  mengikuti pola "satu konstanta per konsumen" M1.4 Keputusan 9), dipakai
+  narasi.py (M4.4, Interpretation) untuk penyusunan narasi jawaban akhir -
+  SATU panggilan generate-only (teks bebas, bukan ekstraksi terstruktur),
+  tanpa retry/feedback internal (verifier independen M4.5 terpisah).
+  Dikonfirmasi user (bukan perbandingan empiris baru) atas dasar benchmark
+  SEA-HELM Bahasa Indonesia yang sama dipakai M1.4 (Rewrite) - tugas NLG
+  serupa, beda dari mayoritas milestone lain yang murni ekstraksi/
+  klasifikasi terstruktur. Lihat milestones/4.4-penyusunan-narasi/
+  decisions.md Keputusan 1.
 
 Timeout eksplisit (90 detik, max_retries=1) ditambahkan di
 get_openrouter_client() saat eksekusi eval Milestone 2.1 (Checkpoint 10)
@@ -118,6 +128,7 @@ OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI = "deepseek/deepseek-v4-pro"
 OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL = "qwen/qwen3-32b"
 OPENROUTER_MODEL_PENYUSUNAN_REQUEST = "qwen/qwen3-32b"
 OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST = "deepseek/deepseek-v4-pro"
+OPENROUTER_MODEL_NARASI = "qwen/qwen3-32b"
 
 load_dotenv()
 

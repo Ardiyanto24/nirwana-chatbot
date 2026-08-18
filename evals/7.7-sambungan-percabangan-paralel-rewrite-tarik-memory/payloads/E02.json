@@ -1,0 +1,56 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Turn tanpa referensi, hanya jalur Rewrite",
+  "timestamp": "2026-08-18T10:47:37.533314+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.7-e02",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.7-e02",
+      "turn_index": 1,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa occupancy rate properti kita bulan Juni 2026?",
+      "history": []
+    },
+    "ketergantungan": {
+      "is_dependent": false,
+      "referenced_turn_index": null
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?"
+    },
+    "session_memory": null
+  },
+  "trace_id": "be61c3ce528b50dc28a84561952e85da",
+  "span_structure_jaeger": [
+    {
+      "spanID": "1ed7eaea92788dc3",
+      "operationName": "input.validate",
+      "parentSpanID": "21af920e1dfa1eb7"
+    },
+    {
+      "spanID": "027c34760f2c5aa6",
+      "operationName": "chat",
+      "parentSpanID": "21af920e1dfa1eb7"
+    },
+    {
+      "spanID": "5fc2519268945845",
+      "operationName": "chat",
+      "parentSpanID": "21af920e1dfa1eb7"
+    },
+    {
+      "spanID": "21af920e1dfa1eb7",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    }
+  ],
+  "span_chat_ditemukan": true,
+  "span_memory_retrieve_ditemukan": false,
+  "error": null
+}

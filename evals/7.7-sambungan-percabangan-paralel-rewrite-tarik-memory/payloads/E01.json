@@ -1,0 +1,78 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Turn dengan referensi terdeteksi, kedua jalur paralel (KK literal)",
+  "timestamp": "2026-08-18T10:47:28.319204+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.7-e01",
+    "turn_index": 2,
+    "role_title": "Corporate Revenue Director",
+    "employee_id": "emp-eval",
+    "question": "Bandingkan dengan bulan sebelumnya.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa revenue reservasi bulan Maret 2026?",
+        "answer": "Revenue reservasi Maret 2026 sebesar Rp 800 juta."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.7-e01",
+      "turn_index": 2,
+      "role_title": "Corporate Revenue Director",
+      "employee_id": "emp-eval",
+      "question": "Bandingkan dengan bulan sebelumnya.",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa revenue reservasi bulan Maret 2026?",
+          "answer": "Revenue reservasi Maret 2026 sebesar Rp 800 juta."
+        }
+      ]
+    },
+    "ketergantungan": {
+      "is_dependent": true,
+      "referenced_turn_index": 1
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa revenue reservasi bulan Februari 2026 dibandingkan dengan Maret 2026?"
+    },
+    "session_memory": []
+  },
+  "trace_id": "1209dcff1ddf138a4a1118239a53dec6",
+  "span_structure_jaeger": [
+    {
+      "spanID": "0b06f8b3ce3a3983",
+      "operationName": "chat",
+      "parentSpanID": "5f88085f1577dcaf"
+    },
+    {
+      "spanID": "5f88085f1577dcaf",
+      "operationName": "invoke_agent",
+      "parentSpanID": null
+    },
+    {
+      "spanID": "0ff30bd557ac075a",
+      "operationName": "input.validate",
+      "parentSpanID": "5f88085f1577dcaf"
+    },
+    {
+      "spanID": "a1f8ca3b65606d64",
+      "operationName": "chat",
+      "parentSpanID": "5f88085f1577dcaf"
+    },
+    {
+      "spanID": "4cb147891fbf7920",
+      "operationName": "memory.retrieve",
+      "parentSpanID": "5f88085f1577dcaf"
+    }
+  ],
+  "invoke_agent_span_id": "5f88085f1577dcaf",
+  "chat_parent_span_id": "5f88085f1577dcaf",
+  "memory_retrieve_parent_span_id": "5f88085f1577dcaf",
+  "chat_parent_cocok_invoke_agent": true,
+  "memory_retrieve_parent_cocok_invoke_agent": true,
+  "kedua_span_anak_dari_span_sama": true,
+  "error": null
+}

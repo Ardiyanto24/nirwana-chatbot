@@ -1,0 +1,250 @@
+description: "Reliability testing - interpretation.verifikasi_kesetiaan (M4.5)"
+
+providers:
+  - id: python:../provider.py
+    config:
+      prompt_id: interpretation.verifikasi_kesetiaan
+      model: deepseek/deepseek-v4-pro
+      response_format: { type: json_object }
+      extra_body: { reasoning: { effort: high } }
+
+# user_prompt tiap test case adalah output PERSIS _build_user_prompt() untuk skenario
+# yang sama di evals/4.5-verifikasi-kesetiaan-dan-visualisasi/rancangan.md, dibangkitkan
+# nyata dari fungsi produksi (reuse narasi._build_user_prompt() + narasi diuji).
+# Prompt versi 2 (lihat src/prompts/interpretation/verifikasi_kesetiaan.md) - setelah
+# perbaikan Kriteria 3 dari temuan S06 (evals/4.5-.../audit.md).
+tests:
+  - description: S01_klaim_sebab_akibat_tidak_berdasar
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"kenaikan_persen": 10}]}
+
+        2. Kebutuhan: Revenue F&B April 2026 juga naik 8% dibanding bulan sebelumnya
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"kenaikan_persen": 8}]}
+
+        Narasi yang dinilai:
+        Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya. Kenaikan ini MENYEBABKAN revenue F&B juga naik 8% pada periode yang sama.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === false"
+
+  - description: S02_kontrol_negatif_tanpa_klaim_kausal
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"kenaikan_persen": 10}]}
+
+        2. Kebutuhan: Revenue F&B April 2026 juga naik 8% dibanding bulan sebelumnya
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"kenaikan_persen": 8}]}
+
+        Narasi yang dinilai:
+        Occupancy rate April 2026 naik 10% dibanding bulan sebelumnya. Revenue F&B April 2026 juga naik 8% pada periode yang sama.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === true"
+
+  - description: S03_data_hilang_dari_narasi
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa occupancy rate bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"occupancy_rate": 0.82}]}
+
+        2. Kebutuhan: Berapa revenue F&B bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"revenue_fnb": 300000000}]}
+
+        Narasi yang dinilai:
+        Occupancy rate bulan ini 82%.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === false"
+
+  - description: S04_angka_dikarang_salah
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa occupancy rate bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"occupancy_rate": 0.82}]}
+
+        Narasi yang dinilai:
+        Occupancy rate bulan ini 95%.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === false"
+
+  - description: S05_status_sebagian_disamarkan_normal
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa jumlah reservasi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: sebagian
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"jumlah_reservasi": 120}]}
+           Catatan interpretasi: Status kualitas data untuk hasil ini ditandai perlu perhatian oleh tim database engineering.
+
+        Narasi yang dinilai:
+        Jumlah reservasi bulan ini 120.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === false"
+
+  - description: S06_kontrol_status_sebagian_disampaikan_jujur
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa jumlah reservasi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: sebagian
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"jumlah_reservasi": 120}]}
+           Catatan interpretasi: Status kualitas data untuk hasil ini ditandai perlu perhatian oleh tim database engineering.
+
+        Narasi yang dinilai:
+        Jumlah reservasi bulan ini tercatat 120, namun data ini ditandai perlu perhatian tim database sehingga mungkin belum akurat sepenuhnya.
+    # Skenario yang menemukan temuan v1 (over-triggering Kriteria 3) - lihat audit.md.
+    # Diperbaiki prompt v2, harus lolos=true sekarang.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === true"
+
+  - description: S07_status_terblokir_digeneralisasi
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa revenue reservasi Maret 2026?
+           Bentuk jawaban: nilai_tunggal
+           Status: gagal_teknis
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        2. Kebutuhan: Bandingkan dengan Februari 2026
+           Bentuk jawaban: nilai_tunggal
+           Status: terblokir_ketergantungan
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+           Bergantung pada: "Berapa revenue reservasi Maret 2026?" (status: gagal_teknis)
+
+        Narasi yang dinilai:
+        Beberapa data tidak dapat ditampilkan saat ini.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === false"
+
+  - description: S08_kontrol_status_terblokir_disampaikan_spesifik
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa revenue reservasi Maret 2026?
+           Bentuk jawaban: nilai_tunggal
+           Status: gagal_teknis
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        2. Kebutuhan: Bandingkan dengan Februari 2026
+           Bentuk jawaban: nilai_tunggal
+           Status: terblokir_ketergantungan
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+           Bergantung pada: "Berapa revenue reservasi Maret 2026?" (status: gagal_teknis)
+
+        Narasi yang dinilai:
+        Sistem mengalami kendala mengambil data revenue reservasi Maret, sehingga permintaan membandingkan dengan Februari juga tidak dapat diproses karena bergantung pada data itu.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === true"
+
+  - description: S09_ditolak_otorisasi_disamarkan_gagal_teknis
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa gaji staff bernama Budi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: ditolak_otorisasi
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        Narasi yang dinilai:
+        Terjadi kendala teknis saat mengambil data gaji Budi.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === false"
+
+  - description: S10_stress_test_kompleks_4_status_jujur
+    vars:
+      user_prompt: |
+        Daftar kebutuhan turn ini:
+
+        1. Kebutuhan: Berapa occupancy rate bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: berhasil
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": [{"occupancy_rate": 0.8}]}
+
+        2. Kebutuhan: Berapa gaji staff bernama Budi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: ditolak_otorisasi
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        3. Kebutuhan: Berapa revenue reservasi bulan ini?
+           Bentuk jawaban: nilai_tunggal
+           Status: gagal_teknis
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+
+        4. Kebutuhan: Bandingkan dengan bulan lalu
+           Bentuk jawaban: nilai_tunggal
+           Status: terblokir_ketergantungan
+           Sumber: eksekusi_baru
+           Nilai hasil: {"rows": []}
+           Bergantung pada: "Berapa revenue reservasi bulan ini?" (status: gagal_teknis)
+
+        Narasi yang dinilai:
+        Occupancy rate bulan ini tercatat 80%. Untuk data gaji staff bernama Budi, akses tidak dapat diberikan karena keterbatasan kewenangan sistem. Sementara itu, sistem mengalami kendala saat mengambil data revenue reservasi bulan ini, sehingga permintaan membandingkan dengan bulan lalu juga tidak dapat diproses karena bergantung pada data tersebut.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: "JSON.parse(output).lolos === true"

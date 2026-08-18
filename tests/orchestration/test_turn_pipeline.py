@@ -1,11 +1,13 @@
 """Test orkestrator lintas-layer PIC 7 Level 2 -
 src/orchestration/turn_pipeline.py. Cakupan SEMPIT (decisions.md M7.6
-Keputusan 8, dipertahankan M7.7 Keputusan 7, M7.8 Keputusan 6): hanya
-kejadian yang TIDAK butuh LLM/DB/Jaeger nyata (short-circuit deterministik
-+ wiring identity mocked + kegagalan teknis salah satu cabang paralel +
-argumen yang diterima Decomposition). Kejadian yang butuh eksekusi nyata
-(LLM/DB sungguhan, bukti span/konten) ada di evals/7.6-.../, evals/7.7-.../,
-evals/7.8-.../ - lihat rancangan.md/audit.md di folder masing-masing.
+Keputusan 8, dipertahankan M7.7 Keputusan 7, M7.8 Keputusan 6, M7.9
+Keputusan 7): hanya kejadian yang TIDAK butuh LLM/DB/Jaeger nyata
+(short-circuit deterministik + wiring identity mocked + kegagalan teknis
+salah satu cabang paralel + argumen yang diterima Decomposition +
+konversi None/list-kosong ke Pencocokan). Kejadian yang butuh eksekusi
+nyata (LLM/DB sungguhan, bukti span/konten/status match) ada di
+evals/7.6-.../, evals/7.7-.../, evals/7.8-.../, evals/7.9-.../ - lihat
+rancangan.md/audit.md di folder masing-masing.
 """
 
 import pydantic
@@ -30,6 +32,8 @@ _DECOMPOSITION_DUMMY = DecompositionResult(
     verifikasi_alasan=None,
     retry_count=0,
 )
+
+_MATCHES_DUMMY = []
 
 _RAW_VALID_TURN1 = {
     "session_id": "sess-test",
@@ -101,6 +105,15 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         turn_pipeline_module, "decompose_question", _decompose_gagal_kalau_terpanggil
     )
 
+    def _match_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "match_and_archive TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", _match_gagal_kalau_terpanggil
+    )
+
     with pytest.raises(pydantic.ValidationError):
         proses_turn(_RAW_GAGAL_VALIDASI)
 
@@ -134,6 +147,9 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     monkeypatch.setattr(
         turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
     )
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -142,6 +158,7 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     assert hasil.rewrite is rewrite_asli
     assert hasil.session_memory is None
     assert hasil.decomposition is _DECOMPOSITION_DUMMY
+    assert hasil.matches == _MATCHES_DUMMY
 
 
 def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
@@ -180,6 +197,9 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
     monkeypatch.setattr(
         turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
     )
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
 
@@ -188,6 +208,7 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
     assert diterima_memory["turn_index"] == 1
     assert hasil.rewrite is rewrite_asli
     assert hasil.decomposition is _DECOMPOSITION_DUMMY
+    assert hasil.matches == _MATCHES_DUMMY
     # KeadaanTurn membungkus `list[SessionMemoryPackage]` lewat Pydantic -
     # container list-nya sendiri direkonstruksi (bukan identity check valid),
     # tapi tiap elemen di dalamnya tetap objek PERSIS (fast-path Pydantic
@@ -260,9 +281,90 @@ def test_orkestrator_decompose_menerima_rewritten_question_bukan_payload_questio
         return _DECOMPOSITION_DUMMY
 
     monkeypatch.setattr(turn_pipeline_module, "decompose_question", _rekam_decompose)
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
     assert diterima_decompose["question"] == "TEKS HASIL REWRITE BERBEDA TOTAL"
     assert diterima_decompose["question"] != payload_asli.question
     assert hasil.decomposition is _DECOMPOSITION_DUMMY
+
+
+def test_orkestrator_match_menerima_list_kosong_saat_session_memory_none(monkeypatch):
+    """Kejadian E01 M7.9: tanpa referensi terdeteksi -> session_memory=None
+    di KeadaanTurn, TAPI match_and_archive() WAJIB tetap menerima `[]`
+    (bukan None) sebagai candidates - konversi `session_memory_result or []`
+    forced signature match_and_archive() yang menerima list, bukan Optional."""
+    payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
+    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+    )
+
+    diterima_match = {}
+
+    def _rekam_match(atomic_intents, candidates, session_id, turn_index):
+        diterima_match["candidates"] = candidates
+        return _MATCHES_DUMMY
+
+    monkeypatch.setattr(turn_pipeline_module, "match_and_archive", _rekam_match)
+
+    hasil = proses_turn(_RAW_VALID_TURN1)
+
+    assert hasil.session_memory is None
+    assert diterima_match["candidates"] == []
+    assert hasil.matches == _MATCHES_DUMMY
+
+
+def test_orkestrator_match_menerima_list_kosong_saat_session_memory_kosong(monkeypatch):
+    """Kejadian E02 M7.9: referensi terdeteksi TAPI Tarik Memory genuinely
+    tidak menemukan data -> session_memory=[] (bukan None) di KeadaanTurn,
+    match_and_archive() tetap menerima `[]` yang SAMA - origin beda (E01
+    tidak dipanggil sama sekali, E02 dipanggil lalu kosong) tapi hasil
+    konversi ke Pencocokan konsisten."""
+    payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN2)
+    ketergantungan_asli = TurnDependencyResult(is_dependent=True, referenced_turn_index=1)
+    rewrite_asli = RewriteResult(rewritten_question="pertanyaan mandiri")
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "retrieve_session_memory", lambda session_id, turn_index: []
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+    )
+
+    diterima_match = {}
+
+    def _rekam_match(atomic_intents, candidates, session_id, turn_index):
+        diterima_match["candidates"] = candidates
+        return _MATCHES_DUMMY
+
+    monkeypatch.setattr(turn_pipeline_module, "match_and_archive", _rekam_match)
+
+    hasil = proses_turn(_RAW_VALID_TURN2)
+
+    assert hasil.session_memory == []
+    assert diterima_match["candidates"] == []
+    assert hasil.matches == _MATCHES_DUMMY

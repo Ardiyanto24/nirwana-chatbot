@@ -218,3 +218,46 @@ Tidak ada eksekusi di checkpoint ini (murni dokumen desain). Review manual: KK1 
 **Commit:** `0aa5f78` — `docs(milestone-4.5): rancangan eval verifikasi kesetiaan`
 
 ---
+
+### Task 12 — `run_eval.py` + Eksekusi Nyata
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `evals/4.5-verifikasi-kesetiaan-dan-visualisasi/run_eval.py` — 10 skenario (S01-S10) sesuai `rancangan.md`, reuse `verifikasi_kesetiaan_narasi()` produksi langsung. Dijalankan nyata DUA KALI: run 1 (prompt v1) menemukan 1 REVIEW nyata (S06, bukan false-negative alat ukur); prompt diperbaiki v1→v2 (lihat Task 13); run 2 (prompt v2) — 10/10 sesuai ekspektasi.
+
+**Temuan**
+**S06 (run 1) adalah temuan nyata, bukan artefak skenario**: narasi kontrol yang meniru PERSIS pola kalimat sah yang diinstruksikan `narasi.md` M4.4 sendiri ("data ditandai perlu perhatian, sehingga mungkin belum akurat") ditolak verifier v1 karena Kriteria 3 (larangan klaim sebab-akibat) memicu pada kata "sehingga" tanpa membedakan konteks (klaim antar-data vs penjelasan keterbatasan satu hasil). Ditangani sebagai perbaikan prompt di tengah checkpoint (Task 13), bukan ditunda.
+
+**Error/Kegagalan (jika ada)**
+Run 1: S06 `match=False` (`lolos=False`, ekspektasi `True`) — dianalisis Task 13.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Lihat Task 13.
+
+**Hasil Verifikasi**
+Run 2 (final, prompt v2): 10/10 skenario sesuai ekspektasi. Payload run 2 (final) tersimpan `payloads/S01.json`..`S10.json` — payload run 1 TIDAK disimpan terpisah (ditimpa run 2, konsisten pola project "payload final apa adanya", perbedaan run 1 vs run 2 didokumentasikan naratif di `audit.md` alih-alih menyimpan dua set file).
+
+**Commit:** `70cfb28` — `test(milestone-4.5): eksekusi eval + audit verifikasi kesetiaan (termasuk temuan+perbaikan prompt v2)`
+
+---
+
+### Task 13 — Tulis `audit.md`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan SATU langkah tambahan di tengah (bukan penyimpangan cakupan): perbaikan prompt `verifikasi_kesetiaan.md` v1→v2 (`fix(milestone-4.5)`, commit terpisah dari eval) dilakukan SEBELUM `audit.md` final ditulis, supaya audit mencerminkan hasil akhir yang benar-benar terverifikasi — bukan mendokumentasikan kegagalan yang sudah diperbaiki seolah masih berlaku.
+
+**Apa yang dilakukan**
+Menulis `audit.md`: tabel ringkasan run 1 vs run 2, analisis mendalam 5 skenario penting (S01/S02 pasangan positif-negatif KK inti; **S06 sebagai temuan nyata utama** — akar masalah, perbaikan, verifikasi ulang terpisah sebelum re-run penuh; S07/S08 status terblokir; S09 dimensi di luar 5 kriteria literal; S10 stress test kompleks), "Temuan Pola" (4 poin) dan "Rekomendasi" (3 poin, termasuk kewajiban Checkpoint 9 memakai prompt v2).
+
+**Temuan**
+Tidak ditemukan satu pun false-negative (kasus pelanggaran nyata yang lolos keliru) di seluruh 10 skenario × 2 run — bias verifier (sebelum diperbaiki) condong ke arah OVER-KETAT, bukan under-ketat, arah yang lebih aman untuk sistem yang wajib jujur ke user meski tetap butuh perbaikan presisi.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Hasil Verifikasi**
+`audit.md` selesai, KK sumber M4.5 (klaim sebab-akibat) terbukti lolos S01+S02 (pasangan positif-negatif pada data identik) di kedua run.
+
+**Commit:** `70cfb28` — `test(milestone-4.5): eksekusi eval + audit verifikasi kesetiaan (termasuk temuan+perbaikan prompt v2)`
+
+---

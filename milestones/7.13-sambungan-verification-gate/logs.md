@@ -83,6 +83,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run python -c "..."` mengonfirmasi `'verification_gate' in KeadaanTurn.model_fields` -> `True`, urutan 12 field sesuai rencana, `verifikasi_gate_semua` tersedia di `turn_pipeline` module.
 
+**Commit:** `076a33a` — `feat(milestone-7.13): sambungkan verification gate ke proses_turn`
+
+---
+
+## Checkpoint 4 — Sambungan Verification Gate: Test Deterministik
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 6-7 — Extend test existing + test connectivity baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah konstanta `_VERIFICATION_GATE_DUMMY = []`. Extend 12 dari 13 test existing dengan mock `verifikasi_gate_semua` (kegagalan cabang paralel tetap tidak berubah, pola identik 4 checkpoint sebelumnya) — mock kali ini py 4 parameter (`query_engine_result, retriever_result, cakupan_individu_result, employee_id`), beda dari mock sebelumnya yang cuma 1-2 parameter, mencerminkan fan-in 3 sumber. Tulis test baru `test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_individu_employee_id_persis` — spy merekam SEMUA 4 argumen sekaligus (identity check untuk 3 list, value check untuk `employee_id`), menutup rantai 5 test connectivity M7.11-7.13 (Otorisasi, Cakupan Individu, Retriever, Query Engine, Verification Gate).
+
+**Temuan**
+Tidak ada temuan tak terduga — pola mock berlapis tetap scalable meski jumlah argumen per mock individual bertambah (4 parameter untuk `verifikasi_gate_semua`, terbanyak sejauh ini).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 13/13 test PASSED (12 existing + 1 baru), 9.00s, tanpa panggilan LLM/DB nyata.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

@@ -112,6 +112,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 12/12 test PASSED (11 existing + 1 baru), 6.30s, tanpa panggilan LLM/DB nyata.
 
+**Commit:** `0bac42a` — `test(milestone-7.12): test deterministik sambungan query engine`
+
+---
+
+## Checkpoint 5 — Peta Kejadian
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 8 — Tulis `rancangan.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca `evals/7.11-sambungan-retriever/rancangan.md` lengkap untuk mirror struktur+gaya persis. Reuse 3 skenario yang SUDAH terbukti bekerja di M7.11 (E01 gop_margin/Front Office Staff, E03 F&B Staff/domain kosong, E04 HR Staff), teks pertanyaan IDENTIK tapi `session_id` BARU (`eval-7.12-eXX`) per preseden Keputusan 6 M7.10. Tulis `evals/7.12-sambungan-query-engine/rancangan.md` — 3 kejadian, ekspektasi ditulis sebagai INVARIAN MEKANISME (verifikasi `request.view_name` dibandingkan terhadap `view_name_final` HASIL RUN ITU SENDIRI, bukan nilai literal hardcoded dari payload M7.11) mengikuti pelajaran metodologi `audit.md` M7.10/M7.11.
+
+**Temuan**
+Tidak ada temuan baru — murni penulisan dokumen berdasar riset plan yang sudah lengkap.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Review manual `rancangan.md` — 3 kejadian, tiap kejadian py ekspektasi konkret + rujukan eksplisit ke hasil nyata M7.11 sebagai referensi (bukan jaminan), section "Catatan Non-Determinisme" eksplisit menjelaskan metodologi perbandingan run-terhadap-dirinya-sendiri.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

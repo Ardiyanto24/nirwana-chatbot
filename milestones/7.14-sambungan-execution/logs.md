@@ -55,6 +55,37 @@ Percobaan pertama skrip verifikasi gagal `ModuleNotFoundError: No module named '
 **Hasil Verifikasi**
 3 panggilan nyata (`panggil_chatbot_api`, `panggil_meta_chatbot_api`, `eksekusi_atomic_intent`) seluruhnya `status_code=200` di level HTTP, `chatbot_api` server tetap `up` di background untuk checkpoint-checkpoint berikutnya yang butuh koneksi nyata.
 
+**Commit:** `e6ffb66` — `docs(milestone-7.14): keputusan + verifikasi reachability chatbot_api`
+
+---
+
+## Checkpoint 2 — Fungsi Pengelompokan Wave (Baru, Deterministik)
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 3-4 — Bangun `kelompokkan_wave()` + unit test
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca `HasilPenyusunanRequest`/`HasilVerifikasiBentukRequest` (`src/schemas/query_engine.py`) dan `AtomicIntent`/`RelasiKebutuhan` (`src/schemas/decomposition.py`) untuk memastikan bentuk tuple `query_engine_result` dan lokasi `relasi`/`bergantung_pada`. Baca pola helper fixture test existing (`tests/layers/verification_gate/test_verifikasi_gate.py::_buat_atomic_intent`/`_buat_query_engine_entry`) untuk konsistensi gaya.
+
+Bangun `src/orchestration/wave.py::kelompokkan_wave()` — algoritma iteratif (bukan rekursif): tiap pass memindahkan item dari `remaining` ke `wave_of` begitu SELURUH dependensinya (yang genuinely ada di `by_id`) sudah py wave; level = `max(wave dependensi) + 1`, atau `1` kalau tidak ada dependensi sisa (baik independen maupun seluruh dependensi hilang). Kalau satu pass penuh TIDAK memindahkan item apa pun (`progressed=False`) — indikasi siklus — sisa item di-force ke wave fallback (`max_wave + 1` atau `1`), loop `break`.
+
+Tulis 8 unit test standalone (`tests/orchestration/test_wave.py`): list kosong, seluruh independen (1 wave), 1 dependensi sederhana (2 wave), multi-dependensi 2 parent beda wave (level = max+1, plus 1 level lagi di bawahnya), dependensi hilang seluruhnya (masuk wave 1), dependensi SEBAGIAN hilang (pakai yang masih ada), siklus buatan 2-node (tidak infinite loop, seluruh item tetap muncul di wave fallback), dan sanity check seluruh item muncul persis sekali tanpa duplikat/hilang.
+
+**Temuan**
+Tidak ada temuan tak terduga — algoritma iteratif dengan deteksi "tidak ada progress" terbukti cukup untuk menangani siklus tanpa perlu iterasi maksimum eksplisit terpisah (loop `while remaining` otomatis `break` begitu satu pass penuh gagal memindahkan item).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada — seluruh 8 test lolos percobaan pertama.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_wave.py -v` — 8/8 PASSED, 0.70s.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

@@ -1,0 +1,556 @@
+{
+  "kejadian_id": "E01-turn2",
+  "deskripsi": "Turn 2 (retry) - KK literal utama, campuran selesai (turn 1)+eksekusi baru",
+  "timestamp": "2026-08-19T21:10:55.598130+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.15-e01d",
+    "turn_index": 2,
+    "role_title": "Maintenance Staff",
+    "employee_id": "E0071",
+    "question": "Bandingkan dengan jumlah tiket bulan lalu.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+        "answer": "Jumlah tiket maintenance yang ditangani bulan ini belum dapat disajikan secara lengkap karena data yang tersedia di sistem terakhir kali diperbarui pada 11 Agustus 2026, melewati batas kesegaran yang ditetapkan (48 jam). Hasil yang diperoleh saat ini menunjukkan tidak ada data yang tercatat, tetapi sistem menyatakan ini adalah data yang sudah terlambat diperbarui. Anda mungkin perlu memeriksa kembali nanti atau menghubungi tim teknis untuk memastikan apakah ada penundaan dalam pemrosesan laporan."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.15-e01d",
+      "turn_index": 2,
+      "role_title": "Maintenance Staff",
+      "employee_id": "E0071",
+      "question": "Bandingkan dengan jumlah tiket bulan lalu.",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+          "answer": "Jumlah tiket maintenance yang ditangani bulan ini belum dapat disajikan secara lengkap karena data yang tersedia di sistem terakhir kali diperbarui pada 11 Agustus 2026, melewati batas kesegaran yang ditetapkan (48 jam). Hasil yang diperoleh saat ini menunjukkan tidak ada data yang tercatat, tetapi sistem menyatakan ini adalah data yang sudah terlambat diperbarui. Anda mungkin perlu memeriksa kembali nanti atau menghubungi tim teknis untuk memastikan apakah ada penundaan dalam pemrosesan laporan."
+        }
+      ]
+    },
+    "decomposition": {
+      "klasifikasi": "majemuk_bergantung",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+          "teks_kebutuhan": "Bandingkan jumlah tiket maintenance Juli 2026 dengan Agustus 2026",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "b92ea81c-d75f-495f-bb2c-d0964240e385",
+            "c6ed167d-0269-4e12-b4e2-34154fa272be"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+          "teks_kebutuhan": "Bandingkan jumlah tiket maintenance Juli 2026 dengan Agustus 2026",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "b92ea81c-d75f-495f-bb2c-d0964240e385",
+            "c6ed167d-0269-4e12-b4e2-34154fa272be"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "facility",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "facility",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+          "teks_kebutuhan": "Bandingkan jumlah tiket maintenance Juli 2026 dengan Agustus 2026",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "b92ea81c-d75f-495f-bb2c-d0964240e385",
+            "c6ed167d-0269-4e12-b4e2-34154fa272be"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "facility",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_maintenance_technician_daily",
+              "domain": "facility",
+              "skor": 9.664109087405805,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_maintenance_technician_daily",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_maintenance_technician_daily",
+              "domain": "facility",
+              "skor": 9.664109087405805,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          },
+          {
+            "kandidat": {
+              "view_name": "v_lookup_maintenance_tickets",
+              "domain": "facility",
+              "skor": 4.048982056553722,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_maintenance_technician_daily",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+          "teks_kebutuhan": "Bandingkan jumlah tiket maintenance Juli 2026 dengan Agustus 2026",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "b92ea81c-d75f-495f-bb2c-d0964240e385",
+            "c6ed167d-0269-4e12-b4e2-34154fa272be"
+          ]
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_maintenance_technician_daily",
+              "domain": "facility",
+              "skor": 5.571148763327281,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "sebagian",
+            "cukup": true,
+            "alasan": "grain punya dimensi pembanding, cukup untuk perbandingan",
+            "sumber_keputusan": "deterministik"
+          },
+          {
+            "kandidat": {
+              "view_name": "v_maintenance_ticket_daily",
+              "domain": "facility",
+              "skor": 2.373796802949802,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "grain punya dimensi pembanding, cukup untuk perbandingan",
+            "sumber_keputusan": "deterministik"
+          },
+          {
+            "kandidat": {
+              "view_name": "v_lookup_maintenance_tickets",
+              "domain": "facility",
+              "skor": 4.048982056553722,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": false,
+            "alasan": "Grain berbentuk 1 baris = 1 tiket (row-level event individual), sehingga memerlukan agregasi manual untuk mendapatkan jumlah tiket per bulan. API tidak melakukan GROUP BY otomatis.",
+            "sumber_keputusan": "llm"
+          }
+        ],
+        "view_name_final": "v_maintenance_ticket_daily",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+            "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_maintenance_technician_daily",
+            "params": {
+              "period_date_from": "2026-07-01",
+              "period_date_to": "2026-07-31"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+            "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_maintenance_technician_daily",
+            "params": {
+              "period_date_from": "2026-07-01",
+              "period_date_to": "2026-07-31"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+            "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_maintenance_technician_daily",
+            "params": {
+              "period_date_from": "2026-08-01",
+              "period_date_to": "2026-08-31"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+            "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_maintenance_technician_daily",
+            "params": {
+              "period_date_from": "2026-08-01",
+              "period_date_to": "2026-08-31"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+            "teks_kebutuhan": "Bandingkan jumlah tiket maintenance Juli 2026 dengan Agustus 2026",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "b92ea81c-d75f-495f-bb2c-d0964240e385",
+              "c6ed167d-0269-4e12-b4e2-34154fa272be"
+            ]
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_maintenance_ticket_daily",
+            "params": {
+              "period_date_from": "2026-07-01",
+              "period_date_to": "2026-08-31",
+              "new_ticket_count": "sum"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+            "teks_kebutuhan": "Bandingkan jumlah tiket maintenance Juli 2026 dengan Agustus 2026",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "b92ea81c-d75f-495f-bb2c-d0964240e385",
+              "c6ed167d-0269-4e12-b4e2-34154fa272be"
+            ]
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_maintenance_ticket_daily",
+            "params": {
+              "period_date_from": "2026-07-01",
+              "period_date_to": "2026-08-31",
+              "new_ticket_count": "sum"
+            }
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params hanya memiliki satu rentang tanggal gabungan Juli-Agustus tanpa pengelompokan per bulan, sehingga hanya menghasilkan satu total angka, bukan dua nilai terpisah untuk dibandingkan."
+        }
+      ]
+    ],
+    "execution": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "sebagian",
+        "nilai_hasil": [],
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 0,
+        "kegagalan_alasan": null,
+        "data_quality_status": "ok",
+        "last_refreshed_at": "2026-08-11T06:15:03.088889+00:00"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+          "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "sebagian",
+        "nilai_hasil": [],
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 0,
+        "kegagalan_alasan": null,
+        "data_quality_status": "ok",
+        "last_refreshed_at": "2026-08-11T06:15:03.088889+00:00"
+      }
+    ],
+    "paket_narasi": [
+      {
+        "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+        "session_id": "eval-7.15-e01d",
+        "turn_index": 2,
+        "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Data terakhir diperbarui 2026-08-11T06:15:03.088889+00:00, melewati ambang kesegaran yang ditetapkan (48 jam)."
+        ],
+        "status": "sebagian",
+        "sumber": "eksekusi_baru"
+      },
+      {
+        "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+        "session_id": "eval-7.15-e01d",
+        "turn_index": 2,
+        "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Data terakhir diperbarui 2026-08-11T06:15:03.088889+00:00, melewati ambang kesegaran yang ditetapkan (48 jam)."
+        ],
+        "status": "sebagian",
+        "sumber": "eksekusi_baru"
+      },
+      {
+        "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+        "session_id": "eval-7.15-e01d",
+        "turn_index": 2,
+        "teks_kebutuhan": "Bandingkan jumlah tiket maintenance Juli 2026 dengan Agustus 2026",
+        "label_bentuk_jawaban": "perbandingan",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Sistem tidak berhasil memproses kebutuhan ini karena kendala teknis."
+        ],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "interpretation": {
+      "narasi_awal": {
+        "narasi": "Sistem mencatat bahwa data jumlah tiket maintenance Juli 2026 dan Agustus 2026 saat ini tidak memenuhi standar kesegaran (data terakhir diperbarui pada 11 Agustus 2026, lebih dari 48 jam lalu), sehingga hasil untuk kedua bulan tersebut belum dapat disajikan secara akurat. Perbandingan antara kedua bulan juga gagal diproses karena sistem mengalami kendala teknis saat menampilkan data. Untuk informasi yang lebih mutakhir, mohon cek kembali setelah data diperbarui atau hubungi tim dukungan jika memerlukan bantuan lebih lanjut."
+      },
+      "verifikasi_narasi": {
+        "narasi": "Sistem mencatat bahwa data jumlah tiket maintenance Juli 2026 dan Agustus 2026 saat ini tidak memenuhi standar kesegaran (data terakhir diperbarui pada 11 Agustus 2026, lebih dari 48 jam lalu), sehingga hasil untuk kedua bulan tersebut belum dapat disajikan secara akurat. Perbandingan antara kedua bulan juga gagal diproses karena sistem mengalami kendala teknis saat menampilkan data. Untuk informasi yang lebih mutakhir, mohon cek kembali setelah data diperbarui atau hubungi tim dukungan jika memerlukan bantuan lebih lanjut.",
+        "status": "berhasil",
+        "lolos": true,
+        "alasan": null
+      },
+      "visualisasi": [
+        {
+          "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        },
+        {
+          "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        },
+        {
+          "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+          "label_bentuk_jawaban": "perbandingan",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "laporan_paket_narasi": [
+    {
+      "atomic_intent_id": "b92ea81c-d75f-495f-bb2c-d0964240e385",
+      "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Juli 2026?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "sebagian",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    },
+    {
+      "atomic_intent_id": "c6ed167d-0269-4e12-b4e2-34154fa272be",
+      "teks_kebutuhan": "Berapa jumlah tiket maintenance yang ditangani pada bulan Agustus 2026?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "sebagian",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    },
+    {
+      "atomic_intent_id": "39e16692-c198-48ca-becc-bee26649d1ee",
+      "teks_kebutuhan": "Bandingkan jumlah tiket maintenance Juli 2026 dengan Agustus 2026",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "gagal_teknis",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    }
+  ],
+  "narasi_final": "Sistem mencatat bahwa data jumlah tiket maintenance Juli 2026 dan Agustus 2026 saat ini tidak memenuhi standar kesegaran (data terakhir diperbarui pada 11 Agustus 2026, lebih dari 48 jam lalu), sehingga hasil untuk kedua bulan tersebut belum dapat disajikan secara akurat. Perbandingan antara kedua bulan juga gagal diproses karena sistem mengalami kendala teknis saat menampilkan data. Untuk informasi yang lebih mutakhir, mohon cek kembali setelah data diperbarui atau hubungi tim dukungan jika memerlukan bantuan lebih lanjut.",
+  "trace_id": "e67a395aa6e86e753cdcf84f21a5f9a8",
+  "span_paket_narasi": {
+    "selesai_count": 0,
+    "eksekusi_count": 2,
+    "gap_rbac_count": 0,
+    "gap_teknis_count": 1
+  },
+  "error": null
+}

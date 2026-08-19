@@ -1,0 +1,207 @@
+{
+  "kejadian_id": "E01-turn2",
+  "deskripsi": "Turn 2 - KK literal utama, campuran selesai (turn 1)+eksekusi baru",
+  "timestamp": "2026-08-19T11:43:07.288596+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.15-e01",
+    "turn_index": 2,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Bandingkan dengan occupancy satu tahun sebelumnya.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa occupancy rate bulan April 2026?",
+        "answer": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian (occupancy rate) untuk bulan April tahun 2026. Hasil yang diperoleh menunjukkan tidak ada data yang tersedia, tetapi kami tidak dapat memastikan apakah ini disebabkan oleh ketidakhadiran data di sumber atau masalah sementara pada sistem. Anda dapat mencoba kembali nanti atau memeriksa ketersediaan data melalui saluran lain jika memungkinkan."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.15-e01",
+      "turn_index": 2,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Bandingkan dengan occupancy satu tahun sebelumnya.",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa occupancy rate bulan April 2026?",
+          "answer": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian (occupancy rate) untuk bulan April tahun 2026. Hasil yang diperoleh menunjukkan tidak ada data yang tersedia, tetapi kami tidak dapat memastikan apakah ini disebabkan oleh ketidakhadiran data di sumber atau masalah sementara pada sistem. Anda dapat mencoba kembali nanti atau memeriksa ketersediaan data melalui saluran lain jika memungkinkan."
+        }
+      ]
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) bulan April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) bulan April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) bulan April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) bulan April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_room_type_daily",
+              "domain": "reservation",
+              "skor": 5.489189566728378,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_room_type_daily",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+            "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) bulan April 2025?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2025-04-01",
+              "period_date_to": "2025-04-30"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+            "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) bulan April 2025?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2025-04-01",
+              "period_date_to": "2025-04-30"
+            }
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params hanya memfilter rentang tanggal tanpa membatasi ke properti atau tipe kamar tertentu, sehingga akan menghasilkan banyak baris data (berbagai properti dan tipe kamar) bukan satu titik data tunggal yang sesuai untuk label 'nilai_tunggal'."
+        }
+      ]
+    ],
+    "execution": [],
+    "paket_narasi": [
+      {
+        "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+        "session_id": "eval-7.15-e01",
+        "turn_index": 2,
+        "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) bulan April 2025?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Sistem tidak berhasil memproses kebutuhan ini karena kendala teknis."
+        ],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "interpretation": {
+      "narasi_awal": {
+        "narasi": "Maaf, data tingkat keterisian (occupancy rate) untuk bulan April 2025 tidak dapat diakses saat ini karena kendala teknis di sistem. Sistem mengalami masalah saat memproses permintaan ini, sehingga tidak ada informasi yang tersedia untuk bulan tersebut. Kami sedang bekerja untuk menyelesaikan masalah ini dan akan segera memperbarui informasi yang tersedia."
+      },
+      "verifikasi_narasi": {
+        "narasi": "Maaf, data tingkat keterisian (occupancy rate) untuk bulan April 2025 tidak dapat diakses saat ini karena kendala teknis di sistem. Sistem mengalami masalah saat memproses permintaan ini, sehingga tidak ada informasi yang tersedia untuk bulan tersebut. Kami sedang bekerja untuk menyelesaikan masalah ini dan akan segera memperbarui informasi yang tersedia.",
+        "status": "berhasil",
+        "lolos": true,
+        "alasan": null
+      },
+      "visualisasi": [
+        {
+          "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "laporan_paket_narasi": [
+    {
+      "atomic_intent_id": "15dc296a-22fe-4ea9-b309-f7b8cce4ba81",
+      "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) bulan April 2025?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "gagal_teknis",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    }
+  ],
+  "narasi_final": "Maaf, data tingkat keterisian (occupancy rate) untuk bulan April 2025 tidak dapat diakses saat ini karena kendala teknis di sistem. Sistem mengalami masalah saat memproses permintaan ini, sehingga tidak ada informasi yang tersedia untuk bulan tersebut. Kami sedang bekerja untuk menyelesaikan masalah ini dan akan segera memperbarui informasi yang tersedia.",
+  "trace_id": "8fd16dfd145310cb43627da4e76c8323",
+  "span_paket_narasi": {
+    "selesai_count": 0,
+    "eksekusi_count": 0,
+    "gap_rbac_count": 0,
+    "gap_teknis_count": 1
+  },
+  "error": null
+}

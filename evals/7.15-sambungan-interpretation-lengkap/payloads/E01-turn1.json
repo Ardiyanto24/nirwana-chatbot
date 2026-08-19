@@ -1,0 +1,236 @@
+{
+  "kejadian_id": "E01-turn1",
+  "deskripsi": "Turn 1 (retry ke-4, view facility) - dijalankan nyata, akan tersimpan Session Memory",
+  "timestamp": "2026-08-19T20:59:19.966256+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.15-e01d",
+    "turn_index": 1,
+    "role_title": "Maintenance Staff",
+    "employee_id": "E0071",
+    "question": "Berapa banyak tiket maintenance yang ditangani bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.15-e01d",
+      "turn_index": 1,
+      "role_title": "Maintenance Staff",
+      "employee_id": "E0071",
+      "question": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+          "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+          "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+          "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "facility",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+          "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_maintenance_technician_daily",
+              "domain": "facility",
+              "skor": 7.238349053275199,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "sebagian",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          },
+          {
+            "kandidat": {
+              "view_name": "v_lookup_maintenance_tickets",
+              "domain": "facility",
+              "skor": 4.048982056553722,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          },
+          {
+            "kandidat": {
+              "view_name": "v_maintenance_ticket_daily",
+              "domain": "facility",
+              "skor": 2.373796802949802,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "sebagian",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_lookup_maintenance_tickets",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+            "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_lookup_maintenance_tickets",
+            "params": {
+              "resolved_date_from": "2026-08-01",
+              "resolved_date_to": "2026-08-31"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+            "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_lookup_maintenance_tickets",
+            "params": {
+              "resolved_date_from": "2026-08-01",
+              "resolved_date_to": "2026-08-31"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ]
+    ],
+    "execution": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+          "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "sebagian",
+        "nilai_hasil": [],
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 0,
+        "kegagalan_alasan": null,
+        "data_quality_status": "ok",
+        "last_refreshed_at": "2026-08-11T06:07:06.202625+00:00"
+      }
+    ],
+    "paket_narasi": [
+      {
+        "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+        "session_id": "eval-7.15-e01d",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Data terakhir diperbarui 2026-08-11T06:07:06.202625+00:00, melewati ambang kesegaran yang ditetapkan (48 jam)."
+        ],
+        "status": "sebagian",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "interpretation": {
+      "narasi_awal": {
+        "narasi": "Jumlah tiket maintenance yang ditangani bulan ini belum dapat disajikan secara lengkap karena data yang tersedia di sistem terakhir kali diperbarui pada 11 Agustus 2026, melewati batas kesegaran yang ditetapkan (48 jam). Hasil yang diperoleh saat ini menunjukkan tidak ada data yang tercatat, tetapi sistem menyatakan ini adalah data yang sudah terlambat diperbarui. Anda mungkin perlu memeriksa kembali nanti atau menghubungi tim teknis untuk memastikan apakah ada penundaan dalam pemrosesan laporan."
+      },
+      "verifikasi_narasi": {
+        "narasi": "Jumlah tiket maintenance yang ditangani bulan ini belum dapat disajikan secara lengkap karena data yang tersedia di sistem terakhir kali diperbarui pada 11 Agustus 2026, melewati batas kesegaran yang ditetapkan (48 jam). Hasil yang diperoleh saat ini menunjukkan tidak ada data yang tercatat, tetapi sistem menyatakan ini adalah data yang sudah terlambat diperbarui. Anda mungkin perlu memeriksa kembali nanti atau menghubungi tim teknis untuk memastikan apakah ada penundaan dalam pemrosesan laporan.",
+        "status": "berhasil",
+        "lolos": true,
+        "alasan": null
+      },
+      "visualisasi": [
+        {
+          "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "laporan_paket_narasi": [
+    {
+      "atomic_intent_id": "2179905f-ccae-4062-8026-7a31d1188ccf",
+      "teks_kebutuhan": "Berapa banyak tiket maintenance yang ditangani bulan ini?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "sebagian",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    }
+  ],
+  "narasi_final": "Jumlah tiket maintenance yang ditangani bulan ini belum dapat disajikan secara lengkap karena data yang tersedia di sistem terakhir kali diperbarui pada 11 Agustus 2026, melewati batas kesegaran yang ditetapkan (48 jam). Hasil yang diperoleh saat ini menunjukkan tidak ada data yang tercatat, tetapi sistem menyatakan ini adalah data yang sudah terlambat diperbarui. Anda mungkin perlu memeriksa kembali nanti atau menghubungi tim teknis untuk memastikan apakah ada penundaan dalam pemrosesan laporan.",
+  "trace_id": "e061826df615db836e23b7b86bf754d3",
+  "span_paket_narasi": {
+    "selesai_count": 0,
+    "eksekusi_count": 1,
+    "gap_rbac_count": 0,
+    "gap_teknis_count": 0
+  },
+  "error": null
+}

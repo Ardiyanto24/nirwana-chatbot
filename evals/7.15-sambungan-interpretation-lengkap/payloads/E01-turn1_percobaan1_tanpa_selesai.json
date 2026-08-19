@@ -1,0 +1,210 @@
+{
+  "kejadian_id": "E01-turn1",
+  "deskripsi": "Turn 1 - dijalankan nyata, akan tersimpan Session Memory",
+  "timestamp": "2026-08-19T11:38:46.598340+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.15-e01",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate bulan April 2026?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.15-e01",
+      "turn_index": 1,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa occupancy rate bulan April 2026?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_room_type_daily",
+              "domain": "reservation",
+              "skor": 5.489189566728378,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_room_type_daily",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+            "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2026-04-01",
+              "period_date_to": "2026-04-30"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+            "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2026-04-01",
+              "period_date_to": "2026-04-30"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ]
+    ],
+    "execution": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+          "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "gagal_teknis",
+        "nilai_hasil": null,
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 1,
+        "kegagalan_alasan": "revisi_gagal_verifikasi_bentuk",
+        "data_quality_status": null,
+        "last_refreshed_at": null
+      }
+    ],
+    "paket_narasi": [
+      {
+        "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+        "session_id": "eval-7.15-e01",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "interpretation": {
+      "narasi_awal": {
+        "narasi": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian (occupancy rate) untuk bulan April tahun 2026. Hasil yang diperoleh menunjukkan tidak ada data yang tersedia, tetapi kami tidak dapat memastikan apakah ini disebabkan oleh ketidakhadiran data di sumber atau masalah sementara pada sistem. Anda dapat mencoba kembali nanti atau memeriksa ketersediaan data melalui saluran lain jika memungkinkan."
+      },
+      "verifikasi_narasi": {
+        "narasi": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian (occupancy rate) untuk bulan April tahun 2026. Hasil yang diperoleh menunjukkan tidak ada data yang tersedia, tetapi kami tidak dapat memastikan apakah ini disebabkan oleh ketidakhadiran data di sumber atau masalah sementara pada sistem. Anda dapat mencoba kembali nanti atau memeriksa ketersediaan data melalui saluran lain jika memungkinkan.",
+        "status": "berhasil",
+        "lolos": true,
+        "alasan": null
+      },
+      "visualisasi": [
+        {
+          "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "laporan_paket_narasi": [
+    {
+      "atomic_intent_id": "24ac4b65-6db4-4983-8d72-9982c48805da",
+      "teks_kebutuhan": "Berapa tingkat keterisian (occupancy rate) pada bulan April tahun 2026?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "gagal_teknis",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    }
+  ],
+  "narasi_final": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian (occupancy rate) untuk bulan April tahun 2026. Hasil yang diperoleh menunjukkan tidak ada data yang tersedia, tetapi kami tidak dapat memastikan apakah ini disebabkan oleh ketidakhadiran data di sumber atau masalah sementara pada sistem. Anda dapat mencoba kembali nanti atau memeriksa ketersediaan data melalui saluran lain jika memungkinkan.",
+  "trace_id": "002b206d17dc682508ffdd74e8b93e2a",
+  "span_paket_narasi": {
+    "selesai_count": 0,
+    "eksekusi_count": 1,
+    "gap_rbac_count": 0,
+    "gap_teknis_count": 0
+  },
+  "error": null
+}

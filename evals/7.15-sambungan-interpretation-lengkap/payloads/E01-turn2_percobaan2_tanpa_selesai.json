@@ -1,0 +1,501 @@
+{
+  "kejadian_id": "E01-turn2",
+  "deskripsi": "Turn 2 (retry) - KK literal utama, campuran selesai (turn 1)+eksekusi baru",
+  "timestamp": "2026-08-19T12:07:38.375438+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.15-e01b",
+    "turn_index": 2,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Bandingkan dengan occupancy satu tahun sebelumnya.",
+    "history": [
+      {
+        "turn_index": 1,
+        "question": "Berapa occupancy rate bulan April 2026?",
+        "answer": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian (occupancy rate) untuk bulan April tahun 2026. Hasil yang diperoleh dari proses ini tidak tersedia karena sistem gagal memproses permintaan. Kami mohon maaf atas ketidaknyamanan ini dan akan terus memantau ketersediaan data. Jika diperlukan, Anda dapat mencoba mengajukan pertanyaan serupa pada kesempatan berikutnya."
+      }
+    ]
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.15-e01b",
+      "turn_index": 2,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Bandingkan dengan occupancy satu tahun sebelumnya.",
+      "history": [
+        {
+          "turn_index": 1,
+          "question": "Berapa occupancy rate bulan April 2026?",
+          "answer": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian (occupancy rate) untuk bulan April tahun 2026. Hasil yang diperoleh dari proses ini tidak tersedia karena sistem gagal memproses permintaan. Kami mohon maaf atas ketidaknyamanan ini dan akan terus memantau ketersediaan data. Jika diperlukan, Anda dapat mencoba mengajukan pertanyaan serupa pada kesempatan berikutnya."
+        }
+      ]
+    },
+    "decomposition": {
+      "klasifikasi": "majemuk_bergantung",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+          "teks_kebutuhan": "Bagaimana perbandingan tingkat keterisian April 2026 dengan April 2025?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+            "83e9c458-ab4c-4d4a-a284-dcf1abce41c9"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+          "teks_kebutuhan": "Bagaimana perbandingan tingkat keterisian April 2026 dengan April 2025?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+            "83e9c458-ab4c-4d4a-a284-dcf1abce41c9"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+          "teks_kebutuhan": "Bagaimana perbandingan tingkat keterisian April 2026 dengan April 2025?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+            "83e9c458-ab4c-4d4a-a284-dcf1abce41c9"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_room_type_daily",
+              "domain": "reservation",
+              "skor": 5.489189566728378,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_room_type_daily",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2025?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_room_type_daily",
+              "domain": "reservation",
+              "skor": 5.489189566728378,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_room_type_daily",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+          "teks_kebutuhan": "Bagaimana perbandingan tingkat keterisian April 2026 dengan April 2025?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+            "83e9c458-ab4c-4d4a-a284-dcf1abce41c9"
+          ]
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_property_daily",
+              "domain": "reservation",
+              "skor": 1.921023475496002,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "sebagian",
+            "cukup": true,
+            "alasan": "grain punya dimensi pembanding, cukup untuk perbandingan",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_property_daily",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+            "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2026-04-01",
+              "period_date_to": "2026-04-30"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+            "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2026-04-01",
+              "period_date_to": "2026-04-30"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+            "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2025?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2025-04-01",
+              "period_date_to": "2025-04-30",
+              "occupancy_rate": "occupancy_rate"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+            "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2025?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2025-04-01",
+              "period_date_to": "2025-04-30",
+              "occupancy_rate": "occupancy_rate"
+            }
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params hanya menyaring rentang tanggal 1–30 April 2025 dan menyebutkan kolom occupancy_rate, tetapi tidak menyertakan agregasi (mis. AVG, SUM) untuk menggabungkan seluruh dimensi (properti, tipe kamar, tanggal) menjadi satu angka. Dengan grain view properti × tipe kamar × tanggal, hasil query akan tetap berupa banyak baris, bukan satu nilai tunggal seperti yang diminta."
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+            "teks_kebutuhan": "Bagaimana perbandingan tingkat keterisian April 2026 dengan April 2025?",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+              "83e9c458-ab4c-4d4a-a284-dcf1abce41c9"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_property_daily",
+            "params": {
+              "period_date_from": "2025-04-01",
+              "period_date_to": "2026-04-30"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+            "teks_kebutuhan": "Bagaimana perbandingan tingkat keterisian April 2026 dengan April 2025?",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+              "83e9c458-ab4c-4d4a-a284-dcf1abce41c9"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_property_daily",
+            "params": {
+              "period_date_from": "2025-04-01",
+              "period_date_to": "2026-04-30"
+            }
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params hanya berisi satu rentang tanggal kontinu period_date_from 2025-04-01 s/d period_date_to 2026-04-30 yang mencakup 13 bulan sekaligus, bukan dua periode April yang terpisah. Label 'perbandingan' membutuhkan indikasi dua periode yang dibandingkan (mis. dua rentang terpisah April 2025 dan April 2026), sedangkan rentang ini akan menghasilkan deret waktu harian untuk banyak bulan dan tidak membatasi hanya pada dua April yang diminta."
+        }
+      ]
+    ],
+    "execution": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+          "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "gagal_teknis",
+        "nilai_hasil": null,
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 1,
+        "kegagalan_alasan": "revisi_gagal_verifikasi_bentuk",
+        "data_quality_status": null,
+        "last_refreshed_at": null
+      }
+    ],
+    "paket_narasi": [
+      {
+        "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+        "session_id": "eval-7.15-e01b",
+        "turn_index": 2,
+        "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      },
+      {
+        "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+        "session_id": "eval-7.15-e01b",
+        "turn_index": 2,
+        "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2025?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Sistem tidak berhasil memproses kebutuhan ini karena kendala teknis."
+        ],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      },
+      {
+        "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+        "session_id": "eval-7.15-e01b",
+        "turn_index": 2,
+        "teks_kebutuhan": "Bagaimana perbandingan tingkat keterisian April 2026 dengan April 2025?",
+        "label_bentuk_jawaban": "perbandingan",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Sistem tidak berhasil memproses kebutuhan ini karena kendala teknis."
+        ],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "interpretation": {
+      "narasi_awal": {
+        "narasi": "Sistem mengalami kendala teknis saat mengambil data tingkat keterisian untuk bulan April 2026 dan April 2025, sehingga kedua nilai tersebut tidak dapat ditampilkan. Perbandingan antara kedua bulan juga tidak dapat dilakukan karena data dasarnya tidak tersedia. Kami sedang meninjau masalah teknis ini dan akan berusaha memperbaikinya secepat mungkin."
+      },
+      "verifikasi_narasi": {
+        "narasi": "Sistem mengalami kendala teknis saat mengambil data tingkat keterisian untuk bulan April 2026 dan April 2025, sehingga kedua nilai tersebut tidak dapat ditampilkan. Perbandingan antara kedua bulan juga tidak dapat dilakukan karena data dasarnya tidak tersedia. Kami sedang meninjau masalah teknis ini dan akan berusaha memperbaikinya secepat mungkin.",
+        "status": "berhasil",
+        "lolos": true,
+        "alasan": null
+      },
+      "visualisasi": [
+        {
+          "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        },
+        {
+          "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        },
+        {
+          "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+          "label_bentuk_jawaban": "perbandingan",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "laporan_paket_narasi": [
+    {
+      "atomic_intent_id": "7f35d6db-82cf-4708-9951-cdb9a85a15e5",
+      "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2026?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "gagal_teknis",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    },
+    {
+      "atomic_intent_id": "83e9c458-ab4c-4d4a-a284-dcf1abce41c9",
+      "teks_kebutuhan": "Berapa tingkat keterisian bulan April 2025?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "gagal_teknis",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    },
+    {
+      "atomic_intent_id": "d338f658-4222-446f-b0c5-7fba595b5414",
+      "teks_kebutuhan": "Bagaimana perbandingan tingkat keterisian April 2026 dengan April 2025?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "gagal_teknis",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    }
+  ],
+  "narasi_final": "Sistem mengalami kendala teknis saat mengambil data tingkat keterisian untuk bulan April 2026 dan April 2025, sehingga kedua nilai tersebut tidak dapat ditampilkan. Perbandingan antara kedua bulan juga tidak dapat dilakukan karena data dasarnya tidak tersedia. Kami sedang meninjau masalah teknis ini dan akan berusaha memperbaikinya secepat mungkin.",
+  "trace_id": "6c74c9f092f794a7a1fbdc0ea5730e07",
+  "span_paket_narasi": {
+    "selesai_count": 0,
+    "eksekusi_count": 1,
+    "gap_rbac_count": 0,
+    "gap_teknis_count": 2
+  },
+  "error": null
+}

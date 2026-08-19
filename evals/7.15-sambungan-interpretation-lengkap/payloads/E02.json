@@ -1,0 +1,140 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Paket gap RBAC (reuse skenario domain ditolak total M7.11 E03/M7.12 E02)",
+  "timestamp": "2026-08-19T11:44:50.116499+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.15-e02",
+    "turn_index": 1,
+    "role_title": "F&B Staff",
+    "employee_id": "emp-eval",
+    "question": "Berapa GOP (gross operating profit) properti bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.15-e02",
+      "turn_index": 1,
+      "role_title": "F&B Staff",
+      "employee_id": "emp-eval",
+      "question": "Berapa GOP (gross operating profit) properti bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "6e7e85d6-3722-445c-876d-1a2c553eb5e8",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "6e7e85d6-3722-445c-876d-1a2c553eb5e8",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "6e7e85d6-3722-445c-876d-1a2c553eb5e8",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'F&B Staff' tidak memiliki akses ke domain 'financial'"
+          }
+        ]
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "6e7e85d6-3722-445c-876d-1a2c553eb5e8",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [],
+        "view_name_final": null,
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [],
+    "execution": [],
+    "paket_narasi": [
+      {
+        "atomic_intent_id": "6e7e85d6-3722-445c-876d-1a2c553eb5e8",
+        "session_id": "eval-7.15-e02",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Anda tidak memiliki akses untuk data ini sesuai peran Anda."
+        ],
+        "status": "ditolak_otorisasi",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "interpretation": {
+      "narasi_awal": {
+        "narasi": "Maaf, saya tidak dapat memberikan informasi GOP (gross operating profit) properti bulan ini karena akses ke data tersebut dibatasi sesuai peran Anda. Sistem menunjukkan tidak ada data yang tersedia untuk ditampilkan, dan ini merupakan keterbatasan otorisasi yang terjadi saat ini. Jika Anda memerlukan informasi lebih lanjut, mohon konsultasikan dengan pihak yang memiliki wewenang terkait."
+      },
+      "verifikasi_narasi": {
+        "narasi": "Maaf, saya tidak dapat memberikan informasi GOP (gross operating profit) properti bulan ini karena akses ke data tersebut dibatasi sesuai peran Anda. Sistem menunjukkan tidak ada data yang tersedia untuk ditampilkan, dan ini merupakan keterbatasan otorisasi yang terjadi saat ini. Jika Anda memerlukan informasi lebih lanjut, mohon konsultasikan dengan pihak yang memiliki wewenang terkait.",
+        "status": "berhasil",
+        "lolos": true,
+        "alasan": null
+      },
+      "visualisasi": [
+        {
+          "atomic_intent_id": "6e7e85d6-3722-445c-876d-1a2c553eb5e8",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "laporan_paket_narasi": [
+    {
+      "atomic_intent_id": "6e7e85d6-3722-445c-876d-1a2c553eb5e8",
+      "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+      "match_status": "perlu_eksekusi",
+      "paket_ditemukan": true,
+      "paket_status": "ditolak_otorisasi",
+      "paket_sumber": "eksekusi_baru",
+      "paket_atomic_intent_id_cocok": true
+    }
+  ],
+  "narasi_final": "Maaf, saya tidak dapat memberikan informasi GOP (gross operating profit) properti bulan ini karena akses ke data tersebut dibatasi sesuai peran Anda. Sistem menunjukkan tidak ada data yang tersedia untuk ditampilkan, dan ini merupakan keterbatasan otorisasi yang terjadi saat ini. Jika Anda memerlukan informasi lebih lanjut, mohon konsultasikan dengan pihak yang memiliki wewenang terkait.",
+  "trace_id": "7b548f919ab5fb9fdbe039e0afc0862f",
+  "span_paket_narasi": {
+    "selesai_count": 0,
+    "eksekusi_count": 0,
+    "gap_rbac_count": 1,
+    "gap_teknis_count": 0
+  },
+  "error": null
+}

@@ -308,3 +308,36 @@ Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya — tidak ada kl
 **Commit:** `1fdcf64` — `docs(milestone-7.11): audit hasil eksekusi nyata`
 
 ---
+
+## Checkpoint 12 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 20-22 — Finalisasi logs.md, report.md, update status project
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Finalisasi `logs.md` (dokumen ini) — sudah ditulis inkremental tiap checkpoint sepanjang eksekusi, checkpoint ini menambah entri penutup sendiri. Tulis `milestones/7.11-sambungan-retriever/report.md` — 6 bagian sesuai template resmi, KK M7.11 asli vs bukti nyata (tabel), KK turunan M2.2/M2.3 dicatat terpisah untuk kejujuran cakupan, diagram Mermaid rantai wiring baru (hijau=wiring ke fungsi existing, merah=kode genuinely baru), 2 perubahan dari plan dicatat eksplisit (scope diperluas sadar sebelum implementasi + revisi metodologi verifikasi eval sebelum eksekusi), 2 keterbatasan (span tidak merekam domain per-kandidat + non-determinisme Decomposition), 3 follow-up.
+
+Update tabel "Status Proyek" di `CLAUDE.md`: baris M7.11 dipisah dari grup "7.11-7.18" jadi baris sendiri berstatus "Selesai", baris berikutnya diganti "7.12-7.18" dengan hitungan "6/11 selesai". Tambah paragraf ringkasan M7.11 (mirror gaya paragraf M7.6-7.10 yang sudah ada) di bawah paragraf M7.10, memuat temuan gap M2.2/M2.3, hasil 4 kejadian real-execution, dan status 6/11 Sambungan Level 2. Update paragraf "Sisa pekerjaan project" — M7.11 dihapus dari daftar "boleh paralel"/"berikutnya", diganti M7.12. `AGENT.md` disinkronkan PERSIS dengan `CLAUDE.md` (`cp` + `diff` dikonfirmasi identik) — konsisten catatan pembuka kedua file "File ini identik dengan file aturan pasangannya".
+
+**Temuan**
+Tidak ada temuan baru — checkpoint murni dokumentasi penutup berdasar hasil Checkpoint 1-11 yang sudah lengkap.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` mengonfirmasi identik setelah update. Review `report.md` — seluruh KK M7.11 sumber (1 kriteria literal) terpetakan ke bukti aktual dengan `trace_id` konkret, tidak ada klaim tanpa rujukan bukti.
+
+**Commit:** *(dicatat di commit berikutnya — checkpoint penutup milestone)*
+
+---
+
+## Task/Checkpoint di Luar Plan
+
+Tidak ada — seluruh 12 checkpoint dan 22 task dikerjakan persis sesuai struktur plan yang disetujui user di Plan Mode. Penyesuaian yang terjadi (scope 3-unit-wiring, revisi metodologi verifikasi eval) sudah diantisipasi/diputuskan SEBELUM checkpoint terkait dieksekusi (dicatat di `decisions.md` dan "Kesesuaian dengan plan" masing-masing task di atas), bukan pekerjaan baru yang lahir di tengah jalan tanpa direncanakan.

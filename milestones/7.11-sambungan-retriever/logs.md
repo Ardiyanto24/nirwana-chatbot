@@ -332,9 +332,9 @@ Tidak ada.
 Tidak berlaku.
 
 **Hasil Verifikasi**
-`diff CLAUDE.md AGENT.md` mengonfirmasi identik setelah update. Review `report.md` — seluruh KK M7.11 sumber (1 kriteria literal) terpetakan ke bukti aktual dengan `trace_id` konkret, tidak ada klaim tanpa rujukan bukti.
+`diff CLAUDE.md AGENT.md` mengonfirmasi identik setelah update. Review `report.md` — seluruh KK M7.11 sumber (1 kriteria literal) terpetakan ke bukti aktual dengan `trace_id` konkret, tidak ada klaim tanpa rujukan bukti. Percobaan `git add CLAUDE.md AGENT.md` ditolak git (`.gitignore`) — dikonfirmasi ini SENGAJA (bukan error), sesuai catatan `CLAUDE.md` sendiri: "CLAUDE.md/AGENT.md sengaja tidak di-track git... tetap diperbarui di working tree karena dibaca sistem tiap sesi." Tidak di-force-add.
 
-**Commit:** *(dicatat di commit berikutnya — checkpoint penutup milestone)*
+**Commit:** `18b7217` (`docs(milestone-7.11): logs, report`) — `report.md` + entri `logs.md` sebelum checkpoint ini. `CLAUDE.md`/`AGENT.md` TIDAK di-commit (gitignored by design), diperbarui di working tree saja.
 
 ---
 

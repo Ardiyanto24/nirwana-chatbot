@@ -108,6 +108,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run python -c "..."` mengonfirmasi `'cakupan_individu' in KeadaanTurn.model_fields` -> `True`, `turn_pipeline` module berhasil di-import dengan `deteksi_constraint_semua` tersedia.
 
+**Commit:** `5081212` — `feat(milestone-7.11): sambungkan deteksi cakupan individu ke proses_turn`
+
+---
+
+## Checkpoint 5 — Sambungan Cakupan Individu (M2.3): Test Deterministik
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 8-9 — Extend test existing + test connectivity baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah konstanta `_CAKUPAN_INDIVIDU_DUMMY = []`. Extend 8 dari 9 test existing (termasuk test connectivity Otorisasi yang baru ditambah Checkpoint 3) dengan mock `deteksi_constraint_semua` — test kegagalan cabang paralel tetap tidak perlu diubah (exception menjalar sebelum titik ini). Tulis test baru `test_orkestrator_cakupan_individu_menerima_otorisasi_result_dan_role_title_benar` — spy merekam `otorisasi_result` (identity check terhadap `AtomicIntentAuthorization` buatan tangan) dan `role_title`, mirror persis pola test Otorisasi Checkpoint 3. Tambah import `AtomicIntentAuthorization`, `DomainAuthorization` dari `src.schemas.authorization`.
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 10/10 test PASSED (9 existing + 1 baru), 4.63s, tanpa panggilan LLM/DB nyata.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

@@ -206,7 +206,7 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 
 ---
 
-## 13. Orkestrator Execution `eksekusi_atomic_intent()` (Milestone 4.2) Belum Pernah Dibuktikan dengan Panggilan Nyata ke `chatbot_api`
+## 13. Orkestrator Execution `eksekusi_atomic_intent()` (Milestone 4.2) Belum Pernah Dibuktikan dengan Panggilan Nyata ke `chatbot_api` — DIVERIFIKASI (2026-08-19)
 
 **Ditemukan di:** Milestone 7.1 (`milestones/7.1-audit-kontrak-antar-layer/decisions.md` Keputusan 7, 2026-08-18), saat audit kontrak antar-layer mencari bukti panggilan nyata untuk tiap unit kerja 9 layer.
 
@@ -217,6 +217,13 @@ Format tiap entri: konteks penemuan, kenapa diterima, dampak + mitigasi, dan pem
 **Dampak + mitigasi:** Kontrak I/O (signature, skema Pydantic) `eksekusi_atomic_intent()` tetap terverifikasi via 200+ test simulasi yang mencakup seluruh cabang status (200/`SEBAGIAN` via `_meta`/400 revisi/403/404/5xx/timeout) — risiko yang TIDAK tertutup murni pada bentuk respons HTTP nyata `chatbot_api` yang mungkin sedikit menyimpang dari yang disimulasikan test (mis. field tambahan/beda di body JSON asli). Mitigasi saat ini: dokumen kontrak M7.1 (`audit-kontrak-antar-layer.md`) mencatat gap ini eksplisit, dan Milestone 7.14 (Level 2 Sambungan 9: Verification Gate → Execution) — yang akan menyambungkan unit ini nyata ke rangkaian penuh — WAJIB mengulang percobaan reachability sebelum dianggap selesai, bukan mewarisi status "belum diverifikasi" ini secara diam-diam.
 
 **Pemicu peninjauan ulang:** Begitu `chatbot_api` lokal reachable (kapan pun, tidak terikat milestone tertentu), jalankan minimal satu panggilan nyata `eksekusi_atomic_intent()` untuk jalur `200` — prioritaskan sebelum Milestone 7.14 dimulai, karena Level 2 Sambungan 9 secara eksplisit butuh unit ini berperilaku benar terhadap respons sungguhan, bukan simulasi.
+
+**DIVERIFIKASI (2026-08-19, Milestone 7.14 Checkpoint 1):** `chatbot_api` lokal dijalankan (`nirwana-database/scripts/chatbot_api/`, `python -m uvicorn main:app --reload` — BUKAN `nirwana-database/api/`, folder itu proyek terpisah tanpa route `/chatbot/...` sama sekali, lihat `milestones/7.14-sambungan-execution/decisions.md` Keputusan 1). Tiga panggilan nyata dijalankan berurutan, seluruhnya `role_title="Front Office Staff"`, `employee_id="E0071"`, `view_name="v_lookup_daily_occupancy"` (replikasi persis skenario M4.1 Checkpoint 5):
+- `panggil_chatbot_api()` (M4.1) → `status_code=200`, body data occupancy nyata (8 kolom, identik struktur M4.1 Checkpoint 5).
+- `panggil_meta_chatbot_api()` → `status_code=200`, `data_quality_status="ok"`, `last_refreshed_at="2026-08-11T06:03:04..."` — **pertama kalinya fungsi ini tereksekusi terhadap server nyata sama sekali** (sebelumnya genuinely nol bukti, ditambahkan commit `3329ff9` setelah M4.1 Checkpoint 5).
+- `eksekusi_atomic_intent()` (M4.2, orkestrator penuh) → `status=SEBAGIAN` (BUKAN `BERHASIL`) — `last_refreshed_at` 8 hari lebih tua dari tanggal eksekusi (2026-08-19), melebihi `EXECUTION_DATA_STALENESS_THRESHOLD_JAM` (48 jam) → **bukti nyata logika staleness M4.2 bekerja BENAR terhadap data sungguhan**, bukan sekadar simulasi test. `nilai_hasil` berisi data JSON asli dari `chatbot_api`, bentuk body TIDAK menyimpang dari yang disimulasikan test M4.2 (kekhawatiran risiko di paragraf "Dampak + mitigasi" di atas TIDAK terwujud).
+
+Gap ini kini TERTUTUP sebagai bukti — status entri diubah dari "diterima karena tidak reachable" menjadi historis/informasional (dipertahankan untuk jejak, bukan dihapus, sesuai prinsip log tidak menyembunyikan sejarah).
 
 ---
 

@@ -193,6 +193,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run python -c "..."` mengonfirmasi `'retriever' in KeadaanTurn.model_fields` -> `True`, `proses_retrieval_semua` tersedia di `turn_pipeline` module, dan urutan 10 field `KeadaanTurn.model_fields.keys()` sesuai rantai yang direncanakan.
 
+**Commit:** `f1168a4` — `feat(milestone-7.11): sambungkan retriever ke proses_turn`
+
+---
+
+## Checkpoint 8 — Sambungan Retriever: Test Deterministik
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 14-15 — Extend test existing + test connectivity baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah konstanta `_RETRIEVER_DUMMY = []`. Extend 9 dari 10 test existing dengan mock `proses_retrieval_semua` (kegagalan cabang paralel tetap tidak berubah, alasan identik 3 checkpoint test sebelumnya). Tulis test baru `test_orkestrator_retriever_menerima_cakupan_individu_result_persis` — spy merekam `cakupan_individu_result` (identity check terhadap `AtomicIntentConstraint` buatan tangan), menutup rantai penuh 4 test connectivity M7.11 (Otorisasi Checkpoint 3, Cakupan Individu Checkpoint 5, Retriever Checkpoint 8) yang masing-masing membuktikan SATU sambungan spesifik. Tambah import `AtomicIntentConstraint`, `ConstraintCakupanIndividu` dari `src.schemas.cakupan_individu`.
+
+**Temuan**
+Total test file kini 11 test (dari 7 sebelum M7.11 dimulai) — 4 test baru M7.11 (Otorisasi, Cakupan Individu, Retriever connectivity, masing-masing 1) ditambah extend mock di seluruh 9-10 test lama tiap checkpoint. Pola mock berlapis (tiap checkpoint menambah satu `monkeypatch.setattr` baru ke SEMUA test existing) terbukti scalable tapi verbose - dicatat sebagai observasi murni, bukan masalah yang perlu diperbaiki (konsisten preseden M7.6-7.10).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 11/11 test PASSED (10 existing + 1 baru), 3.70s, tanpa panggilan LLM/DB nyata.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

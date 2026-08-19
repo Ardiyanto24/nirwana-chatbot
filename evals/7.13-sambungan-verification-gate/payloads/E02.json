@@ -1,0 +1,850 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Baseline tanpa constraint (reuse gop_margin M7.11 E01/M7.12 E01)",
+  "timestamp": "2026-08-19T08:34:14.302737+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.13-e02",
+    "turn_index": 1,
+    "role_title": "Front Office Staff",
+    "employee_id": "emp-eval",
+    "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.13-e02",
+      "turn_index": 1,
+      "role_title": "Front Office Staff",
+      "employee_id": "emp-eval",
+      "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+          "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+          ]
+        },
+        {
+          "atomic_intent_id": "fc4e2c21-5ad7-451e-807d-464c8645ed6f",
+          "teks_kebutuhan": "Berapa persentase perubahan GOP Margin properti di Bali dari bulan lalu ke bulan ini?",
+          "label_bentuk_jawaban": "tren",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "9773e1ce-405b-41dc-b69f-cb3d471fc1a3"
+          ]
+        },
+        {
+          "atomic_intent_id": "9773e1ce-405b-41dc-b69f-cb3d471fc1a3",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan lalu?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": false,
+      "verifikasi_alasan": "Kebutuhan #3 tidak atomik karena hanya mengulang pertanyaan utama sebagai 'bagaimana hubungan...' tanpa memecah menjadi komponen terukur (mis. koefisien korelasi/regresi, arah, atau signifikansi). Selain itu, kebutuhan #4 dan #5 membandingkan GOP Margin dengan bulan lalu, padahal pertanyaan asli hanya menanyakan pengaruh deviasi harga bulan ini, sehingga kebutuhan tersebut tidak tersirat. Ketergantungan #3 pada #1 dan #2 juga tidak tepat karena hubungan tidak bisa disimpulkan hanya dari dua nilai agregat; diperlukan data per properti atau per periode.",
+      "retry_count": 2
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+          "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "fc4e2c21-5ad7-451e-807d-464c8645ed6f",
+          "teks_kebutuhan": "Berapa persentase perubahan GOP Margin properti di Bali dari bulan lalu ke bulan ini?",
+          "label_bentuk_jawaban": "tren",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "9773e1ce-405b-41dc-b69f-cb3d471fc1a3"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9773e1ce-405b-41dc-b69f-cb3d471fc1a3",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan lalu?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "financial",
+          "properties_ref",
+          "reservation"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+          "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+          ]
+        },
+        "domains": [
+          "reservation",
+          "financial",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "fc4e2c21-5ad7-451e-807d-464c8645ed6f",
+          "teks_kebutuhan": "Berapa persentase perubahan GOP Margin properti di Bali dari bulan lalu ke bulan ini?",
+          "label_bentuk_jawaban": "tren",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "9773e1ce-405b-41dc-b69f-cb3d471fc1a3"
+          ]
+        },
+        "domains": [
+          "financial",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9773e1ce-405b-41dc-b69f-cb3d471fc1a3",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan lalu?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "financial",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+          "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "fc4e2c21-5ad7-451e-807d-464c8645ed6f",
+          "teks_kebutuhan": "Berapa persentase perubahan GOP Margin properti di Bali dari bulan lalu ke bulan ini?",
+          "label_bentuk_jawaban": "tren",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "9773e1ce-405b-41dc-b69f-cb3d471fc1a3"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9773e1ce-405b-41dc-b69f-cb3d471fc1a3",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan lalu?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+          "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "fc4e2c21-5ad7-451e-807d-464c8645ed6f",
+          "teks_kebutuhan": "Berapa persentase perubahan GOP Margin properti di Bali dari bulan lalu ke bulan ini?",
+          "label_bentuk_jawaban": "tren",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "9773e1ce-405b-41dc-b69f-cb3d471fc1a3"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9773e1ce-405b-41dc-b69f-cb3d471fc1a3",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan lalu?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 8.523231255645136,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+          "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 8.380117724275806,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "sebagian",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+          ]
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 11.414159413192564,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "grain punya dimensi pembanding, cukup untuk perbandingan",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "fc4e2c21-5ad7-451e-807d-464c8645ed6f",
+          "teks_kebutuhan": "Berapa persentase perubahan GOP Margin properti di Bali dari bulan lalu ke bulan ini?",
+          "label_bentuk_jawaban": "tren",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "9773e1ce-405b-41dc-b69f-cb3d471fc1a3"
+          ]
+        },
+        "kecukupan": [],
+        "view_name_final": null,
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9773e1ce-405b-41dc-b69f-cb3d471fc1a3",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan lalu?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [],
+        "view_name_final": null,
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+            "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+            "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+            "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+              "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+            "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+              "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ]
+    ],
+    "verification_gate": [
+      [
+        {
+          "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+          "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "request_final": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "lolos": true,
+          "terkoreksi": false,
+          "alasan_penolakan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+          "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "request_final": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "lolos": true,
+          "terkoreksi": false,
+          "alasan_penolakan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+            "cc69f781-3d41-4e34-a6c3-a5eaf672a50b"
+          ]
+        },
+        {
+          "request_final": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali"
+            }
+          },
+          "lolos": true,
+          "terkoreksi": false,
+          "alasan_penolakan": null
+        }
+      ]
+    ]
+  },
+  "laporan_koreksi": [
+    {
+      "atomic_intent_id": "ca46b15d-c79b-4fb7-b02b-d794b9dcb9c9",
+      "teks_kebutuhan": "Berapa nilai GOP Margin properti di Bali pada bulan ini?",
+      "constraint_terdeteksi": false,
+      "hasil_gate_lolos": true,
+      "terkoreksi": false,
+      "params_asli": {
+        "property_name": "Bali",
+        "period_date": "2026-08-01"
+      },
+      "params_final": {
+        "property_name": "Bali",
+        "period_date": "2026-08-01"
+      },
+      "payload_employee_id": "emp-eval",
+      "koreksi_benar": true
+    },
+    {
+      "atomic_intent_id": "cc69f781-3d41-4e34-a6c3-a5eaf672a50b",
+      "teks_kebutuhan": "Berapa rata-rata deviasi harga properti di Bali pada bulan ini?",
+      "constraint_terdeteksi": false,
+      "hasil_gate_lolos": true,
+      "terkoreksi": false,
+      "params_asli": {
+        "property_name": "Bali",
+        "period_date": "2026-08-01"
+      },
+      "params_final": {
+        "property_name": "Bali",
+        "period_date": "2026-08-01"
+      },
+      "payload_employee_id": "emp-eval",
+      "koreksi_benar": true
+    },
+    {
+      "atomic_intent_id": "2dd29cea-e251-4f93-b2ac-8fb9c3d54cf6",
+      "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga dan GOP Margin properti di Bali?",
+      "constraint_terdeteksi": false,
+      "hasil_gate_lolos": true,
+      "terkoreksi": false,
+      "params_asli": {
+        "property_name": "Bali"
+      },
+      "params_final": {
+        "property_name": "Bali"
+      },
+      "payload_employee_id": "emp-eval",
+      "koreksi_benar": true
+    }
+  ],
+  "trace_id": "091415a735f417afadbf3b8298b6cc6c",
+  "span_info": {
+    "verification_gate_semua.intent_count": 3,
+    "constraint_check_spans": [
+      {
+        "verification.terkoreksi": false
+      },
+      {
+        "verification.terkoreksi": false
+      },
+      {
+        "verification.terkoreksi": false
+      }
+    ]
+  },
+  "error": null
+}

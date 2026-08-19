@@ -197,6 +197,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya - seluruh angka (params sebelum/sesudah, trace_id, constraint.terdeteksi) dikutip langsung dari file JSON tersimpan.
 
-**Commit:** *(dicatat di commit berikutnya)*
+**Commit:** `bd149f4` — `docs(milestone-7.13): audit hasil eksekusi nyata`
+
+---
+
+## Checkpoint 8 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 12-14 — Finalisasi logs.md, tulis report.md, update status proyek
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `milestones/7.13-sambungan-verification-gate/report.md` — 6 bagian sesuai template resmi: ringkasan hasil, KK sumber vs bukti nyata (dipetakan ke E01+E03, `trace_id` konkret), cara kerja+diagram Mermaid (fan-in 3 sumber via lookup dict, jalur skip dua sumber paksaan berbeda), perubahan dari plan (insiden regresi exit 4 + docker stack belum up, keduanya operasional bukan penyimpangan rencana), keterbatasan (tidak ada insiden hang, beda dari M7.12), follow-up (M7.14 berikutnya, 8/11 Sambungan Level 2 selesai). Update tabel "Status Proyek" di `CLAUDE.md`+`AGENT.md` (working tree saja, gitignored) — M7.13 ditandai Selesai, ringkasan naratif ditambahkan mirror pola M7.6-7.12.
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Baca ulang `report.md` — KK M7.13 sumber (1 kriteria literal) terpetakan ke bukti aktual dengan `trace_id` konkret (E01 `cdec6444...`, E03 `f49d161a...`). `CLAUDE.md`/`AGENT.md` diperbarui di working tree, TIDAK di-commit (gitignored, konsisten preseden M7.6-7.12).
+
+**Commit:** `docs(milestone-7.13): logs, report` (CLAUDE.md/AGENT.md TIDAK termasuk — gitignored, working tree saja)
 
 ---

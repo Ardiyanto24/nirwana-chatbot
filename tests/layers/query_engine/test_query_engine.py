@@ -13,13 +13,24 @@ import pytest
 
 import src.layers.query_engine.query_engine as query_engine_module
 from src.layers.query_engine.penyusunan_request import susun_request_atomic_intent
-from src.layers.query_engine.query_engine import susun_dan_verifikasi_request_atomic_intent
+from src.layers.query_engine.query_engine import (
+    susun_dan_verifikasi_request_atomic_intent,
+    susun_dan_verifikasi_request_semua,
+)
 from src.layers.query_engine.verifikasi_bentuk_request import (
     verifikasi_bentuk_request_atomic_intent,
 )
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.retriever import (
+    HasilKecukupanStruktural,
+    KandidatView,
+    KecukupanKandidat,
+    LabelKecocokanMakna,
+    SumberKeputusanKecukupan,
+    SumberPencarian,
+)
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 from src.schemas.verification_gate import QueryEngineRequest
 
@@ -41,6 +52,33 @@ def _buat_atomic_intent(
 
 def _buat_request(view_name: str = _VIEW) -> QueryEngineRequest:
     return QueryEngineRequest(domain=Domain.RESERVATION, view_name=view_name, params={"property_id": "P01"})
+
+
+def _buat_hasil_kecukupan(view_name_final: str | None) -> HasilKecukupanStruktural:
+    kecukupan = (
+        [
+            KecukupanKandidat(
+                kandidat=KandidatView(
+                    view_name=view_name_final,
+                    domain=Domain.RESERVATION,
+                    skor=3.0,
+                    sumber=SumberPencarian.BM25,
+                ),
+                kecocokan_label=LabelKecocokanMakna.DITEMUKAN,
+                cukup=True,
+                alasan="fixture test",
+                sumber_keputusan=SumberKeputusanKecukupan.DETERMINISTIK,
+            )
+        ]
+        if view_name_final is not None
+        else []
+    )
+    return HasilKecukupanStruktural(
+        atomic_intent=_buat_atomic_intent(),
+        kecukupan=kecukupan,
+        view_name_final=view_name_final,
+        status=StatusEksekusi.BERHASIL,
+    )
 
 
 # --- Checkpoint 2: unit test dasar (mocked, tanpa LLM sungguhan) --------
@@ -174,6 +212,95 @@ def test_view_name_tervalidasi_retriever_eksplisit_berbeda_diteruskan(monkeypatc
     )
 
     assert diterima["view_name_tervalidasi_retriever"] == _VIEW_LAIN
+
+
+# --- Milestone 7.12: susun_dan_verifikasi_request_semua (orkestrator batch) --
+
+
+def test_susun_dan_verifikasi_request_semua_dipanggil_dengan_atomic_intent_dan_view_name_final(
+    monkeypatch,
+):
+    """Kejadian inti M7.12 Checkpoint 2: susun_dan_verifikasi_request_
+    atomic_intent() WAJIB menerima atomic_intent + view_name_final PERSIS
+    dari item HasilKecukupanStruktural yang view_name_final-nya terisi."""
+    item = _buat_hasil_kecukupan("v_reservation_room_type_daily")
+
+    diterima = {}
+
+    def _rekam(atomic_intent, view_name):
+        diterima["atomic_intent"] = atomic_intent
+        diterima["view_name"] = view_name
+        return (
+            HasilPenyusunanRequest(
+                atomic_intent=atomic_intent,
+                request=_buat_request(view_name),
+                status=StatusEksekusi.BERHASIL,
+            ),
+            None,
+        )
+
+    monkeypatch.setattr(query_engine_module, "susun_dan_verifikasi_request_atomic_intent", _rekam)
+
+    hasil = susun_dan_verifikasi_request_semua([item])
+
+    assert diterima["atomic_intent"] is item.atomic_intent
+    assert diterima["view_name"] == "v_reservation_room_type_daily"
+    assert len(hasil) == 1
+
+
+def test_susun_dan_verifikasi_request_semua_skip_item_view_name_final_none(monkeypatch):
+    """Edge case Checkpoint 2: item dengan view_name_final=None TIDAK BOLEH
+    diteruskan ke susun_dan_verifikasi_request_atomic_intent() sama sekali
+    (decisions.md Keputusan 4 - forced by signature view_name: str
+    non-Optional, bukan pilihan gaya seperti Retriever M7.11)."""
+    item_kosong = _buat_hasil_kecukupan(None)
+
+    def _gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "susun_dan_verifikasi_request_atomic_intent TIDAK BOLEH terpanggil "
+            "untuk item dengan view_name_final=None"
+        )
+
+    monkeypatch.setattr(
+        query_engine_module,
+        "susun_dan_verifikasi_request_atomic_intent",
+        _gagal_kalau_terpanggil,
+    )
+
+    hasil = susun_dan_verifikasi_request_semua([item_kosong])
+
+    assert hasil == []
+
+
+def test_susun_dan_verifikasi_request_semua_urutan_dan_panjang_dipertahankan(monkeypatch):
+    """Campuran: item view_name_final terisi + item None - hasil hanya
+    berisi yang terisi, urutan dipertahankan, panjang hasil < panjang input."""
+    item_terisi_1 = _buat_hasil_kecukupan("v_reservation_room_type_daily")
+    item_kosong = _buat_hasil_kecukupan(None)
+    item_terisi_2 = _buat_hasil_kecukupan("v_reservation_channel_daily")
+
+    def _fake(atomic_intent, view_name):
+        return (
+            HasilPenyusunanRequest(
+                atomic_intent=atomic_intent,
+                request=_buat_request(view_name),
+                status=StatusEksekusi.BERHASIL,
+            ),
+            None,
+        )
+
+    monkeypatch.setattr(query_engine_module, "susun_dan_verifikasi_request_atomic_intent", _fake)
+
+    hasil = susun_dan_verifikasi_request_semua([item_terisi_1, item_kosong, item_terisi_2])
+
+    assert len(hasil) == 2
+    assert hasil[0][0].request.view_name == "v_reservation_room_type_daily"
+    assert hasil[1][0].request.view_name == "v_reservation_channel_daily"
+
+
+def test_susun_dan_verifikasi_request_semua_list_kosong_hasil_kosong():
+    """Input list kosong -> hasil list kosong, tanpa error."""
+    assert susun_dan_verifikasi_request_semua([]) == []
 
 
 # --- Checkpoint 3: test connectivity Kriteria Keberhasilan (LLM nyata) --

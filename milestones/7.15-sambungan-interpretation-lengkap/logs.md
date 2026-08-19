@@ -197,6 +197,37 @@ Tidak berlaku.
 **Hasil Verifikasi**
 Review manual `rancangan.md` — invarian mekanisme + 3 kejadian dengan prioritas jelas (E01 wajib, E02 penting, E03 opsional).
 
+**Commit:** `e2a1352` — `docs(milestone-7.15): peta kejadian eval`
+
+---
+
+## Checkpoint 8 — Eksekusi Nyata
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19 (mencakup jeda 2x restart komputer)
+
+**Catatan operasional:** komputer restart 2 KALI di tengah checkpoint ini (setelah percobaan 2 dan setelah percobaan 3 dimulai) — `chatbot_api` dan Docker Desktop mati keduanya, dinyalakan ulang tiap kali (dikonfirmasi `GET /health`/`GET /api/services` 200 sebelum lanjut). Tidak ada payload yang hilang/korup (percobaan yang terhenti tidak sempat tersimpan, dikonfirmasi `session_id` file existing sebelum melanjutkan).
+
+### Task 12 — Tulis + jalankan run_eval.py (+ retry_e01.py)
+
+**Kesesuaian dengan plan:** Sesuai plan, DIPERLUAS — rancangan awal mengizinkan 1 retry E01, aktual 4 percobaan (lihat Temuan) karena tiap percobaan mengungkap informasi baru yang mengubah strategi, bukan retry membabi-buta.
+
+**Apa yang dilakukan**
+Tulis `run_eval.py` (E01 2-turn + E02 + E03) dan `retry_e01.py` (reuse fungsi via `importlib`, session_id baru tiap percobaan). Jalankan E01 percobaan 1: turn 1 gagal teknis, turn 2 tidak match "selesai". Diarsipkan, retry percobaan 2 (session_id baru, skenario sama): turn 1 gagal lebih awal, turn 2 tetap tidak match. Diarsipkan, retry percobaan 3 (role/pertanyaan diubah ke kombinasi terbukti bersih M7.14 Checkpoint 1): turn 1 AKHIRNYA mencapai Execution tapi `SEBAGIAN` (bukan `BERHASIL`) — `last_refreshed_at=2026-08-11`, akar masalah mulai terlihat. Diarsipkan, retry percobaan 4 (domain SENGAJA diganti total ke facility/maintenance, menguji hipotesis staleness sistemik vs per-view): `SEBAGIAN` LAGI, tanggal PERSIS SAMA `2026-08-11` — mengonfirmasi staleness sistemik seluruh database `chatbot_api` lokal, bukan kebetulan satu view.
+
+E02 dan E03 dijalankan sekali (bersama percobaan 1 E01), tidak perlu retry — E02 lolos penuh, E03 tidak menghasilkan gap (sesuai status "opsional/bonus").
+
+**Temuan**
+Akar masalah E01 DITEMUKAN dan DIBUKTIKAN: seluruh database `chatbot_api` lokal tampaknya di-seed sekali pada 2026-08-11, tidak pernah diperbarui — SETIAP eksekusi nyata di lingkungan kerja saat ini (2026-08-19+) PASTI melebihi ambang staleness 48 jam, PASTI `SEBAGIAN`, TIDAK PERNAH `BERHASIL`. `match_atomic_intents()` (M1.7) SECARA BENAR menolak menawarkan paket `SEBAGIAN` sebagai kandidat "selesai" — mekanisme M7.15 sendiri (re-keying, klasifikasi) TETAP terbukti benar via unit test deterministik (Checkpoint 4), gap murni soal ketersediaan data nyata berkondisi `BERHASIL`, bukan bug kode.
+
+**Error/Kegagalan (jika ada)**
+2x restart komputer tak terduga di tengah eksekusi (lihat Catatan operasional). E01 gagal menghasilkan bukti live cabang "selesai" setelah 4 percobaan (root cause ditemukan, bukan diperbaiki — di luar kendali proyek).
+
+**Diagnosis dan Perbaikan**
+Restart: nyalakan ulang `chatbot_api`+Docker tiap kali, verifikasi health check sebelum lanjut, tidak ada kerja/commit hilang. E01: didiagnosis tuntas (staleness sistemik), didokumentasikan formal sebagai `docs/keterbatasan-diterima.md` #15 — TIDAK ada "perbaikan" yang mungkin dari sisi kode M7.15 (data tim database engineering, di luar kendali).
+
+**Hasil Verifikasi**
+8 `trace_id` nyata (E01×2 turn ×4 percobaan sebagian diarsipkan, E02, E03) tersimpan `payloads/*.json`. Grep secret kosong.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

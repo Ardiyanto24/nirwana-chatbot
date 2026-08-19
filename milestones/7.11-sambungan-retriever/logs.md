@@ -220,6 +220,35 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 11/11 test PASSED (10 existing + 1 baru), 3.70s, tanpa panggilan LLM/DB nyata.
 
+**Commit:** `ff3ae12` — `test(milestone-7.11): test deterministik sambungan retriever`
+
+---
+
+## Checkpoint 9 — Peta Kejadian
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 16 — Tulis `rancangan.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca `evals/7.10-sambungan-domain-gate/{rancangan.md,run_eval.py,audit.md}` lengkap untuk mirror struktur+gaya persis (bukan contoh minimal template). Ditelusuri role×domain matrix (`docs/03-domain-source/rancangan-rbac-ai-chatbot.md` Bagian 2) untuk memilih kombinasi role/pertanyaan yang PASTI menghasilkan skenario yang diinginkan tanpa menebak: **Front Office Staff** (hanya `reservation`) untuk E01 (reuse skenario `gop_margin` PERSIS dari M2.1/M7.3 — pertanyaan cross-domain reservation+financial yang sudah terbukti nyata menghasilkan identifikasi 2 domain); **CEO** (semua domain) untuk E02 baseline; **F&B Staff** (hanya `fnb`) ditanya metrik `financial` murni untuk E03 edge case (domain kosong); **HR Staff** dengan pertanyaan PERSIS `evals/2.3-.../S01.json` ("Bagaimana hasil review kinerja Budi semester ini?", sudah terbukti `terdeteksi=True` di M2.3 asli) untuk E04 bukti sambungan Cakupan Individu.
+
+Tulis `evals/7.11-sambungan-retriever/rancangan.md` — 4 kejadian, ekspektasi ditulis sebagai INVARIAN MEKANISME (bukan jumlah atomic_intent absolut) mengikuti pelajaran eksplisit `audit.md` M7.10 Bagian "Temuan Metodologi".
+
+**Temuan**
+Seluruh 4 role_title (`Front Office Staff`, `CEO`, `F&B Staff`, `HR Staff`) dikonfirmasi valid via `load_valid_roles()` sebelum ditulis ke `rancangan.md` — mencegah kejadian gagal validasi Input Layer karena typo nama role.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Review manual `rancangan.md` — 4 kejadian, tiap kejadian py ekspektasi konkret per-domain (bukan jumlah absolut), tabel ringkasan mencakup kolom `domain_diizinkan ke Retriever` dan `cakupan_individu.terdeteksi` untuk memudahkan verifikasi silang Checkpoint 10.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

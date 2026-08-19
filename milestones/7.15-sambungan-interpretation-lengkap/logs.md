@@ -112,6 +112,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_paket_narasi.py -v` — 9/9 PASSED, 2.63s.
 
+**Commit:** `1e835f0` (feat) + `aba23a3` (test) + `2a011e6` (docs)
+
+---
+
+## Checkpoint 5 — Sambungan ke `proses_turn()`
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 7-8 — Extend `KeadaanTurn` + wiring 3 fungsi baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah field `paket_narasi: list[SessionMemoryPackage]` dan `interpretation: tuple[HasilNarasi, HasilVerifikasiNarasi, list[DataVisualisasi] | None]` di `KeadaanTurn` (15 field total) — import `HasilNarasi`/`HasilVerifikasiNarasi`/`DataVisualisasi` dari `src.schemas.interpretation` (ditemukan lewat `Grep`). Di `turn_pipeline.py`, setelah wave loop: panggil `susun_dan_simpan_paket_semua(execution_result, verification_gate_result, payload.session_id, payload.turn_index)` → `paket_dari_eksekusi`; `susun_paket_narasi(matches, paket_dari_eksekusi, otorisasi_result, payload.session_id, payload.turn_index)` → `(atomic_intents_narasi, paket_narasi_result)`; `susun_dan_verifikasi_narasi(atomic_intents_narasi, paket_narasi_result, payload.session_id, payload.turn_index)` → `interpretation_result`. Ketiganya diisi ke `KeadaanTurn(...)`.
+
+**Temuan**
+Tidak ada temuan tak terduga — restrukturisasi murni aditif (beda dari M7.14 yang menata ulang panggilan existing, M7.15 murni menambah 3 langkah baru di akhir).
+
+**Error/Kegagalan (jika ada)**
+Skrip sanity-check pertama salah menebak field `HasilVerifikasiNarasi` (asumsi `narasi`+`lolos`+`alasan_penolakan`, padahal field asli `narasi`+`status`+`lolos`+`alasan`) — `pydantic.ValidationError` pada skrip sanity-check itu sendiri (bukan kode produksi).
+
+**Diagnosis dan Perbaikan**
+Baca skema asli via `Grep`, perbaiki skrip sanity-check, jalankan ulang berhasil.
+
+**Hasil Verifikasi**
+`KeadaanTurn.model_fields` mengandung `paket_narasi`+`interpretation`, urutan 15 field sesuai rencana. Sanity-check `proses_turn()` end-to-end dengan seluruh fungsi (termasuk 3 fungsi baru M7.15) di-mock — ketiga fungsi baru terpanggil, `hasil.paket_narasi`/`hasil.interpretation` terisi sesuai mock.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

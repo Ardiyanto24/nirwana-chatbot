@@ -41,6 +41,7 @@ from src.observability.genai_semconv import (
 )
 from src.observability.tracing import get_tracer
 from src.prompts.loader import load_prompt
+from src.schemas.cakupan_individu import AtomicIntentConstraint
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.domain_gate import Domain
 from src.schemas.retriever import (
@@ -380,3 +381,40 @@ def proses_retrieval_atomic_intent(
         span.set_attribute("retrieval.selected_view", hasil_kecukupan.view_name_final or "")
 
         return hasil_kecukupan
+
+
+# --- Orkestrator batch (M7.11): daftar AtomicIntentConstraint -> daftar HasilKecukupanStruktural ---
+
+
+def proses_retrieval_semua(
+    daftar_constraint: list[AtomicIntentConstraint],
+) -> list[HasilKecukupanStruktural]:
+    """Untuk seluruh `AtomicIntentConstraint` (M2.3, hasil rantai Domain
+    Gate: identifikasi -> otorisasi -> cakupan-individu) dalam satu turn,
+    jalankan pipeline Retriever (M3.1-3.3) satu per satu lewat
+    `proses_retrieval_atomic_intent()` - mirror struktur
+    `domain_gate.identifikasi_domain_semua()`/`domain_gate.periksa_
+    otorisasi_semua()`/`domain_gate.deteksi_constraint_semua()`. Ditambah
+    Milestone 7.11 (layer Retriever M3.1-3.3 sendiri belum py fungsi
+    batch level-list, hanya per-item - lihat
+    milestones/7.11-sambungan-retriever/decisions.md Keputusan 3).
+
+    `domain_diizinkan` per item di-derive dari `domain_decisions` (filter
+    `diizinkan=True`) - item dengan SELURUH domain ditolak tetap diproses
+    apa adanya (`domain_diizinkan=[]`), TIDAK di-skip: `proses_retrieval_
+    atomic_intent()` sudah terbukti aman menangani domain kosong (0
+    kandidat -> `view_name_final=None`, `status=BERHASIL`, tidak crash) -
+    lihat decisions.md Keputusan 7."""
+    tracer = get_tracer(_RETRIEVER_TRACER_NAME)
+    with tracer.start_as_current_span("retriever.proses_semua") as span:
+        span.set_attribute("intent.count", len(daftar_constraint))
+
+        hasil = [
+            proses_retrieval_atomic_intent(
+                item.atomic_intent,
+                [keputusan.domain for keputusan in item.domain_decisions if keputusan.diizinkan],
+            )
+            for item in daftar_constraint
+        ]
+
+        return hasil

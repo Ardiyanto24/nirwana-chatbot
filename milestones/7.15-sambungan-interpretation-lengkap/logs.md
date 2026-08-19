@@ -83,6 +83,35 @@ Ubah `src/layers/execution/penyimpanan_paket.py` — parameter opsional (`view_n
 **Hasil Verifikasi**
 `uv run pytest tests/layers/execution/test_penyimpanan_paket.py -v` — 25/25 PASSED (20 existing + 5 baru). Regresi penuh `uv run pytest tests/layers/execution/ -q` — 90 passed, 1 skipped, 12.80s.
 
+**Commit:** `125d397` (feat) + `89a7994` (test) + `6ff2eeb` (docs)
+
+---
+
+## Checkpoint 4 — Bangun `susun_paket_narasi()` (Penggabungan + Klasifikasi Gap)
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 5-6 — Fungsi penggabungan baru + unit test standalone
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Konfirmasi ulang `AtomicIntentAuthorization`/`DomainAuthorization` (`src/schemas/authorization.py`) sebelum implementasi. Bangun `src/orchestration/paket_narasi.py::susun_paket_narasi()` — loop `matches`, 3 cabang: (a) `status=SELESAI` → `_paket_selesai()` (re-key `atomic_intent_id`/`session_id`/`turn_index` ke turn ini, `sumber` dihitung `sumber_arsip()` publik dari Checkpoint 2, field lain disalin utuh); (b) `status=PERLU_EKSEKUSI` DAN ada di `paket_dari_eksekusi` → dipakai apa adanya; (c) gap → `_paket_gap()` klasifikasi via `_adalah_gap_rbac()` (SELURUH `domain_decisions` `diizinkan=False`, non-kosong → RBAC; selainnya → teknis generik). Span pembungkus `orchestration.susun_paket_narasi` dengan 4 atribut count granular.
+
+Tulis 9 unit test standalone (`tests/orchestration/test_paket_narasi.py`): re-key ID+sumber benar (paket lama "eksekusi_baru" → "session_memory (turn N)"), sumber arsip berantai dipertahankan utuh (paket lama SUDAH "session_memory (turn 2)"), eksekusi dipakai apa adanya, gap RBAC (seluruh domain ditolak), gap teknis (domain_decisions kosong — Domain Gate sendiri gagal, BUKAN RBAC), gap teknis (domain_decisions campuran sebagian diizinkan — tetap BUKAN RBAC), gap teknis (tidak ada entry otorisasi sama sekali), campuran KETIGA kategori dalam satu turn (urutan+panjang `atomic_intents`/`packages` tetap 1:1 sinkron), list kosong.
+
+**Temuan**
+Tidak ada temuan tak terduga — seluruh 9 test lolos percobaan pertama, termasuk kasus tepi klasifikasi gap (domain_decisions kosong vs campuran) yang secara sengaja dipisah jadi test terpisah untuk memastikan logic `_adalah_gap_rbac()` benar di kedua kasus batas.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_paket_narasi.py -v` — 9/9 PASSED, 2.63s.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

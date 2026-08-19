@@ -169,3 +169,30 @@ Tidak berlaku.
 **Commit:** `31f143d` (feat) + `4d7ca40` (test)
 
 ---
+
+## Checkpoint 7 — Sambungan Retriever: Implementasi
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 12-13 — Extend `KeadaanTurn` + wiring `proses_retrieval_semua()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah field `retriever: list[HasilKecukupanStruktural]` di `KeadaanTurn` — field TERAKHIR yang ditambahkan M7.11, melengkapi rantai penuh `payload -> ketergantungan -> rewrite -> session_memory -> decomposition -> matches -> domain_gate -> otorisasi -> cakupan_individu -> retriever` (10 field). Di `turn_pipeline.py`: import `proses_retrieval_semua` dari `src.layers.retriever.kecukupan_struktural`, panggil sekuensial setelah `cakupan_individu_result` final, isi field `retriever`. Ini SECARA RESMI Sambungan 6 (Domain Gate -> Retriever) yang jadi judul asli M7.11 — Checkpoint 2-6 sebelumnya adalah prasyarat (M2.2/M2.3 wiring + fungsi batch baru) yang genuinely dibutuhkan sebelum sambungan ini bisa dibuktikan bekerja.
+
+**Temuan**
+Tidak ada — pola identik Checkpoint 2/4, disiplin satu-field-per-checkpoint dipertahankan sampai akhir.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run python -c "..."` mengonfirmasi `'retriever' in KeadaanTurn.model_fields` -> `True`, `proses_retrieval_semua` tersedia di `turn_pipeline` module, dan urutan 10 field `KeadaanTurn.model_fields.keys()` sesuai rantai yang direncanakan.
+
+**Commit:** *(dicatat di commit berikutnya)*
+
+---

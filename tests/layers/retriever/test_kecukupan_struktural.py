@@ -20,7 +20,10 @@ from src.layers.retriever.kecukupan_struktural import (
     _evaluasi_llm_fallback,
     evaluasi_kecukupan_struktural_atomic_intent,
     proses_retrieval_atomic_intent,
+    proses_retrieval_semua,
 )
+from src.schemas.authorization import DomainAuthorization
+from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.retriever import (
@@ -525,3 +528,104 @@ def test_pipeline_view_name_final_none_tidak_error(monkeypatch):
     hasil = proses_retrieval_atomic_intent(_buat_atomic_intent(), [Domain.RESERVATION])
 
     assert hasil.view_name_final is None
+
+
+# --- proses_retrieval_semua (orkestrator batch, Milestone 7.11) -------------
+
+
+def _buat_constraint(
+    domains_diizinkan: list[Domain], domains_ditolak: list[Domain] | None = None
+) -> AtomicIntentConstraint:
+    decisions = [DomainAuthorization(domain=d, diizinkan=True) for d in domains_diizinkan]
+    decisions += [
+        DomainAuthorization(domain=d, diizinkan=False, alasan="tidak diizinkan untuk role ini")
+        for d in (domains_ditolak or [])
+    ]
+    return AtomicIntentConstraint(
+        atomic_intent=_buat_atomic_intent(),
+        domain_decisions=decisions,
+        constraint=ConstraintCakupanIndividu(terdeteksi=False),
+    )
+
+
+def _hasil_kecukupan_dummy(atomic_intent) -> HasilKecukupanStruktural:
+    return HasilKecukupanStruktural(
+        atomic_intent=atomic_intent, kecukupan=[], view_name_final=None, status=StatusEksekusi.BERHASIL
+    )
+
+
+def test_proses_retrieval_semua_derive_domain_diizinkan_filter_diizinkan_true(monkeypatch):
+    """Kejadian inti M7.11 Checkpoint 6: proses_retrieval_atomic_intent()
+    WAJIB menerima `domain_diizinkan` hasil FILTER `diizinkan=True` saja -
+    domain yang ditolak (`diizinkan=False`) TIDAK BOLEH ikut diteruskan,
+    membuktikan mekanisme filter di level Retriever, bukan cuma di level
+    otorisasi (lihat KK M7.11 sumber: "tidak ada kandidat dari domain
+    yang ditolak muncul di hasil pencarian")."""
+    constraint = _buat_constraint(
+        domains_diizinkan=[Domain.RESERVATION], domains_ditolak=[Domain.FINANCIAL]
+    )
+
+    diterima = {}
+
+    def _rekam(atomic_intent, domain_diizinkan):
+        diterima["atomic_intent"] = atomic_intent
+        diterima["domain_diizinkan"] = domain_diizinkan
+        return _hasil_kecukupan_dummy(atomic_intent)
+
+    monkeypatch.setattr(kecukupan_struktural_module, "proses_retrieval_atomic_intent", _rekam)
+
+    hasil = proses_retrieval_semua([constraint])
+
+    assert diterima["atomic_intent"] is constraint.atomic_intent
+    assert diterima["domain_diizinkan"] == [Domain.RESERVATION]
+    assert Domain.FINANCIAL not in diterima["domain_diizinkan"]
+    assert len(hasil) == 1
+
+
+def test_proses_retrieval_semua_domain_kosong_tetap_diproses_bukan_skip(monkeypatch):
+    """Edge case Checkpoint 6: item dengan SELURUH domain ditolak
+    (`domain_diizinkan` hasil derive = `[]`) tetap dipanggil
+    `proses_retrieval_atomic_intent()` apa adanya, TIDAK di-skip
+    orkestrator (decisions.md Keputusan 7) - mencegah duplikasi logic,
+    fungsi per-item sudah terbukti aman menangani domain kosong."""
+    constraint = _buat_constraint(domains_diizinkan=[], domains_ditolak=[Domain.FINANCIAL])
+
+    dipanggil = {"n": 0}
+
+    def _rekam(atomic_intent, domain_diizinkan):
+        dipanggil["n"] += 1
+        assert domain_diizinkan == []
+        return _hasil_kecukupan_dummy(atomic_intent)
+
+    monkeypatch.setattr(kecukupan_struktural_module, "proses_retrieval_atomic_intent", _rekam)
+
+    hasil = proses_retrieval_semua([constraint])
+
+    assert dipanggil["n"] == 1, "item domain kosong tetap harus diproses, bukan di-skip"
+    assert len(hasil) == 1
+    assert hasil[0].view_name_final is None
+
+
+def test_proses_retrieval_semua_urutan_dan_panjang_dipertahankan_multi_item(monkeypatch):
+    """Panjang+urutan hasil harus persis sesuai urutan input, tiap item
+    diproses independen (bukan di-batch/campur)."""
+    c1 = _buat_constraint(domains_diizinkan=[Domain.RESERVATION])
+    c2 = _buat_constraint(domains_diizinkan=[Domain.HR])
+
+    monkeypatch.setattr(
+        kecukupan_struktural_module,
+        "proses_retrieval_atomic_intent",
+        lambda atomic_intent, domain_diizinkan: _hasil_kecukupan_dummy(atomic_intent),
+    )
+
+    hasil = proses_retrieval_semua([c1, c2])
+
+    assert len(hasil) == 2
+    assert hasil[0].atomic_intent.atomic_intent_id == c1.atomic_intent.atomic_intent_id
+    assert hasil[1].atomic_intent.atomic_intent_id == c2.atomic_intent.atomic_intent_id
+
+
+def test_proses_retrieval_semua_list_kosong_hasil_kosong():
+    """Input list kosong -> hasil list kosong, tanpa error (tidak ada
+    span/atribut yang gagal diisi saat intent.count=0)."""
+    assert proses_retrieval_semua([]) == []

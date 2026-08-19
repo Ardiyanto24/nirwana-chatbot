@@ -24,6 +24,7 @@ from src.schemas.decomposition import (
     LabelBentukJawaban as LabelBentukJawabanDecomposition,
     RelasiKebutuhan,
 )
+from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthorization
 from src.schemas.domain_gate import AtomicIntentDomains, Domain
 from src.schemas.matching import AtomicIntentMatch, MatchStatus
 from src.schemas.rewrite import RewriteResult
@@ -48,6 +49,8 @@ _MATCHES_DUMMY = []
 _DOMAIN_GATE_DUMMY = []
 
 _OTORISASI_DUMMY = []
+
+_CAKUPAN_INDIVIDU_DUMMY = []
 
 _RAW_VALID_TURN1 = {
     "session_id": "sess-test",
@@ -146,6 +149,17 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         turn_pipeline_module, "periksa_otorisasi_semua", _otorisasi_gagal_kalau_terpanggil
     )
 
+    def _cakupan_individu_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "deteksi_constraint_semua TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        _cakupan_individu_gagal_kalau_terpanggil,
+    )
+
     with pytest.raises(pydantic.ValidationError):
         proses_turn(_RAW_GAGAL_VALIDASI)
 
@@ -190,6 +204,11 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
         "periksa_otorisasi_semua",
         lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -201,6 +220,7 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     assert hasil.matches == _MATCHES_DUMMY
     assert hasil.domain_gate == _DOMAIN_GATE_DUMMY
     assert hasil.otorisasi == _OTORISASI_DUMMY
+    assert hasil.cakupan_individu == _CAKUPAN_INDIVIDU_DUMMY
 
 
 def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
@@ -249,6 +269,11 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
         turn_pipeline_module,
         "periksa_otorisasi_semua",
         lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -343,6 +368,11 @@ def test_orkestrator_decompose_menerima_rewritten_question_bukan_payload_questio
         "periksa_otorisasi_semua",
         lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -387,6 +417,11 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_none(monkeyp
         turn_pipeline_module,
         "periksa_otorisasi_semua",
         lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -436,6 +471,11 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_kosong(monke
         turn_pipeline_module,
         "periksa_otorisasi_semua",
         lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -497,6 +537,11 @@ def test_orkestrator_domain_gate_menerima_matches_apa_adanya_tanpa_filter(monkey
         turn_pipeline_module,
         "periksa_otorisasi_semua",
         lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -560,9 +605,83 @@ def test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar(
         return _OTORISASI_DUMMY
 
     monkeypatch.setattr(turn_pipeline_module, "periksa_otorisasi_semua", _rekam_otorisasi)
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
     assert diterima_otorisasi["domain_gate_result"] is domain_gate_asli
     assert diterima_otorisasi["role_title"] == payload_asli.role_title == "CEO"
     assert hasil.otorisasi == _OTORISASI_DUMMY
+
+
+def test_orkestrator_cakupan_individu_menerima_otorisasi_result_dan_role_title_benar(
+    monkeypatch,
+):
+    """Kejadian inti M7.11 (Checkpoint 4-5): deteksi_constraint_semua() WAJIB
+    menerima `otorisasi_result` PERSIS (identity check) hasil
+    periksa_otorisasi_semua(), DAN `payload.role_title` yang benar - gap
+    wiring M2.3 yang belum pernah tersambung sebelumnya (lihat decisions.md
+    Keputusan 2+4). role_title diambil dari payload turn 1 sama seperti
+    test sambungan Otorisasi, konsisten membuktikan nilai genuinely mengalir
+    dari TurnPayload di tiap titik rantai, bukan konstanta kebetulan cocok."""
+    payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
+    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
+
+    otorisasi_asli = [
+        AtomicIntentAuthorization(
+            atomic_intent=AtomicIntent(
+                atomic_intent_id="ai-1",
+                teks_kebutuhan="teks kebutuhan",
+                label_bentuk_jawaban=LabelBentukJawabanDecomposition.NILAI_TUNGGAL,
+                relasi=RelasiKebutuhan.INDEPENDEN,
+                bergantung_pada=None,
+            ),
+            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+        )
+    ]
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: otorisasi_asli,
+    )
+
+    diterima_cakupan_individu = {}
+
+    def _rekam_cakupan_individu(otorisasi_result, role_title):
+        diterima_cakupan_individu["otorisasi_result"] = otorisasi_result
+        diterima_cakupan_individu["role_title"] = role_title
+        return _CAKUPAN_INDIVIDU_DUMMY
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "deteksi_constraint_semua", _rekam_cakupan_individu
+    )
+
+    hasil = proses_turn(_RAW_VALID_TURN1)
+
+    assert diterima_cakupan_individu["otorisasi_result"] is otorisasi_asli
+    assert diterima_cakupan_individu["role_title"] == payload_asli.role_title == "CEO"
+    assert hasil.cakupan_individu == _CAKUPAN_INDIVIDU_DUMMY

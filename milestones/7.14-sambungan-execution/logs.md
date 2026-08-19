@@ -86,6 +86,35 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_wave.py -v` — 8/8 PASSED, 0.70s.
 
-**Commit:** *(dicatat di commit berikutnya)*
+**Commit:** `99caf4c` (feat) + `51fc197` (test) + `5262060` (docs)
+
+---
+
+## Checkpoint 3 — Bangun `eksekusi_atomic_intent_semua()`
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 5-6 — Fungsi batch baru + unit test standalone
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca ulang `src/schemas/execution.py` mengonfirmasi `HasilEksekusiAtomicIntent` SUDAH membawa field `atomic_intent` (beda dari `HasilVerifikasiGate` M2.4) — return type batch function karena itu `list[HasilEksekusiAtomicIntent]` TANPA tuple pembungkus (Keputusan 5). Tambah `eksekusi_atomic_intent_semua(verification_gate_wave, cakupan_individu_result, role_title, employee_id)` di `src/layers/execution/klasifikasi_respons.py` — lookup dict `constraint_by_id` (key `atomic_intent_id`), filter item `hasil_vg.lolos=False`, panggil `eksekusi_atomic_intent(atomic_intent, hasil_vg.request_final.view_name, hasil_vg.request_final, constraint, role_title, employee_id)` per item lolos filter, span pembungkus `execution.eksekusi_atomic_intent_semua` dengan `intent.count`.
+
+Tulis 5 unit test baru di `tests/layers/execution/test_klasifikasi_respons.py` (mocked `eksekusi_atomic_intent`): list kosong; skip `lolos=False`; argumen benar per item (atomic_intent/view_name/request/constraint/role_title/employee_id, identity check untuk `request`/`constraint`); multi-item constraint TIDAK TERTUKAR (urutan `cakupan_individu_result` sengaja dibalik dari urutan wave, mirror pola M7.13); urutan+panjang dipertahankan pada campuran lolos=True/False.
+
+**Temuan**
+Sempat ada sisa `)` yatim (artefak proses edit) yang menyebabkan `IndentationError` saat sanity import pertama — langsung terlihat dan diperbaiki sebelum lanjut ke test (lihat Error/Kegagalan).
+
+**Error/Kegagalan (jika ada)**
+`IndentationError: unexpected indent` pada baris 348 `klasifikasi_respons.py` saat `uv run python -c "from ... import eksekusi_atomic_intent_semua"` — satu baris `)` berlebih tersisa dari proses edit sebelumnya.
+
+**Diagnosis dan Perbaikan**
+Baca ulang file di sekitar baris 336-348, hapus baris `)` yatim. Sanity import berhasil setelah perbaikan.
+
+**Hasil Verifikasi**
+`uv run pytest tests/layers/execution/ -v -k "eksekusi_atomic_intent_semua"` — 5/5 PASSED. Regresi penuh `uv run pytest tests/layers/execution/ -q` — 86 passed, 1 skipped (skip pre-existing, tidak terkait perubahan ini), 25.64s.
+
+**Commit:** `49528a7` (feat) + `9fba356` (test)
 
 ---

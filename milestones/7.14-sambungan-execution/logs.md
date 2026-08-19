@@ -264,6 +264,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 Grep secret pada seluruh file eval baru — kosong. Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya, termasuk file arsip percobaan pertama E02/E03.
 
-**Commit:** *(dicatat di commit berikutnya)*
+**Commit:** `9abdb5a` (test) + `508b8ba` (docs)
+
+---
+
+## Checkpoint 9 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 14-15 — Finalisasi logs.md, tulis report.md, update status proyek
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `milestones/7.14-sambungan-execution/report.md` — 6 bagian sesuai template resmi: ringkasan hasil (koreksi folder chatbot_api, desain wave dikonfirmasi user, prasyarat #13 diverifikasi), KK sumber vs bukti nyata (dipetakan ke E01, gap 96 mikrodetik antar-wave), cara kerja+diagram Mermaid (wave loop, titik kontak pertama chatbot_api nyata), perubahan dari plan (restart komputer, Domain Gate gagal_teknis 2x, jalur revisi 400 seluruhnya gagal), keterbatasan (kualitas request M3.4 terhadap validasi server nyata belum terbukti), follow-up (M7.15 berikutnya, rekomendasi investigasi jalur revisi 400, 9/11 Sambungan Level 2 selesai). Update tabel "Status Proyek" di `CLAUDE.md`+`AGENT.md` (working tree saja, gitignored).
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Baca ulang `report.md` — KK M7.14 sumber (1 kriteria literal) terpetakan ke bukti aktual dengan `trace_id` konkret dan timestamp span presisi mikrodetik. `CLAUDE.md`/`AGENT.md` diperbarui di working tree, TIDAK di-commit (gitignored, konsisten preseden M7.6-7.13).
+
+**Commit:** `docs(milestone-7.14): logs, report` (CLAUDE.md/AGENT.md TIDAK termasuk — gitignored, working tree saja)
 
 ---

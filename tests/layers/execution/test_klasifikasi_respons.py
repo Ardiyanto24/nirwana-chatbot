@@ -25,11 +25,16 @@ import uuid
 import pytest
 
 from src.layers.execution import klasifikasi_respons as modul
+from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
-from src.schemas.execution import HasilMetaChatbotAPI, HasilPemanggilanChatbotAPI
+from src.schemas.execution import (
+    HasilEksekusiAtomicIntent,
+    HasilMetaChatbotAPI,
+    HasilPemanggilanChatbotAPI,
+)
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
-from src.schemas.verification_gate import QueryEngineRequest
+from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
 
 def _buat_atomic_intent() -> AtomicIntent:
@@ -231,3 +236,139 @@ def test_500_lalu_sukses_percobaan_kedua_berhasil(monkeypatch):
     assert dipanggil["count"] == 2
     assert tracer_rekam.span.atribut["execution.retry_count_infra"] == 1
     assert tracer_rekam.span.atribut["http.response.status_code"] == 200
+
+
+# --- eksekusi_atomic_intent_semua() (Milestone 7.14) -----------------------
+
+
+def _buat_hasil_vg(
+    atomic_intent: AtomicIntent, lolos: bool = True, request: QueryEngineRequest | None = None
+) -> HasilVerifikasiGate:
+    req = request or _buat_request()
+    if not lolos:
+        return HasilVerifikasiGate(
+            request_final=None, lolos=False, terkoreksi=False, alasan_penolakan="fixture test"
+        )
+    return HasilVerifikasiGate(request_final=req, lolos=True, terkoreksi=False)
+
+
+def _buat_constraint(atomic_intent: AtomicIntent, terdeteksi: bool = False) -> AtomicIntentConstraint:
+    return AtomicIntentConstraint(
+        atomic_intent=atomic_intent,
+        domain_decisions=[],
+        constraint=ConstraintCakupanIndividu(
+            terdeteksi=terdeteksi, alasan="fixture test" if terdeteksi else None
+        ),
+    )
+
+
+def test_eksekusi_atomic_intent_semua_list_kosong_hasil_kosong():
+    assert modul.eksekusi_atomic_intent_semua([], [], "X", "E0001") == []
+
+
+def test_eksekusi_atomic_intent_semua_skip_lolos_false(monkeypatch):
+    dipanggil = []
+    monkeypatch.setattr(
+        modul, "eksekusi_atomic_intent", lambda *a, **kw: dipanggil.append((a, kw))
+    )
+
+    a1 = _buat_atomic_intent()
+    a2 = _buat_atomic_intent()
+    wave = [
+        (a1, _buat_hasil_vg(a1, lolos=False)),
+        (a2, _buat_hasil_vg(a2, lolos=True)),
+    ]
+    cakupan = [_buat_constraint(a1), _buat_constraint(a2)]
+
+    hasil = modul.eksekusi_atomic_intent_semua(wave, cakupan, "Front Office Staff", "E0001")
+
+    assert len(dipanggil) == 1
+    assert dipanggil[0][0][0].atomic_intent_id == a2.atomic_intent_id
+    assert len(hasil) == 1
+
+
+def test_eksekusi_atomic_intent_semua_argumen_benar_per_item(monkeypatch):
+    dipanggil = []
+
+    def _spy(atomic_intent, view_name, request, constraint, role_title, employee_id):
+        dipanggil.append(
+            {
+                "atomic_intent": atomic_intent,
+                "view_name": view_name,
+                "request": request,
+                "constraint": constraint,
+                "role_title": role_title,
+                "employee_id": employee_id,
+            }
+        )
+        return HasilEksekusiAtomicIntent(atomic_intent=atomic_intent, status=StatusEksekusi.BERHASIL, nilai_hasil=[{}])
+
+    monkeypatch.setattr(modul, "eksekusi_atomic_intent", _spy)
+
+    a1 = _buat_atomic_intent()
+    request1 = _buat_request()
+    hasil_vg1 = _buat_hasil_vg(a1, lolos=True, request=request1)
+    constraint1 = ConstraintCakupanIndividu(terdeteksi=True, alasan="fixture test")
+    cakupan1 = AtomicIntentConstraint(atomic_intent=a1, domain_decisions=[], constraint=constraint1)
+
+    hasil = modul.eksekusi_atomic_intent_semua(
+        [(a1, hasil_vg1)], [cakupan1], "HR Staff", "E0071"
+    )
+
+    assert len(hasil) == 1
+    assert dipanggil[0]["atomic_intent"].atomic_intent_id == a1.atomic_intent_id
+    assert dipanggil[0]["view_name"] == request1.view_name
+    assert dipanggil[0]["request"] is request1
+    assert dipanggil[0]["constraint"] is constraint1
+    assert dipanggil[0]["role_title"] == "HR Staff"
+    assert dipanggil[0]["employee_id"] == "E0071"
+
+
+def test_eksekusi_atomic_intent_semua_multi_item_constraint_tidak_tertukar(monkeypatch):
+    """Dua atomic intent, urutan cakupan_individu_result SENGAJA dibalik
+    dari urutan wave - memverifikasi pencocokan murni via atomic_intent_id,
+    bukan kebetulan sejajar by index (mirror pola M7.13)."""
+    dipanggil = []
+
+    def _spy(atomic_intent, view_name, request, constraint, role_title, employee_id):
+        dipanggil.append((atomic_intent.atomic_intent_id, constraint.terdeteksi))
+        return HasilEksekusiAtomicIntent(atomic_intent=atomic_intent, status=StatusEksekusi.BERHASIL, nilai_hasil=[{}])
+
+    monkeypatch.setattr(modul, "eksekusi_atomic_intent", _spy)
+
+    a1 = _buat_atomic_intent()
+    a2 = _buat_atomic_intent()
+    wave = [(a1, _buat_hasil_vg(a1)), (a2, _buat_hasil_vg(a2))]
+    cakupan_dibalik = [_buat_constraint(a2, terdeteksi=True), _buat_constraint(a1, terdeteksi=False)]
+
+    modul.eksekusi_atomic_intent_semua(wave, cakupan_dibalik, "X", "E0001")
+
+    hasil_by_id = dict(dipanggil)
+    assert hasil_by_id[a1.atomic_intent_id] is False
+    assert hasil_by_id[a2.atomic_intent_id] is True
+
+
+def test_eksekusi_atomic_intent_semua_urutan_dan_panjang_dipertahankan(monkeypatch):
+    monkeypatch.setattr(
+        modul,
+        "eksekusi_atomic_intent",
+        lambda atomic_intent, *a, **kw: HasilEksekusiAtomicIntent(
+            atomic_intent=atomic_intent, status=StatusEksekusi.BERHASIL, nilai_hasil=[{}]
+        ),
+    )
+
+    a1, a2, a3 = _buat_atomic_intent(), _buat_atomic_intent(), _buat_atomic_intent()
+    wave = [
+        (a1, _buat_hasil_vg(a1, lolos=True)),
+        (a2, _buat_hasil_vg(a2, lolos=False)),
+        (a3, _buat_hasil_vg(a3, lolos=True)),
+    ]
+    cakupan = [_buat_constraint(a1), _buat_constraint(a2), _buat_constraint(a3)]
+
+    hasil = modul.eksekusi_atomic_intent_semua(wave, cakupan, "X", "E0001")
+
+    assert len(hasil) == 2
+    assert [h.atomic_intent.atomic_intent_id for h in hasil] == [
+        a1.atomic_intent_id,
+        a3.atomic_intent_id,
+    ]

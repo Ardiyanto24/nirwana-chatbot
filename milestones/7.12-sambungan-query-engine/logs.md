@@ -226,7 +226,7 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `diff CLAUDE.md AGENT.md` mengonfirmasi identik setelah update. Review `report.md` — KK M7.12 sumber (1 kriteria literal) terpetakan ke bukti aktual dengan `trace_id` konkret, tidak ada klaim tanpa rujukan bukti. `CLAUDE.md`/`AGENT.md` TIDAK di-commit (gitignored by design, dikonfirmasi ulang preseden M7.11 Checkpoint 12), diperbarui di working tree saja.
 
-**Commit:** *(dicatat di commit berikutnya)*
+**Commit:** `2fbd30d` — `docs(milestone-7.12): logs, report`
 
 ---
 

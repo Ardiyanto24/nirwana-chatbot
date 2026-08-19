@@ -139,6 +139,37 @@ Tidak berlaku.
 **Hasil Verifikasi**
 Review manual `rancangan.md` — 3 kejadian, tiap kejadian py ekspektasi konkret + rujukan eksplisit ke hasil nyata M7.11 sebagai referensi (bukan jaminan), section "Catatan Non-Determinisme" eksplisit menjelaskan metodologi perbandingan run-terhadap-dirinya-sendiri.
 
-**Commit:** *(dicatat di commit berikutnya)*
+**Commit:** `8edf468` — `docs(milestone-7.12): peta kejadian eval`
+
+---
+
+## Checkpoint 6 — Eksekusi Nyata
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 9-10 — `run_eval.py` + eksekusi + verifikasi Jaeger
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu insiden operasional (hang, ditemukan+diatasi — lihat Error/Kegagalan).
+
+**Apa yang dilakukan**
+Sebelum menulis `run_eval.py`: konfirmasi span "chat" M3.4 (`penyusunan_request.py`)/M3.5 (`verifikasi_bentuk_request.py`) sama-sama merekam tag `request.domain`/`request.view_name` (konstanta `REQUEST_DOMAIN`/`REQUEST_VIEW_NAME`, `src/observability/genai_semconv.py`) — dipakai sebagai bukti pendukung Jaeger, verifikasi UTAMA tetap inspeksi langsung return value Python (`hasil.query_engine[i][*].request.view_name` vs `hasil.retriever[i].view_name_final`, dicocokkan per `atomic_intent_id`, konsisten pendekatan M7.11).
+
+Tulis `evals/7.12-sambungan-query-engine/run_eval.py` — helper `_verifikasi_view_name_konsisten()` dan `_ringkas_span()`. Docker (Jaeger+Collector+Prometheus) dikonfirmasi SUDAH `up` dari sesi M7.11 (`docker ps`), tidak perlu `docker compose up -d` ulang.
+
+**Temuan**
+Seluruh 3 kejadian (run kedua, setelah retry) `view_name_persis_sama=True` untuk item yang diteruskan, `skip_benar=True` untuk item `view_name_final=None` (E02). E01 kali ini menghasilkan 3 atomic intent yang KETIGANYA `view_name_final=v_reservation_gop_impact_monthly` (berbeda komposisi dari run M7.11 sebelumnya yang cuma 1 dari 3 intent memakai view ini) — non-determinisme Decomposition dikenal, dicatat di `audit.md`, tidak memengaruhi verdict (justru 3 bukti independen sekaligus).
+
+**Error/Kegagalan (jika ada)**
+**Percobaan PERTAMA (`run_eval.py` dijalankan via background task) HANG** — terdeteksi lewat laporan user langsung ("saya melihat di dashboard openrouter request terakhir masuk 11 menit yang lalu") saat proses masih "running" tanpa output. Diverifikasi via query Jaeger API langsung terhadap trace E01 yang sedang berjalan: span LLM ("chat") ke-7 selesai, TAPI gap sampai saat pengecekan mencapai **~1481 detik (~24.7 menit)** — jauh melewati batas aman `timeout=90.0, max_retries=1` (~180 detik terburuk) yang sudah dikonfigurasi `get_openrouter_client()` justru untuk mencegah kasus ini (`docs/keterbatasan-diterima.md` #7, "Panggilan LLM... Kadang Hang Berkepanjangan Tanpa Exception").
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Bukan bug kode M7.12 — konsisten kategori masalah infrastruktur/provider yang SUDAH terdokumentasi `docs/keterbatasan-diterima.md` #7, sebelumnya diterima sebagai keterbatasan (bukan diperbaiki) karena root cause tidak bisa diisolasi pasti. Ditangani dengan proses stop paksa (`TaskStop`) atas proses yang hang, dijalankan ULANG dari awal (tidak ada payload E01 yang sempat tersimpan — `_simpan()` hanya terpanggil setelah `runner()` selesai, jadi tidak ada state parsial yang perlu dibersihkan). Run KEDUA dipantau AKTIF via query Jaeger berkala (bukan menunggu buta sampai selesai) — progres sehat (gap antar-span turun ke puluhan detik), selesai normal ~15 menit kemudian, 3/3 kejadian lolos.
+
+**Catatan untuk `docs/keterbatasan-diterima.md` #7**: entri itu mengklaim mitigasi timeout membatasi "~180s terburuk per panggilan" — insiden hang M7.12 ini (~24.7 menit tanpa progres) MELEBIHI klaim itu jauh, mengindikasikan timeout tidak selalu efektif mencegah hang total (mungkin hang terjadi di titik yang tidak tercakup `timeout` client, mis. saat menunggu koneksi awal terbentuk). Data point baru, TIDAK diupdate ke `keterbatasan-diterima.md` di checkpoint ini (di luar cakupan dokumentasi M7.12 murni) — dicatat di sini untuk visibilitas, layak jadi follow-up.
+
+**Hasil Verifikasi**
+Payload lengkap tersimpan `evals/7.12-sambungan-query-engine/payloads/{E01,E02,E03}.json`, dikonfirmasi tanpa secret (`grep` sebelum commit). 3 `trace_id` dicatat, span Jaeger (`query_engine.susun_dan_verifikasi_request_semua` dengan `intent.count`, span `chat` dengan `request.view_name`) dikonfirmasi konsisten dengan hasil Python.
+
+**Commit:** `a847019` — `test(milestone-7.12): eksekusi nyata 3 kejadian`
 
 ---

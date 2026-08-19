@@ -168,6 +168,35 @@ Ubah assertion jadi cek panjang list + identity ELEMEN di dalamnya (`hasil.paket
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 15/15 PASSED (14 existing + 1 baru), 6.54s, tanpa panggilan LLM/DB/HTTP nyata.
 
+**Commit:** `31af3c1` (test) + `6c11b50` (docs)
+
+**Catatan:** Regresi lebih luas (`tests/orchestration/ tests/layers/execution/ tests/layers/verification_gate/ tests/layers/query_engine/ tests/layers/context_resolution/`, dikecualikan test `matching` real-LLM) dijalankan di background sebelum lanjut Checkpoint 7 — 234 passed, 1 skipped, 3 deselected, 165.87s, 0 gagal.
+
+---
+
+## Checkpoint 7 — Peta Kejadian Eval
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 11 — Tulis rancangan.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.15-sambungan-interpretation-lengkap/rancangan.md` — 3 kejadian dengan prioritas eksplisit: E01 (WAJIB — skenario 2-turn NYATA pertama sejak M4.3 tersambung, reuse teks `evals/7.9-.../E06` tapi turn 1 dijalankan genuinely lewat `proses_turn()` kali ini, bukan seed manual seperti M7.9 asli), E02 (Penting — gap RBAC, reuse skenario domain ditolak total M7.11 E03/M7.12 E02, terbukti 2x konsisten), E03 (Opsional/bonus — gap teknis, reuse skenario HR "Budi" yang terbukti non-deterministik klasifikasi label di M7.14).
+
+**Temuan**
+Ditemukan nuansa penting: `evals/7.9-.../E06` (skenario 2-turn serupa) TERPAKSA memakai seed manual (`store_session_memory()` langsung) karena M4.3 belum tersambung orkestrator saat itu — M7.15 adalah PERTAMA KALINYA skenario 2-turn semacam ini bisa dijalankan GENUINELY (turn 1 benar-benar dieksekusi `proses_turn()`, bukan disimulasikan), persis kata KK sumber "benar-benar berasal dari alur sungguhan".
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Review manual `rancangan.md` — invarian mekanisme + 3 kejadian dengan prioritas jelas (E01 wajib, E02 penting, E03 opsional).
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

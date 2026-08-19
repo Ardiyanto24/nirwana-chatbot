@@ -54,6 +54,35 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run pytest tests/layers/context_resolution/test_matching.py -v` — 3/3 PASSED (59.69s, LLM+DB nyata, termasuk `test_kelompok_c_rantai_arsip_ulang_turn_tujuh_lima_tiga` yang menguji langsung logic `sumber_arsip()`) — perilaku identik dikonfirmasi nyata.
 
+**Commit:** `08e23d8` (fix) + `c747033` (docs)
+
+---
+
+## Checkpoint 3 — Bangun `susun_dan_simpan_paket_semua()`
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 3-4 — Fungsi batch baru + unit test standalone
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca ulang `src/layers/execution/penyimpanan_paket.py` (M4.3) lengkap — mengonfirmasi `susun_dan_simpan_paket()` tidak py span sama sekali (murni orkestrasi + panggilan `store_session_memory()`), butuh tambah `get_tracer()`+`_TRACER_NAME` baru untuk fungsi batch. Tambah `susun_dan_simpan_paket_semua(execution_result, verification_gate_result, session_id, turn_index) -> list[SessionMemoryPackage]` — lookup dict `view_name_by_id` (key `atomic_intent_id`, dari `verification_gate_result`), loop panggil `susun_dan_simpan_paket()` per item TANPA filter status (Keputusan 5 — `GAGAL_TEKNIS` tetap diproses), span pembungkus `execution.susun_dan_simpan_paket_semua` dengan `intent.count`.
+
+Tulis 5 unit test baru di `tests/layers/execution/test_penyimpanan_paket.py`: list kosong; argumen benar per item (identity check `session_id`/`turn_index`/`status`); status BERHASIL/SEBAGIAN/GAGAL_TEKNIS diteruskan apa adanya (termasuk `nilai_hasil={"rows": []}` untuk GAGAL_TEKNIS); multi-item `view_name` TIDAK TERTUKAR (urutan `verification_gate_result` sengaja dibalik dari `execution_result`, dibuktikan via spy langsung ke `susun_dan_simpan_paket()`, bukan efek samping tidak langsung).
+
+**Temuan**
+Bug ditemukan+diperbaiki SEBELUM commit: pemanggilan awal `susun_dan_simpan_paket()` di dalam fungsi batch memakai 8 argumen POSITIONAL — spy test (`_spy(atomic_intent, session_id, turn_index, status, view_name=None, **kw)`) gagal `TypeError: takes from 4 to 5 positional arguments but 8 were given`. Diperbaiki dengan mengubah pemanggilan jadi keyword arguments eksplisit untuk `view_name`/`nilai_hasil`/`data_quality_status`/`last_refreshed_at` — lebih jelas juga untuk pembaca, bukan cuma memperbaiki test.
+
+**Error/Kegagalan**
+`TypeError` pada test `test_susun_dan_simpan_paket_semua_multi_item_view_name_tidak_tertukar` percobaan pertama (lihat Temuan).
+
+**Diagnosis dan Perbaikan**
+Ubah `src/layers/execution/penyimpanan_paket.py` — parameter opsional (`view_name`, `nilai_hasil`, `data_quality_status`, `last_refreshed_at`) diteruskan sebagai keyword, bukan positional. Test lolos setelah perbaikan.
+
+**Hasil Verifikasi**
+`uv run pytest tests/layers/execution/test_penyimpanan_paket.py -v` — 25/25 PASSED (20 existing + 5 baru). Regresi penuh `uv run pytest tests/layers/execution/ -q` — 90 passed, 1 skipped, 12.80s.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

@@ -137,6 +137,66 @@ Tidak berlaku.
 **Hasil Verifikasi**
 Review manual `rancangan.md` — 3 kejadian, invarian mekanisme (termasuk logika koreksi paksa `tegakkan_constraint_cakupan_individu()`, dikutip langsung dari `verifikasi_gate.py` baris 65-80) dan tabel ringkasan ekspektasi lengkap.
 
+**Commit:** `16affa9` — `docs(milestone-7.13): peta kejadian eval`
+
+---
+
+## Checkpoint 6 — Eksekusi Nyata
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 9-10 — Tulis run_eval.py + jalankan real
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.13-sambungan-verification-gate/run_eval.py` (mirror `evals/7.12-.../run_eval.py`) — verifikasi substantif `_verifikasi_koreksi_konsisten()` mencocokkan `hasil.verification_gate` terhadap `hasil.cakupan_individu` via `atomic_intent_id`, cek invarian: `terdeteksi=True` -> `request_final.params["employee_id"]==payload.employee_id`; `terdeteksi=False` -> `terkoreksi=False` dan params tidak berubah. `_ringkas_span()` mengekstrak `verification_gate.verifikasi_gate_semua` (`intent.count`) dan span `verification_gate.check` (`check_name="constraint_cakupan_individu"`, `verification.terkoreksi`) dari Jaeger.
+
+Cek Docker: `docker compose ps` di `infra/observability/` kosong (stack TIDAK `up`, beda dari asumsi awal M7.11-7.12 session) — `docker compose up -d` dijalankan dulu (Jaeger+Collector+Prometheus), dikonfirmasi Jaeger API `http://localhost:16686/api/services` -> 200 sebelum eksekusi.
+
+Jalankan `run_eval.py` di background dengan timeout 10 menit (mengacu insiden hang M7.12 ~24.7 menit) — kali ini SELESAI LANCAR percobaan pertama, exit code 0, tanpa hang. 3/3 kejadian `koreksi_benar=True` untuk seluruh item (E01: 1/1, E02: 3/3, E03: 1/1).
+
+**Temuan**
+Sebelum eksekusi eval, regresi penuh (`tests/orchestration/`, `tests/layers/{verification_gate,query_engine,retriever,domain_gate}/`, dikecualikan test konektivitas) dijalankan ulang di background sebagai langkah kebersihan sebelum Checkpoint 5-6 — percobaan PERTAMA gagal exit code 4 (dicurigai artefak transisi foreground->background tool, bukan bug nyata, output terpotong tanpa pesan error jelas), percobaan KEDUA lolos penuh 493/493 test dalam 300.95s (real DB fixture, bukan hang - genuinely 5 menit).
+
+E02 (baseline) menghasilkan komposisi berbeda dari prediksi `rancangan.md`: 5 atomic intent (bukan 3), dan SEMUA 3 yang mencapai Query Engine `lolos=True` (bukan 1/3 seperti run M7.12 E01) - non-determinisme dikenal (`docs/keterbatasan-diterima.md` #3), dicatat transparan di `audit.md`, TIDAK memengaruhi verdict KK (E02 murni kontrol negatif pelengkap, bukan sumber utama bukti).
+
+**Error/Kegagalan (jika ada)**
+Regresi percobaan pertama exit code 4 (lihat Temuan) - diselesaikan dengan rerun, tidak ada perubahan kode diperlukan (bukan bug M7.13).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Rerun regresi di background dengan pengamatan output langsung (bukan asumsi exit code dari notifikasi task pertama) - lolos bersih percobaan kedua.
+
+**Hasil Verifikasi**
+`payloads/{E01,E02,E03}.json` tersimpan lengkap, seluruh `trace_id` terverifikasi via Jaeger API (span `verification_gate.verifikasi_gate_semua`+`verification_gate.check` ditemukan), grep secret pada payload+kode kosong.
+
+**Commit:** *(dicatat di commit berikutnya)*
+
+---
+
+## Checkpoint 7 — Audit
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 11 — Tulis audit.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.13-sambungan-verification-gate/audit.md` — tabel ringkasan verdict 3/3 LOLOS, analisis per kejadian dengan `trace_id` konkret, kutipan langsung nilai `request.params`/`request_final.params` sebelum-sesudah koreksi untuk E01/E03, penjelasan transparan penyimpangan komposisi E02 dari prediksi.
+
+**Temuan**
+Tidak ada temuan tak terduga di luar yang sudah dicatat Checkpoint 6 - seluruh 5 item lintas 3 kejadian menunjukkan pencocokan `atomic_intent_id` yang benar (constraint/view_name_final tidak tertukar), konsisten unit test Checkpoint 2.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya - seluruh angka (params sebelum/sesudah, trace_id, constraint.terdeteksi) dikutip langsung dari file JSON tersimpan.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

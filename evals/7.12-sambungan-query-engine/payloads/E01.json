@@ -1,0 +1,581 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "view_name persis sama - bukti KK literal utama (reuse gop_margin M7.11 E01)",
+  "timestamp": "2026-08-19T05:39:26.814082+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.12-e01",
+    "turn_index": 1,
+    "role_title": "Front Office Staff",
+    "employee_id": "emp-eval",
+    "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.12-e01",
+      "turn_index": 1,
+      "role_title": "Front Office Staff",
+      "employee_id": "emp-eval",
+      "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "majemuk_bergantung",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+          "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+            "cb8bb233-cbd4-4e78-b289-014ae1671b8f"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 1
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+          "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+            "cb8bb233-cbd4-4e78-b289-014ae1671b8f"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation",
+          "financial",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "financial",
+          "reservation",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+          "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+            "cb8bb233-cbd4-4e78-b289-014ae1671b8f"
+          ]
+        },
+        "domains": [
+          "financial",
+          "reservation",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+          "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+            "cb8bb233-cbd4-4e78-b289-014ae1671b8f"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+          "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+            "cb8bb233-cbd4-4e78-b289-014ae1671b8f"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 11.414159413192564,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+          "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 11.414159413192564,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+          "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+            "cb8bb233-cbd4-4e78-b289-014ae1671b8f"
+          ]
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 11.414159413192564,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "grain punya dimensi pembanding, cukup untuk perbandingan",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+            "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {}
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+            "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {}
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params kosong tidak memiliki filter untuk membatasi ke properti di Bali dan tidak ada ketentuan waktu 'sebelum deviasi harga terjadi', sehingga query akan mengembalikan banyak baris gop_margin dari berbagai properti dan bulan, bukan satu nilai tunggal."
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+            "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {}
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+            "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {}
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params kosong tidak memfilter properti ke Bali maupun kondisi 'setelah deviasi harga terjadi', padahal grain view adalah properti × bulan. Tanpa filter, hasil akan mencakup banyak baris (banyak properti dan bulan), sehingga tidak dapat mengerucut ke satu nilai tunggal."
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+            "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+              "cb8bb233-cbd4-4e78-b289-014ae1671b8f"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date_from": "2026-07-01",
+              "period_date_to": "2026-08-01"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+            "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+              "cb8bb233-cbd4-4e78-b289-014ae1671b8f"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date_from": "2026-07-01",
+              "period_date_to": "2026-08-01"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ]
+    ]
+  },
+  "laporan_view_name": [
+    {
+      "atomic_intent_id": "3dc4b3f8-0a44-497e-a59c-5180e0137e3e",
+      "teks_kebutuhan": "Berapa gop_margin properti di Bali sebelum deviasi harga terjadi?",
+      "view_name_final": "v_reservation_gop_impact_monthly",
+      "diteruskan_ke_query_engine": true,
+      "hasil_susun_status": "berhasil",
+      "hasil_verifikasi_lolos": false,
+      "request_view_name": "v_reservation_gop_impact_monthly",
+      "view_name_persis_sama": true
+    },
+    {
+      "atomic_intent_id": "cb8bb233-cbd4-4e78-b289-014ae1671b8f",
+      "teks_kebutuhan": "Berapa gop_margin properti di Bali setelah deviasi harga terjadi?",
+      "view_name_final": "v_reservation_gop_impact_monthly",
+      "diteruskan_ke_query_engine": true,
+      "hasil_susun_status": "berhasil",
+      "hasil_verifikasi_lolos": false,
+      "request_view_name": "v_reservation_gop_impact_monthly",
+      "view_name_persis_sama": true
+    },
+    {
+      "atomic_intent_id": "c326c86a-3d25-44f2-9f52-dd4fb7a58906",
+      "teks_kebutuhan": "Bagaimana perbandingan gop_margin properti di Bali sebelum dan sesudah deviasi harga?",
+      "view_name_final": "v_reservation_gop_impact_monthly",
+      "diteruskan_ke_query_engine": true,
+      "hasil_susun_status": "berhasil",
+      "hasil_verifikasi_lolos": true,
+      "request_view_name": "v_reservation_gop_impact_monthly",
+      "view_name_persis_sama": true
+    }
+  ],
+  "trace_id": "0463a32203101e9256672c0fa87cc6f7",
+  "span_info": {
+    "query_engine_semua.intent_count": 3,
+    "chat_spans_dengan_request_view_name": [
+      {
+        "request.domain": "reservation",
+        "request.view_name": "v_reservation_gop_impact_monthly"
+      },
+      {
+        "request.domain": "reservation",
+        "request.view_name": "v_reservation_gop_impact_monthly"
+      },
+      {
+        "request.domain": "reservation",
+        "request.view_name": "v_reservation_gop_impact_monthly"
+      },
+      {
+        "request.domain": "reservation",
+        "request.view_name": "v_reservation_gop_impact_monthly"
+      },
+      {
+        "request.domain": "reservation",
+        "request.view_name": "v_reservation_gop_impact_monthly"
+      },
+      {
+        "request.domain": "reservation",
+        "request.view_name": "v_reservation_gop_impact_monthly"
+      }
+    ]
+  },
+  "error": null
+}

@@ -1,0 +1,136 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Item view_name_final=None di-skip dari Query Engine (reuse M7.11 E03)",
+  "timestamp": "2026-08-19T05:41:01.225439+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.12-e02",
+    "turn_index": 1,
+    "role_title": "F&B Staff",
+    "employee_id": "emp-eval",
+    "question": "Berapa GOP (gross operating profit) properti bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.12-e02",
+      "turn_index": 1,
+      "role_title": "F&B Staff",
+      "employee_id": "emp-eval",
+      "question": "Berapa GOP (gross operating profit) properti bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "9c79ba31-cd18-49fc-a155-f1be233459cb",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9c79ba31-cd18-49fc-a155-f1be233459cb",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9c79ba31-cd18-49fc-a155-f1be233459cb",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "financial"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9c79ba31-cd18-49fc-a155-f1be233459cb",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'F&B Staff' tidak memiliki akses ke domain 'financial'"
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9c79ba31-cd18-49fc-a155-f1be233459cb",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'F&B Staff' tidak memiliki akses ke domain 'financial'"
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9c79ba31-cd18-49fc-a155-f1be233459cb",
+          "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [],
+        "view_name_final": null,
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": []
+  },
+  "laporan_view_name": [
+    {
+      "atomic_intent_id": "9c79ba31-cd18-49fc-a155-f1be233459cb",
+      "teks_kebutuhan": "Berapa GOP (gross operating profit) properti bulan ini?",
+      "view_name_final": null,
+      "diteruskan_ke_query_engine": false,
+      "skip_benar": true,
+      "view_name_persis_sama": null
+    }
+  ],
+  "trace_id": "3f1c27f67c469e42a5208ebac35515c5",
+  "span_info": {
+    "query_engine_semua.intent_count": 1,
+    "chat_spans_dengan_request_view_name": []
+  },
+  "error": null
+}

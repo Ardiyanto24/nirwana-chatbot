@@ -1,0 +1,212 @@
+{
+  "kejadian_id": "E03",
+  "deskripsi": "Bukti kedua independen + kepatuhan sumber (reuse M7.11 E04)",
+  "timestamp": "2026-08-19T05:44:10.595445+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.12-e03",
+    "turn_index": 1,
+    "role_title": "HR Staff",
+    "employee_id": "emp-eval",
+    "question": "Bagaimana hasil review kinerja Budi semester ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.12-e03",
+      "turn_index": 1,
+      "role_title": "HR Staff",
+      "employee_id": "emp-eval",
+      "question": "Bagaimana hasil review kinerja Budi semester ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "hr",
+          "employees_directory"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "hr",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "employees_directory",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "hr",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "employees_directory",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": true,
+          "alasan": "kebutuhan menyentuh kategori data performa individu staf"
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_hr_employee_performance_semester",
+              "domain": "hr",
+              "skor": 8.243119881803043,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_hr_employee_performance_semester",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+            "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "hr",
+            "view_name": "v_hr_employee_performance_semester",
+            "params": {
+              "full_name": "Budi",
+              "review_period": "2026-S2"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+            "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "hr",
+            "view_name": "v_hr_employee_performance_semester",
+            "params": {
+              "full_name": "Budi",
+              "review_period": "2026-S2"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ]
+    ]
+  },
+  "laporan_view_name": [
+    {
+      "atomic_intent_id": "b7cdb704-78cd-4ee6-aa2b-78b80fdebd4e",
+      "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+      "view_name_final": "v_hr_employee_performance_semester",
+      "diteruskan_ke_query_engine": true,
+      "hasil_susun_status": "berhasil",
+      "hasil_verifikasi_lolos": true,
+      "request_view_name": "v_hr_employee_performance_semester",
+      "view_name_persis_sama": true
+    }
+  ],
+  "trace_id": "ae70c85c82b35c3e1a31f6cdcb722e7b",
+  "span_info": {
+    "query_engine_semua.intent_count": 1,
+    "chat_spans_dengan_request_view_name": [
+      {
+        "request.domain": "hr",
+        "request.view_name": "v_hr_employee_performance_semester"
+      },
+      {
+        "request.domain": "hr",
+        "request.view_name": "v_hr_employee_performance_semester"
+      }
+    ]
+  },
+  "error": null
+}

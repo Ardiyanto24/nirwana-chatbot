@@ -59,3 +59,30 @@ Tidak berlaku.
 **Commit:** `ee57584` (feat) + `2b0e558` (test)
 
 ---
+
+## Checkpoint 3 — Sambungan Verification Gate: Implementasi
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 4-5 — Extend `KeadaanTurn` + wiring `verifikasi_gate_semua()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah field `verification_gate: list[tuple[AtomicIntent, HasilVerifikasiGate]]` di `KeadaanTurn` — field TERAKHIR, melengkapi 12 field total. Import `AtomicIntent` (belum ada sebelumnya di `orchestration.py`, cukup ditambahkan ke import existing `src.schemas.decomposition`) dan `HasilVerifikasiGate` dari `src.schemas.verification_gate`. Di `turn_pipeline.py`: import `verifikasi_gate_semua`, panggil `verifikasi_gate_semua(query_engine_result, retriever_result, cakupan_individu_result, payload.employee_id)` sekuensial setelah `query_engine_result` final — SATU pemanggilan menerima TIGA argumen list sekaligus (beda dari seluruh Sambungan sebelumnya yang cuma menerima SATU list dari langkah tepat sebelumnya), mencerminkan fan-in 3 sumber yang sudah diantisipasi di plan.
+
+**Temuan**
+Tidak ada — pola field/wiring identik checkpoint implementasi sebelumnya, hanya jumlah argumen pemanggilan yang lebih banyak (forced by desain fan-in, sudah diantisipasi Keputusan 7 `decisions.md`).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run python -c "..."` mengonfirmasi `'verification_gate' in KeadaanTurn.model_fields` -> `True`, urutan 12 field sesuai rencana, `verifikasi_gate_semua` tersedia di `turn_pipeline` module.
+
+**Commit:** *(dicatat di commit berikutnya)*
+
+---

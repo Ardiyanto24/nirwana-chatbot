@@ -1,14 +1,15 @@
 """Test orkestrator lintas-layer PIC 7 Level 2 -
 src/orchestration/turn_pipeline.py. Cakupan SEMPIT (decisions.md M7.6
 Keputusan 8, dipertahankan M7.7 Keputusan 7, M7.8 Keputusan 6, M7.9
-Keputusan 7, M7.10 Keputusan 7): hanya kejadian yang TIDAK butuh
-LLM/DB/Jaeger nyata (short-circuit deterministik + wiring identity mocked
-+ kegagalan teknis salah satu cabang paralel + argumen yang diterima
-Decomposition + konversi None/list-kosong ke Pencocokan + argumen yang
-diterima Domain Gate). Kejadian yang butuh eksekusi nyata (LLM/DB
-sungguhan, bukti span/konten/status match/intent.count) ada di
-evals/7.6-.../, evals/7.7-.../, evals/7.8-.../, evals/7.9-.../,
-evals/7.10-.../ - lihat rancangan.md/audit.md di folder masing-masing.
+Keputusan 7, M7.10 Keputusan 7, M7.11 Keputusan 9): hanya kejadian yang
+TIDAK butuh LLM/DB/Jaeger nyata (short-circuit deterministik + wiring
+identity mocked + kegagalan teknis salah satu cabang paralel + argumen
+yang diterima Decomposition + konversi None/list-kosong ke Pencocokan +
+argumen yang diterima Domain Gate + argumen yang diterima Pemeriksaan
+Otorisasi). Kejadian yang butuh eksekusi nyata (LLM/DB sungguhan, bukti
+span/konten/status match/intent.count) ada di evals/7.6-.../,
+evals/7.7-.../, evals/7.8-.../, evals/7.9-.../, evals/7.10-.../,
+evals/7.11-.../ - lihat rancangan.md/audit.md di folder masing-masing.
 """
 
 import pydantic
@@ -23,6 +24,7 @@ from src.schemas.decomposition import (
     LabelBentukJawaban as LabelBentukJawabanDecomposition,
     RelasiKebutuhan,
 )
+from src.schemas.domain_gate import AtomicIntentDomains, Domain
 from src.schemas.matching import AtomicIntentMatch, MatchStatus
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import (
@@ -44,6 +46,8 @@ _DECOMPOSITION_DUMMY = DecompositionResult(
 _MATCHES_DUMMY = []
 
 _DOMAIN_GATE_DUMMY = []
+
+_OTORISASI_DUMMY = []
 
 _RAW_VALID_TURN1 = {
     "session_id": "sess-test",
@@ -133,6 +137,15 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         turn_pipeline_module, "identifikasi_domain_semua", _domain_gate_gagal_kalau_terpanggil
     )
 
+    def _otorisasi_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "periksa_otorisasi_semua TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "periksa_otorisasi_semua", _otorisasi_gagal_kalau_terpanggil
+    )
+
     with pytest.raises(pydantic.ValidationError):
         proses_turn(_RAW_GAGAL_VALIDASI)
 
@@ -172,6 +185,11 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     monkeypatch.setattr(
         turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -182,6 +200,7 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     assert hasil.decomposition is _DECOMPOSITION_DUMMY
     assert hasil.matches == _MATCHES_DUMMY
     assert hasil.domain_gate == _DOMAIN_GATE_DUMMY
+    assert hasil.otorisasi == _OTORISASI_DUMMY
 
 
 def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
@@ -225,6 +244,11 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
     )
     monkeypatch.setattr(
         turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -314,6 +338,11 @@ def test_orkestrator_decompose_menerima_rewritten_question_bukan_payload_questio
     monkeypatch.setattr(
         turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -353,6 +382,11 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_none(monkeyp
     monkeypatch.setattr(turn_pipeline_module, "match_and_archive", _rekam_match)
     monkeypatch.setattr(
         turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -397,6 +431,11 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_kosong(monke
     monkeypatch.setattr(turn_pipeline_module, "match_and_archive", _rekam_match)
     monkeypatch.setattr(
         turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -454,8 +493,76 @@ def test_orkestrator_domain_gate_menerima_matches_apa_adanya_tanpa_filter(monkey
     monkeypatch.setattr(
         turn_pipeline_module, "identifikasi_domain_semua", _rekam_domain_gate
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
     assert diterima_domain_gate["matches"] is matches_asli
     assert hasil.domain_gate == _DOMAIN_GATE_DUMMY
+
+
+def test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar(
+    monkeypatch,
+):
+    """Kejadian inti M7.11 (Checkpoint 2-3): periksa_otorisasi_semua() WAJIB
+    menerima `domain_gate_result` PERSIS (identity check) hasil
+    identifikasi_domain_semua(), DAN `payload.role_title` yang benar - gap
+    wiring M2.2 yang belum pernah tersambung sebelumnya (lihat decisions.md
+    Keputusan 1+4-5). role_title sengaja diambil dari payload turn 1
+    (bukan konstanta terpisah) supaya test membuktikan nilai itu genuinely
+    mengalir dari TurnPayload, bukan kebetulan cocok dengan default."""
+    payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
+    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
+
+    domain_gate_asli = [
+        AtomicIntentDomains(
+            atomic_intent=AtomicIntent(
+                atomic_intent_id="ai-1",
+                teks_kebutuhan="teks kebutuhan",
+                label_bentuk_jawaban=LabelBentukJawabanDecomposition.NILAI_TUNGGAL,
+                relasi=RelasiKebutuhan.INDEPENDEN,
+                bergantung_pada=None,
+            ),
+            domains=[Domain.RESERVATION],
+            status=StatusEksekusi.BERHASIL,
+        )
+    ]
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: domain_gate_asli
+    )
+
+    diterima_otorisasi = {}
+
+    def _rekam_otorisasi(domain_gate_result, role_title):
+        diterima_otorisasi["domain_gate_result"] = domain_gate_result
+        diterima_otorisasi["role_title"] = role_title
+        return _OTORISASI_DUMMY
+
+    monkeypatch.setattr(turn_pipeline_module, "periksa_otorisasi_semua", _rekam_otorisasi)
+
+    hasil = proses_turn(_RAW_VALID_TURN1)
+
+    assert diterima_otorisasi["domain_gate_result"] is domain_gate_asli
+    assert diterima_otorisasi["role_title"] == payload_asli.role_title == "CEO"
+    assert hasil.otorisasi == _OTORISASI_DUMMY

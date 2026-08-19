@@ -144,6 +144,39 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `KeadaanTurn.model_fields` mengandung `execution`, urutan 13 field sesuai rencana (dikonfirmasi `uv run python -c "..."`). Sanity-check `proses_turn()` dengan `kelompokkan_wave`/`verifikasi_gate_semua`/`eksekusi_atomic_intent_semua` di-mock: (a) kasus wave kosong — kedua fungsi tidak terpanggil, field `execution`/`verification_gate` kosong; (b) kasus 2 wave — `verifikasi_gate_semua` menerima `wave1` LALU `wave2` (urutan terbukti benar, dicek lewat rekaman argumen panggilan), `eksekusi_atomic_intent_semua` terpanggil sekali per wave tepat setelah `verifikasi_gate_semua` wave itu.
 
+**Commit:** `940ed42` (feat) + `c9c3881` (docs)
+
+---
+
+## Checkpoint 5 — Test Deterministik Sambungan
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 9-10 — Extend test existing + test connectivity baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca ulang `tests/orchestration/test_turn_pipeline.py` (14 test, seluruhnya mock LLM/DB) untuk memahami pola existing. Temuan penting SEBELUM edit: 12 dari 13 test menggunakan `_QUERY_ENGINE_DUMMY = []` (list kosong) sebagai hasil Query Engine — karena `kelompokkan_wave([])` mengembalikan `[]` (tanpa wave), loop wave TIDAK PERNAH jalan untuk test-test ini, jadi `verifikasi_gate_semua`/`eksekusi_atomic_intent_semua` otomatis tidak pernah terpanggil TANPA perlu mock tambahan — 11 dari 13 test existing lolos TANPA perubahan.
+
+Dua perubahan genuinely dibutuhkan:
+1. **Test short-circuit** (`test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil`): tambah 2 guard baru (`kelompokkan_wave`, `eksekusi_atomic_intent_semua` — assert TIDAK terpanggil saat validasi gagal), mirror pola guard existing.
+2. **Test koneksi M7.13** (`test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_individu_employee_id_persis`): **BUTUH PERBAIKAN SUBSTANTIF** — versi asli memakai `query_engine_asli = []`, yang SEKARANG (pasca M7.14) menyebabkan `verifikasi_gate_semua` TIDAK PERNAH terpanggil sama sekali (kelompokkan_wave([]) -> 0 wave) — test akan GAGAL kalau tidak diperbaiki. Diubah jadi `query_engine_asli` berisi 1 item nyata (`HasilPenyusunanRequest`+`HasilVerifikasiBentukRequest`, `relasi=independen`). Konsekuensi arsitektural yang didokumentasikan eksplisit di docstring test: `verifikasi_gate_semua` sekarang menerima WAVE-SLICE (list baru hasil `kelompokkan_wave()`), BUKAN `query_engine_asli` itu sendiri secara identity container — assertion diubah dari `is` (identity list) jadi `==` (value equality) + `[0] is` (identity elemen di dalamnya). Test ini SEKALIGUS diperluas mencakup `eksekusi_atomic_intent_semua` (belum pernah diuji sebelumnya, genuinely baru M7.14).
+
+Test connectivity BARU (Task 10): `test_orkestrator_wave_kedua_menunggu_wave_pertama_selesai` — skenario 2 atomic intent (ai-a independen, ai-b bergantung pada ai-a, mirror KK sumber "bandingkan X dengan Y yang butuh Y dulu"), `verifikasi_gate_semua`/`eksekusi_atomic_intent_semua` di-mock merekam urutan panggilan ke list bersama (bukan Jaeger — murni mock/deterministik). Assert urutan PERSIS: `verifikasi_gate:ai-a` -> `eksekusi:ai-a` -> `verifikasi_gate:ai-b` -> `eksekusi:ai-b` — membuktikan wave 2 genuinely menunggu wave 1 SELESAI KEDUANYA (bukan cuma verifikasi-nya) sebelum diproses.
+
+**Temuan**
+Analisis awal (sebelum edit) yang mengidentifikasi 11/13 test TIDAK butuh perubahan terbukti akurat setelah dijalankan — hemat waktu signifikan dibanding mengedit seluruh 13 test secara membabi buta.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada — seluruh 14 test (13 existing + 1 baru) lolos percobaan PERTAMA setelah edit.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 14/14 PASSED, 4.18s, tanpa panggilan LLM/DB/HTTP nyata. Regresi lebih luas `uv run pytest tests/orchestration/ tests/layers/execution/ tests/layers/verification_gate/ tests/layers/query_engine/ -q` — 209 passed, 1 skipped, 31.75s.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

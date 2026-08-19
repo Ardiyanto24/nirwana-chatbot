@@ -26,8 +26,13 @@ from typing import Any
 from src.config.catatan_nullable_bermakna import CATATAN_NULLABLE_BERMAKNA
 from src.config.chatbot_api import EXECUTION_DATA_STALENESS_THRESHOLD_JAM
 from src.layers.context_resolution.session_memory import store_session_memory
+from src.observability.tracing import get_tracer
 from src.schemas.decomposition import AtomicIntent
+from src.schemas.execution import HasilEksekusiAtomicIntent
 from src.schemas.session_memory import SessionMemoryPackage, StatusEksekusi
+from src.schemas.verification_gate import HasilVerifikasiGate
+
+_TRACER_NAME = "execution.penyimpanan_paket"
 
 
 def _bungkus_nilai_hasil(nilai_hasil: Any) -> dict:
@@ -127,3 +132,53 @@ def susun_dan_simpan_paket(
     )
     store_session_memory(package)
     return package
+
+
+# --- Orkestrator batch (M7.15): seluruh hasil Execution satu turn -> paket --
+
+
+def susun_dan_simpan_paket_semua(
+    execution_result: list[HasilEksekusiAtomicIntent],
+    verification_gate_result: list[tuple[AtomicIntent, HasilVerifikasiGate]],
+    session_id: str,
+    turn_index: int,
+) -> list[SessionMemoryPackage]:
+    """Jalankan `susun_dan_simpan_paket()` untuk SELURUH `execution_result`
+    (M7.14) dalam satu turn - mirror struktur `_semua()` layer lain
+    (M7.11-7.14). Ditambah Milestone 7.15 (layer Penyimpanan Paket, M4.3,
+    belum pernah tersambung orkestrator sejak M7.6 - gap sejenis M2.2/M2.3
+    yang ditemukan M7.11, lihat
+    milestones/7.15-sambungan-interpretation-lengkap/decisions.md
+    Keputusan 4).
+
+    `view_name` per item dilookup dari `verification_gate_result`
+    (`hasil_vg.request_final.view_name`, key `atomic_intent_id`) - SUMBER
+    INDEPENDEN, bukan dari `execution_result` sendiri (`HasilEksekusiAtomicIntent`
+    tidak membawa `view_name`). SELURUH status diproses TERMASUK
+    `GAGAL_TEKNIS` (Keputusan 5) - tidak ada filter/skip di sini."""
+    tracer = get_tracer(_TRACER_NAME)
+    with tracer.start_as_current_span("execution.susun_dan_simpan_paket_semua") as span:
+        span.set_attribute("intent.count", len(execution_result))
+
+        view_name_by_id = {
+            atomic_intent.atomic_intent_id: hasil_vg.request_final.view_name
+            for atomic_intent, hasil_vg in verification_gate_result
+            if hasil_vg.request_final is not None
+        }
+
+        hasil: list[SessionMemoryPackage] = []
+        for eksekusi in execution_result:
+            view_name = view_name_by_id.get(eksekusi.atomic_intent.atomic_intent_id)
+            package = susun_dan_simpan_paket(
+                eksekusi.atomic_intent,
+                session_id,
+                turn_index,
+                eksekusi.status,
+                view_name=view_name,
+                nilai_hasil=eksekusi.nilai_hasil,
+                data_quality_status=eksekusi.data_quality_status,
+                last_refreshed_at=eksekusi.last_refreshed_at,
+            )
+            hasil.append(package)
+
+        return hasil

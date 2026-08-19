@@ -9,7 +9,10 @@ import pytest
 
 from src.layers.execution import penyimpanan_paket as modul
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
+from src.schemas.domain_gate import Domain
+from src.schemas.execution import HasilEksekusiAtomicIntent
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
+from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
 _VIEW_TERDAFTAR = "v_lookup_maintenance_tickets"  # punya catatan utk room_id
 
@@ -227,3 +230,116 @@ def test_orkestrator_exception_store_diteruskan_apa_adanya(monkeypatch):
 
     with pytest.raises(RuntimeError, match="simulasi DB gagal"):
         modul.susun_dan_simpan_paket(_buat_atomic_intent(), "sess-1", 1, StatusEksekusi.BERHASIL)
+
+
+# --- susun_dan_simpan_paket_semua() (Milestone 7.15) ------------------------
+
+
+def _buat_hasil_eksekusi(
+    atomic_intent: AtomicIntent,
+    status: StatusEksekusi = StatusEksekusi.BERHASIL,
+    nilai_hasil=None,
+    kegagalan_alasan: str | None = None,
+) -> HasilEksekusiAtomicIntent:
+    if status == StatusEksekusi.GAGAL_TEKNIS:
+        return HasilEksekusiAtomicIntent(
+            atomic_intent=atomic_intent,
+            status=status,
+            nilai_hasil=None,
+            kegagalan_alasan=kegagalan_alasan or "simulasi gagal",
+        )
+    return HasilEksekusiAtomicIntent(
+        atomic_intent=atomic_intent, status=status, nilai_hasil=nilai_hasil or [{"a": 1}]
+    )
+
+
+def _buat_vg_entry(atomic_intent: AtomicIntent, view_name: str) -> tuple[AtomicIntent, HasilVerifikasiGate]:
+    request = QueryEngineRequest(domain=Domain.FACILITY, view_name=view_name, params={})
+    return atomic_intent, HasilVerifikasiGate(request_final=request, lolos=True, terkoreksi=False)
+
+
+def test_susun_dan_simpan_paket_semua_list_kosong_hasil_kosong(monkeypatch):
+    _patch_store(monkeypatch)
+    assert modul.susun_dan_simpan_paket_semua([], [], "sess-1", 1) == []
+
+
+def test_susun_dan_simpan_paket_semua_argumen_benar_per_item(monkeypatch):
+    dipanggil = _patch_store(monkeypatch)
+    ai = _buat_atomic_intent()
+    eksekusi = _buat_hasil_eksekusi(ai, StatusEksekusi.BERHASIL, nilai_hasil=[{"x": 1}])
+    vg_result = [_buat_vg_entry(ai, _VIEW_TERDAFTAR)]
+
+    hasil = modul.susun_dan_simpan_paket_semua([eksekusi], vg_result, "sess-1", 7)
+
+    assert len(hasil) == 1
+    paket = hasil[0]
+    assert paket.atomic_intent_id == ai.atomic_intent_id
+    assert paket.session_id == "sess-1"
+    assert paket.turn_index == 7
+    assert paket.status == StatusEksekusi.BERHASIL
+    assert paket.sumber == "eksekusi_baru"
+    assert dipanggil["package"] == paket
+
+
+def test_susun_dan_simpan_paket_semua_status_diteruskan_apa_adanya(monkeypatch):
+    _patch_store(monkeypatch)
+    ai_berhasil = _buat_atomic_intent()
+    ai_sebagian = _buat_atomic_intent()
+    ai_gagal = _buat_atomic_intent()
+
+    eksekusi = [
+        _buat_hasil_eksekusi(ai_berhasil, StatusEksekusi.BERHASIL),
+        _buat_hasil_eksekusi(ai_sebagian, StatusEksekusi.SEBAGIAN),
+        _buat_hasil_eksekusi(ai_gagal, StatusEksekusi.GAGAL_TEKNIS),
+    ]
+    vg_result = [
+        _buat_vg_entry(ai_berhasil, "v_a"),
+        _buat_vg_entry(ai_sebagian, "v_b"),
+        _buat_vg_entry(ai_gagal, "v_c"),
+    ]
+
+    hasil = modul.susun_dan_simpan_paket_semua(eksekusi, vg_result, "sess-1", 1)
+
+    assert len(hasil) == 3
+    statuses = {p.atomic_intent_id: p.status for p in hasil}
+    assert statuses[ai_berhasil.atomic_intent_id] == StatusEksekusi.BERHASIL
+    assert statuses[ai_sebagian.atomic_intent_id] == StatusEksekusi.SEBAGIAN
+    assert statuses[ai_gagal.atomic_intent_id] == StatusEksekusi.GAGAL_TEKNIS
+    # GAGAL_TEKNIS -> nilai_hasil dibungkus {"rows": []} (Keputusan 1 M4.3)
+    assert hasil[2].nilai_hasil == {"rows": []}
+
+
+def test_susun_dan_simpan_paket_semua_multi_item_view_name_tidak_tertukar(monkeypatch):
+    """Dua item, urutan `verification_gate_result` SENGAJA dibalik dari
+    urutan `execution_result` - memata-matai `susun_dan_simpan_paket()`
+    langsung untuk membuktikan `view_name` yang diteruskan PERSIS benar
+    per `atomic_intent_id` (lookup dict), bukan kebetulan sejajar by
+    index."""
+    dipanggil = []
+
+    def _spy(atomic_intent, session_id, turn_index, status, view_name=None, **kw):
+        dipanggil.append((atomic_intent.atomic_intent_id, view_name))
+        return modul.SessionMemoryPackage(
+            atomic_intent_id=atomic_intent.atomic_intent_id,
+            session_id=session_id,
+            turn_index=turn_index,
+            teks_kebutuhan=atomic_intent.teks_kebutuhan,
+            label_bentuk_jawaban=atomic_intent.label_bentuk_jawaban,
+            nilai_hasil={"rows": []},
+            catatan_interpretasi=[],
+            status=status,
+            sumber="eksekusi_baru",
+        )
+
+    monkeypatch.setattr(modul, "susun_dan_simpan_paket", _spy)
+
+    ai1 = _buat_atomic_intent()
+    ai2 = _buat_atomic_intent()
+    eksekusi = [_buat_hasil_eksekusi(ai1), _buat_hasil_eksekusi(ai2)]
+    vg_result_dibalik = [_buat_vg_entry(ai2, "v_untuk_ai2"), _buat_vg_entry(ai1, "v_untuk_ai1")]
+
+    modul.susun_dan_simpan_paket_semua(eksekusi, vg_result_dibalik, "sess-1", 1)
+
+    by_id = dict(dipanggil)
+    assert by_id[ai1.atomic_intent_id] == "v_untuk_ai1"
+    assert by_id[ai2.atomic_intent_id] == "v_untuk_ai2"

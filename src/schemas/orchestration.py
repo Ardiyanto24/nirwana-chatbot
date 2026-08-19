@@ -82,6 +82,19 @@ pendek dari `query_engine` - item `hasil_verifikasi=None` ATAU
 False` bukan forced by signature, murni keputusan desain mencegah
 request tidak cukup lolos diam-diam ke Execution). Lihat
 milestones/7.13-sambungan-verification-gate/decisions.md.
+
+Field M7.14 (`execution`): `eksekusi_atomic_intent_semua()` (baru,
+`src/layers/execution/klasifikasi_respons.py`) - BEDA dari M7.13,
+`HasilEksekusiAtomicIntent` (M4.2) SUDAH membawa field `atomic_intent`
+sendiri, jadi TIDAK butuh tuple pembungkus. Field ini FLAT (bukan
+nested per-wave) - `verifikasi_gate_semua()` (M7.13) DAN
+`eksekusi_atomic_intent_semua()` sekarang dipanggil PER WAVE dari
+`proses_turn()` (`kelompokkan_wave()`, `src/orchestration/wave.py`),
+hasilnya di-`extend()` lintas-wave ke `verification_gate`/`execution`
+sebelum masuk `KeadaanTurn` - bentuk/kontrak KEDUA field TIDAK berubah
+dari M7.13, hanya CARA pengisiannya. Wave murni soal urutan eksekusi,
+TANPA passing data hasil wave 1 ke wave 2 (dikonfirmasi user - lihat
+milestones/7.14-sambungan-execution/decisions.md Keputusan 2).
 """
 
 from pydantic import BaseModel
@@ -90,6 +103,7 @@ from src.schemas.authorization import AtomicIntentAuthorization
 from src.schemas.cakupan_individu import AtomicIntentConstraint
 from src.schemas.decomposition import AtomicIntent, DecompositionResult
 from src.schemas.domain_gate import AtomicIntentDomains
+from src.schemas.execution import HasilEksekusiAtomicIntent
 from src.schemas.matching import AtomicIntentMatch
 from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
 from src.schemas.retriever import HasilKecukupanStruktural
@@ -113,3 +127,4 @@ class KeadaanTurn(BaseModel):
     retriever: list[HasilKecukupanStruktural]
     query_engine: list[tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]]
     verification_gate: list[tuple[AtomicIntent, HasilVerifikasiGate]]
+    execution: list[HasilEksekusiAtomicIntent]

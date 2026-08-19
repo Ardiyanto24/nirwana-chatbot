@@ -90,6 +90,25 @@ di titik ini. Fan-in TIGA sumber (`query_engine_result`, `retriever_
 result`, `cakupan_individu_result`), dicocokkan via `atomic_intent_id`
 SECARA INTERNAL oleh fungsi ini sendiri. Lihat
 milestones/7.13-sambungan-verification-gate/decisions.md.
+
+Milestone 7.14 (Sambungan 9 resmi, termasuk uji wave berulang): SETELAH
+`query_engine_result` final, `kelompokkan_wave(query_engine_result)`
+(`src/orchestration/wave.py`, baru) mempartisi atomic intent jadi
+gelombang eksekusi berurutan berdasar `relasi`/`bergantung_pada` - MURNI
+soal urutan, TANPA data hasil wave 1 di-inject ke wave 2 (`susun_request_
+atomic_intent()` M3.4 TIDAK disentuh, dikonfirmasi user). Panggilan
+`verifikasi_gate_semua()` (M7.13) yang SEBELUMNYA sekali borongan untuk
+seluruh atomic intent, SEKARANG dipanggil PER WAVE di dalam loop - ini
+PERTAMA KALINYA Sambungan Level 2 menata ulang CARA memanggil fungsi
+milestone sebelumnya (bukan murni menambah langkah baru di akhir).
+Tiap iterasi wave dibungkus span `orchestration.wave` (`wave.index`,
+`wave.intent_count`) - pembuktian utama KK M7.14 (wave 2 baru terlihat
+di Jaeger setelah wave 1 selesai) lewat urutan span nyata. Hasil
+`verifikasi_gate_semua()`+`eksekusi_atomic_intent_semua()` (baru,
+`src/layers/execution/klasifikasi_respons.py`) tiap wave di-`extend()`
+ke akumulator lintas-wave - `KeadaanTurn.verification_gate`/`execution`
+tetap FLAT, bentuk/kontrak tidak berubah dari M7.13. Lihat
+milestones/7.14-sambungan-execution/decisions.md.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -104,11 +123,13 @@ from src.layers.decomposition.decompose import decompose_question
 from src.layers.domain_gate.cakupan_individu import deteksi_constraint_semua
 from src.layers.domain_gate.domain_gate import identifikasi_domain_semua
 from src.layers.domain_gate.otorisasi import periksa_otorisasi_semua
+from src.layers.execution.klasifikasi_respons import eksekusi_atomic_intent_semua
 from src.layers.input_layer import validate_turn_payload
 from src.layers.query_engine.query_engine import susun_dan_verifikasi_request_semua
 from src.layers.retriever.kecukupan_struktural import proses_retrieval_semua
 from src.layers.verification_gate.verifikasi_gate import verifikasi_gate_semua
 from src.observability.tracing import get_tracer
+from src.orchestration.wave import kelompokkan_wave
 from src.schemas.orchestration import KeadaanTurn
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import SessionMemoryPackage
@@ -189,9 +210,23 @@ def proses_turn(raw: dict) -> KeadaanTurn:
 
         query_engine_result = susun_dan_verifikasi_request_semua(retriever_result)
 
-        verification_gate_result = verifikasi_gate_semua(
-            query_engine_result, retriever_result, cakupan_individu_result, payload.employee_id
-        )
+        waves = kelompokkan_wave(query_engine_result)
+        verification_gate_result: list = []
+        execution_result: list = []
+        for wave_index, wave in enumerate(waves, start=1):
+            with tracer.start_as_current_span("orchestration.wave") as wave_span:
+                wave_span.set_attribute("wave.index", wave_index)
+                wave_span.set_attribute("wave.intent_count", len(wave))
+
+                hasil_vg_wave = verifikasi_gate_semua(
+                    wave, retriever_result, cakupan_individu_result, payload.employee_id
+                )
+                verification_gate_result.extend(hasil_vg_wave)
+
+                hasil_eksekusi_wave = eksekusi_atomic_intent_semua(
+                    hasil_vg_wave, cakupan_individu_result, payload.role_title, payload.employee_id
+                )
+                execution_result.extend(hasil_eksekusi_wave)
 
         return KeadaanTurn(
             payload=payload,
@@ -206,4 +241,5 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             retriever=retriever_result,
             query_engine=query_engine_result,
             verification_gate=verification_gate_result,
+            execution=execution_result,
         )

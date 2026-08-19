@@ -177,6 +177,35 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 14/14 PASSED, 4.18s, tanpa panggilan LLM/DB/HTTP nyata. Regresi lebih luas `uv run pytest tests/orchestration/ tests/layers/execution/ tests/layers/verification_gate/ tests/layers/query_engine/ -q` — 209 passed, 1 skipped, 31.75s.
 
+**Commit:** `cea4104` (test) + `c24a81e` (docs)
+
+---
+
+## Checkpoint 6 — Peta Kejadian Eval
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+**Catatan operasional:** komputer restart (lihat Checkpoint 4) juga mematikan Docker Desktop dan `chatbot_api` — keduanya dinyalakan ulang sebelum checkpoint ini ditutup: `docker compose up -d` (`infra/observability/`, Docker Desktop butuh waktu boot ulang sebelum daemon reachable, percobaan pertama gagal `dockerDesktopLinuxEngine` belum ada, percobaan kedua setelah beberapa detik berhasil), `python -m uvicorn main:app --reload` (`scripts/chatbot_api/`) — keduanya dikonfirmasi `GET /health`/`GET /api/services` 200 sebelum lanjut.
+
+### Task 11 — Tulis rancangan.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.14-sambungan-execution/rancangan.md` — 3 kejadian: E01 (KK literal utama, reuse `gop_margin` M7.9-7.13, target 2 wave, PERTAMA KALI `proses_turn()` genuinely memanggil `chatbot_api` sungguhan lewat pipeline otomatis penuh — beda dari Checkpoint 1 yang manual per-fungsi), E02 (baseline 1 wave, reuse HR Budi M7.13 E01, titik nyata baru: kombinasi filter nama+`employee_id` terkoreksi paksa belum pernah dikirim ke server nyata), E03 (bukti kedua independen, domain `facility`, reuse M7.13 E03). Invarian ditulis di level status/span (bukan nilai data spesifik, karena data `chatbot_api` genuinely bisa berubah) — termasuk catatan eksplisit `SEBAGIAN` (staleness) BUKAN kegagalan, mengacu temuan Checkpoint 1.
+
+**Temuan**
+Tidak ada temuan baru — seluruh dasar (skenario reuse, view_name yang diharapkan) sudah dikonfirmasi nyata di milestone-milestone sebelumnya.
+
+**Error/Kegagalan (jika ada)**
+Docker Desktop belum siap pada percobaan `docker compose up -d` PERTAMA (daemon belum listen setelah restart komputer) — bukan bug proyek.
+
+**Diagnosis dan Perbaikan**
+Tunggu beberapa detik Docker Desktop selesai boot, percobaan kedua berhasil.
+
+**Hasil Verifikasi**
+Review manual `rancangan.md`. `chatbot_api` (`GET /health` -> 200) dan Jaeger (`GET /api/services` -> 200) dikonfirmasi reachable sebelum Checkpoint 7 dimulai.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

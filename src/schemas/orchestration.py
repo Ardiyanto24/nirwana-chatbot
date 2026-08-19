@@ -95,6 +95,22 @@ sebelum masuk `KeadaanTurn` - bentuk/kontrak KEDUA field TIDAK berubah
 dari M7.13, hanya CARA pengisiannya. Wave murni soal urutan eksekusi,
 TANPA passing data hasil wave 1 ke wave 2 (dikonfirmasi user - lihat
 milestones/7.14-sambungan-execution/decisions.md Keputusan 2).
+
+Field M7.15 (`paket_narasi`, `interpretation`): titik pertemuan kedua -
+`susun_paket_narasi()` (baru, `src/orchestration/paket_narasi.py`)
+menggabungkan TIGA kategori jadi `paket_narasi`: paket "selesai" (M1.7,
+`matches`, di-re-key `atomic_intent_id`-nya ke turn ini via `sumber_
+arsip()` publik - lihat milestones/1.7-.../decisions.md addendum), hasil
+Execution (M7.14, dikonversi `susun_dan_simpan_paket_semua()` baru -
+`src/layers/execution/penyimpanan_paket.py`, PERTAMA KALINYA M4.3
+tersambung orkestrator), dan paket sintetis untuk item yang tersaring di
+rantai M7.10-7.14 (klasifikasi RBAC vs teknis generik, TIDAK disimpan DB
+- lihat milestones/7.15-.../decisions.md Keputusan 2-3). `interpretation`
+adalah return `susun_dan_verifikasi_narasi()` (M7.5) apa adanya, tuple
+tanpa skema baru (konsisten preferensi M7.12-14). Keduanya non-Optional,
+selalu terisi kalau `proses_turn()` selesai tanpa exception - `APIError`
+dari `susun_narasi()` (M4.4, sengaja tanpa fallback) dibiarkan menjalar,
+TIDAK ditangkap M7.15 (preseden M7.5 Keputusan 4-5).
 """
 
 from pydantic import BaseModel
@@ -104,6 +120,7 @@ from src.schemas.cakupan_individu import AtomicIntentConstraint
 from src.schemas.decomposition import AtomicIntent, DecompositionResult
 from src.schemas.domain_gate import AtomicIntentDomains
 from src.schemas.execution import HasilEksekusiAtomicIntent
+from src.schemas.interpretation import DataVisualisasi, HasilNarasi, HasilVerifikasiNarasi
 from src.schemas.matching import AtomicIntentMatch
 from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
 from src.schemas.retriever import HasilKecukupanStruktural
@@ -128,3 +145,5 @@ class KeadaanTurn(BaseModel):
     query_engine: list[tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]]
     verification_gate: list[tuple[AtomicIntent, HasilVerifikasiGate]]
     execution: list[HasilEksekusiAtomicIntent]
+    paket_narasi: list[SessionMemoryPackage]
+    interpretation: tuple[HasilNarasi, HasilVerifikasiNarasi, list[DataVisualisasi] | None]

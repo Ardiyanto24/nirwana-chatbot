@@ -109,6 +109,21 @@ di Jaeger setelah wave 1 selesai) lewat urutan span nyata. Hasil
 ke akumulator lintas-wave - `KeadaanTurn.verification_gate`/`execution`
 tetap FLAT, bentuk/kontrak tidak berubah dari M7.13. Lihat
 milestones/7.14-sambungan-execution/decisions.md.
+
+Milestone 7.15 (Sambungan 10 resmi, titik pertemuan kedua): SETELAH wave
+loop selesai, `susun_dan_simpan_paket_semua(execution_result,
+verification_gate_result, ...)` (baru, `src/layers/execution/
+penyimpanan_paket.py`) mengonversi+menyimpan seluruh hasil Execution jadi
+`SessionMemoryPackage` - PERTAMA KALINYA M4.3 tersambung orkestrator
+sejak M7.6. `susun_paket_narasi(matches, paket_dari_eksekusi, otorisasi_
+result, ...)` (baru, `src/orchestration/paket_narasi.py`) menggabungkan
+paket "selesai" (M1.7, di-re-key), paket hasil Execution, dan paket
+sintetis untuk item yang tersaring di rantai M7.10-7.14 (klasifikasi
+RBAC vs teknis, `docs/keterbatasan-diterima.md`-style kejujuran) jadi
+satu `list[SessionMemoryPackage]`. Hasilnya diteruskan `susun_dan_
+verifikasi_narasi()` (M7.5, sudah tersambung internal) - `APIError` dari
+`susun_narasi()` (M4.4) dibiarkan menjalar (preseden M7.5). Lihat
+milestones/7.15-sambungan-interpretation-lengkap/decisions.md.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -124,11 +139,14 @@ from src.layers.domain_gate.cakupan_individu import deteksi_constraint_semua
 from src.layers.domain_gate.domain_gate import identifikasi_domain_semua
 from src.layers.domain_gate.otorisasi import periksa_otorisasi_semua
 from src.layers.execution.klasifikasi_respons import eksekusi_atomic_intent_semua
+from src.layers.execution.penyimpanan_paket import susun_dan_simpan_paket_semua
 from src.layers.input_layer import validate_turn_payload
+from src.layers.interpretation.interpretation import susun_dan_verifikasi_narasi
 from src.layers.query_engine.query_engine import susun_dan_verifikasi_request_semua
 from src.layers.retriever.kecukupan_struktural import proses_retrieval_semua
 from src.layers.verification_gate.verifikasi_gate import verifikasi_gate_semua
 from src.observability.tracing import get_tracer
+from src.orchestration.paket_narasi import susun_paket_narasi
 from src.orchestration.wave import kelompokkan_wave
 from src.schemas.orchestration import KeadaanTurn
 from src.schemas.rewrite import RewriteResult
@@ -228,6 +246,22 @@ def proses_turn(raw: dict) -> KeadaanTurn:
                 )
                 execution_result.extend(hasil_eksekusi_wave)
 
+        paket_dari_eksekusi = susun_dan_simpan_paket_semua(
+            execution_result, verification_gate_result, payload.session_id, payload.turn_index
+        )
+
+        atomic_intents_narasi, paket_narasi_result = susun_paket_narasi(
+            matches,
+            paket_dari_eksekusi,
+            otorisasi_result,
+            payload.session_id,
+            payload.turn_index,
+        )
+
+        interpretation_result = susun_dan_verifikasi_narasi(
+            atomic_intents_narasi, paket_narasi_result, payload.session_id, payload.turn_index
+        )
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
@@ -242,4 +276,6 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             query_engine=query_engine_result,
             verification_gate=verification_gate_result,
             execution=execution_result,
+            paket_narasi=paket_narasi_result,
+            interpretation=interpretation_result,
         )

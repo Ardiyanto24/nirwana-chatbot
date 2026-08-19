@@ -80,6 +80,16 @@ tersambung internal sejak M7.4). Item dengan `view_name_final=None`
 di-skip secara INTERNAL oleh fungsi ini sendiri (bukan tanggung jawab
 orkestrator). Lihat
 milestones/7.12-sambungan-query-engine/decisions.md.
+
+Milestone 7.13 (Sambungan 8 resmi): `verifikasi_gate_semua(query_engine_
+result, retriever_result, cakupan_individu_result, payload.employee_id)`
+dipanggil SEKUENSIAL setelah `query_engine_result` final - request final
+Query Engine JADI input Verification Gate (M2.4, sudah matang penuh sejak
+awal proyek), termasuk constraint cakupan-individu (M7.11) dicek konsisten
+di titik ini. Fan-in TIGA sumber (`query_engine_result`, `retriever_
+result`, `cakupan_individu_result`), dicocokkan via `atomic_intent_id`
+SECARA INTERNAL oleh fungsi ini sendiri. Lihat
+milestones/7.13-sambungan-verification-gate/decisions.md.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -97,6 +107,7 @@ from src.layers.domain_gate.otorisasi import periksa_otorisasi_semua
 from src.layers.input_layer import validate_turn_payload
 from src.layers.query_engine.query_engine import susun_dan_verifikasi_request_semua
 from src.layers.retriever.kecukupan_struktural import proses_retrieval_semua
+from src.layers.verification_gate.verifikasi_gate import verifikasi_gate_semua
 from src.observability.tracing import get_tracer
 from src.schemas.orchestration import KeadaanTurn
 from src.schemas.rewrite import RewriteResult
@@ -178,6 +189,10 @@ def proses_turn(raw: dict) -> KeadaanTurn:
 
         query_engine_result = susun_dan_verifikasi_request_semua(retriever_result)
 
+        verification_gate_result = verifikasi_gate_semua(
+            query_engine_result, retriever_result, cakupan_individu_result, payload.employee_id
+        )
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
@@ -190,4 +205,5 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             cakupan_individu=cakupan_individu_result,
             retriever=retriever_result,
             query_engine=query_engine_result,
+            verification_gate=verification_gate_result,
         )

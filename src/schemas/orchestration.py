@@ -68,13 +68,27 @@ dipertahankan apa adanya dari kontrak M7.4 (tanpa skema baru). Panjang
 BISA lebih pendek dari `retriever` - item `view_name_final=None` di-skip
 (forced by signature `view_name: str` non-Optional, bukan pilihan gaya).
 Lihat milestones/7.12-sambungan-query-engine/decisions.md Keputusan 1+4+7.
+
+Field M7.13 (`verification_gate`): `verifikasi_gate_semua()` (baru,
+`src/layers/verification_gate/verifikasi_gate.py`) - layer Verification
+Gate (M2.4) sudah matang penuh (real DB fixture) tapi belum py fungsi
+batch. Fan-in TIGA sumber (`query_engine`, `retriever`, `cakupan_
+individu`) dicocokkan via `atomic_intent_id`. `HasilVerifikasiGate`
+sendiri TIDAK membawa field `atomic_intent` - bentuk
+`list[tuple[AtomicIntent, HasilVerifikasiGate]]` mengembalikan asosiasi
+itu (tanpa skema baru, konsisten preferensi M7.12). Panjang BISA lebih
+pendek dari `query_engine` - item `hasil_verifikasi=None` ATAU
+`lolos=False` (M3.5) di-skip (Keputusan 2+4, beda dari M7.11: `lolos=
+False` bukan forced by signature, murni keputusan desain mencegah
+request tidak cukup lolos diam-diam ke Execution). Lihat
+milestones/7.13-sambungan-verification-gate/decisions.md.
 """
 
 from pydantic import BaseModel
 
 from src.schemas.authorization import AtomicIntentAuthorization
 from src.schemas.cakupan_individu import AtomicIntentConstraint
-from src.schemas.decomposition import DecompositionResult
+from src.schemas.decomposition import AtomicIntent, DecompositionResult
 from src.schemas.domain_gate import AtomicIntentDomains
 from src.schemas.matching import AtomicIntentMatch
 from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
@@ -83,6 +97,7 @@ from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import SessionMemoryPackage
 from src.schemas.turn_dependency import TurnDependencyResult
 from src.schemas.turn_payload import TurnPayload
+from src.schemas.verification_gate import HasilVerifikasiGate
 
 
 class KeadaanTurn(BaseModel):
@@ -97,3 +112,4 @@ class KeadaanTurn(BaseModel):
     cakupan_individu: list[AtomicIntentConstraint]
     retriever: list[HasilKecukupanStruktural]
     query_engine: list[tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]]
+    verification_gate: list[tuple[AtomicIntent, HasilVerifikasiGate]]

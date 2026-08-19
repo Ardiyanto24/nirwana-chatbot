@@ -27,6 +27,7 @@ from src.schemas.decomposition import (
 from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthorization
 from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
 from src.schemas.domain_gate import AtomicIntentDomains, Domain
+from src.schemas.interpretation import HasilNarasi, HasilVerifikasiNarasi
 from src.schemas.matching import AtomicIntentMatch, MatchStatus
 from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
 from src.schemas.retriever import HasilKecukupanStruktural
@@ -63,6 +64,18 @@ _QUERY_ENGINE_DUMMY = []
 _VERIFICATION_GATE_DUMMY = []
 
 _EXECUTION_DUMMY = []
+
+_PAKET_DARI_EKSEKUSI_DUMMY = []
+
+_PAKET_NARASI_DUMMY = []
+
+_INTERPRETATION_DUMMY = (
+    HasilNarasi(narasi="narasi dummy"),
+    HasilVerifikasiNarasi(
+        narasi="narasi dummy", status=StatusEksekusi.BERHASIL, lolos=True, alasan=None
+    ),
+    None,
+)
 
 _RAW_VALID_TURN1 = {
     "session_id": "sess-test",
@@ -219,6 +232,33 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         turn_pipeline_module, "eksekusi_atomic_intent_semua", _execution_gagal_kalau_terpanggil
     )
 
+    def _simpan_paket_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "susun_dan_simpan_paket_semua TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "susun_dan_simpan_paket_semua", _simpan_paket_gagal_kalau_terpanggil
+    )
+
+    def _paket_narasi_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "susun_paket_narasi TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "susun_paket_narasi", _paket_narasi_gagal_kalau_terpanggil
+    )
+
+    def _narasi_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "susun_dan_verifikasi_narasi TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "susun_dan_verifikasi_narasi", _narasi_gagal_kalau_terpanggil
+    )
+
     with pytest.raises(pydantic.ValidationError):
         proses_turn(_RAW_GAGAL_VALIDASI)
 
@@ -285,6 +325,26 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
             _VERIFICATION_GATE_DUMMY
         ),
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -301,6 +361,8 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     assert hasil.query_engine == _QUERY_ENGINE_DUMMY
     assert hasil.verification_gate == _VERIFICATION_GATE_DUMMY
     assert hasil.execution == []
+    assert hasil.paket_narasi == _PAKET_NARASI_DUMMY
+    assert hasil.interpretation == _INTERPRETATION_DUMMY
 
 
 def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
@@ -371,6 +433,26 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
         lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
             _VERIFICATION_GATE_DUMMY
         ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -487,6 +569,26 @@ def test_orkestrator_decompose_menerima_rewritten_question_bukan_payload_questio
             _VERIFICATION_GATE_DUMMY
         ),
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -553,6 +655,26 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_none(monkeyp
         lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
             _VERIFICATION_GATE_DUMMY
         ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -624,6 +746,26 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_kosong(monke
         lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
             _VERIFICATION_GATE_DUMMY
         ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -708,6 +850,26 @@ def test_orkestrator_domain_gate_menerima_matches_apa_adanya_tanpa_filter(monkey
             _VERIFICATION_GATE_DUMMY
         ),
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -791,6 +953,26 @@ def test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar(
         lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
             _VERIFICATION_GATE_DUMMY
         ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -878,6 +1060,26 @@ def test_orkestrator_cakupan_individu_menerima_otorisasi_result_dan_role_title_b
             _VERIFICATION_GATE_DUMMY
         ),
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -958,6 +1160,26 @@ def test_orkestrator_retriever_menerima_cakupan_individu_result_persis(monkeypat
             _VERIFICATION_GATE_DUMMY
         ),
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -1036,6 +1258,26 @@ def test_orkestrator_query_engine_menerima_retriever_result_persis(monkeypatch):
         lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
             _VERIFICATION_GATE_DUMMY
         ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -1163,6 +1405,26 @@ def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_i
 
     monkeypatch.setattr(
         turn_pipeline_module, "eksekusi_atomic_intent_semua", _rekam_execution
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -1296,6 +1558,26 @@ def test_orkestrator_wave_kedua_menunggu_wave_pertama_selesai(monkeypatch):
 
     monkeypatch.setattr(turn_pipeline_module, "verifikasi_gate_semua", _fake_vg)
     monkeypatch.setattr(turn_pipeline_module, "eksekusi_atomic_intent_semua", _fake_exec)
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        lambda execution_result, verification_gate_result, session_id, turn_index: (
+            _PAKET_DARI_EKSEKUSI_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_paket_narasi",
+        lambda matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index: (
+            [],
+            _PAKET_NARASI_DUMMY,
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        lambda atomic_intents, packages, session_id, turn_index: _INTERPRETATION_DUMMY,
+    )
 
     proses_turn(_RAW_VALID_TURN1)
 
@@ -1308,3 +1590,149 @@ def test_orkestrator_wave_kedua_menunggu_wave_pertama_selesai(monkeypatch):
         "wave 2 (ai-b) TIDAK BOLEH terverifikasi/tereksekusi sebelum wave 1 "
         "(ai-a) selesai keduanya - urutan panggilan membuktikan sekuensial"
     )
+
+
+def test_orkestrator_paket_narasi_menerima_matches_otorisasi_paket_eksekusi_persis(
+    monkeypatch,
+):
+    """Kejadian inti M7.15 (Sambungan 10 resmi, titik pertemuan kedua):
+    susun_paket_narasi() WAJIB menerima `matches`/`otorisasi_result` PERSIS
+    (identity check) dari hasil langkah masing-masing, DAN `paket_dari_
+    eksekusi` PERSIS hasil `susun_dan_simpan_paket_semua()` (bukan
+    `execution_result` mentah) - membuktikan rantai konversi genuinely
+    tersambung. `susun_dan_verifikasi_narasi()` (M7.5) pada gilirannya
+    WAJIB menerima hasil `susun_paket_narasi()` PERSIS."""
+    payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
+    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
+
+    matches_asli = [
+        AtomicIntentMatch(
+            atomic_intent=AtomicIntent(
+                atomic_intent_id="ai-1",
+                teks_kebutuhan="teks kebutuhan",
+                label_bentuk_jawaban=LabelBentukJawabanDecomposition.NILAI_TUNGGAL,
+                relasi=RelasiKebutuhan.INDEPENDEN,
+                bergantung_pada=None,
+            ),
+            status=MatchStatus.PERLU_EKSEKUSI,
+            paket=None,
+        )
+    ]
+
+    monkeypatch.setattr(turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli)
+    monkeypatch.setattr(
+        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+    )
+    monkeypatch.setattr(turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli)
+    monkeypatch.setattr(
+        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: matches_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+    )
+
+    otorisasi_asli = [
+        AtomicIntentAuthorization(
+            atomic_intent=matches_asli[0].atomic_intent,
+            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+        )
+    ]
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: otorisasi_asli,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_request_semua",
+        lambda retriever_result: _QUERY_ENGINE_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "eksekusi_atomic_intent_semua",
+        lambda verification_gate_wave, cakupan_individu_result, role_title, employee_id: (
+            _EXECUTION_DUMMY
+        ),
+    )
+
+    paket_dari_eksekusi_asli = [_paket_dummy("ai-eksekusi")]
+    diterima_simpan_paket = {}
+
+    def _rekam_simpan_paket(execution_result, verification_gate_result, session_id, turn_index):
+        diterima_simpan_paket["execution_result"] = execution_result
+        diterima_simpan_paket["verification_gate_result"] = verification_gate_result
+        diterima_simpan_paket["session_id"] = session_id
+        diterima_simpan_paket["turn_index"] = turn_index
+        return paket_dari_eksekusi_asli
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "susun_dan_simpan_paket_semua", _rekam_simpan_paket
+    )
+
+    atomic_intents_narasi_asli = [matches_asli[0].atomic_intent]
+    paket_narasi_asli = [_paket_dummy("ai-narasi")]
+    diterima_paket_narasi = {}
+
+    def _rekam_paket_narasi(matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index):
+        diterima_paket_narasi["matches"] = matches
+        diterima_paket_narasi["paket_dari_eksekusi"] = paket_dari_eksekusi
+        diterima_paket_narasi["otorisasi_result"] = otorisasi_result
+        diterima_paket_narasi["session_id"] = session_id
+        diterima_paket_narasi["turn_index"] = turn_index
+        return atomic_intents_narasi_asli, paket_narasi_asli
+
+    monkeypatch.setattr(turn_pipeline_module, "susun_paket_narasi", _rekam_paket_narasi)
+
+    diterima_narasi = {}
+
+    def _rekam_narasi(atomic_intents, packages, session_id, turn_index):
+        diterima_narasi["atomic_intents"] = atomic_intents
+        diterima_narasi["packages"] = packages
+        diterima_narasi["session_id"] = session_id
+        diterima_narasi["turn_index"] = turn_index
+        return _INTERPRETATION_DUMMY
+
+    monkeypatch.setattr(turn_pipeline_module, "susun_dan_verifikasi_narasi", _rekam_narasi)
+
+    hasil = proses_turn(_RAW_VALID_TURN1)
+
+    assert diterima_simpan_paket["session_id"] == payload_asli.session_id
+    assert diterima_simpan_paket["turn_index"] == payload_asli.turn_index
+
+    assert diterima_paket_narasi["matches"] is matches_asli
+    assert diterima_paket_narasi["paket_dari_eksekusi"] is paket_dari_eksekusi_asli
+    assert diterima_paket_narasi["otorisasi_result"] is otorisasi_asli
+    assert diterima_paket_narasi["session_id"] == payload_asli.session_id
+    assert diterima_paket_narasi["turn_index"] == payload_asli.turn_index
+
+    assert diterima_narasi["atomic_intents"] is atomic_intents_narasi_asli
+    assert diterima_narasi["packages"] is paket_narasi_asli
+
+    # KeadaanTurn membungkus list[SessionMemoryPackage] lewat Pydantic -
+    # container list-nya sendiri direkonstruksi (mirror catatan test
+    # test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar),
+    # tapi elemen di dalamnya tetap objek PERSIS.
+    assert len(hasil.paket_narasi) == 1
+    assert hasil.paket_narasi[0] is paket_narasi_asli[0]
+    assert hasil.interpretation == _INTERPRETATION_DUMMY

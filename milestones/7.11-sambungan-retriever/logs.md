@@ -135,6 +135,37 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 10/10 test PASSED (9 existing + 1 baru), 4.63s, tanpa panggilan LLM/DB nyata.
 
-**Commit:** *(dicatat di commit berikutnya)*
+**Commit:** `0bd95fb` — `test(milestone-7.11): test deterministik sambungan cakupan individu`
+
+---
+
+## Checkpoint 6 — Retriever: Bangun `proses_retrieval_semua()` Baru
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 10-11 — Fungsi batch baru + unit test standalone
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca `src/layers/retriever/kecukupan_struktural.py` lengkap + `tests/layers/retriever/test_kecukupan_struktural.py` (khususnya bagian `proses_retrieval_atomic_intent`, baris 416-528) untuk memahami konvensi mock (`monkeypatch.setattr(kecukupan_struktural_module, ...)`) dan helper fixture (`_buat_atomic_intent()`). Juga dicek `tests/layers/domain_gate/test_otorisasi.py` — dikonfirmasi skenario "Front Office Staff: reservation DIIZINKAN, financial DITOLAK" SUDAH ada sebagai test existing (`test_kk2_multi_domain_sebagian_diizinkan_sebagian_ditolak`), menguatkan rencana reuse skenario ini untuk E01 eval Checkpoint 9.
+
+Tambah `proses_retrieval_semua(daftar_constraint: list[AtomicIntentConstraint]) -> list[HasilKecukupanStruktural]` di `kecukupan_struktural.py` — untuk tiap item, derive `domain_diizinkan` dari `item.domain_decisions` (filter `diizinkan=True`), panggil `proses_retrieval_atomic_intent(item.atomic_intent, domain_diizinkan)`; span pembungkus `retriever.proses_semua` (tracer `retriever.retriever`, sama dengan `proses_retrieval_atomic_intent`), atribut `intent.count`. Import baru: `AtomicIntentConstraint` dari `src.schemas.cakupan_individu`.
+
+Tulis 4 unit test baru di `tests/layers/retriever/test_kecukupan_struktural.py` (helper `_buat_constraint()`, `_hasil_kecukupan_dummy()`): (1) filter `diizinkan=True` terbukti benar — domain ditolak tidak ikut diteruskan; (2) domain kosong (seluruh ditolak) TETAP diproses, tidak di-skip; (3) urutan+panjang hasil dipertahankan multi-item; (4) list kosong -> hasil kosong tanpa error.
+
+**Temuan**
+Tidak ada temuan tak terduga — struktur file dan konvensi mock persis seperti diperkirakan dari riset plan.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/layers/retriever/ -v` — 125/125 test PASSED (121 existing + 4 baru), 13.08s, regresi nol pada seluruh test retriever existing.
+
+**Commit:** `31f143d` (feat) + `4d7ca40` (test)
 
 ---

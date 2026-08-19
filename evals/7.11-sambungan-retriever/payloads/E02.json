@@ -1,0 +1,436 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Baseline - seluruh domain diizinkan",
+  "timestamp": "2026-08-19T04:05:31.508177+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.11-e02",
+    "turn_index": 1,
+    "role_title": "CEO",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.11-e02",
+      "turn_index": 1,
+      "role_title": "CEO",
+      "employee_id": "emp-eval",
+      "question": "Berapa occupancy rate properti kita bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "27b5015f-20ef-451a-9db4-99fd77d154ec",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "c764f429-613a-41d6-bf1f-b50975467c72",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "c812aa30-22b9-459f-8494-077c8e493601",
+          "teks_kebutuhan": "Hitung tingkat keterisian properti sebagai persentase dari jumlah properti terisi terhadap total properti",
+          "label_bentuk_jawaban": "komposisi",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "27b5015f-20ef-451a-9db4-99fd77d154ec",
+            "c764f429-613a-41d6-bf1f-b50975467c72"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 1
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "27b5015f-20ef-451a-9db4-99fd77d154ec",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c764f429-613a-41d6-bf1f-b50975467c72",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c812aa30-22b9-459f-8494-077c8e493601",
+          "teks_kebutuhan": "Hitung tingkat keterisian properti sebagai persentase dari jumlah properti terisi terhadap total properti",
+          "label_bentuk_jawaban": "komposisi",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "27b5015f-20ef-451a-9db4-99fd77d154ec",
+            "c764f429-613a-41d6-bf1f-b50975467c72"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "27b5015f-20ef-451a-9db4-99fd77d154ec",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c764f429-613a-41d6-bf1f-b50975467c72",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c812aa30-22b9-459f-8494-077c8e493601",
+          "teks_kebutuhan": "Hitung tingkat keterisian properti sebagai persentase dari jumlah properti terisi terhadap total properti",
+          "label_bentuk_jawaban": "komposisi",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "27b5015f-20ef-451a-9db4-99fd77d154ec",
+            "c764f429-613a-41d6-bf1f-b50975467c72"
+          ]
+        },
+        "domains": [
+          "properties_ref",
+          "facility"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "27b5015f-20ef-451a-9db4-99fd77d154ec",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c764f429-613a-41d6-bf1f-b50975467c72",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c812aa30-22b9-459f-8494-077c8e493601",
+          "teks_kebutuhan": "Hitung tingkat keterisian properti sebagai persentase dari jumlah properti terisi terhadap total properti",
+          "label_bentuk_jawaban": "komposisi",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "27b5015f-20ef-451a-9db4-99fd77d154ec",
+            "c764f429-613a-41d6-bf1f-b50975467c72"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "facility",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "27b5015f-20ef-451a-9db4-99fd77d154ec",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c764f429-613a-41d6-bf1f-b50975467c72",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c812aa30-22b9-459f-8494-077c8e493601",
+          "teks_kebutuhan": "Hitung tingkat keterisian properti sebagai persentase dari jumlah properti terisi terhadap total properti",
+          "label_bentuk_jawaban": "komposisi",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "27b5015f-20ef-451a-9db4-99fd77d154ec",
+            "c764f429-613a-41d6-bf1f-b50975467c72"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "facility",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "27b5015f-20ef-451a-9db4-99fd77d154ec",
+          "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_room_type_daily",
+              "domain": "reservation",
+              "skor": 5.489189566728378,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          },
+          {
+            "kandidat": {
+              "view_name": "v_lookup_daily_occupancy",
+              "domain": "reservation",
+              "skor": 1.2179204707217226,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_room_type_daily",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c764f429-613a-41d6-bf1f-b50975467c72",
+          "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_properties_ref",
+              "domain": "properties_ref",
+              "skor": 5.470669392829169,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_properties_ref",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "c812aa30-22b9-459f-8494-077c8e493601",
+          "teks_kebutuhan": "Hitung tingkat keterisian properti sebagai persentase dari jumlah properti terisi terhadap total properti",
+          "label_bentuk_jawaban": "komposisi",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "27b5015f-20ef-451a-9db4-99fd77d154ec",
+            "c764f429-613a-41d6-bf1f-b50975467c72"
+          ]
+        },
+        "kecukupan": [],
+        "view_name_final": null,
+        "status": "berhasil"
+      }
+    ]
+  },
+  "laporan_zero_leakage": [
+    {
+      "atomic_intent_id": "27b5015f-20ef-451a-9db4-99fd77d154ec",
+      "teks_kebutuhan": "Berapa jumlah properti yang terisi pada bulan ini?",
+      "domain_diidentifikasi": [
+        "reservation",
+        "properties_ref"
+      ],
+      "domain_diizinkan": [
+        "reservation",
+        "properties_ref"
+      ],
+      "domain_ditolak": [],
+      "domain_kandidat_muncul_di_retriever": [
+        "reservation"
+      ],
+      "domain_bocor": [],
+      "zero_leakage": true,
+      "view_name_final": "v_reservation_room_type_daily",
+      "cakupan_individu_terdeteksi": false
+    },
+    {
+      "atomic_intent_id": "c764f429-613a-41d6-bf1f-b50975467c72",
+      "teks_kebutuhan": "Berapa total properti yang dimiliki pada bulan ini?",
+      "domain_diidentifikasi": [
+        "properties_ref"
+      ],
+      "domain_diizinkan": [
+        "properties_ref"
+      ],
+      "domain_ditolak": [],
+      "domain_kandidat_muncul_di_retriever": [
+        "properties_ref"
+      ],
+      "domain_bocor": [],
+      "zero_leakage": true,
+      "view_name_final": "v_properties_ref",
+      "cakupan_individu_terdeteksi": false
+    },
+    {
+      "atomic_intent_id": "c812aa30-22b9-459f-8494-077c8e493601",
+      "teks_kebutuhan": "Hitung tingkat keterisian properti sebagai persentase dari jumlah properti terisi terhadap total properti",
+      "domain_diidentifikasi": [
+        "properties_ref",
+        "facility"
+      ],
+      "domain_diizinkan": [
+        "properties_ref",
+        "facility"
+      ],
+      "domain_ditolak": [],
+      "domain_kandidat_muncul_di_retriever": [],
+      "domain_bocor": [],
+      "zero_leakage": true,
+      "view_name_final": null,
+      "cakupan_individu_terdeteksi": false
+    }
+  ],
+  "trace_id": "4608f3d00be84a1fb65367af4061d17e",
+  "span_info": {
+    "domain_gate_periksa_otorisasi_semua.intent_count": 3,
+    "domain_gate_deteksi_constraint_semua.intent_count": 3,
+    "domain_gate_deteksi_constraint_semua.terdeteksi_count": 0,
+    "retriever_proses_semua.intent_count": 3,
+    "authorization_check_count": 5,
+    "retriever_cari_kandidat_view": [
+      {
+        "retrieval.candidates_count": 6,
+        "retrieval.selected_view": "v_reservation_room_type_daily"
+      },
+      {
+        "retrieval.candidates_count": 1,
+        "retrieval.selected_view": "v_properties_ref"
+      },
+      {
+        "retrieval.candidates_count": 3,
+        "retrieval.selected_view": ""
+      }
+    ]
+  },
+  "error": null
+}

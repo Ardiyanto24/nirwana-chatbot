@@ -1,0 +1,152 @@
+{
+  "kejadian_id": "E03",
+  "deskripsi": "Edge case - seluruh domain satu atomic intent ditolak (domain_diizinkan kosong)",
+  "timestamp": "2026-08-19T04:06:45.899170+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.11-e03",
+    "turn_index": 1,
+    "role_title": "F&B Staff",
+    "employee_id": "emp-eval",
+    "question": "Berapa GOP (gross operating profit) properti bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.11-e03",
+      "turn_index": 1,
+      "role_title": "F&B Staff",
+      "employee_id": "emp-eval",
+      "question": "Berapa GOP (gross operating profit) properti bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "ed58d393-732b-4e18-9204-4fdcf3849e5d",
+          "teks_kebutuhan": "Berapa besar laba operasi kotor (GOP) properti pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ed58d393-732b-4e18-9204-4fdcf3849e5d",
+          "teks_kebutuhan": "Berapa besar laba operasi kotor (GOP) properti pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ed58d393-732b-4e18-9204-4fdcf3849e5d",
+          "teks_kebutuhan": "Berapa besar laba operasi kotor (GOP) properti pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "financial"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ed58d393-732b-4e18-9204-4fdcf3849e5d",
+          "teks_kebutuhan": "Berapa besar laba operasi kotor (GOP) properti pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'F&B Staff' tidak memiliki akses ke domain 'financial'"
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ed58d393-732b-4e18-9204-4fdcf3849e5d",
+          "teks_kebutuhan": "Berapa besar laba operasi kotor (GOP) properti pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'F&B Staff' tidak memiliki akses ke domain 'financial'"
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "ed58d393-732b-4e18-9204-4fdcf3849e5d",
+          "teks_kebutuhan": "Berapa besar laba operasi kotor (GOP) properti pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [],
+        "view_name_final": null,
+        "status": "berhasil"
+      }
+    ]
+  },
+  "laporan_zero_leakage": [
+    {
+      "atomic_intent_id": "ed58d393-732b-4e18-9204-4fdcf3849e5d",
+      "teks_kebutuhan": "Berapa besar laba operasi kotor (GOP) properti pada bulan ini?",
+      "domain_diidentifikasi": [
+        "financial"
+      ],
+      "domain_diizinkan": [],
+      "domain_ditolak": [
+        "financial"
+      ],
+      "domain_kandidat_muncul_di_retriever": [],
+      "domain_bocor": [],
+      "zero_leakage": true,
+      "view_name_final": null,
+      "cakupan_individu_terdeteksi": false
+    }
+  ],
+  "trace_id": "e57b3b52847c83f600ae691719817945",
+  "span_info": {
+    "domain_gate_periksa_otorisasi_semua.intent_count": 1,
+    "domain_gate_deteksi_constraint_semua.intent_count": 1,
+    "domain_gate_deteksi_constraint_semua.terdeteksi_count": 0,
+    "retriever_proses_semua.intent_count": 1,
+    "authorization_check_count": 1,
+    "retriever_cari_kandidat_view": [
+      {
+        "retrieval.candidates_count": 0,
+        "retrieval.selected_view": ""
+      }
+    ]
+  },
+  "error": null
+}

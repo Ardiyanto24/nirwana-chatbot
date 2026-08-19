@@ -85,6 +85,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run python -c "..."` mengonfirmasi `'query_engine' in KeadaanTurn.model_fields` -> `True`, urutan 11 field sesuai rencana, `susun_dan_verifikasi_request_semua` tersedia di `turn_pipeline` module.
 
+**Commit:** `73a7190` — `feat(milestone-7.12): sambungkan query engine ke proses_turn`
+
+---
+
+## Checkpoint 4 — Sambungan Query Engine: Test Deterministik
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 6-7 — Extend test existing + test connectivity baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah konstanta `_QUERY_ENGINE_DUMMY = []`. Extend 11 dari 12 test existing dengan mock `susun_dan_verifikasi_request_semua` (kegagalan cabang paralel tetap tidak berubah, exception menjalar sebelum titik ini — pola identik 3 checkpoint sebelumnya). Tulis test baru `test_orkestrator_query_engine_menerima_retriever_result_persis` — spy merekam `retriever_result` (identity check terhadap `HasilKecukupanStruktural` buatan tangan), menutup rantai 4 test connectivity M7.11-7.12 (Otorisasi, Cakupan Individu, Retriever, Query Engine) yang masing-masing membuktikan SATU sambungan spesifik dalam rantai penuh Domain Gate -> Retriever -> Query Engine. Tambah import `HasilKecukupanStruktural` dari `src.schemas.retriever`.
+
+**Temuan**
+Total test file kini 12 test (dari 11 sebelum M7.12 dimulai) — pola mock berlapis (tiap checkpoint sambungan menambah satu `monkeypatch.setattr` baru ke SEMUA test existing) tetap scalable meski file terus bertambah, konsisten observasi M7.11 Checkpoint 8.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 12/12 test PASSED (11 existing + 1 baru), 6.30s, tanpa panggilan LLM/DB nyata.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

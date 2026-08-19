@@ -173,3 +173,30 @@ Payload lengkap tersimpan `evals/7.12-sambungan-query-engine/payloads/{E01,E02,E
 **Commit:** `a847019` — `test(milestone-7.12): eksekusi nyata 3 kejadian`
 
 ---
+
+## Checkpoint 7 — Audit
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 11 — Tulis `audit.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.12-sambungan-query-engine/audit.md` — tabel ringkasan verdict per kejadian, analisis dengan `trace_id`+rincian tiap atomic intent, section "Temuan Metodologi" mencatat transparan non-determinisme Decomposition E01 DAN insiden hang eksekusi (ringkasan, rujuk `logs.md` untuk kronologi lengkap) sebagai temuan operasional yang melampaui klaim mitigasi `docs/keterbatasan-diterima.md` #7.
+
+**Temuan**
+Tidak ada temuan baru di luar yang sudah dicatat Checkpoint 6 — `audit.md` murni menyusun+menganalisis hasil yang sudah terkumpul.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya — tidak ada klaim yang tidak didukung data aktual.
+
+**Commit:** *(dicatat di commit berikutnya)*
+
+---

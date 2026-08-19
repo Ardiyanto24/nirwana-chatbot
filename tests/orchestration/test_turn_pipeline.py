@@ -28,6 +28,7 @@ from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthoriza
 from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
 from src.schemas.domain_gate import AtomicIntentDomains, Domain
 from src.schemas.matching import AtomicIntentMatch, MatchStatus
+from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
 from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import (
@@ -37,6 +38,7 @@ from src.schemas.session_memory import (
 )
 from src.schemas.turn_dependency import TurnDependencyResult
 from src.schemas.turn_payload import TurnPayload
+from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
 _DECOMPOSITION_DUMMY = DecompositionResult(
     klasifikasi=KlasifikasiKebutuhan.TUNGGAL,
@@ -59,6 +61,8 @@ _RETRIEVER_DUMMY = []
 _QUERY_ENGINE_DUMMY = []
 
 _VERIFICATION_GATE_DUMMY = []
+
+_EXECUTION_DUMMY = []
 
 _RAW_VALID_TURN1 = {
     "session_id": "sess-test",
@@ -197,6 +201,24 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         turn_pipeline_module, "verifikasi_gate_semua", _verification_gate_gagal_kalau_terpanggil
     )
 
+    def _wave_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "kelompokkan_wave TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "kelompokkan_wave", _wave_gagal_kalau_terpanggil
+    )
+
+    def _execution_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "eksekusi_atomic_intent_semua TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "eksekusi_atomic_intent_semua", _execution_gagal_kalau_terpanggil
+    )
+
     with pytest.raises(pydantic.ValidationError):
         proses_turn(_RAW_GAGAL_VALIDASI)
 
@@ -278,6 +300,7 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     assert hasil.retriever == _RETRIEVER_DUMMY
     assert hasil.query_engine == _QUERY_ENGINE_DUMMY
     assert hasil.verification_gate == _VERIFICATION_GATE_DUMMY
+    assert hasil.execution == []
 
 
 def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
@@ -1024,14 +1047,18 @@ def test_orkestrator_query_engine_menerima_retriever_result_persis(monkeypatch):
 def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_individu_employee_id_persis(
     monkeypatch,
 ):
-    """Kejadian inti M7.13 (Sambungan 8 resmi): verifikasi_gate_semua()
-    WAJIB menerima `query_engine_result`, `retriever_result`,
-    `cakupan_individu_result` PERSIS (identity check) dari hasil langkah
-    masing-masing, DAN `payload.employee_id` yang benar - titik penutup
-    rantai Query Engine mengalir ke Verification Gate, termasuk fan-in
-    2 sumber lain (Retriever, Cakupan Individu) yang genuinely berasal
-    dari langkah sebelumnya (bukan buatan manual terpisah, lihat
-    decisions.md)."""
+    """Kejadian inti M7.13 (Sambungan 8 resmi), DIPERBARUI M7.14: sejak
+    M7.14, verifikasi_gate_semua() dipanggil PER WAVE (bukan sekali
+    borongan) - `query_engine_asli` karena itu WAJIB berisi minimal 1
+    item (bukan `[]` seperti versi M7.13 asli), supaya kelompokkan_wave()
+    (real, tidak dimock) menghasilkan minimal 1 wave dan verifikasi_gate_
+    semua() genuinely terpanggil. Argumen yang diterima adalah WAVE-SLICE
+    (list baru hasil kelompokkan_wave(), BUKAN `query_engine_asli` itu
+    sendiri secara identity) - dicek via value equality + identity
+    elemen di dalamnya, bukan identity container. `retriever_result`/
+    `cakupan_individu_result`/`employee_id` TETAP diteruskan utuh
+    (full-set, tidak di-slice per wave) - identity check tetap berlaku
+    untuk ketiganya."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
     ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
@@ -1091,7 +1118,19 @@ def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_i
         turn_pipeline_module, "proses_retrieval_semua", lambda cakupan_individu_result: retriever_asli
     )
 
-    query_engine_asli = []
+    hasil_susun_asli = HasilPenyusunanRequest(
+        atomic_intent=cakupan_individu_asli[0].atomic_intent,
+        request=QueryEngineRequest(domain=Domain.RESERVATION, view_name="v_dummy", params={}),
+        status=StatusEksekusi.BERHASIL,
+    )
+    hasil_verifikasi_asli = HasilVerifikasiBentukRequest(
+        atomic_intent=cakupan_individu_asli[0].atomic_intent,
+        request=hasil_susun_asli.request,
+        status=StatusEksekusi.BERHASIL,
+        lolos=True,
+        alasan=None,
+    )
+    query_engine_asli = [(hasil_susun_asli, hasil_verifikasi_asli)]
     monkeypatch.setattr(
         turn_pipeline_module,
         "susun_dan_verifikasi_request_semua",
@@ -1113,10 +1152,159 @@ def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_i
         turn_pipeline_module, "verifikasi_gate_semua", _rekam_verification_gate
     )
 
+    diterima_execution = {}
+
+    def _rekam_execution(verification_gate_wave, cakupan_individu_result, role_title, employee_id):
+        diterima_execution["verification_gate_wave"] = verification_gate_wave
+        diterima_execution["cakupan_individu_result"] = cakupan_individu_result
+        diterima_execution["role_title"] = role_title
+        diterima_execution["employee_id"] = employee_id
+        return _EXECUTION_DUMMY
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "eksekusi_atomic_intent_semua", _rekam_execution
+    )
+
     hasil = proses_turn(_RAW_VALID_TURN1)
 
-    assert diterima_verification_gate["query_engine_result"] is query_engine_asli
+    assert diterima_verification_gate["query_engine_result"] == query_engine_asli
+    assert diterima_verification_gate["query_engine_result"][0] is query_engine_asli[0]
     assert diterima_verification_gate["retriever_result"] is retriever_asli
     assert diterima_verification_gate["cakupan_individu_result"] is cakupan_individu_asli
     assert diterima_verification_gate["employee_id"] == payload_asli.employee_id == "emp-1"
     assert hasil.verification_gate == _VERIFICATION_GATE_DUMMY
+
+    assert diterima_execution["verification_gate_wave"] is _VERIFICATION_GATE_DUMMY
+    assert diterima_execution["cakupan_individu_result"] is cakupan_individu_asli
+    assert diterima_execution["role_title"] == payload_asli.role_title == "CEO"
+    assert diterima_execution["employee_id"] == payload_asli.employee_id == "emp-1"
+    assert hasil.execution == _EXECUTION_DUMMY
+
+
+def test_orkestrator_wave_kedua_menunggu_wave_pertama_selesai(monkeypatch):
+    """Kejadian inti M7.14 (Sambungan 9 resmi): wave 2 (kebutuhan
+    bergantung, "ai-b") TIDAK BOLEH terverifikasi/tereksekusi SEBELUM
+    wave 1 (dependensinya, "ai-a") selesai KEDUANYA (verifikasi_gate_
+    semua() DAN eksekusi_atomic_intent_semua()) - dibuktikan lewat
+    urutan panggilan mock, deterministik, TANPA LLM/HTTP/Jaeger nyata
+    (bukti span real-execution ada di evals/7.14-.../). Skenario mirror
+    KK sumber M7.14 ("bandingkan X dengan Y yang butuh Y dulu"): ai-a
+    independen, ai-b bergantung pada ai-a."""
+    payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
+    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
+
+    atomic_intent_a = AtomicIntent(
+        atomic_intent_id="ai-a",
+        teks_kebutuhan="kebutuhan A (independen)",
+        label_bentuk_jawaban=LabelBentukJawabanDecomposition.NILAI_TUNGGAL,
+        relasi=RelasiKebutuhan.INDEPENDEN,
+        bergantung_pada=None,
+    )
+    atomic_intent_b = AtomicIntent(
+        atomic_intent_id="ai-b",
+        teks_kebutuhan="kebutuhan B (bergantung pada A)",
+        label_bentuk_jawaban=LabelBentukJawabanDecomposition.PERBANDINGAN,
+        relasi=RelasiKebutuhan.BERGANTUNG,
+        bergantung_pada=["ai-a"],
+    )
+
+    cakupan_individu_asli = [
+        AtomicIntentConstraint(
+            atomic_intent=atomic_intent_a,
+            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            constraint=ConstraintCakupanIndividu(terdeteksi=False),
+        ),
+        AtomicIntentConstraint(
+            atomic_intent=atomic_intent_b,
+            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            constraint=ConstraintCakupanIndividu(terdeteksi=False),
+        ),
+    ]
+    retriever_asli = [
+        HasilKecukupanStruktural(
+            atomic_intent=atomic_intent_a, kecukupan=[], view_name_final=None,
+            status=StatusEksekusi.BERHASIL,
+        ),
+        HasilKecukupanStruktural(
+            atomic_intent=atomic_intent_b, kecukupan=[], view_name_final=None,
+            status=StatusEksekusi.BERHASIL,
+        ),
+    ]
+
+    def _buat_qe_item(atomic_intent):
+        req = QueryEngineRequest(domain=Domain.RESERVATION, view_name="v_dummy", params={})
+        hasil_susun = HasilPenyusunanRequest(
+            atomic_intent=atomic_intent, request=req, status=StatusEksekusi.BERHASIL
+        )
+        hasil_verifikasi = HasilVerifikasiBentukRequest(
+            atomic_intent=atomic_intent, request=req, status=StatusEksekusi.BERHASIL,
+            lolos=True, alasan=None,
+        )
+        return hasil_susun, hasil_verifikasi
+
+    query_engine_asli = [_buat_qe_item(atomic_intent_a), _buat_qe_item(atomic_intent_b)]
+
+    monkeypatch.setattr(turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli)
+    monkeypatch.setattr(
+        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+    )
+    monkeypatch.setattr(turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli)
+    monkeypatch.setattr(
+        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+    )
+    monkeypatch.setattr(turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY)
+    monkeypatch.setattr(
+        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: cakupan_individu_asli,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "proses_retrieval_semua", lambda cakupan_individu_result: retriever_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_request_semua",
+        lambda retriever_result: query_engine_asli,
+    )
+
+    urutan_panggilan = []
+
+    def _fake_vg(wave, retriever_result, cakupan_individu_result, employee_id):
+        ids = sorted(item[0].atomic_intent.atomic_intent_id for item in wave)
+        urutan_panggilan.append(f"verifikasi_gate:{','.join(ids)}")
+        return [
+            (
+                item[0].atomic_intent,
+                HasilVerifikasiGate(request_final=None, lolos=False, terkoreksi=False, alasan_penolakan="dummy"),
+            )
+            for item in wave
+        ]
+
+    def _fake_exec(verification_gate_wave, cakupan_individu_result, role_title, employee_id):
+        ids = sorted(atomic_intent.atomic_intent_id for atomic_intent, _ in verification_gate_wave)
+        urutan_panggilan.append(f"eksekusi:{','.join(ids)}")
+        return []
+
+    monkeypatch.setattr(turn_pipeline_module, "verifikasi_gate_semua", _fake_vg)
+    monkeypatch.setattr(turn_pipeline_module, "eksekusi_atomic_intent_semua", _fake_exec)
+
+    proses_turn(_RAW_VALID_TURN1)
+
+    assert urutan_panggilan == [
+        "verifikasi_gate:ai-a",
+        "eksekusi:ai-a",
+        "verifikasi_gate:ai-b",
+        "eksekusi:ai-b",
+    ], (
+        "wave 2 (ai-b) TIDAK BOLEH terverifikasi/tereksekusi sebelum wave 1 "
+        "(ai-a) selesai keduanya - urutan panggilan membuktikan sekuensial"
+    )

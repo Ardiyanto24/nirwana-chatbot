@@ -181,7 +181,7 @@ def match_atomic_intents(
         return results
 
 
-def _sumber_arsip(paket_lama: SessionMemoryPackage) -> str:
+def sumber_arsip(paket_lama: SessionMemoryPackage) -> str:
     """Tentukan nilai `sumber` baris arsip. Kalau paket lama ITU SENDIRI hasil
     eksekusi asli ("eksekusi_baru"), sumber baris arsip dibangun jadi
     "session_memory (turn N)" dengan N = turn_index paket lama (turn asal
@@ -190,7 +190,17 @@ def _sumber_arsip(paket_lama: SessionMemoryPackage) -> str:
     sebelum ini - kasus rantai transitif), nilai itu dipertahankan UTUH TANPA
     PERUBAHAN - N tetap merujuk turn PALING ASAL, bukan turn_index paket lama
     (yang di kasus ini adalah turn arsip perantara, bukan turn asal
-    sebenarnya). Lihat decisions.md Keputusan 7."""
+    sebenarnya). Lihat decisions.md Keputusan 7.
+
+    Publik (bukan `_sumber_arsip()` lagi) sejak Milestone 7.15 - dipakai
+    ulang `susun_paket_narasi()` (`src/orchestration/paket_narasi.py`) untuk
+    membangun ulang paket "selesai" dengan `atomic_intent_id` turn ini
+    (bukan turn asal) sebelum diteruskan ke Interpretation (M4.4), yang
+    mencocokkan atomic_intent<->paket secara ketat via ID. Perilaku fungsi
+    ini SENDIRI tidak berubah sama sekali - murni penamaan. Lihat
+    milestones/1.7-pencocokan-atomic-intent/decisions.md addendum dan
+    milestones/7.15-sambungan-interpretation-lengkap/decisions.md
+    Keputusan 1."""
     if paket_lama.sumber == "eksekusi_baru":
         return f"session_memory (turn {paket_lama.turn_index})"
     return paket_lama.sumber
@@ -203,7 +213,7 @@ def archive_matched_packages(
     baris arsip baru di bawah `turn_index` (turn SAAT INI, bukan turn asal).
     `atomic_intent_id`/`teks_kebutuhan`/`label_bentuk_jawaban`/`nilai_hasil`/
     `catatan_interpretasi`/`status` disalin UTUH dari paket lama; `sumber`
-    dihitung lewat `_sumber_arsip()` supaya rantai "turn asal sebenarnya"
+    dihitung lewat `sumber_arsip()` supaya rantai "turn asal sebenarnya"
     tidak pernah putus lintas berapa pun kali paket ini diarsip ulang -
     forced by komentar desain src/db/models.py, lihat decisions.md
     Keputusan 7. Tanpa span baru (Keputusan 11 - mirror store_session_
@@ -224,7 +234,7 @@ def archive_matched_packages(
             nilai_hasil=paket_lama.nilai_hasil,
             catatan_interpretasi=paket_lama.catatan_interpretasi,
             status=paket_lama.status,
-            sumber=_sumber_arsip(paket_lama),
+            sumber=sumber_arsip(paket_lama),
         )
         store_session_memory(arsip)
 

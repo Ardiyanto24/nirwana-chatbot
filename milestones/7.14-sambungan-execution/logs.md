@@ -206,6 +206,64 @@ Tunggu beberapa detik Docker Desktop selesai boot, percobaan kedua berhasil.
 **Hasil Verifikasi**
 Review manual `rancangan.md`. `chatbot_api` (`GET /health` -> 200) dan Jaeger (`GET /api/services` -> 200) dikonfirmasi reachable sebelum Checkpoint 7 dimulai.
 
+**Commit:** `63ea599` — `docs(milestone-7.14): peta kejadian eval`
+
+---
+
+## Checkpoint 7 — Eksekusi Nyata (`chatbot_api` REAL + LLM + Jaeger)
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 12 — Tulis + jalankan run_eval.py
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.14-sambungan-execution/run_eval.py` — verifikasi substantif via inspeksi langsung `hasil.execution` (status/nilai_hasil per item) dan analisis urutan wave via TIMESTAMP span `orchestration.wave` nyata (`start_time`/`end_time`, bukan urutan array JSON) — non-overlap antar wave berurutan adalah bukti langsung urutan benar, forced by struktur loop sekuensial murni `turn_pipeline.py` (bukan `ThreadPoolExecutor`). `_cek_prasyarat()` mengecek `chatbot_api`/Jaeger reachable di awal, exit eksplisit kalau tidak.
+
+Jalankan PERCOBAAN PERTAMA (background, dipantau via notifikasi bukan polling manual) — **LOLOS TANPA HANG** (beda dari M7.12). Hasil: E01 2 wave `urutan_benar=true` (KK literal utama TERPENUHI), TAPI E02/E03 keduanya `wave_spans=[]` — investigasi lewat inspeksi langsung payload JSON (bukan asumsi bug script) menemukan Domain Gate (`identifikasi_domain_atomic_intent()`, M2.1) genuinely `status=gagal_teknis` untuk KEDUA kejadian (LLM hiccup, tidak terkait wiring M7.14) — efek berantai filter internal tiap layer bekerja benar (tidak crash), nol item mencapai Query Engine/Verification Gate/Execution sama sekali.
+
+Arsipkan payload percobaan pertama E02/E03 (`E02_percobaan1_gagal_teknis.json`/`E03_percobaan1_gagal_teknis.json`, prinsip log tidak menyembunyikan sejarah), tulis `retry_e02_e03.py` (reuse fungsi `run_eval.py` via `importlib`) dengan `session_id` BARU (`eval-7.14-e02b`/`e03b`, preseden Keputusan 6 M7.10). Jalankan retry — Domain Gate `berhasil` keduanya kali ini. E02 (retry): Decomposition mengklasifikasikan `label_bentuk_jawaban="peringkat"` (non-determinisme, beda dari `nilai_tunggal` run M7.13 sebelumnya) — M3.5 BENAR menolak (`lolos=False`, params hanya 1 baris tidak cukup untuk "peringkat"), item di-skip M7.13 Keputusan 2, 1 wave kosong terbentuk (durasi ~1.4ms, tanpa panggilan nyata). E03 (retry): 1 item mencapai Execution NYATA (`status=gagal_teknis`, `revisi_exhausted`, durasi wave ~66 detik — aktivitas LLM+HTTP real).
+
+**Temuan**
+SELURUH item yang mencapai Execution (E01×2, E03×1) berakhir `GAGAL_TEKNIS` via jalur revisi 400 yang habis — PERTAMA KALINYA jalur ini diuji terhadap `chatbot_api` NYATA (sebelumnya 100% mock). Bukan bug M7.14 (mekanisme wave/skip/klasifikasi seluruhnya terbukti benar) — sinyal kualitas M3.4/M4.2 yang baru terlihat sekarang server reachable, dicatat sebagai follow-up `report.md`, di luar cakupan perbaikan milestone ini.
+
+**Error/Kegagalan (jika ada)**
+Domain Gate `gagal_teknis` pada percobaan pertama E02 DAN E03 (keduanya) — dicurigai hiccup transient provider LLM, bukan bug kode.
+
+**Diagnosis dan Perbaikan**
+Retry dengan `session_id` baru menembus Domain Gate pada percobaan kedua untuk keduanya — tidak ada perubahan kode diperlukan (bukan bug M7.14).
+
+**Hasil Verifikasi**
+`trace_id` nyata untuk seluruh 5 pemanggilan (E01, E02×2, E03×2) tersimpan di `payloads/*.json`. Span `orchestration.wave` E01 dikonfirmasi timestamp non-overlap (`urutan_benar=True`). Tidak ada insiden hang.
+
+**Commit:** *(dicatat di commit berikutnya)*
+
+---
+
+## Checkpoint 8 — Audit
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 13 — Tulis audit.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.14-sambungan-execution/audit.md` — tabel ringkasan verdict per kejadian (termasuk percobaan 1 vs 2 untuk E02/E03), analisis lengkap E01 (durasi wave, gap 96 mikrodetik antar-wave, item mana yang di-skip/gagal), E02 (mekanisme skip M7.13 terbukti benar di kondisi non-determinisme nyata), E03 (bukti kedua independen domain facility), bagian "Insiden Operasional" (restart komputer, Domain Gate gagal_teknis 2x) dan "Temuan Metodologi" (jalur revisi 400 M4.2 pertama kali diuji nyata, seluruhnya gagal - dicatat sebagai follow-up bukan bug M7.14).
+
+**Temuan**
+Tidak ada temuan tak terduga di luar yang sudah dicatat Checkpoint 7.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Grep secret pada seluruh file eval baru — kosong. Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya, termasuk file arsip percobaan pertama E02/E03.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

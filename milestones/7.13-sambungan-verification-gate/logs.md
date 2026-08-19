@@ -110,6 +110,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 13/13 test PASSED (12 existing + 1 baru), 9.00s, tanpa panggilan LLM/DB nyata.
 
+**Commit:** `8ae48a4` (test) + `d86c681` (docs)
+
+---
+
+## Checkpoint 5 — Peta Kejadian
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 8 — Tulis rancangan.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca `evals/2.3-deteksi-cakupan-individu/payloads/S01.json`+`S02.json` (skenario HR "review kinerja Budi" dan Maintenance "tiket Andi"), `evals/7.11-.../payloads/E01.json`, dan `evals/7.12-.../payloads/E01.json` untuk menyusun 3 kejadian di `evals/7.13-sambungan-verification-gate/rancangan.md`: E01 (HR Staff, reuse S01/M7.11 E04/M7.12 E03, `terdeteksi=True` -> koreksi paksa `employee_id` diharapkan), E02 (Front Office Staff, reuse gop_margin M7.11 E01/M7.12 E01, `terdeteksi=False` semua intent -> kontrol negatif tanpa koreksi), E03 (Maintenance Staff, reuse S02, `session_id` DAN skenario yang belum pernah dieksekusi di Sambungan Level 2 manapun -> bukti independen ketiga). Ekspektasi ditulis sebagai invarian per-item (bukan jumlah tetap), konsisten preseden non-determinisme M7.9-7.12.
+
+**Temuan**
+Inspeksi langsung `evals/7.12-.../payloads/E01.json` (skenario gop_margin, dipakai lagi sebagai E02) menemukan HANYA 1 dari 3 atomic intent run itu yang `HasilVerifikasiBentukRequest.lolos=True` — 2 lainnya `lolos=False` (params kosong, M3.5 menolak). Ini eksplisit dicatat di `rancangan.md` sebagai skenario nyata yang akan di-SKIP oleh `verifikasi_gate_semua()` (Keputusan 2 M7.13) kalau berulang — E02 karena itu diposisikan sebagai kontrol negatif pelengkap, BUKAN sumber utama bukti KK (E01+E03 yang utama, sesuai Kriteria Keberhasilan plan).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Review manual `rancangan.md` — 3 kejadian, invarian mekanisme (termasuk logika koreksi paksa `tegakkan_constraint_cakupan_individu()`, dikutip langsung dari `verifikasi_gate.py` baris 65-80) dan tabel ringkasan ekspektasi lengkap.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

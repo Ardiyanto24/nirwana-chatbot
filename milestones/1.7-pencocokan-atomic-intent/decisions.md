@@ -206,6 +206,20 @@ Tidak ada state "kandidat sudah dipakai" yang perlu dilacak lintas iterasi loop 
 
 ---
 
+## Addendum (2026-08-19, ditemukan+diperbaiki saat riset plan Milestone 7.15): `_sumber_arsip()` diekspos jadi publik `sumber_arsip()`
+
+**Ditemukan di:** Riset plan Milestone 7.15 (Sambungan 10: (Pencocokan jalur "selesai" + Execution) → Interpretation) — saat menelusuri bagaimana `AtomicIntentMatch.paket` (M1.7, ditahan `KeadaanTurn.matches` sejak M7.9) bisa dipasangkan dengan `atomic_intent` turn INI untuk Interpretation (M4.4), ditemukan `match.paket` masih membawa `atomic_intent_id` dari TURN ASAL (bukan turn saat ini) — Interpretation mencocokkan atomic_intent<->paket secara ketat via ID, jadi M7.15 butuh membangun ulang paket dengan `atomic_intent_id` turn ini, `sumber` dihitung ulang persis seperti fungsi `_sumber_arsip()` (Keputusan 7 di atas) sudah lakukan untuk baris arsip — tapi fungsi itu private dan hasilnya tidak pernah dikembalikan ke pemanggil manapun di luar `archive_matched_packages()`.
+
+**Perubahan:** `_sumber_arsip()` → `sumber_arsip()` (hapus underscore) di `src/layers/context_resolution/matching.py`. **Perilaku fungsi TIDAK berubah sama sekali** — isi/logic identik persis, satu-satunya call site internal (`archive_matched_packages()`) diperbarui memakai nama baru. Murni membuka akses supaya bisa dipakai ulang `susun_paket_narasi()` (`src/orchestration/paket_narasi.py`, baru M7.15).
+
+**Kenapa diperbaiki langsung (bukan dicatat sebagai keterbatasan diterima):** Perubahan berisiko sangat rendah (rename murni, tanpa perubahan logic) dan forced oleh kebutuhan genuinely baru (M7.15) — mirror preseden M7.6 memperbaiki celah `detect_turn_dependency()` M1.3 langsung di file kepemilikan aslinya (lihat `milestones/1.3-.../decisions.md` Keputusan 12).
+
+**Verifikasi:** `uv run pytest tests/layers/context_resolution/test_matching.py -v` — 3/3 PASSED (termasuk `test_kelompok_c_rantai_arsip_ulang_turn_tujuh_lima_tiga`, yang menguji langsung logic transformasi `sumber` lewat rantai arsip 3 turn, LLM+DB nyata) — perilaku identik dikonfirmasi nyata, bukan cuma dibaca kode.
+
+**Dampak:** Lihat `milestones/7.15-sambungan-interpretation-lengkap/decisions.md` Keputusan 1 untuk detail lengkap kenapa M7.15 membutuhkan ini.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |

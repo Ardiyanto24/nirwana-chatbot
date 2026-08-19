@@ -27,6 +27,33 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `decisions.md` ditulis lengkap dengan 9 entri + Daftar Isi Keputusan, format Jenis A/B sesuai template resmi.
 
+**Commit:** `ebb8c38` — `docs(milestone-7.15): keputusan`
+
+---
+
+## Checkpoint 2 — Perbaikan M1.7: Ekspos `sumber_arsip()`
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 2 — Rename + addendum decisions.md M1.7
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Di `src/layers/context_resolution/matching.py`: rename `_sumber_arsip()` → `sumber_arsip()` (hapus underscore, isi/logic TIDAK diubah satu karakter pun), perbarui satu-satunya call site di `archive_matched_packages()`, perbarui 2 referensi nama lama di docstring (termasuk docstring fungsi itu sendiri, ditambah catatan baru menjelaskan kenapa jadi publik + rujukan M7.15). Grep `_sumber_arsip` di seluruh `src/`+`tests/` mengonfirmasi tidak ada referensi tersisa ke nama lama. Tambah addendum di `milestones/1.7-pencocokan-atomic-intent/decisions.md` (setelah Keputusan 13, sebelum Daftar Isi) — mendokumentasikan temuan+perbaikan+verifikasi.
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run pytest tests/layers/context_resolution/test_matching.py -v` — 3/3 PASSED (59.69s, LLM+DB nyata, termasuk `test_kelompok_c_rantai_arsip_ulang_turn_tujuh_lima_tiga` yang menguji langsung logic `sumber_arsip()`) — perilaku identik dikonfirmasi nyata.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

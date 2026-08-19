@@ -249,6 +249,62 @@ Tidak berlaku.
 **Hasil Verifikasi**
 Review manual `rancangan.md` — 4 kejadian, tiap kejadian py ekspektasi konkret per-domain (bukan jumlah absolut), tabel ringkasan mencakup kolom `domain_diizinkan ke Retriever` dan `cakupan_individu.terdeteksi` untuk memudahkan verifikasi silang Checkpoint 10.
 
-**Commit:** *(dicatat di commit berikutnya)*
+**Commit:** `bd6a375` — `docs(milestone-7.11): peta kejadian eval`
+
+---
+
+## Checkpoint 10 — Eksekusi Nyata
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 17-18 — `run_eval.py` + eksekusi + verifikasi Jaeger
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian metodologi ditemukan sebelum eksekusi (lihat Temuan).
+
+**Apa yang dilakukan**
+Baca `src/layers/retriever/retriever.py::_atribut_span_dari_hasil()` sebelum menulis `run_eval.py` — ditemukan span `retriever.cari_kandidat_view` HANYA merekam `retrieval.candidates_count` (angka), TIDAK merekam domain per-kandidat individual. Ini berarti verifikasi "tidak ada kandidat dari domain ditolak" (KK M7.11) TIDAK BISA dilakukan murni dari parsing tag Jaeger seperti rencana awal `rancangan.md` — didesain ulang: verifikasi substantif dilakukan lewat inspeksi LANGSUNG return value Python `proses_turn()` (`hasil.retriever[i].kecukupan[*].kandidat.domain`, dibandingkan terhadap `hasil.otorisasi`/`hasil.cakupan_individu` domain yang ditolak), Jaeger tetap dipakai untuk membuktikan span+atribut ringkasan ter-emit (bukan untuk daftar kandidat).
+
+Tulis `evals/7.11-sambungan-retriever/run_eval.py` — helper `_domain_ditolak_ke_kandidat()` (verifikasi zero-leakage per atomic intent), `_ringkas_span()` (ekstrak atribut span kunci dari Jaeger). `docker compose up -d` di `infra/observability/` (Jaeger+Collector+Prometheus, sebelumnya tidak berjalan — dikonfirmasi `docker ps` hanya menunjukkan container project lain). Dijalankan real (`uv run python evals/7.11-sambungan-retriever/run_eval.py`, background, ~17 menit total untuk 4 kejadian × rantai LLM lengkap Decomposition+Domain Gate+Retriever).
+
+**Temuan**
+**4/4 kejadian `zero_leakage=True`** di seluruh 7 atomic intent lintas 4 kejadian — TIDAK ADA satu pun kebocoran domain. E01 intent ke-3 (skenario `gop_margin` PERSIS M2.1/M7.3) jadi bukti KK literal utama: domain `[reservation, financial, properties_ref]` teridentifikasi, `financial` ditolak, `view_name_final=v_reservation_gop_impact_monthly` (view `reservation`, bukan `financial`). E03 (domain kosong) selesai normal tanpa crash, `retrieval.candidates_count=0`. E04 membuktikan `cakupan_individu.terdeteksi=True` nyata (sambungan M2.3). Penyimpangan dari `rancangan.md`: E01/E02 Decomposition `klasifikasi=tunggal` tapi menghasilkan 3 atomic_intents (bukan 1) — non-determinisme dikenal (`docs/keterbatasan-diterima.md` #3), TIDAK di-retry, malah memperkuat verdict (lebih banyak kesempatan kebocoran diuji).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada — seluruh 4 kejadian selesai tanpa exception. Catatan operasional: stdout Python ter-buffer penuh (tidak muncul progresif) karena dijalankan via redirect background, bukan indikasi hang — dikonfirmasi normal begitu proses selesai (~17 menit, konsisten estimasi banyak pemanggilan LLM berurutan per kejadian).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Payload lengkap tersimpan `evals/7.11-sambungan-retriever/payloads/{E01,E02,E03,E04}.json`. 4 `trace_id` dicatat, dikonfirmasi lewat Jaeger API: span `domain_gate.periksa_otorisasi_semua`/`domain_gate.deteksi_constraint_semua`/`retriever.proses_semua` seluruhnya terbuka dengan `intent.count` sesuai jumlah atomic intent yang diproses; span `authorization.check` muncul sejumlah domain×intent yang diperiksa; span `retriever.cari_kandidat_view` per intent dengan `retrieval.candidates_count`/`retrieval.selected_view` konsisten hasil Python.
+
+**Commit:** `d2b0fde` — `test(milestone-7.11): eksekusi nyata 4 kejadian`
+
+---
+
+## Checkpoint 11 — Audit
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 19 — Tulis `audit.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.11-sambungan-retriever/audit.md` — tabel ringkasan verdict per kejadian (kolom domain ditolak, kandidat bocor, verdict), analisis per kejadian dengan `trace_id` + rincian tiap atomic intent, section "Temuan Metodologi" mencatat transparan penyimpangan Decomposition (klasifikasi `tunggal` tapi 3 atomic_intents) dan justifikasi metodologi verifikasi-via-Python-bukan-Jaeger-tags.
+
+**Temuan**
+Tidak ada temuan baru di luar yang sudah dicatat Checkpoint 10 — `audit.md` murni menyusun+menganalisis hasil yang sudah terkumpul.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya — tidak ada klaim yang tidak didukung data aktual, penyimpangan dicatat eksplisit bukan disamarkan.
+
+**Commit:** `1fdcf64` — `docs(milestone-7.11): audit hasil eksekusi nyata`
 
 ---

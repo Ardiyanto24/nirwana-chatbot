@@ -47,11 +47,11 @@ from src.layers.query_engine.verifikasi_bentuk_request import (
 )
 from src.layers.verification_gate.verifikasi_gate import verifikasi_gate
 from src.observability.tracing import get_tracer
-from src.schemas.cakupan_individu import ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.execution import HasilEksekusiAtomicIntent, HasilPemanggilanChatbotAPI
 from src.schemas.session_memory import StatusEksekusi
-from src.schemas.verification_gate import QueryEngineRequest
+from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
 _TRACER_NAME = "execution.klasifikasi_respons"
 
@@ -295,3 +295,53 @@ def eksekusi_atomic_intent(
                 retry_count_infra=total_retry_infra,
                 revisi_count=revisi_count,
             )
+
+
+# --- Orkestrator batch (M7.14): satu wave -> daftar hasil eksekusi --------
+
+
+def eksekusi_atomic_intent_semua(
+    verification_gate_wave: list[tuple[AtomicIntent, HasilVerifikasiGate]],
+    cakupan_individu_result: list[AtomicIntentConstraint],
+    role_title: str,
+    employee_id: str,
+) -> list[HasilEksekusiAtomicIntent]:
+    """Jalankan `eksekusi_atomic_intent()` untuk SATU wave (satu list
+    `(AtomicIntent, HasilVerifikasiGate)`, mis. hasil `verifikasi_gate_
+    semua()` M7.13 untuk wave itu) - mirror struktur `_semua()` di layer
+    lain (M7.11-7.13). Fungsi ini TIDAK wave-aware sendiri - loop
+    antar-wave adalah tanggung jawab orkestrator (`proses_turn()`,
+    M7.14). Ditambah Milestone 7.14 (layer Execution belum py fungsi
+    batch - lihat milestones/7.14-sambungan-execution/decisions.md).
+
+    Item dengan `hasil_vg.lolos=False` DI-SKIP (forced - `request_final=
+    None`, tidak ada apa pun untuk dieksekusi). `constraint` dilookup
+    dari `cakupan_individu_result` via `atomic_intent_id` (Keputusan 6)
+    - `eksekusi_atomic_intent()` butuh parameter ini non-Optional untuk
+    jalur revisi 400 (dipakai `_revisi_request()`), walau tidak dipakai
+    di percobaan pertama."""
+    tracer = get_tracer(_TRACER_NAME)
+    with tracer.start_as_current_span("execution.eksekusi_atomic_intent_semua") as span:
+        span.set_attribute("intent.count", len(verification_gate_wave))
+
+        constraint_by_id = {
+            c.atomic_intent.atomic_intent_id: c.constraint for c in cakupan_individu_result
+        }
+
+        hasil: list[HasilEksekusiAtomicIntent] = []
+        for atomic_intent, hasil_vg in verification_gate_wave:
+            if not hasil_vg.lolos or hasil_vg.request_final is None:
+                continue
+
+            constraint = constraint_by_id[atomic_intent.atomic_intent_id]
+            hasil_eksekusi = eksekusi_atomic_intent(
+                atomic_intent,
+                hasil_vg.request_final.view_name,
+                hasil_vg.request_final,
+                constraint,
+                role_title,
+                employee_id,
+            )
+            hasil.append(hasil_eksekusi)
+
+        return hasil

@@ -228,6 +228,45 @@ Restart: nyalakan ulang `chatbot_api`+Docker tiap kali, verifikasi health check 
 **Hasil Verifikasi**
 8 `trace_id` nyata (E01×2 turn ×4 percobaan sebagian diarsipkan, E02, E03) tersimpan `payloads/*.json`. Grep secret kosong.
 
+**Commit:** `2e90a68` (test) + `3b8214f` (docs)
+
+---
+
+## Checkpoint 9 — Audit
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 13 — Tulis audit.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.15-sambungan-interpretation-lengkap/audit.md` — tabel ringkasan verdict (E02 lolos penuh, E01 mekanisme benar/bukti live tertunda, E03 gap tidak termanifestasi), analisis lengkap E01 (kronologi 4 percobaan, akar masalah staleness sistemik dengan bukti tanggal identik lintas domain), E02 (bukti RBAC end-to-end lengkap dengan kutipan `otorisasi_result`/narasi), E03 (kontrol negatif GAGAL_TEKNIS diproses normal), bagian "Temuan Metodologi" (nilai tambah M7.15 menemukan staleness sistemik, alasan 4 percobaan tetap dalam batas kewajaran).
+
+**Temuan**
+Tidak ada temuan tak terduga di luar yang sudah dicatat Checkpoint 8.
+
+**Hasil Verifikasi**
+Review isi `audit.md` mencerminkan `payloads/*.json` (termasuk arsip 3 percobaan gagal) apa adanya.
+
 **Commit:** *(dicatat di commit berikutnya)*
+
+---
+
+## Checkpoint 10 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 14-15 — Finalisasi logs.md, tulis report.md, update status proyek
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `milestones/7.15-sambungan-interpretation-lengkap/report.md` — 6 bagian: ringkasan hasil (jujur soal status "sebagian" — bukti live cabang selesai tertunda), KK vs bukti (verdict "Sebagian", dijelaskan lengkap kenapa), cara kerja+diagram Mermaid, perubahan dari plan (4 percobaan dijelaskan bukan sekadar disebutkan), keterbatasan (entri #15 dirujuk lengkap), follow-up (M7.16 diperingatkan eksplisit soal temuan staleness). Update tabel "Status Proyek" `CLAUDE.md`+`AGENT.md` (working tree saja, gitignored) — M7.15 ditandai selesai dengan catatan jujur, 10/11 Sambungan Level 2, M7.16 (TERAKHIR) berikutnya.
+
+**Hasil Verifikasi**
+Baca ulang `report.md` — KK M7.15 dipetakan jujur sebagai "Sebagian" (bukan dipaksa "Ya" atau disembunyikan sebagai "Tidak") dengan bukti konkret kedua sisi (unit test benar, live tertunda). `CLAUDE.md`/`AGENT.md` diperbarui working tree, TIDAK di-commit.
+
+**Commit:** `docs(milestone-7.15): logs, report` (CLAUDE.md/AGENT.md TIDAK termasuk — gitignored, working tree saja)
 
 ---

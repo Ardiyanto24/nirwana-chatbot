@@ -197,6 +197,39 @@ Tidak berlaku.
 **Hasil Verifikasi**
 Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya — tidak ada klaim yang tidak didukung data aktual.
 
+**Commit:** `b234a78` — `docs(milestone-7.12): audit hasil eksekusi nyata`
+
+---
+
+## Checkpoint 8 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 12-14 — Finalisasi logs.md, report.md, update status project
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Finalisasi `logs.md` (dokumen ini). Tulis `milestones/7.12-sambungan-query-engine/report.md` — 6 bagian sesuai template resmi, KK M7.12 vs bukti nyata (4x independen: 3× E01 + 1× E03), diagram Mermaid rantai wiring (hijau=wiring ke fungsi existing M7.4, merah=jalur skip baru), 1 penyimpangan operasional dicatat eksplisit (insiden hang eksekusi, bukan penyimpangan rencana), 2 keterbatasan (insiden hang melampaui klaim mitigasi #7 + bentuk tuple baru dievaluasi 1 titik konsumsi), 2 follow-up.
+
+Update tabel "Status Proyek" di `CLAUDE.md`: baris M7.12 dipisah jadi baris sendiri berstatus "Selesai", baris berikutnya diganti "7.13-7.18" dengan hitungan "7/11 selesai". Tambah paragraf ringkasan M7.12 (mirror gaya paragraf M7.6-7.11) di bawah paragraf M7.11, memuat konfirmasi "tidak ada gap tersembunyi seperti M7.11", hasil 3 kejadian real-execution, insiden hang, dan status 7/11 Sambungan Level 2. Update paragraf "Sisa pekerjaan project" — M7.12 dihapus dari daftar "berikutnya", diganti M7.13. `AGENT.md` disinkronkan PERSIS dengan `CLAUDE.md` (`cp` + `diff` dikonfirmasi identik).
+
+**Temuan**
+Tidak ada temuan baru — checkpoint murni dokumentasi penutup berdasar hasil Checkpoint 1-7 yang sudah lengkap.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` mengonfirmasi identik setelah update. Review `report.md` — KK M7.12 sumber (1 kriteria literal) terpetakan ke bukti aktual dengan `trace_id` konkret, tidak ada klaim tanpa rujukan bukti. `CLAUDE.md`/`AGENT.md` TIDAK di-commit (gitignored by design, dikonfirmasi ulang preseden M7.11 Checkpoint 12), diperbarui di working tree saja.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---
+
+## Task/Checkpoint di Luar Plan
+
+Tidak ada — seluruh 8 checkpoint dan 14 task dikerjakan persis sesuai struktur plan yang disetujui user di Plan Mode. Insiden hang eksekusi Checkpoint 6 adalah kejadian OPERASIONAL selama eksekusi checkpoint yang SUDAH direncanakan (Task 10 "Jalankan real"), bukan checkpoint/task baru yang lahir di luar plan.

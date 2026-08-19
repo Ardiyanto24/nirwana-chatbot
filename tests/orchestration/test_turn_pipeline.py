@@ -25,6 +25,7 @@ from src.schemas.decomposition import (
     RelasiKebutuhan,
 )
 from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthorization
+from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
 from src.schemas.domain_gate import AtomicIntentDomains, Domain
 from src.schemas.matching import AtomicIntentMatch, MatchStatus
 from src.schemas.rewrite import RewriteResult
@@ -51,6 +52,8 @@ _DOMAIN_GATE_DUMMY = []
 _OTORISASI_DUMMY = []
 
 _CAKUPAN_INDIVIDU_DUMMY = []
+
+_RETRIEVER_DUMMY = []
 
 _RAW_VALID_TURN1 = {
     "session_id": "sess-test",
@@ -160,6 +163,15 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         _cakupan_individu_gagal_kalau_terpanggil,
     )
 
+    def _retriever_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "proses_retrieval_semua TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "proses_retrieval_semua", _retriever_gagal_kalau_terpanggil
+    )
+
     with pytest.raises(pydantic.ValidationError):
         proses_turn(_RAW_GAGAL_VALIDASI)
 
@@ -209,6 +221,11 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
         "deteksi_constraint_semua",
         lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -221,6 +238,7 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     assert hasil.domain_gate == _DOMAIN_GATE_DUMMY
     assert hasil.otorisasi == _OTORISASI_DUMMY
     assert hasil.cakupan_individu == _CAKUPAN_INDIVIDU_DUMMY
+    assert hasil.retriever == _RETRIEVER_DUMMY
 
 
 def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
@@ -274,6 +292,11 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
         turn_pipeline_module,
         "deteksi_constraint_semua",
         lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -373,6 +396,11 @@ def test_orkestrator_decompose_menerima_rewritten_question_bukan_payload_questio
         "deteksi_constraint_semua",
         lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -422,6 +450,11 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_none(monkeyp
         turn_pipeline_module,
         "deteksi_constraint_semua",
         lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -476,6 +509,11 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_kosong(monke
         turn_pipeline_module,
         "deteksi_constraint_semua",
         lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -543,6 +581,11 @@ def test_orkestrator_domain_gate_menerima_matches_apa_adanya_tanpa_filter(monkey
         "deteksi_constraint_semua",
         lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -609,6 +652,11 @@ def test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar(
         turn_pipeline_module,
         "deteksi_constraint_semua",
         lambda otorisasi_result, role_title: _CAKUPAN_INDIVIDU_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -679,9 +727,81 @@ def test_orkestrator_cakupan_individu_menerima_otorisasi_result_dan_role_title_b
     monkeypatch.setattr(
         turn_pipeline_module, "deteksi_constraint_semua", _rekam_cakupan_individu
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: _RETRIEVER_DUMMY,
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
     assert diterima_cakupan_individu["otorisasi_result"] is otorisasi_asli
     assert diterima_cakupan_individu["role_title"] == payload_asli.role_title == "CEO"
     assert hasil.cakupan_individu == _CAKUPAN_INDIVIDU_DUMMY
+
+
+def test_orkestrator_retriever_menerima_cakupan_individu_result_persis(monkeypatch):
+    """Kejadian inti M7.11 (Checkpoint 7-8, Sambungan 6 resmi):
+    proses_retrieval_semua() WAJIB menerima `cakupan_individu_result`
+    PERSIS (identity check) hasil deteksi_constraint_semua() - titik
+    penutup rantai Domain Gate lengkap (M2.1->M2.2->M2.3) mengalir ke
+    Retriever (lihat decisions.md Keputusan 3-4)."""
+    payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
+    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
+
+    cakupan_individu_asli = [
+        AtomicIntentConstraint(
+            atomic_intent=AtomicIntent(
+                atomic_intent_id="ai-1",
+                teks_kebutuhan="teks kebutuhan",
+                label_bentuk_jawaban=LabelBentukJawabanDecomposition.NILAI_TUNGGAL,
+                relasi=RelasiKebutuhan.INDEPENDEN,
+                bergantung_pada=None,
+            ),
+            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            constraint=ConstraintCakupanIndividu(terdeteksi=False),
+        )
+    ]
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: cakupan_individu_asli,
+    )
+
+    diterima_retriever = {}
+
+    def _rekam_retriever(cakupan_individu_result):
+        diterima_retriever["cakupan_individu_result"] = cakupan_individu_result
+        return _RETRIEVER_DUMMY
+
+    monkeypatch.setattr(turn_pipeline_module, "proses_retrieval_semua", _rekam_retriever)
+
+    hasil = proses_turn(_RAW_VALID_TURN1)
+
+    assert diterima_retriever["cakupan_individu_result"] is cakupan_individu_asli
+    assert hasil.retriever == _RETRIEVER_DUMMY

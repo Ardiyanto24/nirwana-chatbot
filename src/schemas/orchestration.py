@@ -59,6 +59,15 @@ sekuensial `identifikasi_domain_semua()` -> `periksa_otorisasi_semua()`
 `src/layers/retriever/kecukupan_struktural.py`), tiap fungsi menerima
 persis output fungsi sebelumnya. Lihat
 milestones/7.11-sambungan-retriever/decisions.md Keputusan 4+6.
+
+Field M7.12 (`query_engine`): `susun_dan_verifikasi_request_semua()`
+(baru, `src/layers/query_engine/query_engine.py`) - layer Query Engine
+(M3.4-3.5) sudah tersambung internal penuh sejak M7.4, TAPI belum py
+fungsi batch level-list gabungan Langkah 1+2. Bentuk `list[tuple[...]]`
+dipertahankan apa adanya dari kontrak M7.4 (tanpa skema baru). Panjang
+BISA lebih pendek dari `retriever` - item `view_name_final=None` di-skip
+(forced by signature `view_name: str` non-Optional, bukan pilihan gaya).
+Lihat milestones/7.12-sambungan-query-engine/decisions.md Keputusan 1+4+7.
 """
 
 from pydantic import BaseModel
@@ -68,6 +77,7 @@ from src.schemas.cakupan_individu import AtomicIntentConstraint
 from src.schemas.decomposition import DecompositionResult
 from src.schemas.domain_gate import AtomicIntentDomains
 from src.schemas.matching import AtomicIntentMatch
+from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
 from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import SessionMemoryPackage
@@ -86,3 +96,4 @@ class KeadaanTurn(BaseModel):
     otorisasi: list[AtomicIntentAuthorization]
     cakupan_individu: list[AtomicIntentConstraint]
     retriever: list[HasilKecukupanStruktural]
+    query_engine: list[tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]]

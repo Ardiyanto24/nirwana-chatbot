@@ -57,6 +57,14 @@ final - menutup gap wiring M2.2 (Pemeriksaan Otorisasi) yang belum pernah
 tersambung sejak milestone asalnya, di luar Lingkup tertulis asli M7.11
 tapi dibutuhkan KK-nya sendiri. Lihat
 milestones/7.11-sambungan-retriever/decisions.md Keputusan 1+4-5.
+
+Milestone 7.11 (Checkpoint 4): `deteksi_constraint_semua(otorisasi_result,
+payload.role_title)` dipanggil SEKUENSIAL setelah `otorisasi_result`
+final - menutup gap wiring M2.3 (Deteksi Cakupan Individu), juga belum
+pernah tersambung sejak milestone asalnya. Disambungkan sekarang (bukan
+ditunda ke M7.13) atas keputusan sadar user, mencegah M7.13 nanti
+menemukan gap serupa. Lihat
+milestones/7.11-sambungan-retriever/decisions.md Keputusan 2+4.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -68,6 +76,7 @@ from src.layers.context_resolution.rewrite import rewrite_to_standalone
 from src.layers.context_resolution.session_memory import retrieve_session_memory
 from src.layers.context_resolution.turn_dependency import detect_turn_dependency
 from src.layers.decomposition.decompose import decompose_question
+from src.layers.domain_gate.cakupan_individu import deteksi_constraint_semua
 from src.layers.domain_gate.domain_gate import identifikasi_domain_semua
 from src.layers.domain_gate.otorisasi import periksa_otorisasi_semua
 from src.layers.input_layer import validate_turn_payload
@@ -146,6 +155,8 @@ def proses_turn(raw: dict) -> KeadaanTurn:
 
         otorisasi_result = periksa_otorisasi_semua(domain_gate_result, payload.role_title)
 
+        cakupan_individu_result = deteksi_constraint_semua(otorisasi_result, payload.role_title)
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
@@ -155,4 +166,5 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             matches=matches,
             domain_gate=domain_gate_result,
             otorisasi=otorisasi_result,
+            cakupan_individu=cakupan_individu_result,
         )

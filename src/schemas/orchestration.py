@@ -64,6 +64,7 @@ milestones/7.11-sambungan-retriever/decisions.md Keputusan 4+6.
 from pydantic import BaseModel
 
 from src.schemas.authorization import AtomicIntentAuthorization
+from src.schemas.cakupan_individu import AtomicIntentConstraint
 from src.schemas.decomposition import DecompositionResult
 from src.schemas.domain_gate import AtomicIntentDomains
 from src.schemas.matching import AtomicIntentMatch
@@ -82,3 +83,4 @@ class KeadaanTurn(BaseModel):
     matches: list[AtomicIntentMatch]
     domain_gate: list[AtomicIntentDomains]
     otorisasi: list[AtomicIntentAuthorization]
+    cakupan_individu: list[AtomicIntentConstraint]

@@ -58,6 +58,8 @@ _RETRIEVER_DUMMY = []
 
 _QUERY_ENGINE_DUMMY = []
 
+_VERIFICATION_GATE_DUMMY = []
+
 _RAW_VALID_TURN1 = {
     "session_id": "sess-test",
     "turn_index": 1,
@@ -186,6 +188,15 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         _query_engine_gagal_kalau_terpanggil,
     )
 
+    def _verification_gate_gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError(
+            "verifikasi_gate_semua TIDAK BOLEH terpanggil saat validasi Input Layer gagal"
+        )
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "verifikasi_gate_semua", _verification_gate_gagal_kalau_terpanggil
+    )
+
     with pytest.raises(pydantic.ValidationError):
         proses_turn(_RAW_GAGAL_VALIDASI)
 
@@ -245,6 +256,13 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -259,6 +277,7 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     assert hasil.cakupan_individu == _CAKUPAN_INDIVIDU_DUMMY
     assert hasil.retriever == _RETRIEVER_DUMMY
     assert hasil.query_engine == _QUERY_ENGINE_DUMMY
+    assert hasil.verification_gate == _VERIFICATION_GATE_DUMMY
 
 
 def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
@@ -322,6 +341,13 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
         turn_pipeline_module,
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -431,6 +457,13 @@ def test_orkestrator_decompose_menerima_rewritten_question_bukan_payload_questio
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -490,6 +523,13 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_none(monkeyp
         turn_pipeline_module,
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -554,6 +594,13 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_kosong(monke
         turn_pipeline_module,
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
     )
 
     hasil = proses_turn(_RAW_VALID_TURN2)
@@ -631,6 +678,13 @@ def test_orkestrator_domain_gate_menerima_matches_apa_adanya_tanpa_filter(monkey
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -707,6 +761,13 @@ def test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar(
         turn_pipeline_module,
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
     )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
@@ -787,6 +848,13 @@ def test_orkestrator_cakupan_individu_menerima_otorisasi_result_dan_role_title_b
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -860,6 +928,13 @@ def test_orkestrator_retriever_menerima_cakupan_individu_result_persis(monkeypat
         "susun_dan_verifikasi_request_semua",
         lambda retriever_result: _QUERY_ENGINE_DUMMY,
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
@@ -932,8 +1007,116 @@ def test_orkestrator_query_engine_menerima_retriever_result_persis(monkeypatch):
     monkeypatch.setattr(
         turn_pipeline_module, "susun_dan_verifikasi_request_semua", _rekam_query_engine
     )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        lambda query_engine_result, retriever_result, cakupan_individu_result, employee_id: (
+            _VERIFICATION_GATE_DUMMY
+        ),
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 
     assert diterima_query_engine["retriever_result"] is retriever_asli
     assert hasil.query_engine == _QUERY_ENGINE_DUMMY
+
+
+def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_individu_employee_id_persis(
+    monkeypatch,
+):
+    """Kejadian inti M7.13 (Sambungan 8 resmi): verifikasi_gate_semua()
+    WAJIB menerima `query_engine_result`, `retriever_result`,
+    `cakupan_individu_result` PERSIS (identity check) dari hasil langkah
+    masing-masing, DAN `payload.employee_id` yang benar - titik penutup
+    rantai Query Engine mengalir ke Verification Gate, termasuk fan-in
+    2 sumber lain (Retriever, Cakupan Individu) yang genuinely berasal
+    dari langkah sebelumnya (bukan buatan manual terpisah, lihat
+    decisions.md)."""
+    payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
+    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        lambda domain_gate_result, role_title: _OTORISASI_DUMMY,
+    )
+
+    cakupan_individu_asli = [
+        AtomicIntentConstraint(
+            atomic_intent=AtomicIntent(
+                atomic_intent_id="ai-1",
+                teks_kebutuhan="teks kebutuhan",
+                label_bentuk_jawaban=LabelBentukJawabanDecomposition.NILAI_TUNGGAL,
+                relasi=RelasiKebutuhan.INDEPENDEN,
+                bergantung_pada=None,
+            ),
+            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            constraint=ConstraintCakupanIndividu(terdeteksi=False),
+        )
+    ]
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "deteksi_constraint_semua",
+        lambda otorisasi_result, role_title: cakupan_individu_asli,
+    )
+
+    retriever_asli = [
+        HasilKecukupanStruktural(
+            atomic_intent=cakupan_individu_asli[0].atomic_intent,
+            kecukupan=[],
+            view_name_final=None,
+            status=StatusEksekusi.BERHASIL,
+        )
+    ]
+    monkeypatch.setattr(
+        turn_pipeline_module, "proses_retrieval_semua", lambda cakupan_individu_result: retriever_asli
+    )
+
+    query_engine_asli = []
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "susun_dan_verifikasi_request_semua",
+        lambda retriever_result: query_engine_asli,
+    )
+
+    diterima_verification_gate = {}
+
+    def _rekam_verification_gate(
+        query_engine_result, retriever_result, cakupan_individu_result, employee_id
+    ):
+        diterima_verification_gate["query_engine_result"] = query_engine_result
+        diterima_verification_gate["retriever_result"] = retriever_result
+        diterima_verification_gate["cakupan_individu_result"] = cakupan_individu_result
+        diterima_verification_gate["employee_id"] = employee_id
+        return _VERIFICATION_GATE_DUMMY
+
+    monkeypatch.setattr(
+        turn_pipeline_module, "verifikasi_gate_semua", _rekam_verification_gate
+    )
+
+    hasil = proses_turn(_RAW_VALID_TURN1)
+
+    assert diterima_verification_gate["query_engine_result"] is query_engine_asli
+    assert diterima_verification_gate["retriever_result"] is retriever_asli
+    assert diterima_verification_gate["cakupan_individu_result"] is cakupan_individu_asli
+    assert diterima_verification_gate["employee_id"] == payload_asli.employee_id == "emp-1"
+    assert hasil.verification_gate == _VERIFICATION_GATE_DUMMY

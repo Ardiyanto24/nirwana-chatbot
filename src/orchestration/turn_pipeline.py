@@ -65,6 +65,13 @@ pernah tersambung sejak milestone asalnya. Disambungkan sekarang (bukan
 ditunda ke M7.13) atas keputusan sadar user, mencegah M7.13 nanti
 menemukan gap serupa. Lihat
 milestones/7.11-sambungan-retriever/decisions.md Keputusan 2+4.
+
+Milestone 7.11 (Checkpoint 7): `proses_retrieval_semua(cakupan_individu_
+result)` dipanggil SEKUENSIAL setelah `cakupan_individu_result` final -
+Sambungan 6 resmi (Domain Gate -> Retriever): daftar domain yang lolos
+otorisasi (hasil rantai M2.1->M2.2->M2.3) jadi input pembatas pencarian
+Retriever (M3.1-3.3). Lihat
+milestones/7.11-sambungan-retriever/decisions.md Keputusan 3-4.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -80,6 +87,7 @@ from src.layers.domain_gate.cakupan_individu import deteksi_constraint_semua
 from src.layers.domain_gate.domain_gate import identifikasi_domain_semua
 from src.layers.domain_gate.otorisasi import periksa_otorisasi_semua
 from src.layers.input_layer import validate_turn_payload
+from src.layers.retriever.kecukupan_struktural import proses_retrieval_semua
 from src.observability.tracing import get_tracer
 from src.schemas.orchestration import KeadaanTurn
 from src.schemas.rewrite import RewriteResult
@@ -157,6 +165,8 @@ def proses_turn(raw: dict) -> KeadaanTurn:
 
         cakupan_individu_result = deteksi_constraint_semua(otorisasi_result, payload.role_title)
 
+        retriever_result = proses_retrieval_semua(cakupan_individu_result)
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
@@ -167,4 +177,5 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             domain_gate=domain_gate_result,
             otorisasi=otorisasi_result,
             cakupan_individu=cakupan_individu_result,
+            retriever=retriever_result,
         )

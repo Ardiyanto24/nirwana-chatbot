@@ -68,6 +68,7 @@ from src.schemas.cakupan_individu import AtomicIntentConstraint
 from src.schemas.decomposition import DecompositionResult
 from src.schemas.domain_gate import AtomicIntentDomains
 from src.schemas.matching import AtomicIntentMatch
+from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import SessionMemoryPackage
 from src.schemas.turn_dependency import TurnDependencyResult
@@ -84,3 +85,4 @@ class KeadaanTurn(BaseModel):
     domain_gate: list[AtomicIntentDomains]
     otorisasi: list[AtomicIntentAuthorization]
     cakupan_individu: list[AtomicIntentConstraint]
+    retriever: list[HasilKecukupanStruktural]

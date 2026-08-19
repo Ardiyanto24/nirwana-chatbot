@@ -8,20 +8,27 @@ File ini dibangun bertahap lintas checkpoint (preseden pola M2.2/M2.3):
 """
 
 import os
+import uuid
 
 import pytest
 
+import src.layers.verification_gate.verifikasi_gate as verifikasi_gate_module
 from src.config.employees import load_employees
 from src.layers.verification_gate.verifikasi_gate import (
     tegakkan_constraint_cakupan_individu,
     verifikasi_bentuk_request_statis,
     verifikasi_gate,
+    verifikasi_gate_semua,
     verifikasi_kelengkapan_penegakan,
     verifikasi_kepatuhan_sumber,
 )
-from src.schemas.cakupan_individu import ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
-from src.schemas.verification_gate import QueryEngineRequest
+from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.retriever import HasilKecukupanStruktural
+from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
+from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
 
 def _buat_request(
@@ -238,3 +245,259 @@ def test_orkestrator_kk3_request_sudah_benar_lolos_tanpa_perubahan():
     assert hasil.terkoreksi is False
     assert hasil.request_final is not None
     assert hasil.request_final.params == params_asli
+
+
+# --- verifikasi_gate_semua (orkestrator batch, Milestone 7.13) -------------
+
+
+def _buat_atomic_intent(teks: str = "kebutuhan uji") -> AtomicIntent:
+    return AtomicIntent(
+        atomic_intent_id=str(uuid.uuid4()),
+        teks_kebutuhan=teks,
+        label_bentuk_jawaban=LabelBentukJawaban.NILAI_TUNGGAL,
+        relasi=RelasiKebutuhan.INDEPENDEN,
+        bergantung_pada=None,
+    )
+
+
+def _buat_hasil_kecukupan(
+    atomic_intent: AtomicIntent, view_name_final: str | None
+) -> HasilKecukupanStruktural:
+    from src.schemas.retriever import (
+        KandidatView,
+        KecukupanKandidat,
+        LabelKecocokanMakna,
+        SumberKeputusanKecukupan,
+        SumberPencarian,
+    )
+
+    kecukupan = (
+        [
+            KecukupanKandidat(
+                kandidat=KandidatView(
+                    view_name=view_name_final,
+                    domain=Domain.FACILITY,
+                    skor=3.0,
+                    sumber=SumberPencarian.BM25,
+                ),
+                kecocokan_label=LabelKecocokanMakna.DITEMUKAN,
+                cukup=True,
+                alasan="fixture test",
+                sumber_keputusan=SumberKeputusanKecukupan.DETERMINISTIK,
+            )
+        ]
+        if view_name_final is not None
+        else []
+    )
+    return HasilKecukupanStruktural(
+        atomic_intent=atomic_intent,
+        kecukupan=kecukupan,
+        view_name_final=view_name_final,
+        status=StatusEksekusi.BERHASIL,
+    )
+
+
+def _buat_atomic_intent_constraint(
+    atomic_intent: AtomicIntent, terdeteksi: bool
+) -> AtomicIntentConstraint:
+    return AtomicIntentConstraint(
+        atomic_intent=atomic_intent,
+        domain_decisions=[],
+        constraint=ConstraintCakupanIndividu(
+            terdeteksi=terdeteksi, alasan="fixture test" if terdeteksi else None
+        ),
+    )
+
+
+def _buat_query_engine_entry(
+    atomic_intent: AtomicIntent,
+    view_name: str,
+    lolos: bool | None = True,
+    request: QueryEngineRequest | None = None,
+) -> tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]:
+    """`lolos=None` mensimulasikan hasil_verifikasi=None (M3.4 gagal total)."""
+    req = request or _buat_request(view_name=view_name)
+    hasil_susun = HasilPenyusunanRequest(
+        atomic_intent=atomic_intent, request=req, status=StatusEksekusi.BERHASIL
+    )
+    if lolos is None:
+        return hasil_susun, None
+    hasil_verifikasi = HasilVerifikasiBentukRequest(
+        atomic_intent=atomic_intent,
+        request=req,
+        status=StatusEksekusi.BERHASIL,
+        lolos=lolos,
+        alasan=None if lolos else "bentuk jawaban tidak cukup (fixture test)",
+    )
+    return hasil_susun, hasil_verifikasi
+
+
+def test_verifikasi_gate_semua_dipanggil_dengan_argumen_benar(monkeypatch):
+    """Kejadian inti M7.13 Checkpoint 2: verifikasi_gate() WAJIB menerima
+    request (dari query_engine_result), constraint (dari cakupan_individu_
+    result via .constraint), employee_id, dan view_name_final (dari
+    retriever_result, BUKAN request.view_name) - PERSIS dari sumber yang
+    benar (decisions.md Keputusan 5-7)."""
+    atomic_intent = _buat_atomic_intent()
+    request = _buat_request(view_name="v_housekeeping_staff_daily", params={"limit": 10})
+    query_engine_entry = _buat_query_engine_entry(
+        atomic_intent, "v_housekeeping_staff_daily", lolos=True, request=request
+    )
+    retriever_item = _buat_hasil_kecukupan(atomic_intent, "v_housekeeping_staff_daily")
+    constraint_item = _buat_atomic_intent_constraint(atomic_intent, terdeteksi=True)
+
+    diterima = {}
+
+    def _rekam(req, constraint, employee_id, view_name_tervalidasi_retriever):
+        diterima["request"] = req
+        diterima["constraint"] = constraint
+        diterima["employee_id"] = employee_id
+        diterima["view_name_tervalidasi_retriever"] = view_name_tervalidasi_retriever
+        return HasilVerifikasiGate(request_final=req, lolos=True, terkoreksi=False)
+
+    monkeypatch.setattr(verifikasi_gate_module, "verifikasi_gate", _rekam)
+
+    hasil = verifikasi_gate_semua(
+        [query_engine_entry], [retriever_item], [constraint_item], employee_id="E0001"
+    )
+
+    assert diterima["request"] is request
+    assert diterima["constraint"] is constraint_item.constraint
+    assert diterima["employee_id"] == "E0001"
+    assert diterima["view_name_tervalidasi_retriever"] == "v_housekeeping_staff_daily"
+    assert len(hasil) == 1
+    assert hasil[0][0] is atomic_intent
+
+
+def test_verifikasi_gate_semua_skip_hasil_verifikasi_none(monkeypatch):
+    """Item hasil_verifikasi=None (M3.4 gagal total) TIDAK BOLEH diteruskan
+    ke verifikasi_gate() sama sekali (decisions.md Keputusan 4)."""
+    atomic_intent = _buat_atomic_intent()
+    query_engine_entry = _buat_query_engine_entry(atomic_intent, "v_x", lolos=None)
+    retriever_item = _buat_hasil_kecukupan(atomic_intent, None)
+    constraint_item = _buat_atomic_intent_constraint(atomic_intent, terdeteksi=False)
+
+    def _gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError("verifikasi_gate TIDAK BOLEH terpanggil untuk hasil_verifikasi=None")
+
+    monkeypatch.setattr(verifikasi_gate_module, "verifikasi_gate", _gagal_kalau_terpanggil)
+
+    hasil = verifikasi_gate_semua(
+        [query_engine_entry], [retriever_item], [constraint_item], employee_id="E0001"
+    )
+
+    assert hasil == []
+
+
+def test_verifikasi_gate_semua_skip_lolos_false(monkeypatch):
+    """Item lolos=False (M3.5 bilang bentuk jawaban tidak cukup) TIDAK
+    BOLEH diteruskan ke verifikasi_gate() (decisions.md Keputusan 2)."""
+    atomic_intent = _buat_atomic_intent()
+    query_engine_entry = _buat_query_engine_entry(atomic_intent, "v_x", lolos=False)
+    retriever_item = _buat_hasil_kecukupan(atomic_intent, "v_x")
+    constraint_item = _buat_atomic_intent_constraint(atomic_intent, terdeteksi=False)
+
+    def _gagal_kalau_terpanggil(*args, **kwargs):
+        raise AssertionError("verifikasi_gate TIDAK BOLEH terpanggil untuk item lolos=False")
+
+    monkeypatch.setattr(verifikasi_gate_module, "verifikasi_gate", _gagal_kalau_terpanggil)
+
+    hasil = verifikasi_gate_semua(
+        [query_engine_entry], [retriever_item], [constraint_item], employee_id="E0001"
+    )
+
+    assert hasil == []
+
+
+def test_verifikasi_gate_semua_multi_item_tidak_tertukar(monkeypatch):
+    """Risiko utama fan-in 3 sumber: dua atomic intent BERBEDA dengan
+    view_name/constraint BERBEDA - tiap item wajib menerima data dari
+    sumber yang BENAR (dicocokkan via atomic_intent_id), bukan tertukar
+    dengan item lain (decisions.md Keputusan 7)."""
+    intent_a = _buat_atomic_intent("kebutuhan A")
+    intent_b = _buat_atomic_intent("kebutuhan B")
+
+    entry_a = _buat_query_engine_entry(intent_a, "v_housekeeping_staff_daily", lolos=True)
+    entry_b = _buat_query_engine_entry(intent_b, "v_hr_watchlist_monthly", lolos=True)
+
+    retriever_a = _buat_hasil_kecukupan(intent_a, "v_housekeeping_staff_daily")
+    retriever_b = _buat_hasil_kecukupan(intent_b, "v_hr_watchlist_monthly")
+
+    constraint_a = _buat_atomic_intent_constraint(intent_a, terdeteksi=True)
+    constraint_b = _buat_atomic_intent_constraint(intent_b, terdeteksi=False)
+
+    diterima_per_intent = {}
+
+    def _rekam(req, constraint, employee_id, view_name_tervalidasi_retriever):
+        diterima_per_intent[req.view_name] = {
+            "constraint_terdeteksi": constraint.terdeteksi,
+            "view_name_tervalidasi_retriever": view_name_tervalidasi_retriever,
+        }
+        return HasilVerifikasiGate(request_final=req, lolos=True, terkoreksi=False)
+
+    monkeypatch.setattr(verifikasi_gate_module, "verifikasi_gate", _rekam)
+
+    # Urutan list SENGAJA dibalik antar sumber (retriever B lebih dulu,
+    # constraint B lebih dulu) untuk memastikan pencocokan murni via
+    # atomic_intent_id, bukan kebetulan sejajar by index.
+    hasil = verifikasi_gate_semua(
+        [entry_a, entry_b],
+        [retriever_b, retriever_a],
+        [constraint_b, constraint_a],
+        employee_id="E0001",
+    )
+
+    assert diterima_per_intent["v_housekeeping_staff_daily"]["constraint_terdeteksi"] is True
+    assert (
+        diterima_per_intent["v_housekeeping_staff_daily"]["view_name_tervalidasi_retriever"]
+        == "v_housekeeping_staff_daily"
+    )
+    assert diterima_per_intent["v_hr_watchlist_monthly"]["constraint_terdeteksi"] is False
+    assert (
+        diterima_per_intent["v_hr_watchlist_monthly"]["view_name_tervalidasi_retriever"]
+        == "v_hr_watchlist_monthly"
+    )
+    assert len(hasil) == 2
+
+
+def test_verifikasi_gate_semua_urutan_dan_panjang_dipertahankan(monkeypatch):
+    """Campuran: item lolos=True + item lolos=False + item hasil_verifikasi
+    =None - hasil hanya berisi yang lolos=True, urutan dipertahankan."""
+    intent_1 = _buat_atomic_intent("intent 1")
+    intent_2 = _buat_atomic_intent("intent 2")
+    intent_3 = _buat_atomic_intent("intent 3")
+
+    entry_1 = _buat_query_engine_entry(intent_1, "v_a", lolos=True)
+    entry_2 = _buat_query_engine_entry(intent_2, "v_b", lolos=False)
+    entry_3 = _buat_query_engine_entry(intent_3, "v_c", lolos=None)
+
+    retriever_items = [
+        _buat_hasil_kecukupan(intent_1, "v_a"),
+        _buat_hasil_kecukupan(intent_2, "v_b"),
+        _buat_hasil_kecukupan(intent_3, None),
+    ]
+    constraint_items = [
+        _buat_atomic_intent_constraint(intent_1, terdeteksi=False),
+        _buat_atomic_intent_constraint(intent_2, terdeteksi=False),
+        _buat_atomic_intent_constraint(intent_3, terdeteksi=False),
+    ]
+
+    monkeypatch.setattr(
+        verifikasi_gate_module,
+        "verifikasi_gate",
+        lambda req, constraint, employee_id, view_name_tervalidasi_retriever: HasilVerifikasiGate(
+            request_final=req, lolos=True, terkoreksi=False
+        ),
+    )
+
+    hasil = verifikasi_gate_semua(
+        [entry_1, entry_2, entry_3], retriever_items, constraint_items, employee_id="E0001"
+    )
+
+    assert len(hasil) == 1
+    assert hasil[0][0] is intent_1
+
+
+def test_verifikasi_gate_semua_list_kosong_hasil_kosong():
+    """Input list kosong -> hasil list kosong, tanpa error."""
+    assert verifikasi_gate_semua([], [], [], employee_id="E0001") == []

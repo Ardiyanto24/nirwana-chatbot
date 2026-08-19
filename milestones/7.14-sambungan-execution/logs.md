@@ -118,3 +118,32 @@ Baca ulang file di sekitar baris 336-348, hapus baris `)` yatim. Sanity import b
 **Commit:** `49528a7` (feat) + `9fba356` (test)
 
 ---
+
+## Checkpoint 4 — Sambungan Wave Loop ke `proses_turn()`
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+**Catatan operasional:** komputer sempat restart di tengah checkpoint ini (setelah Task 7-8 ditulis, sebelum diverifikasi) — background process `chatbot_api` (Checkpoint 1) ikut mati. Working tree (perubahan belum di-commit) tetap utuh setelah restart, dikonfirmasi `git status` menunjukkan persis 2 file termodifikasi yang diharapkan (`turn_pipeline.py`, `orchestration.py`), tidak ada kerja hilang.
+
+### Task 7-8 — Extend `KeadaanTurn` + restrukturisasi wave loop
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah field `execution: list[HasilEksekusiAtomicIntent]` di `KeadaanTurn` (field TERAKHIR, 13 field total) — import `HasilEksekusiAtomicIntent` dari `src.schemas.execution`. Di `turn_pipeline.py`: import `eksekusi_atomic_intent_semua` + `kelompokkan_wave`, restrukturisasi bagian setelah `query_engine_result` — SEBELUMNYA satu panggilan flat `verifikasi_gate_semua(query_engine_result, ...)`, SEKARANG: `kelompokkan_wave(query_engine_result)` menghasilkan `waves`, loop `for wave_index, wave in enumerate(waves, start=1)` — tiap iterasi buka span `orchestration.wave` (`wave.index`, `wave.intent_count`), panggil `verifikasi_gate_semua(wave, retriever_result, cakupan_individu_result, payload.employee_id)` (retriever/cakupan_individu TETAP full-set, bukan di-slice), `extend()` hasilnya ke akumulator `verification_gate_result`, lalu `eksekusi_atomic_intent_semua(hasil_vg_wave, cakupan_individu_result, payload.role_title, payload.employee_id)`, `extend()` ke `execution_result`. Kedua akumulator diisi ke `KeadaanTurn(...)` di akhir.
+
+**Temuan**
+Tidak ada temuan tak terduga — restrukturisasi murni mekanis begitu `kelompokkan_wave()` (Checkpoint 2) dan `eksekusi_atomic_intent_semua()` (Checkpoint 3) sudah tersedia dan teruji standalone.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada error kode. Satu insiden operasional (restart komputer, lihat Catatan di atas) — tidak menyebabkan kehilangan kerja.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`KeadaanTurn.model_fields` mengandung `execution`, urutan 13 field sesuai rencana (dikonfirmasi `uv run python -c "..."`). Sanity-check `proses_turn()` dengan `kelompokkan_wave`/`verifikasi_gate_semua`/`eksekusi_atomic_intent_semua` di-mock: (a) kasus wave kosong — kedua fungsi tidak terpanggil, field `execution`/`verification_gate` kosong; (b) kasus 2 wave — `verifikasi_gate_semua` menerima `wave1` LALU `wave2` (urutan terbukti benar, dicek lewat rekaman argumen panggilan), `eksekusi_atomic_intent_semua` terpanggil sekali per wave tepat setelah `verifikasi_gate_semua` wave itu.
+
+**Commit:** *(dicatat di commit berikutnya)*
+
+---

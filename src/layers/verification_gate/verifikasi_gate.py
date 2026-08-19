@@ -5,11 +5,26 @@ request dikirim ke chatbot_api - sepenuhnya deterministik, TANPA LLM
 Cek 1 (bentuk request statis): domain dijamin valid oleh tipe `Domain`
 Pydantic itu sendiri - yang diperiksa di sini murni view_name terdaftar
 di domain yang dinyatakan, dan limit tidak melebihi batas chatbot_api.
+
+Milestone 7.13 (Sambungan 8: Query Engine -> Verification Gate): fungsi
+batch baru `verifikasi_gate_semua()` - layer ini sebelumnya HANYA py
+`verifikasi_gate()` per-item, tidak ada wrapper level-list (mirror gap
+yang sama seperti Retriever M7.11/Query Engine M7.12). Fan-in TIGA
+sumber (`query_engine_result`, `retriever_result`, `cakupan_individu_
+result`) dicocokkan via `atomic_intent_id` - `HasilVerifikasiGate`
+sendiri TIDAK membawa field `atomic_intent`, jadi fungsi batch
+mengembalikan `list[tuple[AtomicIntent, HasilVerifikasiGate]]`. Item
+`hasil_verifikasi is None` (M3.4 gagal total) ATAU `lolos=False` (M3.5
+bilang bentuk jawaban tidak cukup) di-SKIP. Lihat
+milestones/7.13-sambungan-verification-gate/decisions.md.
 """
 
 from src.config.katalog_view import DAFTAR_VIEW_PER_DOMAIN
 from src.observability.tracing import get_tracer
-from src.schemas.cakupan_individu import ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.decomposition import AtomicIntent
+from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
 LIMIT_MAKSIMUM = 1000
@@ -142,3 +157,65 @@ def verifikasi_gate(
         return HasilVerifikasiGate(
             request_final=request_terkoreksi, lolos=True, terkoreksi=terkoreksi
         )
+
+
+# --- Orkestrator batch (M7.13): fan-in 3 sumber -> daftar tuple -------------
+
+
+def verifikasi_gate_semua(
+    query_engine_result: list[tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]],
+    retriever_result: list[HasilKecukupanStruktural],
+    cakupan_individu_result: list[AtomicIntentConstraint],
+    employee_id: str,
+) -> list[tuple[AtomicIntent, HasilVerifikasiGate]]:
+    """Untuk seluruh `query_engine_result` (Query Engine, M7.12) dalam
+    satu turn, jalankan `verifikasi_gate()` satu per satu - mirror
+    struktur `proses_retrieval_semua()`/`susun_dan_verifikasi_request_
+    semua()`. Ditambah Milestone 7.13 (layer Verification Gate belum py
+    fungsi batch - lihat
+    milestones/7.13-sambungan-verification-gate/decisions.md).
+
+    Item dengan `hasil_verifikasi is None` (M3.4 gagal total) ATAU
+    `lolos=False` (M3.5 bilang bentuk jawaban tidak cukup) DI-SKIP,
+    TIDAK diteruskan ke `verifikasi_gate()` (Keputusan 2+4) - berbeda
+    prinsip dari M7.11 (yang sengaja TIDAK memfilter domain kosong):
+    di sini filtering `lolos=False` murni keputusan desain (bukan
+    forced signature), demi mencegah request yang sudah ditandai tidak
+    cukup lolos diam-diam ke Execution.
+
+    `view_name_tervalidasi_retriever` diambil dari `retriever_result`
+    (sumber independen, BUKAN `request.view_name` milik hasil Query
+    Engine sendiri - supaya Cek 2 M2.4 genuinely independen, bukan
+    tautologi, Keputusan 5). `constraint` diekstrak dari `.constraint`
+    milik `AtomicIntentConstraint` yang cocok (Keputusan 6). Ketiga
+    sumber dicocokkan via `atomic_intent_id`, BUKAN index list
+    (Keputusan 7 - panjang ketiganya bisa berbeda per konstruksi
+    pipeline)."""
+    tracer = get_tracer(_TRACER_NAME)
+    with tracer.start_as_current_span("verification_gate.verifikasi_gate_semua") as span:
+        span.set_attribute("intent.count", len(query_engine_result))
+
+        retriever_by_id = {
+            r.atomic_intent.atomic_intent_id: r for r in retriever_result
+        }
+        constraint_by_id = {
+            c.atomic_intent.atomic_intent_id: c for c in cakupan_individu_result
+        }
+
+        hasil: list[tuple[AtomicIntent, HasilVerifikasiGate]] = []
+        for _hasil_susun, hasil_verifikasi in query_engine_result:
+            if hasil_verifikasi is None or not hasil_verifikasi.lolos:
+                continue
+
+            atomic_intent = hasil_verifikasi.atomic_intent
+            atomic_intent_id = atomic_intent.atomic_intent_id
+
+            view_name_final = retriever_by_id[atomic_intent_id].view_name_final
+            constraint = constraint_by_id[atomic_intent_id].constraint
+
+            hasil_gate = verifikasi_gate(
+                hasil_verifikasi.request, constraint, employee_id, view_name_final
+            )
+            hasil.append((atomic_intent, hasil_gate))
+
+        return hasil

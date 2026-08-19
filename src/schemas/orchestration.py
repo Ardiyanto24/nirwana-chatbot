@@ -42,10 +42,28 @@ py fallback APIError penuh). Panjang list BISA lebih kecil dari `matches`
 `identifikasi_domain_semua()` sendiri (sudah ada sejak M2.1), `matches`
 diteruskan APA ADANYA tanpa filter oleh orkestrator. Lihat
 milestones/7.10-sambungan-domain-gate/decisions.md Keputusan 1+3.
+
+Field M7.11 (`otorisasi`, `cakupan_individu`, `retriever` - ditambah
+bertahap per checkpoint): M7.11 menutup DUA gap wiring di luar Lingkup
+tertulis aslinya (M2.2 Pemeriksaan Otorisasi dan M2.3 Deteksi Cakupan
+Individu, keduanya belum pernah tersambung sejak milestone asalnya)
+SEBELUM menyambungkan Retriever sesungguhnya - lihat
+milestones/7.11-sambungan-retriever/decisions.md Keputusan 1-2. Ketiga
+field selalu terisi, mirror `domain_gate`: `periksa_otorisasi_semua()`
+(M2.2) dan `deteksi_constraint_semua()` (M2.3) murni deterministik tanpa
+panggilan LLM (lookup role_permissions/pre-filter role-domain), tidak
+pernah raise; `proses_retrieval_atomic_intent()` per item (M3.1-3.3) juga
+tidak pernah gagal teknis di level kebutuhan-atomik. Rantai pemanggilan
+sekuensial `identifikasi_domain_semua()` -> `periksa_otorisasi_semua()`
+-> `deteksi_constraint_semua()` -> `proses_retrieval_semua()` (baru,
+`src/layers/retriever/kecukupan_struktural.py`), tiap fungsi menerima
+persis output fungsi sebelumnya. Lihat
+milestones/7.11-sambungan-retriever/decisions.md Keputusan 4+6.
 """
 
 from pydantic import BaseModel
 
+from src.schemas.authorization import AtomicIntentAuthorization
 from src.schemas.decomposition import DecompositionResult
 from src.schemas.domain_gate import AtomicIntentDomains
 from src.schemas.matching import AtomicIntentMatch
@@ -63,3 +81,4 @@ class KeadaanTurn(BaseModel):
     decomposition: DecompositionResult
     matches: list[AtomicIntentMatch]
     domain_gate: list[AtomicIntentDomains]
+    otorisasi: list[AtomicIntentAuthorization]

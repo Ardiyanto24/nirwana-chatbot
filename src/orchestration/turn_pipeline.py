@@ -50,6 +50,13 @@ setelah `matches` final, `matches` diteruskan APA ADANYA (filter ke
 status=PERLU_EKSEKUSI adalah tanggung jawab INTERNAL fungsi itu sendiri,
 sudah ada sejak M2.1 - orkestrator TIDAK ikut memfilter, mencegah
 duplikasi logic). Lihat milestones/7.10-sambungan-domain-gate/decisions.md.
+
+Milestone 7.11 (Checkpoint 2): `periksa_otorisasi_semua(domain_gate_result,
+payload.role_title)` dipanggil SEKUENSIAL setelah `domain_gate_result`
+final - menutup gap wiring M2.2 (Pemeriksaan Otorisasi) yang belum pernah
+tersambung sejak milestone asalnya, di luar Lingkup tertulis asli M7.11
+tapi dibutuhkan KK-nya sendiri. Lihat
+milestones/7.11-sambungan-retriever/decisions.md Keputusan 1+4-5.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -62,6 +69,7 @@ from src.layers.context_resolution.session_memory import retrieve_session_memory
 from src.layers.context_resolution.turn_dependency import detect_turn_dependency
 from src.layers.decomposition.decompose import decompose_question
 from src.layers.domain_gate.domain_gate import identifikasi_domain_semua
+from src.layers.domain_gate.otorisasi import periksa_otorisasi_semua
 from src.layers.input_layer import validate_turn_payload
 from src.observability.tracing import get_tracer
 from src.schemas.orchestration import KeadaanTurn
@@ -136,6 +144,8 @@ def proses_turn(raw: dict) -> KeadaanTurn:
 
         domain_gate_result = identifikasi_domain_semua(matches)
 
+        otorisasi_result = periksa_otorisasi_semua(domain_gate_result, payload.role_title)
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
@@ -144,4 +154,5 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             decomposition=decomposition_result,
             matches=matches,
             domain_gate=domain_gate_result,
+            otorisasi=otorisasi_result,
         )

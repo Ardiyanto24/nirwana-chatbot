@@ -139,6 +139,35 @@ Baca skema asli via `Grep`, perbaiki skrip sanity-check, jalankan ulang berhasil
 **Hasil Verifikasi**
 `KeadaanTurn.model_fields` mengandung `paket_narasi`+`interpretation`, urutan 15 field sesuai rencana. Sanity-check `proses_turn()` end-to-end dengan seluruh fungsi (termasuk 3 fungsi baru M7.15) di-mock — ketiga fungsi baru terpanggil, `hasil.paket_narasi`/`hasil.interpretation` terisi sesuai mock.
 
+**Commit:** `e586955` (feat) + `2403c78` (docs)
+
+---
+
+## Checkpoint 6 — Test Deterministik Sambungan
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 9-10 — Extend test existing + test connectivity baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baca ulang seluruh `tests/orchestration/test_turn_pipeline.py` (14 test M7.6-7.14). Temuan penting: 9 dari 14 test memakai blok `monkeypatch.setattr` untuk `verifikasi_gate_semua` yang PERSIS identik karakter-demi-karakter — dimanfaatkan lewat SATU panggilan `Edit` dengan `replace_all=True` untuk menambah 3 mock baru (`susun_dan_simpan_paket_semua`, `susun_paket_narasi`, `susun_dan_verifikasi_narasi`) ke seluruh 9 test sekaligus, jauh lebih efisien dibanding 9 edit terpisah. 2 test dengan mock custom (koneksi Verification Gate M7.13, urutan wave M7.14) diedit manual terpisah. Test short-circuit ditambah 3 guard baru (assert TIDAK terpanggil). Test `wiring_keadaan_turn_berisi_objek_identik` ditambah assertion `hasil.paket_narasi`/`hasil.interpretation`.
+
+Test connectivity BARU (Task 10): `test_orkestrator_paket_narasi_menerima_matches_otorisasi_paket_eksekusi_persis` — membuktikan `susun_paket_narasi()` menerima `matches`/`otorisasi_result` PERSIS (identity) DAN `paket_dari_eksekusi` PERSIS hasil `susun_dan_simpan_paket_semua()` (bukan `execution_result` mentah — membuktikan rantai konversi genuinely tersambung), DAN `susun_dan_verifikasi_narasi()` menerima hasil `susun_paket_narasi()` PERSIS.
+
+**Temuan**
+Tidak ada temuan tak terduga secara desain — satu error kecil (lihat Error/Kegagalan) konsisten pola yang sudah dikenal dari test M7.7 sebelumnya (Pydantic merekonstruksi container list saat validasi `KeadaanTurn`, elemen di dalamnya tetap identity-sama).
+
+**Error/Kegagalan (jika ada)**
+`AssertionError: ... is ...` pada `assert hasil.paket_narasi is paket_narasi_asli` — container list direkonstruksi Pydantic saat `KeadaanTurn(paket_narasi=...)` divalidasi, identity check container tidak valid.
+
+**Diagnosis dan Perbaikan**
+Ubah assertion jadi cek panjang list + identity ELEMEN di dalamnya (`hasil.paket_narasi[0] is paket_narasi_asli[0]`) — mirror pola yang sudah didokumentasikan di komentar test M7.7 (`test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar`).
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 15/15 PASSED (14 existing + 1 baru), 6.54s, tanpa panggilan LLM/DB/HTTP nyata.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

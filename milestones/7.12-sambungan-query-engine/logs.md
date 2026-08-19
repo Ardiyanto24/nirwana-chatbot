@@ -61,3 +61,30 @@ Diperbaiki: helper `_buat_hasil_kecukupan()` direvisi membangun `KecukupanKandid
 **Commit:** `ffbff2a` (feat) + `4042cde` (test)
 
 ---
+
+## Checkpoint 3 — Sambungan Query Engine: Implementasi
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 4-5 — Extend `KeadaanTurn` + wiring `susun_dan_verifikasi_request_semua()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah field `query_engine: list[tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]]` di `KeadaanTurn` (field TERAKHIR, melengkapi 11 field total) — import `HasilPenyusunanRequest`/`HasilVerifikasiBentukRequest` dari `src.schemas.query_engine`. Di `turn_pipeline.py`: import `susun_dan_verifikasi_request_semua`, panggil sekuensial setelah `retriever_result` final, isi field `query_engine`. Ini SECARA RESMI Sambungan 7 (Retriever -> Query Engine) yang jadi judul asli M7.12.
+
+**Temuan**
+Tidak ada — pola identik Checkpoint 3/7 M7.11, disiplin satu-field-per-checkpoint dipertahankan.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run python -c "..."` mengonfirmasi `'query_engine' in KeadaanTurn.model_fields` -> `True`, urutan 11 field sesuai rencana, `susun_dan_verifikasi_request_semua` tersedia di `turn_pipeline` module.
+
+**Commit:** *(dicatat di commit berikutnya)*
+
+---

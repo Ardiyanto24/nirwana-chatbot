@@ -54,6 +54,33 @@ Proyek pakai `uv` (terkonfirmasi `pyproject.toml`+`uv.lock`+`.venv/` di root rep
 **Hasil Verifikasi**
 `uv run python -c "..."` mengonfirmasi `'otorisasi' in KeadaanTurn.model_fields` -> `True`, dan `turn_pipeline` module berhasil di-import dengan `periksa_otorisasi_semua` tersedia di namespace-nya (tidak ada `ImportError`/`TypeError`).
 
-**Commit:** *(dicatat setelah commit checkpoint ini dibuat)*
+**Commit:** `3ad75f9` — `feat(milestone-7.11): sambungkan pemeriksaan otorisasi ke proses_turn`
+
+---
+
+## Checkpoint 3 — Sambungan Otorisasi (M2.2): Test Deterministik
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 4-5 — Extend test existing + test connectivity baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`tests/orchestration/test_turn_pipeline.py`: tambah konstanta `_OTORISASI_DUMMY = []`. Extend 7 dari 8 test existing dengan `monkeypatch.setattr(turn_pipeline_module, "periksa_otorisasi_semua", ...)` — test kegagalan cabang paralel (`test_orkestrator_kegagalan_teknis_satu_cabang_menjalar_cabang_lain_tetap_selesai`) TIDAK perlu diubah karena exception-nya menjalar sebelum `periksa_otorisasi_semua` sempat terpanggil (sama seperti tidak butuh mock `decompose_question`/`match_and_archive`/`identifikasi_domain_semua`). Test short-circuit ditambah assertion "tidak boleh terpanggil" mirror pola 4 fungsi lain. Tulis test baru `test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar` — spy merekam `domain_gate_result` (identity check) dan `role_title`, memverifikasi keduanya persis berasal dari `identifikasi_domain_semua()` dan `payload.role_title` ("CEO" dari `_RAW_VALID_TURN1`), bukan kebetulan cocok. Tambah import `AtomicIntentDomains`, `Domain` dari `src.schemas.domain_gate`.
+
+**Temuan**
+Tidak ada temuan tak terduga — pola mock 1:1 mengikuti preseden M7.10 Keputusan 7 persis, tanpa penyesuaian tambahan.
+
+**Error/Kegagalan (jika ada)**
+Draf pertama test baru sempat memakai nama tipe fiktif `StatusEksekusiDomainGate` (asumsi keliru ada enum status terpisah untuk Domain Gate) — dikoreksi SEBELUM run pertama (dicek ulang terhadap laporan riset: `AtomicIntentDomains.status` memakai `StatusEksekusi` yang SAMA dari `src.schemas.session_memory`, sudah ter-import di file test untuk `_paket_dummy`).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Diperbaiki jadi `StatusEksekusi.BERHASIL` sebelum test dijalankan sama sekali — tidak sempat menyebabkan kegagalan run nyata.
+
+**Hasil Verifikasi**
+`uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 9/9 test PASSED (8 existing + 1 baru), 4.30s, tanpa panggilan LLM/DB nyata.
+
+**Commit:** *(dicatat di commit berikutnya)*
 
 ---

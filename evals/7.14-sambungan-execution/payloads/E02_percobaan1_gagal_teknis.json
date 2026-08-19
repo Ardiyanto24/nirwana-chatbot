@@ -1,0 +1,76 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Baseline 1 wave, koreksi paksa employee_id sampai chatbot_api nyata (reuse M7.13 E01)",
+  "timestamp": "2026-08-19T10:09:06.781535+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.14-e02",
+    "turn_index": 1,
+    "role_title": "HR Staff",
+    "employee_id": "emp-eval",
+    "question": "Bagaimana hasil review kinerja Budi semester ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.14-e02",
+      "turn_index": 1,
+      "role_title": "HR Staff",
+      "employee_id": "emp-eval",
+      "question": "Bagaimana hasil review kinerja Budi semester ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "majemuk_bergantung",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "565eef16-64a0-4cb4-8ac7-f187b8988247",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": false,
+      "verifikasi_alasan": "api_error: Connection error.",
+      "retry_count": 2
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "565eef16-64a0-4cb4-8ac7-f187b8988247",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "565eef16-64a0-4cb4-8ac7-f187b8988247",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [],
+        "status": "gagal_teknis"
+      }
+    ],
+    "otorisasi": [],
+    "cakupan_individu": [],
+    "retriever": [],
+    "query_engine": [],
+    "verification_gate": [],
+    "execution": []
+  },
+  "laporan_execution": [],
+  "trace_id": "304379efae56cb021915eae1ea51b9b6",
+  "analisis_wave": {
+    "wave_spans": [],
+    "urutan_benar": null
+  },
+  "error": null
+}

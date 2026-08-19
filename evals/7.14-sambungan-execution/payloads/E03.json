@@ -1,0 +1,369 @@
+{
+  "kejadian_id": "E03",
+  "deskripsi": "Bukti kedua independen, domain facility (retry - percobaan 1 gagal_teknis Domain Gate)",
+  "timestamp": "2026-08-19T10:27:59.311892+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.14-e03b",
+    "turn_index": 1,
+    "role_title": "Maintenance Staff",
+    "employee_id": "emp-eval",
+    "question": "Berapa banyak tiket yang ditangani teknisi Andi bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.14-e03b",
+      "turn_index": 1,
+      "role_title": "Maintenance Staff",
+      "employee_id": "emp-eval",
+      "question": "Berapa banyak tiket yang ditangani teknisi Andi bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "f91a3928-3e26-4c0d-b566-31f16fc13a86",
+          "teks_kebutuhan": "Identifikasi teknisi bernama Andi",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+          "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 1
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "f91a3928-3e26-4c0d-b566-31f16fc13a86",
+          "teks_kebutuhan": "Identifikasi teknisi bernama Andi",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+          "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "f91a3928-3e26-4c0d-b566-31f16fc13a86",
+          "teks_kebutuhan": "Identifikasi teknisi bernama Andi",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "employees_directory"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+          "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+          ]
+        },
+        "domains": [
+          "facility",
+          "employees_directory"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "f91a3928-3e26-4c0d-b566-31f16fc13a86",
+          "teks_kebutuhan": "Identifikasi teknisi bernama Andi",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "employees_directory",
+            "diizinkan": false,
+            "alasan": "role 'Maintenance Staff' tidak memiliki akses ke domain 'employees_directory'"
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+          "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "facility",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "employees_directory",
+            "diizinkan": false,
+            "alasan": "role 'Maintenance Staff' tidak memiliki akses ke domain 'employees_directory'"
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "f91a3928-3e26-4c0d-b566-31f16fc13a86",
+          "teks_kebutuhan": "Identifikasi teknisi bernama Andi",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "employees_directory",
+            "diizinkan": false,
+            "alasan": "role 'Maintenance Staff' tidak memiliki akses ke domain 'employees_directory'"
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+          "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "facility",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "employees_directory",
+            "diizinkan": false,
+            "alasan": "role 'Maintenance Staff' tidak memiliki akses ke domain 'employees_directory'"
+          }
+        ],
+        "constraint": {
+          "terdeteksi": true,
+          "alasan": "kebutuhan menyentuh kategori data performa individu staf"
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "f91a3928-3e26-4c0d-b566-31f16fc13a86",
+          "teks_kebutuhan": "Identifikasi teknisi bernama Andi",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [],
+        "view_name_final": null,
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+          "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+          ]
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_maintenance_technician_daily",
+              "domain": "facility",
+              "skor": 13.189307238506686,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          },
+          {
+            "kandidat": {
+              "view_name": "v_lookup_maintenance_tickets",
+              "domain": "facility",
+              "skor": 7.191172192318778,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "sebagian",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_maintenance_technician_daily",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+            "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+            ]
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_maintenance_technician_daily",
+            "params": {
+              "technician_name": "Andi",
+              "period_date_from": "2026-08-01",
+              "period_date_to": "2026-08-31"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+            "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+            ]
+          },
+          "request": {
+            "domain": "facility",
+            "view_name": "v_maintenance_technician_daily",
+            "params": {
+              "technician_name": "Andi",
+              "period_date_from": "2026-08-01",
+              "period_date_to": "2026-08-31"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ]
+    ],
+    "verification_gate": [
+      [
+        {
+          "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+          "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+          ]
+        },
+        {
+          "request_final": {
+            "domain": "facility",
+            "view_name": "v_maintenance_technician_daily",
+            "params": {
+              "technician_name": "Andi",
+              "period_date_from": "2026-08-01",
+              "period_date_to": "2026-08-31",
+              "employee_id": "emp-eval"
+            }
+          },
+          "lolos": true,
+          "terkoreksi": true,
+          "alasan_penolakan": null
+        }
+      ]
+    ],
+    "execution": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+          "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "f91a3928-3e26-4c0d-b566-31f16fc13a86"
+          ]
+        },
+        "status": "gagal_teknis",
+        "nilai_hasil": null,
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 2,
+        "kegagalan_alasan": "revisi_exhausted",
+        "data_quality_status": null,
+        "last_refreshed_at": null
+      }
+    ]
+  },
+  "laporan_execution": [
+    {
+      "atomic_intent_id": "e3b58076-cdbf-4b07-8450-daa510ae76c5",
+      "teks_kebutuhan": "Hitung jumlah tiket yang ditangani oleh teknisi Andi dalam bulan ini",
+      "status": "gagal_teknis",
+      "bug_prioritas_tinggi": false,
+      "retry_count_infra": 0,
+      "revisi_count": 2,
+      "kegagalan_alasan": "revisi_exhausted",
+      "data_quality_status": null,
+      "nilai_hasil_ringkas": null
+    }
+  ],
+  "trace_id": "1dc610c0170f0c69ddd4b22cda0cd335",
+  "analisis_wave": {
+    "wave_spans": [
+      {
+        "wave_index": 1,
+        "intent_count": 1,
+        "start_time": 1787135209874864,
+        "end_time": 1787135276020967
+      }
+    ],
+    "urutan_benar": true
+  },
+  "error": null
+}

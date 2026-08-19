@@ -1,0 +1,634 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Kebutuhan majemuk-bergantung, uji wave berulang nyata - KK literal utama (reuse gop_margin M7.9-7.13)",
+  "timestamp": "2026-08-19T10:06:56.668329+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.14-e01",
+    "turn_index": 1,
+    "role_title": "Front Office Staff",
+    "employee_id": "emp-eval",
+    "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.14-e01",
+      "turn_index": 1,
+      "role_title": "Front Office Staff",
+      "employee_id": "emp-eval",
+      "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+          "teks_kebutuhan": "Berapa GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+          "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "d9f3d381-f43b-43df-a729-9c98d3426633"
+          ]
+        }
+      ],
+      "verifikasi_valid": false,
+      "verifikasi_alasan": "Kebutuhan 3 memiliki label_bentuk_jawaban='peringkat' yang tidak sesuai dengan pertanyaan asli yang menanyakan bagaimana pengaruh (seharusnya narasi/kategori, bukan peringkat). Selain itu, kebutuhan 3 hanya menanyakan 'hubungan', padahal pertanyaan asli menanyakan 'dipengaruhi' yang mengimplikasikan analisis pengaruh/kausalitas, sehingga mungkin perlu kebutuhan tambahan untuk arah dan besaran pengaruh.",
+      "retry_count": 2
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+          "teks_kebutuhan": "Berapa GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+          "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "d9f3d381-f43b-43df-a729-9c98d3426633"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+          "teks_kebutuhan": "Berapa GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "financial",
+          "properties_ref",
+          "reservation"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+          "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "d9f3d381-f43b-43df-a729-9c98d3426633"
+          ]
+        },
+        "domains": [
+          "reservation",
+          "financial"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+          "teks_kebutuhan": "Berapa GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+          "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "d9f3d381-f43b-43df-a729-9c98d3426633"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+          "teks_kebutuhan": "Berapa GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+          "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "d9f3d381-f43b-43df-a729-9c98d3426633"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+          "teks_kebutuhan": "Berapa GOP Margin properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 8.523231255645136,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+          "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 8.380117724275806,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "d9f3d381-f43b-43df-a729-9c98d3426633"
+          ]
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 16.903348979920942,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "grain punya dimensi pembanding, cukup untuk peringkat",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "teks_kebutuhan": "Berapa GOP Margin properti di Bali pada bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "period_date_from": "2026-08-01",
+              "period_date_to": "2026-08-31"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "teks_kebutuhan": "Berapa GOP Margin properti di Bali pada bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "period_date_from": "2026-08-01",
+              "period_date_to": "2026-08-31"
+            }
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params hanya memuat rentang periode Agustus 2026 tanpa filter properti (mis. property_id/property_name), sedangkan grain view adalah properti × bulan; hasil akan mengembalikan banyak baris properti, bukan satu nilai tunggal untuk properti di Bali."
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+            "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+            "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+            "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+            "label_bentuk_jawaban": "peringkat",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+              "d9f3d381-f43b-43df-a729-9c98d3426633"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "period_date": "2026-08"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+            "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+            "label_bentuk_jawaban": "peringkat",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+              "d9f3d381-f43b-43df-a729-9c98d3426633"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "period_date": "2026-08"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ]
+    ],
+    "verification_gate": [
+      [
+        {
+          "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+          "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "request_final": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08-01"
+            }
+          },
+          "lolos": true,
+          "terkoreksi": false,
+          "alasan_penolakan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "d9f3d381-f43b-43df-a729-9c98d3426633"
+          ]
+        },
+        {
+          "request_final": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "period_date": "2026-08"
+            }
+          },
+          "lolos": true,
+          "terkoreksi": false,
+          "alasan_penolakan": null
+        }
+      ]
+    ],
+    "execution": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+          "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "gagal_teknis",
+        "nilai_hasil": null,
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 2,
+        "kegagalan_alasan": "revisi_exhausted",
+        "data_quality_status": null,
+        "last_refreshed_at": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+          "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "7ffccee2-68cb-4dd1-9b6f-ed3dce21a29e",
+            "d9f3d381-f43b-43df-a729-9c98d3426633"
+          ]
+        },
+        "status": "gagal_teknis",
+        "nilai_hasil": null,
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 0,
+        "kegagalan_alasan": "revisi_gagal_susun",
+        "data_quality_status": null,
+        "last_refreshed_at": null
+      }
+    ]
+  },
+  "laporan_execution": [
+    {
+      "atomic_intent_id": "d9f3d381-f43b-43df-a729-9c98d3426633",
+      "teks_kebutuhan": "Berapa deviasi harga properti di Bali pada bulan ini?",
+      "status": "gagal_teknis",
+      "bug_prioritas_tinggi": false,
+      "retry_count_infra": 0,
+      "revisi_count": 2,
+      "kegagalan_alasan": "revisi_exhausted",
+      "data_quality_status": null,
+      "nilai_hasil_ringkas": null
+    },
+    {
+      "atomic_intent_id": "baf54bf3-9328-49c2-90a3-8a2172d1fa70",
+      "teks_kebutuhan": "Bagaimana hubungan antara deviasi harga bulan ini dengan GOP Margin bulan ini?",
+      "status": "gagal_teknis",
+      "bug_prioritas_tinggi": false,
+      "retry_count_infra": 0,
+      "revisi_count": 0,
+      "kegagalan_alasan": "revisi_gagal_susun",
+      "data_quality_status": null,
+      "nilai_hasil_ringkas": null
+    }
+  ],
+  "trace_id": "62e460e93100afa2803972fa592f5ba1",
+  "analisis_wave": {
+    "wave_spans": [
+      {
+        "wave_index": 1,
+        "intent_count": 2,
+        "start_time": 1787133851086993,
+        "end_time": 1787133945482990
+      },
+      {
+        "wave_index": 2,
+        "intent_count": 1,
+        "start_time": 1787133945483086,
+        "end_time": 1787134013307280
+      }
+    ],
+    "urutan_benar": true
+  },
+  "error": null
+}

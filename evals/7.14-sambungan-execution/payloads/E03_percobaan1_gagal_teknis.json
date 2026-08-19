@@ -1,0 +1,76 @@
+{
+  "kejadian_id": "E03",
+  "deskripsi": "Bukti kedua independen, domain facility (reuse M7.13 E03)",
+  "timestamp": "2026-08-19T10:10:38.776914+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.14-e03",
+    "turn_index": 1,
+    "role_title": "Maintenance Staff",
+    "employee_id": "emp-eval",
+    "question": "Berapa banyak tiket yang ditangani teknisi Andi bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.14-e03",
+      "turn_index": 1,
+      "role_title": "Maintenance Staff",
+      "employee_id": "emp-eval",
+      "question": "Berapa banyak tiket yang ditangani teknisi Andi bulan ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "majemuk_bergantung",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "2b04f518-a6d5-4054-bc3f-9823be3854d3",
+          "teks_kebutuhan": "Berapa banyak tiket yang ditangani teknisi Andi bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": false,
+      "verifikasi_alasan": "api_error: Connection error.",
+      "retry_count": 2
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2b04f518-a6d5-4054-bc3f-9823be3854d3",
+          "teks_kebutuhan": "Berapa banyak tiket yang ditangani teknisi Andi bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2b04f518-a6d5-4054-bc3f-9823be3854d3",
+          "teks_kebutuhan": "Berapa banyak tiket yang ditangani teknisi Andi bulan ini?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [],
+        "status": "gagal_teknis"
+      }
+    ],
+    "otorisasi": [],
+    "cakupan_individu": [],
+    "retriever": [],
+    "query_engine": [],
+    "verification_gate": [],
+    "execution": []
+  },
+  "laporan_execution": [],
+  "trace_id": "226e9dc66101309907c4324a78a47f35",
+  "analisis_wave": {
+    "wave_spans": [],
+    "urutan_benar": null
+  },
+  "error": null
+}

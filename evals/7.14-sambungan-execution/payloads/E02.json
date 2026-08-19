@@ -1,0 +1,201 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Baseline 1 wave, koreksi paksa employee_id (retry - percobaan 1 gagal_teknis Domain Gate)",
+  "timestamp": "2026-08-19T10:21:21.198256+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.14-e02b",
+    "turn_index": 1,
+    "role_title": "HR Staff",
+    "employee_id": "emp-eval",
+    "question": "Bagaimana hasil review kinerja Budi semester ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.14-e02b",
+      "turn_index": 1,
+      "role_title": "HR Staff",
+      "employee_id": "emp-eval",
+      "question": "Bagaimana hasil review kinerja Budi semester ini?",
+      "history": []
+    },
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "2427c4cf-e575-4b19-b2c6-f331ef6eff77",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 1
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2427c4cf-e575-4b19-b2c6-f331ef6eff77",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2427c4cf-e575-4b19-b2c6-f331ef6eff77",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "hr",
+          "employees_directory"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2427c4cf-e575-4b19-b2c6-f331ef6eff77",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "hr",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "employees_directory",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2427c4cf-e575-4b19-b2c6-f331ef6eff77",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "hr",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "employees_directory",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": true,
+          "alasan": "kebutuhan menyentuh kategori data performa individu staf"
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "2427c4cf-e575-4b19-b2c6-f331ef6eff77",
+          "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+          "label_bentuk_jawaban": "peringkat",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_hr_employee_performance_semester",
+              "domain": "hr",
+              "skor": 8.243119881803043,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "grain punya dimensi pembanding, cukup untuk peringkat",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_hr_employee_performance_semester",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "2427c4cf-e575-4b19-b2c6-f331ef6eff77",
+            "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+            "label_bentuk_jawaban": "peringkat",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "hr",
+            "view_name": "v_hr_employee_performance_semester",
+            "params": {
+              "full_name": "Budi",
+              "review_period": "2026-S2"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "2427c4cf-e575-4b19-b2c6-f331ef6eff77",
+            "teks_kebutuhan": "Bagaimana hasil review kinerja Budi semester ini?",
+            "label_bentuk_jawaban": "peringkat",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "hr",
+            "view_name": "v_hr_employee_performance_semester",
+            "params": {
+              "full_name": "Budi",
+              "review_period": "2026-S2"
+            }
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params membatasi ke satu karyawan (Budi) dan satu periode (2026-S2), sehingga hanya menghasilkan satu baris data. Untuk label 'peringkat', diperlukan banyak baris untuk diurutkan, tetapi filter ini menghilangkan semua baris lain."
+        }
+      ]
+    ],
+    "verification_gate": [],
+    "execution": []
+  },
+  "laporan_execution": [],
+  "trace_id": "e52eb3b6c41db655cfec76111c6289e3",
+  "analisis_wave": {
+    "wave_spans": [
+      {
+        "wave_index": 1,
+        "intent_count": 1,
+        "start_time": 1787134877967844,
+        "end_time": 1787134877969221
+      }
+    ],
+    "urutan_benar": true
+  },
+  "error": null
+}

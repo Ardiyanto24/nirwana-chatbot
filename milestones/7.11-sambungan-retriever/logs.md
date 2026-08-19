@@ -81,6 +81,33 @@ Diperbaiki jadi `StatusEksekusi.BERHASIL` sebelum test dijalankan sama sekali �
 **Hasil Verifikasi**
 `uv run pytest tests/orchestration/test_turn_pipeline.py -v` — 9/9 test PASSED (8 existing + 1 baru), 4.30s, tanpa panggilan LLM/DB nyata.
 
+**Commit:** `e99ac3c` — `test(milestone-7.11): test deterministik sambungan otorisasi`
+
+---
+
+## Checkpoint 4 — Sambungan Cakupan Individu (M2.3): Implementasi
+
+**Mulai:** 2026-08-19 · **Selesai:** 2026-08-19
+
+### Task 6-7 — Extend `KeadaanTurn` + wiring `deteksi_constraint_semua()`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah field `cakupan_individu: list[AtomicIntentConstraint]` di `KeadaanTurn`, import `AtomicIntentConstraint` dari `src.schemas.cakupan_individu`. Di `turn_pipeline.py`: import `deteksi_constraint_semua`, tambah pemanggilan `deteksi_constraint_semua(otorisasi_result, payload.role_title)` sekuensial setelah `otorisasi_result` final, isi field `cakupan_individu` di return `KeadaanTurn`.
+
+**Temuan**
+Tidak ada — pola identik Checkpoint 2, kali ini berhasil dijaga hanya menambah SATU field (pelajaran dari koreksi diri Checkpoint 2 diterapkan konsisten).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`uv run python -c "..."` mengonfirmasi `'cakupan_individu' in KeadaanTurn.model_fields` -> `True`, `turn_pipeline` module berhasil di-import dengan `deteksi_constraint_semua` tersedia.
+
 **Commit:** *(dicatat di commit berikutnya)*
 
 ---

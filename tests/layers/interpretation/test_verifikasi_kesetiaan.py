@@ -194,7 +194,7 @@ def test_atribut_span_terisi_sesuai_kontrak(monkeypatch):
     assert atribut["session.id"] == "s1"
     assert atribut["turn.index"] == 7
     assert atribut["gen_ai.operation.name"] == "chat"
-    assert atribut["gen_ai.request.model"] == "deepseek/deepseek-v4-pro"
+    assert atribut["gen_ai.request.model"] == "deepseek/deepseek-v4-pro-0813"
     assert atribut["prompt.id"] == "interpretation.verifikasi_kesetiaan"
     assert atribut["prompt.version"] == 2
     assert atribut["gen_ai.usage.input_tokens"] == 300

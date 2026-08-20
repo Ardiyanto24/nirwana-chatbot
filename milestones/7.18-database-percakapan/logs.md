@@ -179,6 +179,36 @@ Kelima invarian `rancangan.md` diverifikasi dari `payloads/E01.json`:
 **Apa yang dilakukan**
 Tulis `evals/7.18-database-percakapan/audit.md` — ringkasan KK1 terpenuhi penuh, tabel invarian vs hasil aktual, kronologi 4 percobaan (3 penyebab kegagalan berbeda-beda sebelum sukses), temuan metodologi (eksekusi nyata sekali lagi menemukan bug produksi tak terlihat dari test mocked, konsisten preseden M7.6/M7.7/M7.11/M7.17).
 
+**Commit:** `f039492` — `docs(milestone-7.18): audit`
+
+---
+
+## Checkpoint 9 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 13 — Finalisasi `logs.md`, tulis `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `milestones/7.18-database-percakapan/report.md` (6 bagian, mirror struktur M7.17) — kedua KK dikonfirmasi terpenuhi penuh dengan bukti nyata, cara kerja+diagram arsitektur, penyimpangan dari plan (kebocoran test-hygiene Checkpoint 5, bug produksi M1.6 Checkpoint 7, urutan commit `logs.md` sempat menyimpang), keterbatasan (span tidak ter-nest `invoke_agent`, 4/5 titik `keterbatasan-diterima.md` #17 tetap belum diperbaiki). KETIGA item "Catatan Serah Terima" `rancangan-orkestrasi-api.md` dikonfirmasi eksplisit statusnya — SEMUA TERPENUHI, karena M7.18 adalah milestone TERAKHIR PIC 7.
+
+**Hasil Verifikasi**
+Review manual `report.md` terhadap `rancangan-orkestrasi-api.md` (KK sumber + Catatan Serah Terima) dan `decisions.md` (7 keputusan, seluruhnya konsisten dengan implementasi akhir).
+
 **Commit:** *(lihat commit gabungan di bawah)*
+
+### Task 14 — Update `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tabel "Status Proyek": M7.18 ditandai Selesai, link `report.md`. Paragraf status: **PIC 7 SELESAI SEPENUHNYA** (7/7 milestone M7.1-7.18), sisa pekerjaan project (PIC 5, PIC 6) dicatat boleh berjalan paralel tanpa ketergantungan tersisa dari PIC 7. Tidak ada baris baru di tabel "Struktur Repository" — `src/orchestration/` sudah tercatat sebagai folder sejak M7.6, `riwayat_percakapan.py` adalah file individual baru di subpackage yang sudah ada (tidak memicu update tabel per aturan `CLAUDE.md` sendiri).
+
+**Hasil Verifikasi**
+Konsisten preseden seluruh milestone sebelumnya: `CLAUDE.md`/`AGENT.md` **tidak** ikut di-commit (gitignored, working-tree only) — dikonfirmasi `git status --short` tidak menampilkan keduanya.
+
+**Commit:** Tidak ada commit untuk Task ini (disengaja, konsisten preseden).
 
 ---

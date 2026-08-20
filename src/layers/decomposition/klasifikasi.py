@@ -66,6 +66,14 @@ def klasifikasi_kebutuhan(question: str) -> KlasifikasiKebutuhan:
                 GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
             )
 
+        if not response.choices:
+            span.set_attribute(
+                "decomposition.forced_fallback_reason",
+                f"empty_response: choices={response.choices!r}",
+            )
+            span.set_attribute("decomposition.classification", _FALLBACK.value)
+            return _FALLBACK
+
         raw = (response.choices[0].message.content or "").strip().lower()
         try:
             result = KlasifikasiKebutuhan(raw)

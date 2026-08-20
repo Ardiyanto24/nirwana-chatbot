@@ -116,3 +116,32 @@ class PromptEvalRunRow(SQLModel, table=True):
     verdict: str
     model: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class ConversationTurnRow(SQLModel, table=True):
+    """Riwayat percakapan per turn (Milestone 7.18) - untuk kebutuhan
+    APLIKASI (frontend menampilkan riwayat sesi, analitik/audit masa
+    depan), BUKAN kebutuhan internal AI seperti Session Memory
+    (SessionMemoryPackageRow, granular per atomic-intent). Satu baris =
+    satu turn selesai diproses. Mirror bentuk PromptEvalRunRow (UUID PK
+    + created_at), BUKAN SessionMemoryPackageRow (int PK sintetis tanpa
+    timestamp) - lihat milestones/7.18-database-percakapan/decisions.md
+    Keputusan 3.
+
+    `narasi` = TurnResponse.narasi (versi yang user GENUINELY terima,
+    termasuk kalau sudah diganti pesan generik saat terverifikasi=False,
+    M7.17) - BUKAN HasilNarasi.narasi mentah. `status` = hasil
+    tentukan_status_keseluruhan_turn() (src/orchestration/
+    riwayat_percakapan.py) - nilai StatusEksekusi kalau seluruh item
+    paket_narasi seragam, atau "campuran" kalau tidak (lihat Keputusan
+    2 di file yang sama)."""
+
+    __tablename__ = "conversation_turns"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    session_id: str = Field(index=True)
+    turn_index: int
+    pertanyaan: str
+    narasi: str
+    status: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

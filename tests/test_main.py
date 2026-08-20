@@ -142,6 +142,9 @@ def test_endpoint_sukses_mengembalikan_turn_response(monkeypatch):
     monkeypatch.setattr(
         main_module, "proses_turn", lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS)
     )
+    # simpan_riwayat_turn (M7.18) di-mock supaya test ini TIDAK menulis ke
+    # DB nyata - file ini murni deterministik (lihat docstring modul).
+    monkeypatch.setattr(main_module, "simpan_riwayat_turn", lambda **kwargs: None)
     response = client.post("/v1/turns", json=_PAYLOAD_RAW)
     assert response.status_code == 200
     body = response.json()
@@ -213,3 +216,45 @@ def test_endpoint_payload_invalid_tetap_422_bukan_ditelan_catch_all():
     # menang atas catch-all Exception, bukan malah jadi 500.
     response = client.post("/v1/turns", json={"session_id": "sess-test"})
     assert response.status_code == 422
+
+
+# --- riwayat percakapan (M7.18) ---
+
+
+def test_endpoint_tetap_200_walau_simpan_riwayat_gagal(monkeypatch):
+    # KK2 M7.18 literal, dibuktikan deterministik di titik paling kritis:
+    # kegagalan menulis riwayat TIDAK BOLEH menggagalkan response ke user.
+    monkeypatch.setattr(
+        main_module, "proses_turn", lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS)
+    )
+
+    def _simpan_gagal(**kwargs):
+        raise RuntimeError("simulasi penyimpanan riwayat tidak terjangkau")
+
+    monkeypatch.setattr(main_module, "simpan_riwayat_turn", _simpan_gagal)
+
+    response = client.post("/v1/turns", json=_PAYLOAD_RAW)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["narasi"] == "Occupancy bulan ini 78.5%."
+    assert body["terverifikasi"] is True
+
+
+def test_simpan_riwayat_dipanggil_dengan_argumen_benar(monkeypatch):
+    monkeypatch.setattr(
+        main_module, "proses_turn", lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS)
+    )
+    panggilan = {}
+
+    def _rekam(**kwargs):
+        panggilan.update(kwargs)
+
+    monkeypatch.setattr(main_module, "simpan_riwayat_turn", _rekam)
+
+    response = client.post("/v1/turns", json=_PAYLOAD_RAW)
+    assert response.status_code == 200
+    assert panggilan["session_id"] == "sess-test"
+    assert panggilan["turn_index"] == 1
+    assert panggilan["pertanyaan"] == "Berapa occupancy bulan ini?"
+    assert panggilan["narasi"] == "Occupancy bulan ini 78.5%."
+    assert panggilan["status"] == "tidak_ada_kebutuhan"  # paket_narasi=[] pada dummy

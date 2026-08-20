@@ -109,6 +109,10 @@ def test_turn_index_1_without_history_accepted(monkeypatch):
     monkeypatch.setattr(
         main_module, "proses_turn", lambda raw: _keadaan_turn_dummy(VALID_PAYLOAD_TURN1)
     )
+    # simpan_riwayat_turn (M7.18) di-mock supaya test ini TIDAK menulis ke
+    # DB nyata - file ini murni deterministik, tanpa LLM/DB/HTTP (lihat
+    # docstring modul).
+    monkeypatch.setattr(main_module, "simpan_riwayat_turn", lambda **kwargs: None)
     response = client.post("/v1/turns", json=VALID_PAYLOAD_TURN1)
     assert response.status_code == 200
     assert response.json()["session_id"] == VALID_PAYLOAD_TURN1["session_id"]
@@ -118,6 +122,7 @@ def test_turn_index_2_with_history_accepted(monkeypatch):
     monkeypatch.setattr(
         main_module, "proses_turn", lambda raw: _keadaan_turn_dummy(VALID_PAYLOAD_TURN2)
     )
+    monkeypatch.setattr(main_module, "simpan_riwayat_turn", lambda **kwargs: None)
     response = client.post("/v1/turns", json=VALID_PAYLOAD_TURN2)
     assert response.status_code == 200
     assert response.json()["turn_index"] == 2
@@ -127,6 +132,7 @@ def test_turn_index_3_with_full_multi_turn_history_accepted(monkeypatch):
     monkeypatch.setattr(
         main_module, "proses_turn", lambda raw: _keadaan_turn_dummy(VALID_PAYLOAD_TURN3)
     )
+    monkeypatch.setattr(main_module, "simpan_riwayat_turn", lambda **kwargs: None)
     response = client.post("/v1/turns", json=VALID_PAYLOAD_TURN3)
     assert response.status_code == 200
     assert response.json()["turn_index"] == 3

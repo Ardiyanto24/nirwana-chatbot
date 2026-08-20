@@ -164,7 +164,7 @@ Diagnosis: dikonfirmasi via `window.location.href` tidak berubah setelah klik me
 - Filter via URL `?status=sebagian` → hanya `sample-fail-37d0b3fd05` tampil.
 - Filter via `form.requestSubmit()` asli (`role_title="General Manager"`) → URL berubah jadi `?status=&role_title=General+Manager&session_id=`, hasil HANYA 2 trace dengan role itu (`sample-mw-...`, `sample-6d7f5cea8dfd`) — `sample-fail-...` (Front Office Staff) benar tersaring keluar.
 
-**Commit:** `dashboard/` (repo sendiri): `38197be` — `feat: listTraces() + halaman daftar trace dengan filter` (mencakup Task 5+6); `nirwana-chatbot`: *(diisi setelah commit)*
+**Commit:** `dashboard/` (repo sendiri): `38197be` — `feat: listTraces() + halaman daftar trace dengan filter` (mencakup Task 5+6); `nirwana-chatbot`: `14c1ff7` — `docs(milestone-5.3): logs checkpoint 4`
 
 ---
 

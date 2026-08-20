@@ -244,7 +244,7 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `read_network_requests` (Browser, request nyata) — `GET /api/debug` → `404 Not Found`; `GET /debug/trace/sample-6d7f5cea8dfd` → `404 Not Found`. Halaman 404 default Next.js dikonfirmasi tampil (bukan lagi JSON mentah `<pre>`).
 
-**Commit:** `dashboard/` (repo sendiri): `37f791c` — `chore: hapus route debug lama, digantikan /traces dan /traces/[traceId]`; `nirwana-chatbot`: *(diisi setelah commit)*
+**Commit:** `dashboard/` (repo sendiri): `37f791c` — `chore: hapus route debug lama, digantikan /traces dan /traces/[traceId]`; `nirwana-chatbot`: `dcf9ec7` — `docs(milestone-5.3): logs checkpoint 6`
 
 ---
 

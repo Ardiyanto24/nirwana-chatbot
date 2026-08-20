@@ -14,3 +14,9 @@ __pycache__/
 prompt_reliability/node_modules/
 prompt_reliability/**/*_output.json
 prompt_reliability/.promptfoo/
+
+# Milestone 5.2 -- dashboard/ (Next.js, dashboard publik PIC 5) dikembangkan
+# di sini secara lokal tapi merupakan repo Git TERPISAH (mirror pola
+# nirwana-database/.gitignore untuk api/ dan web/) - lihat
+# milestones/5.2-skema-data-koneksi-nextjs-supabase/decisions.md Keputusan 1.
+dashboard/

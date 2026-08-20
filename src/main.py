@@ -118,6 +118,14 @@ def _build_turn_response(keadaan: KeadaanTurn) -> TurnResponse:
 
 
 @app.post("/v1/turns", response_model=TurnResponse)
-async def submit_turn(payload: dict) -> TurnResponse:
+def submit_turn(payload: dict) -> TurnResponse:
+    # def BIASA (bukan async def) SENGAJA - proses_turn() sepenuhnya
+    # sinkron/blocking (LLM/DB/HTTP berurutan, bisa menit-menitan). FastAPI
+    # otomatis menjalankan path operation function def biasa di threadpool
+    # worker (starlette.concurrency.run_in_threadpool), sehingga event loop
+    # tetap bisa melayani request lain (termasuk health check) selama satu
+    # turn diproses - kalau ini async def, proses_turn() akan memblokir
+    # event loop TUNGGAL uvicorn sepenuhnya (ditemukan nyata Checkpoint 6,
+    # server berhenti merespons apa pun selama satu turn diproses).
     keadaan = proses_turn(payload)
     return _build_turn_response(keadaan)

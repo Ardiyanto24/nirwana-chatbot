@@ -66,6 +66,56 @@ Diagnosis: `Get-NetTCPConnection -LocalPort 3000` mengonfirmasi port sudah terpa
 - `GET /api/datasources` (auth admin) menunjukkan 2 datasource (`Jaeger`, `Prometheus`), keduanya `"readOnly":true` (bukti provisioning-as-code, bukan input manual UI).
 - Health check per-datasource: Jaeger → `{"message":"Data source is working","status":"OK"}`; Prometheus → `{"status":"OK","message":"Successfully queried the Prometheus API."}` — bukti koneksi nyata ke kedua sumber data, bukan asumsi config benar.
 
-**Commit:** *(diisi setelah commit checkpoint ini)*
+**Commit:** `01df9c7` — `feat(milestone-5.1): tambah service Grafana self-hosted + provisioning datasource`; `a6303ac` — `docs(milestone-5.1): logs checkpoint 2`
+
+---
+
+## Checkpoint 3 — spanmetricsconnector di Collector
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 3 — Tambah connector spanmetrics ke otel-collector-config.yaml
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian nama komponen (lihat Temuan) yang tidak mengubah desain pipeline itu sendiri.
+
+**Apa yang dilakukan**
+Tambah section `connectors.spanmetrics` (dimension `prompt.id` + `error.type`, `metrics_flush_interval: 15s`) dan dua pipeline baru ke `otel-collector-config.yaml`: `traces/spanmetrics` (receiver `otlp` sama, exporter → connector) dan `metrics/spanmetrics` (receiver connector, exporter `prometheus` reuse existing). Pipeline `traces`/`metrics` existing tidak diubah.
+
+**Temuan**
+Restart pertama Collector memunculkan warning: `"spanmetrics" alias is deprecated; use "span_metrics" instead`. Connector tetap berfungsi (bukan error fatal), tapi nama alias ini sudah ditandai upstream untuk dihapus di rilis mendatang — dibiarkan berarti menanam utang teknis laten yang akan pecah begitu image `latest` naik versi. Diperbaiki langsung dalam checkpoint yang sama (bukan ditunda): rename component id `spanmetrics` → `span_metrics` di `connectors:` dan referensi `exporters`/`receivers` pipeline (nama pipeline `traces/spanmetrics`/`metrics/spanmetrics` sendiri TIDAK diganti, itu label pipeline bebas-nama, bukan alias connector).
+
+**Error/Kegagalan (jika ada)**
+Warning deprecation (bukan error fatal) — lihat Temuan. Tidak ada error lain.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Diagnosis: dibaca langsung dari log Collector (`docker logs nirwana-otel-collector`), pesan warning eksplisit menyebut nama pengganti. Perbaikan: `sed` rename `spanmetrics`→`span_metrics` di scope `connectors:`/`exporters:`/`receivers:` component id, restart Collector, konfirmasi log startup kedua tidak lagi memunculkan warning tersebut (`"otelcol.component.id": "span_metrics"` bersih tanpa baris `warn`).
+
+**Hasil Verifikasi**
+Log startup Collector setelah perbaikan bersih dari warning; `spanmetricsconnector` berhasil "Building"+"Starting" dengan component id `span_metrics`.
+
+**Commit:** `4684cb7` — `feat(milestone-5.1): tambah spanmetricsconnector ke otel-collector-config` (digabung dengan Task 4, satu perubahan config)
+
+---
+
+### Task 4 — Verifikasi nyata: span dummy → metrik Prometheus
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Jalankan `uv run python infra/observability/smoke_test/send_dummy_span.py` (trace_id `58b314e14592b797d401be814379c5d3`), tunggu `metrics_flush_interval` (15s) + siklus scrape Prometheus (15s), lalu query `GET /api/v1/label/__name__/values` dan `GET /api/v1/query?query=traces_span_metrics_calls_total` di Prometheus API.
+
+**Temuan**
+Nama metrik persis yang dihasilkan (dicatat sesuai Keputusan 4 `decisions.md` — dikonfirmasi empiris, bukan diasumsikan): `traces_span_metrics_calls_total` (counter) dan `traces_span_metrics_duration_milliseconds_bucket`/`_count`/`_sum` (histogram). Label yang muncul otomatis: `span_name`, `span_kind`, `status_code`, `service_name`, `job`, `instance` — dimension custom `prompt.id`/`error.type` TIDAK muncul di span dummy ini karena `send_dummy_span.py` (emitter smoke test generik) memang tidak memasang atribut itu; dimension custom akan muncul saat turn nyata (Checkpoint 4/6) dari kode layer yang genuinely memasang `prompt.id`/`error.type`.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada. (Query pertama sesaat setelah span dikirim sempat belum menunjukkan metrik baru — bukan kegagalan, murni belum lewat satu siklus flush+scrape; muncul benar setelah menunggu lebih lama.)
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`GET /api/v1/label/__name__/values` menampilkan 4 metrik baru (`traces_span_metrics_calls_total`, `traces_span_metrics_duration_milliseconds_{bucket,count,sum}`) setelah span dummy dikirim — bukti pipeline `traces/spanmetrics`→`metrics/spanmetrics` benar-benar mengalir data nyata, bukan hanya valid secara syntax config.
+
+**Commit:** `4684cb7` (sama dengan Task 3); `<hash docs>` — `docs(milestone-5.1): logs checkpoint 3`
 
 ---

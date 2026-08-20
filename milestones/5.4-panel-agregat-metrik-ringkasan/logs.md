@@ -125,6 +125,59 @@ Ini bukti awal KK1 ("cocok dengan penghitungan manual") SEBELUM UI dibangun, ses
 
 ---
 
+## Checkpoint 4 — Komponen Panel + Halaman Ringkasan (Inti KK1+KK2)
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 5 — Buat `StatCard.tsx` dan `Table.tsx`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Dibuat `dashboard/src/components/StatCard.tsx` (label+value+tone opsional `neutral/good/warn/bad`) dan `dashboard/src/components/Table.tsx` (generik `{rows, columns: {key,label,render?}[], emptyMessage?}`), struktur ditiru `nirwana-database/web/src/components/ui.tsx`, styling `slate-800/900` sudah konsisten dipakai `dashboard/` sendiri tanpa penyesuaian warna.
+
+**Temuan**
+Tidak ada temuan baru.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Digabung dengan verifikasi Task 6 (komponen ini baru benar-benar teruji setelah dipakai `page.tsx`).
+
+**Commit:** *(gabung dengan Task 6, lihat di bawah)*
+
+### Task 6 — Tulis Ulang `page.tsx`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`dashboard/src/app/page.tsx` ditulis ulang: memanggil `getSummaryMetrics()`, merender 2× `StatCard` (Jumlah Query, Tingkat Keberhasilan via `formatPercent()`, tone neutral) + 3× `Table` (Distribusi Status dengan kolom Status via `<StatusBadge>`; Latency per Layer dengan Rata-rata/p95 via `humanizeDuration(Math.round(...))`, urut p95 DESC bawaan query; Frekuensi error.type dengan kolom error_type via `<StatusBadge>` dipakai apa adanya) + CTA ke `/traces` dipertahankan.
+
+Server dev dijalankan untuk verifikasi: percobaan pertama membuka server baru (`npm run dev -- -H 127.0.0.1`, port 3000) GAGAL karena server `dashboard/` dari sesi sebelumnya (M5.3) masih hidup (PID 6684, port 3000) — bukan masalah, `preview_start` diarahkan langsung ke `http://127.0.0.1:3000` yang sudah aktif (Next.js Fast Refresh otomatis memuat perubahan file terbaru tanpa restart manual).
+
+**Temuan**
+- Server dev `dashboard/` dari sesi M5.3 sebelumnya ternyata masih berjalan (belum pernah dihentikan) — cukup dipakai langsung, tidak perlu proses baru.
+- `Latency per Layer` menampilkan `layer_name="orchestration"` di urutan teratas (p95=40.20s) — masuk akal (span ini membungkus keseluruhan `invoke_agent`/durasi total turn), bukan anomali data.
+
+**Error/Kegagalan (jika ada)**
+Percobaan `npm run dev -- -H 127.0.0.1` (tool-managed background) gagal exit code 1: `⨯ Another next dev server is already running` (PID 6684, port 3000, direktori sama).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Bukan bug — dikonfirmasi server lama tersebut memang melayani direktori `dashboard/` yang sama. Diselesaikan dengan memakai server yang sudah aktif itu langsung (`preview_start` dengan `url: "http://127.0.0.1:3000"`), tidak perlu `taskkill`.
+
+**Hasil Verifikasi (KK1+KK2, real, via Browser tool)**
+- `get_page_text` di `http://127.0.0.1:3000/`: "Jumlah Query 3", "Tingkat Keberhasilan 66.7%" — PERSIS cocok hasil query manual Checkpoint 3 (`totalTraces=3`, `successRate=0.6666...`=66.7% dibulatkan). Distribusi Status: `berhasil 2`/`sebagian 1`. Frekuensi error.type: `ditolak_otorisasi 2`/`gagal_teknis 1`. Latency per Layer: 10 baris, angka identik hasil skrip verifikasi Checkpoint 3. **KK1 terpenuhi.**
+- `javascript_tool` query DOM langsung atas `<span>` badge di dalam tabel: `berhasil` → `class="...bg-emerald-950 text-emerald-300 border-emerald-800"`; `sebagian` → `class="...bg-amber-950 text-amber-300 border-amber-800"`; `ditolak_otorisasi` DAN `gagal_teknis` → `class="...bg-red-950 text-red-300 border-red-800"` (KEDUANYA merah, sama sekali berbeda dari warna baris status berhasil/sebagian). **KK2 terpenuhi** — bukti presisi class DOM, bukan interpretasi visual screenshot (mirror metodologi M5.3 setelah keterbatasan tool screenshot sesi itu).
+- `read_console_messages` (filter error) → "No console logs." (nol error). `read_network_requests` → hanya request HMR chunk 200 OK, tidak ada request gagal.
+
+**Commit:** `5bd9541` (repo `dashboard/`) — `feat(dashboard): panel ringkasan dan halaman beranda (M5.4)`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada — penolakan plan pertama dan riset ulang terjadi SEBELUM Checkpoint 1 resmi dimulai (bagian dari proses "Rencanakan sebelum mengimplementasikan" di `CLAUDE.md`, bukan checkpoint implementasi), sehingga dicatat sebagai bagian dari narasi Task 1 di atas, bukan checkpoint terpisah di luar plan.

@@ -85,6 +85,6 @@ Diagnosis: dikonfirmasi data SUDAH tersimpan benar (bug murni di baris print, bu
 - `sample-fail-37d0b3fd05`: 27 span, 3 span `error_type` terisi — 2× `ditolak_otorisasi` (`rbac.domain="financial"`) + 1× `gagal_teknis` — persis desain (KK2).
 - Trace M5.2 (`sample-6d7f5cea8dfd`) tetap utuh, tidak tersentuh (dikonfirmasi tetap muncul di listing `TraceRow`).
 
-**Commit:** *(diisi setelah commit checkpoint ini — logs.md)*
+**Commit:** `0486966` — `docs(milestone-5.3): logs checkpoint 2`
 
 ---

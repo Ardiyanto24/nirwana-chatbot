@@ -46,6 +46,7 @@ Config: [`otel-collector-config.yaml`](otel-collector-config.yaml).
 
 - **Trace:** `otlp` receiver → `memory_limiter`, `batch`, `attributes` (enrichment) → exporter `otlp_grpc/jaeger` (jalur privat, aktif).
 - **Metrics:** `otlp` receiver → processor sama → exporter `prometheus` di `:8889` (di-scrape `prometheus.yml`, jalur privat, aktif).
+- **Metrics turunan dari span (Milestone 5.1, aditif):** pipeline `traces/spanmetrics` (receiver `otlp` sama) → connector `span_metrics` (dimension `prompt.id`+`error.type`) → pipeline `metrics/spanmetrics` → exporter `prometheus` yang sama. Menghasilkan metrik `traces_span_metrics_calls_total` dan `traces_span_metrics_duration_milliseconds_{bucket,count,sum}` — dipakai panel Grafana "Latency per Layer", "Frekuensi error.type". Pipeline `traces` menuju Jaeger di atas TIDAK terpengaruh.
 - **Slot jalur publik (untuk PIC 6):** dikomentari eksplisit di `otel-collector-config.yaml`, belum aktif. Diisi Milestone 6.1 (`rancangan-custom-exporter-supabase.md`) dengan custom exporter Go ke Supabase — **jangan hapus komentarnya**, tinggal isi dan daftarkan ke pipeline `traces`.
 
 ## Versi Konvensi Atribut GenAI (`gen_ai.*`) yang Dikunci

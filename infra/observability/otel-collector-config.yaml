@@ -19,6 +19,21 @@ processors:
         value: local-dev
         action: upsert
 
+connectors:
+  # span_metrics (Milestone 5.1, decisions.md Keputusan 4) - menurunkan metrik
+  # agregat (count/duration) DARI span, karena Jaeger datasource Grafana tidak
+  # mendukung agregasi time-series/count-by-tag native. Pipeline tambahan murni
+  # aditif (lihat pipeline traces/spanmetrics + metrics/spanmetrics di bawah) -
+  # pipeline `traces` existing menuju Jaeger TIDAK diubah.
+  # Dimension custom: prompt.id (disambiguator span "chat" yang nama-nya
+  # reused lintas layer) + error.type (taksonomi status kegagalan) - keduanya
+  # sudah terpasang di instrumentasi existing PIC 1-4, zero-touch ke kode layer.
+  span_metrics:
+    dimensions:
+      - name: prompt.id
+      - name: error.type
+    metrics_flush_interval: 15s
+
 exporters:
   # --- Jalur privat (aktif penuh) ---
   # Trace -> Jaeger (Jaeger all-in-one punya OTLP receiver bawaan di 4317/4318
@@ -51,7 +66,19 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, batch, attributes]
       exporters: [otlp_grpc/jaeger]
+    # Pipeline BARU aditif (Milestone 5.1) - receiver `otlp` yang sama secara
+    # fan-out, TIDAK mengubah pipeline `traces` di atas. Connector `span_metrics`
+    # bertindak sebagai exporter di sini, dan sebagai receiver di pipeline
+    # metrics/spanmetrics di bawah.
+    traces/spanmetrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [span_metrics]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch, attributes]
+      exporters: [prometheus]
+    metrics/spanmetrics:
+      receivers: [span_metrics]
+      processors: [batch]
       exporters: [prometheus]

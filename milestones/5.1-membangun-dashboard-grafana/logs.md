@@ -116,6 +116,88 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `GET /api/v1/label/__name__/values` menampilkan 4 metrik baru (`traces_span_metrics_calls_total`, `traces_span_metrics_duration_milliseconds_{bucket,count,sum}`) setelah span dummy dikirim — bukti pipeline `traces/spanmetrics`→`metrics/spanmetrics` benar-benar mengalir data nyata, bukan hanya valid secara syntax config.
 
-**Commit:** `4684cb7` (sama dengan Task 3); `<hash docs>` — `docs(milestone-5.1): logs checkpoint 3`
+**Commit:** `4684cb7` (sama dengan Task 3); `94409d1` — `docs(milestone-5.1): logs checkpoint 3`
+
+---
+
+## Checkpoint 4 — Panel Daftar Trace + Waterfall (KK1)
+
+**Mulai:** 2026-08-20 · **Selesai:** *(belum, in progress)*
+
+### Task 5 — Buat dashboard JSON dengan panel Daftar Trace + Detail Trace/Waterfall
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `infra/observability/grafana/provisioning/dashboards/dashboards.yaml` (provider file-based, path `/var/lib/grafana/dashboards`) dan `infra/observability/grafana/dashboards/observability.json` (dashboard `nirwana-chatbot-observability`, 2 panel tipe `traces` berdatasource Jaeger `uid=PC9A941E8F2E49454`: "Daftar Trace (Search)" dengan variable `$tags` untuk filter, dan "Detail Trace / Waterfall" dengan variable `$traceId`). Hapus placeholder `.gitkeep` di `grafana/dashboards/` (sudah terisi file nyata). Restart container `grafana` agar provider baru termuat.
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`GET /api/search?query=` (auth admin) menunjukkan dashboard `nirwana-chatbot-observability` ter-load lewat provisioning — bukti file JSON valid dan provider terbaca.
+
+**Commit:** *(digabung dengan Task 6, satu checkpoint)*
+
+---
+
+### Task 6 — Verifikasi nyata KK1: turn sungguhan → trace di Grafana
+
+**Kesesuaian dengan plan:** Sesuai plan pada tujuan akhir, tapi mengalami kejadian tak terduga di percobaan pertama (lihat Error/Kegagalan) — konsisten pola `docs/keterbatasan-diterima.md` #7 yang sudah berulang kali terjadi di milestone lain (M7.12, M7.16, M7.17).
+
+**Apa yang dilakukan**
+Jalankan `chatbot_api` lokal (`nirwana-database/scripts/chatbot_api/`, `python -m uvicorn main:app --host 127.0.0.1 --port 8000`, terverifikasi `GET /health` → `200`) dan server aplikasi (`uv run uvicorn src.main:app --port 8001`, terverifikasi `GET /docs` → `200`). Kirim `POST /v1/turns` dengan payload contoh nyata dari `docs/panduan-integrasi-frontend.md` Bagian 3.1 (`session_id="milestone-5.1-cp4-kk1"`, pertanyaan occupancy rate Juni 2026, `role_title="General Manager"`).
+
+**Temuan**
+Percobaan pertama HANG >17 menit tanpa respons — jauh melampaui "beberapa menit" yang didokumentasikan wajar. Diagnostik dilakukan SEBELUM menyimpulkan gagal (dipicu juga oleh pertanyaan user yang meragukan apakah `chatbot_api` benar-benar aktif): `Get-NetTCPConnection`+`Get-Process` mengonfirmasi KEDUA server genuinely listening di port yang benar dengan PID yang cocok persis log startup masing-masing (`chatbot_api` PID 3808 di :8000, app PID 17904 di :8001), dan ADA koneksi `Established` dari client curl ke :8001 — membuktikan request benar-benar sampai dan diproses server, bukan gagal connect. `chatbot_api.log` sepanjang hang hanya berisi 2 baris health-check (tidak ada panggilan data) — bukti hang terjadi SEBELUM mencapai layer Execution (di salah satu 7 layer sebelumnya: Input/Context Resolution/Decomposition/Domain Gate/Retriever/Query Engine/Verification Gate).
+
+**Error/Kegagalan (jika ada)**
+Hang tanpa exception pada percobaan pertama (`session_id="milestone-5.1-cp4-kk1"`) — tidak ada pesan error, koneksi TCP tetap `Established` tanpa data. Cocok pola `docs/keterbatasan-diterima.md` #7.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Diagnosis dilakukan bertahap, didorong lebih jauh dari preseden M7.16 karena percobaan retry sederhana TIDAK berhasil:
+1. Proses request lama (percobaan 1) di-stop (`TaskStop` pada task background curl), dikonfirmasi koneksi `Established` di :8001 hilang. Proses server aplikasi (PID 17904) di-restart bersih (`Stop-Process -Force` + relaunch `uvicorn`). Retry dengan `session_id` baru (`milestone-5.1-cp4-kk1-retry1`) + `--max-time 240` di sisi client (percobaan 2) — **juga habis waktu** (`curl_exit=28`, `http_status=000`), `chatbot_api.log` masih hanya 2 baris health-check (belum mencapai Execution).
+2. `Get-Process`+`Get-NetTCPConnection` terhadap PID server yang baru (21992) menunjukkan CPU 5.9s terpakai dan koneksi `Established` nyata ke `104.18.2.115:443` (×3, IP di balik Cloudflare — konsisten OpenRouter) serta ke `54.255.219.82:5432` (Postgres/Supabase, ekspektasi normal) — proses genuinely aktif menunggu jawaban LLM, bukan freeze total.
+3. Isolasi lebih dalam: script Python terpisah (`test_openrouter_single_call.py`, di luar pipeline) memanggil `get_openrouter_client()` untuk SATU chat completion ringan (`qwen/qwen3-32b`, 1 prompt pendek) — hang >120 detik (`timeout 120` shell membunuh proses, exit 124), TANPA exception meski `timeout=90.0` eksplisit terpasang di client — mengonfirmasi timeout SDK sendiri tidak terpicu.
+4. Isolasi ke level paling dasar: `curl` LANGSUNG ke `https://openrouter.ai/api/v1/chat/completions` (bypass SDK/`openai` package Python sepenuhnya) dengan API key asli — **juga hang**, `--max-time 60` habis (`curl_exit=28`) tanpa body respons lengkap. Sebagai pembanding kontrol: `GET https://openrouter.ai/api/v1/models` (endpoint non-inference) di jendela waktu yang sama merespons `200 OK` cepat dan normal (DNS resolve bersih via `nslookup`, TLS handshake sukses).
+5. Kesimpulan: root cause genuinely infra backend OpenRouter untuk endpoint completions saat itu — BUKAN bug kode/konfigurasi project ini (dibuktikan negatif di setiap lapisan: pipeline, SDK, raw HTTP). Dicatat sebagai recurrence `docs/keterbatasan-diterima.md` #7 (isolasi lebih dalam dari recurrence M7.16 sebelumnya — kali ini sampai level `curl` mentah).
+
+Ditanyakan ke user (`AskUserQuestion`) bagaimana melanjutkan mengingat retry sederhana sudah 2× gagal dan root cause terbukti eksternal. **Keputusan user**: kerjakan bagian yang TIDAK butuh panggilan LLM sekarang (panel dashboard, config), verifikasi real-turn KK1/KK2 ditunda sampai OpenRouter stabil — dicatat eksplisit, BUKAN diam-diam dilewati. Milestone TETAP berstatus belum selesai sampai verifikasi nyata benar-benar terlaksana.
+
+**Hasil Verifikasi**
+BELUM TERPENUHI — diblokir prasyarat eksternal (OpenRouter). Task 6 (dan turunannya Task 8/Task 10 di Checkpoint 5/6) ditandai **BLOCKED-EXTERNAL**, ditinjau ulang begitu OpenRouter kembali stabil. Bukan kegagalan implementasi M5.1 — seluruh komponen non-LLM (dashboard, datasource, spanmetricsconnector) sudah terbukti bekerja (Checkpoint 1-3, Task 5).
+
+**Commit:** tidak ada perubahan kode untuk task ini sendiri (murni diagnosis) — dicatat bersama commit `docs` checkpoint ini
+
+---
+
+### Catatan Penyimpangan — Mengerjakan Task Buildable Mendahului Verifikasinya (atas instruksi user)
+
+**Kesesuaian dengan plan:** Menyimpang dari urutan checkpoint sekuensial ketat CLAUDE.md ("jangan lanjut ke checkpoint berikutnya jika checkpoint sekarang belum diverifikasi") — dilakukan ATAS INSTRUKSI EKSPLISIT user setelah `AskUserQuestion` ("kerjakan apa yang bisa dikerjakan, milestone berarti statusnya belum selesai. catat ini untuk real test llm nya akan dilakukan setelah kondisi openrouter stabil"). Bagian TASK (definisi panel) dari Checkpoint 5 (Task 7) dan Checkpoint 6 (Task 9) dikerjakan sekarang karena murni config, TIDAK butuh panggilan LLM — bagian VERIFIKASI (Task 8, Task 10) tetap menunggu turn nyata, sama seperti Task 6.
+
+**Apa yang dilakukan**
+1. **Temuan gap saat menyiapkan panel "Distribusi Status"**: `otel-collector-config.yaml` Checkpoint 3 hanya mendaftarkan dimension `prompt.id`+`error.type` di `span_metrics` — TIDAK termasuk `riwayat.status`, padahal `decisions.md` Keputusan 5 sudah menyatakan itu sumber panel ini. Diperbaiki: tambah `- name: riwayat.status` ke `dimensions:`, restart Collector, log startup bersih tanpa error.
+2. Tambah 3 panel ke `infra/observability/grafana/dashboards/observability.json`: "Latency per Layer (p95)" (timeseries, Prometheus, `histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket[5m])) by (le, span_name))`), "Distribusi Status (per turn)" (piechart, `sum(traces_span_metrics_calls_total{span_name="riwayat.simpan"}) by (riwayat_status)`), "Frekuensi error.type" (barchart, `sum(traces_span_metrics_calls_total{error_type!=""}) by (error_type)`).
+3. Restart Grafana, verifikasi kelima panel (2 dari Task 5 + 3 baru) ter-load lewat `GET /api/dashboards/uid/nirwana-chatbot-observability`.
+
+**Temuan**
+Gap dimension `riwayat.status` di atas — satu-satunya temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Lihat poin 1 "Apa yang dilakukan" di atas.
+
+**Hasil Verifikasi**
+`GET /api/dashboards/uid/nirwana-chatbot-observability` (auth admin) mengembalikan `200` dengan 5 panel: `traces`×2 (Task 5, KK1), `timeseries` (Task 7, latency), `piechart`+`barchart` (Task 9, KK2) — bukti config/provisioning valid dan diterima Grafana. **BUKAN bukti data benar** (belum ada data nyata mengalir karena Task 6/8/10 masih BLOCKED-EXTERNAL) — panel-panel ini akan tampil kosong sampai turn nyata berhasil dan diverifikasi.
+
+**Commit:** `f4de0bb` — `feat(milestone-5.1): panel daftar trace, waterfall, latency, distribusi status, error.type`
 
 ---

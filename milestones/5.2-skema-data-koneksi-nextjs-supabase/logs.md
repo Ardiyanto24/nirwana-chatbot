@@ -186,6 +186,61 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `curl http://localhost:3000/api/debug` → `200`, body `{"connected":true,"db_time":"2026-08-20T15:10:30.319Z"}` — timestamp ASLI dari Supabase, bukan mock/hardcode.
 
-**Commit:** `dashboard/` (repo sendiri): `036f2d7` — `feat: modul koneksi Postgres server-only + route debug`; `nirwana-chatbot`: *(diisi setelah commit)*
+**Commit:** `dashboard/` (repo sendiri): `036f2d7` — `feat: modul koneksi Postgres server-only + route debug`; `nirwana-chatbot`: `603076c` — `docs(milestone-5.2): logs checkpoint 4`
+
+---
+
+## Checkpoint 5 — Lapisan Query Hierarkis + Verifikasi KK1/KK2
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 8 — Tipe + `getTraceWithSpans()` + `buildSpanTree()` + test Vitest
+
+**Kesesuaian dengan plan:** Sesuai plan pada substansi, dengan satu penyesuaian struktur file (lihat Temuan) — bukan perubahan desain/KK.
+
+**Apa yang dilakukan**
+`npm install -D vitest`. Tulis `dashboard/src/lib/trace-tree.ts` (tipe `Trace`/`Span`/`SpanNode`/`TraceDetail` + `buildSpanTree()`, murni tanpa I/O) dan `dashboard/src/lib/traces.ts` (`import "server-only"`, `getTraceWithSpans()` — dua query paralel `Promise.all` sesuai Keputusan 5, re-export tipe+`buildSpanTree` dari `trace-tree.ts`). Tulis `dashboard/src/lib/trace-tree.test.ts` (5 skenario: out-of-order, bercabang mirip M7.7, nested multi-level, orphan defensif, array kosong). Tambah script `"test": "vitest run"` ke `package.json`.
+
+**Temuan**
+Plan awal (Task 8) menaruh `buildSpanTree()` bersama `getTraceWithSpans()` di satu file `traces.ts` — disadari saat menulis test bahwa `traces.ts` (via `import "server-only"` → `db.ts` → `createClient()` dipanggil TOP-LEVEL saat import) akan mencoba baca `process.env.DATABASE_URL` begitu file diimpor, bahkan hanya untuk mengetes `buildSpanTree()` yang murni tanpa I/O. Ini bertentangan langsung dengan Keputusan 10 ("diuji terisolasi tanpa perlu koneksi DB nyata"). Diperbaiki dengan memisah jadi 2 file (`trace-tree.ts` murni, `traces.ts` yang butuh DB) SEBELUM test ditulis — bukan penyimpangan KK, murni refinement struktur file.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada (temuan di atas ditemukan+diperbaiki di tahap desain file, sebelum sempat jadi kegagalan test nyata).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`npm test` (Vitest): `5 passed (5)`, `Test Files 1 passed (1)`.
+
+**Commit:** *(digabung Task 9)*
+
+---
+
+### Task 9 — Page debug trace + verifikasi nyata KK1/KK2
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `dashboard/src/app/debug/trace/[traceId]/page.tsx` (Server Component, `await getTraceWithSpans(traceId)`, render `JSON.stringify(detail, null, 2)` dalam `<pre>`, `notFound()` kalau trace tidak ada). Akses nyata `http://localhost:3000/debug/trace/sample-6d7f5cea8dfd` (trace_id sample dari Checkpoint 2), body HTML diparse (decode HTML entity dari `<pre>`) dan divalidasi terhadap struktur yang diharapkan.
+
+**Temuan**
+Tidak ada temuan tak terduga — data kembali PERSIS sesuai yang diinsert Checkpoint 2.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada — berhasil percobaan PERTAMA.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi (bukti KK1+KK2 langsung)**
+- `curl http://localhost:3000/debug/trace/sample-6d7f5cea8dfd` → `200`.
+- `spans` (KK1, "urutan waktu"): 29 baris, terurut `started_at` — dikonfirmasi pasangan `rewrite`/`memretr` (percabangan paralel M7.7) sama-sama muncul dengan `started_at` overlap (`01.950Z`), `parent_span_id` sama-sama merujuk root.
+- `tree` (KK1, "hubungan induk-anak" + KK2, "siap pakai tanpa transformasi"): 1 root (`...-root`, `operation_name=invoke_agent`) dengan **17 anak langsung** (termasuk `rewrite`+`memory.retrieve` sebagai SIBLING terpisah, bukan tergabung keliru); node `domain_gate.identifikasi_semua` bersarang benar dengan **2 anak** (`dgident_c1`, `dgident_c2`) — struktur multi-level (cucu) terbukti benar, bukan cuma satu level.
+- Struktur `TraceDetail` (`{trace, spans, tree}`) langsung dipakai apa adanya oleh page (`JSON.stringify` tanpa transformasi tambahan) — **KK2 genuinely terpenuhi**, bukan diasumsikan.
+
+**KK1 dan KK2 M5.2 TERPENUHI PENUH.**
+
+**Commit:** `dashboard/` (repo sendiri): `38cccf5` — `feat: lapisan query trace+span hierarkis (KK1/KK2)` (mencakup Task 8+9); `nirwana-chatbot`: *(diisi setelah commit)*
 
 ---

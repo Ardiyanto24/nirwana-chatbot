@@ -274,7 +274,7 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `report.md` lengkap 6 bagian, kedua KK dipetakan ke bukti konkret dengan trace_id yang bisa ditelusuri ulang. Entri keterbatasan/keputusan-tertunda konsisten dengan `decisions.md`/`logs.md` milestone ini.
 
-**Commit:** *(digabung dengan Task 12)*
+**Commit:** `eadfeef` — `docs(milestone-5.1): report dan pembaruan status project` (digabung dengan Task 12)
 
 ---
 
@@ -297,6 +297,6 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `diff CLAUDE.md AGENT.md` kosong (identik). `git check-ignore -v CLAUDE.md AGENT.md` mengonfirmasi keduanya gitignored oleh `.gitignore:5-6`.
 
-**Commit:** *(diisi setelah commit — mencakup Task 11+12, keduanya murni dokumentasi non-gitignored: `report.md`, `keterbatasan-diterima.md`, `keputusan-tertunda.md`)*
+**Commit:** `eadfeef` — `docs(milestone-5.1): report dan pembaruan status project` (mencakup Task 11+12, keduanya murni dokumentasi non-gitignored: `report.md`, `keterbatasan-diterima.md`, `keputusan-tertunda.md`)
 
 ---

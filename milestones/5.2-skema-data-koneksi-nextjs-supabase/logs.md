@@ -268,7 +268,7 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `report.md` lengkap 6 bagian, kedua KK dipetakan ke bukti konkret dengan trace_id yang bisa ditelusuri ulang (`sample-6d7f5cea8dfd`).
 
-**Commit:** *(digabung Task 11)*
+**Commit:** `fcaa8e5` — `docs(milestone-5.2): report dan pembaruan status project` (digabung Task 11)
 
 ---
 
@@ -291,7 +291,7 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `diff CLAUDE.md AGENT.md` kosong (identik). `CLAUDE.md`/`AGENT.md` gitignored (pola sudah dikonfirmasi M5.1), tidak di-commit.
 
-**Commit:** *(diisi setelah commit — Task 10+11, keduanya file non-gitignored: `report.md`, `docs/keputusan-tertunda.md`)*
+**Commit:** `fcaa8e5` — `docs(milestone-5.2): report dan pembaruan status project` (Task 10+11, file non-gitignored: `report.md`, `docs/keputusan-tertunda.md`)
 
 ---
 

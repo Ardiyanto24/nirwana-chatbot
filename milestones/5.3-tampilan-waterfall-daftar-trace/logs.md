@@ -221,6 +221,33 @@ Tidak berlaku.
 
 ---
 
+## Checkpoint 6 — Hapus Route Debug Lama
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 9 — Hapus `/api/debug` dan `/debug/trace/[traceId]`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Hapus `dashboard/src/app/api/debug/` (route.ts) dan `dashboard/src/app/debug/` (folder penuh, termasuk `trace/[traceId]/page.tsx`) — sesuai janji eksplisit komentar kode M5.2 (decisions.md M5.2 Keputusan 8, M5.3 Keputusan 7). Folder `api/` induk turut dihapus karena kosong setelah `debug/` di dalamnya dihapus.
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`read_network_requests` (Browser, request nyata) — `GET /api/debug` → `404 Not Found`; `GET /debug/trace/sample-6d7f5cea8dfd` → `404 Not Found`. Halaman 404 default Next.js dikonfirmasi tampil (bukan lagi JSON mentah `<pre>`).
+
+**Commit:** `dashboard/` (repo sendiri): `37f791c` — `chore: hapus route debug lama, digantikan /traces dan /traces/[traceId]`; `nirwana-chatbot`: *(diisi setelah commit)*
+
+---
+
 ---
 
 ---

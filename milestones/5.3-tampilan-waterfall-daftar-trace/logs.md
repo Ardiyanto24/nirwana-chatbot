@@ -116,4 +116,58 @@ Screenshot tidak esensial untuk pembuktian — DOM/computed-style query memberi 
 
 ---
 
+## Checkpoint 4 — `listTraces()` + Halaman Daftar Trace
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 5 — `listTraces(filters?)`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah `listTraces(filters?: TraceListFilters)` ke `dashboard/src/lib/traces.ts` — pola fragment dinamis `postgres` dikonfirmasi persis dari `dashboard/node_modules/postgres/README.md` (`WHERE 1=1 ${cond1} ${cond2} ${cond3}`, tiap kondisi `sql\`AND field = ${val}\`` atau `sql\`\`` kosong), `ORDER BY started_at DESC`.
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Ditunda ke Task 6 (verifikasi lewat halaman nyata).
+
+**Commit:** *(digabung Task 6)*
+
+---
+
+### Task 6 — Halaman `/traces` + `Badge` status
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Buat `dashboard/src/components/Badge.tsx` (`StatusBadge`, tone by taksonomi status project). Buat `dashboard/src/app/traces/page.tsx` — Server Component, `searchParams`, form `method="GET"` (status/role_title/session_id), tabel trace dengan link ke `/traces/[traceId]` (belum ada, akan dibuat Checkpoint 5).
+
+**Temuan**
+Tool `computer left_click` (koordinat) tidak berhasil memicu submit form di sesi ini (URL tidak berubah meski input sudah terisi benar) — kemungkinan terkait keterbatasan compositing visual yang sama dengan kegagalan screenshot Checkpoint 3 (panel Browser belum ter-render visual di sisi user). Diisolasi: `form.requestSubmit()` (DOM API native, dipanggil via `javascript_tool`) berhasil submit form dengan benar — membuktikan mekanisme form/kode Next.js genuinely benar, keterbatasan ada di tool interaksi koordinat sesi ini, BUKAN di implementasi.
+
+**Error/Kegagalan (jika ada)**
+Klik koordinat `computer` tidak mengubah URL (lihat Temuan) — bukan error exception, murni tidak ada efek.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Diagnosis: dikonfirmasi via `window.location.href` tidak berubah setelah klik meski input value benar sesaat sebelumnya. Perbaikan/workaround verifikasi: pakai `form.requestSubmit()` DOM asli sebagai pembuktian alternatif setara (bukan navigasi URL manual oleh saya) — ini genuinely menguji "submit form" sesuai maksud KK, bukan jalan pintas yang melewati logic form.
+
+**Hasil Verifikasi**
+- Navigasi awal `/traces` → 3 trace tampil (1 lama M5.2 + 2 baru Checkpoint 2), terurut `started_at DESC` (trace terbaru `sample-fail-...` di atas).
+- Filter via URL `?status=sebagian` → hanya `sample-fail-37d0b3fd05` tampil.
+- Filter via `form.requestSubmit()` asli (`role_title="General Manager"`) → URL berubah jadi `?status=&role_title=General+Manager&session_id=`, hasil HANYA 2 trace dengan role itu (`sample-mw-...`, `sample-6d7f5cea8dfd`) — `sample-fail-...` (Front Office Staff) benar tersaring keluar.
+
+**Commit:** `dashboard/` (repo sendiri): `38197be` — `feat: listTraces() + halaman daftar trace dengan filter` (mencakup Task 5+6); `nirwana-chatbot`: *(diisi setelah commit)*
+
+---
+
+---
+
 ---

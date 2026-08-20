@@ -1,0 +1,42 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Kebutuhan tunggal sederhana, KK1 - riwayat tersimpan cocok",
+  "timestamp": "2026-08-20T07:59:35.312903+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.18-e01f",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "hasil_http": {
+    "status_code": 200,
+    "body": {
+      "session_id": "eval-7.18-e01f",
+      "turn_index": 1,
+      "narasi": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian properti untuk bulan Juni tahun 2026. Hasil yang diperoleh dari proses ini tidak tersedia karena sistem tidak dapat memproses permintaan tersebut. Kami menyarankan untuk mencoba kembali nanti atau menghubungi tim dukungan jika kendala ini terus berlanjut.",
+      "terverifikasi": true,
+      "catatan_verifikasi": null,
+      "visualisasi": [
+        {
+          "atomic_intent_id": "a1c06f03-bb58-4951-9c28-ffe65575a95c",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "conversation_turns_rows": [
+    {
+      "id": "db71a390-f6e5-4493-a647-443e0173ddbc",
+      "session_id": "eval-7.18-e01f",
+      "turn_index": 1,
+      "pertanyaan": "Berapa occupancy rate properti kita bulan Juni 2026?",
+      "narasi": "Saat ini, sistem mengalami kendala teknis dalam mengambil data tingkat keterisian properti untuk bulan Juni tahun 2026. Hasil yang diperoleh dari proses ini tidak tersedia karena sistem tidak dapat memproses permintaan tersebut. Kami menyarankan untuk mencoba kembali nanti atau menghubungi tim dukungan jika kendala ini terus berlanjut.",
+      "status": "gagal_teknis",
+      "created_at": "2026-08-20T07:59:32.013648"
+    }
+  ],
+  "error": null
+}

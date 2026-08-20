@@ -168,6 +168,61 @@ Diagnosis: dikonfirmasi via `window.location.href` tidak berubah setelah klik me
 
 ---
 
+## Checkpoint 5 — Komponen Waterfall + Halaman Detail Trace (Inti KK1+KK2)
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 7 — `computeWaterfallRows()` + komponen Waterfall
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah `computeWaterfallRows()`+`WaterfallRow` type ke `trace-tree.ts` (DFS pre-order, timeline absolut `t0`/`totalMs`, floor `MIN_VISIBLE_WIDTH_PCT=0.5`). Tambah 5 kasus uji ke `trace-tree.test.ts`: timeline absolut vs relatif-per-parent, dua sibling wave tidak overlap, `duration_ms=null` tidak crash, `error_type` melewati apa adanya, urutan DFS pre-order. Buat `dashboard/src/components/WaterfallRow.tsx` (grid dua-kolom, 3 sinyal error: warna+border-dashed+teks `error_type`) dan `Waterfall.tsx` (container, panggil `computeWaterfallRows()`).
+
+**Temuan**
+Tidak ada temuan tak terduga.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`npm test` → `10 passed (10)` (5 lama `buildSpanTree` + 5 baru `computeWaterfallRows`).
+
+**Commit:** *(digabung Task 8)*
+
+---
+
+### Task 8 — Halaman `/traces/[traceId]` + verifikasi nyata KK1/KK2
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Buat `dashboard/src/app/traces/[traceId]/page.tsx` (`getTraceWithSpans()`+`<Waterfall/>`, header info trace+`StatusBadge`). Verifikasi nyata via Browser: navigasi ke trace multi-wave (`sample-mw-e2a07d4512`) dan trace gagal (`sample-fail-37d0b3fd05`), `get_page_text` untuk urutan DFS, `javascript_tool` (query `style.left`/`style.width`/class DOM langsung) untuk posisi bar presisi — pendekatan ini dipilih menggantikan screenshot yang gagal sejak Checkpoint 3 (panel Browser belum ter-render visual di sisi user), tapi memberi bukti LEBIH presisi (angka persentase eksak, bukan interpretasi visual).
+
+**Temuan**
+Tidak ada temuan tak terduga — kedua KK terbukti pada percobaan pertama tanpa perlu perbaikan.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi (bukti KK1+KK2 langsung)**
+- **KK1** (`sample-mw-e2a07d4512`, 29 span): `get_page_text` menunjukkan urutan DFS benar, DUA baris `orchestration.wave` terpisah (bukan digabung/hilang), masing-masing diikuti anaknya sendiri (`verification_gate.verifikasi_gate_semua`+`execution.eksekusi_atomic_intent_semua`) sebelum baris berikutnya. Query DOM presisi: bar wave1 `left=60.3947% width=6.31579%` (berakhir ~66.71%), bar wave2 `left=66.7632% width=6.84211%` — **genuinely tidak overlap**, posisi absolut berbeda (BUKAN direset ke 0% seolah masing-masing origin sendiri) — bukti langsung "hubungan induk-anak yang benar" pada timeline absolut yang sama.
+- **KK2** (`sample-fail-37d0b3fd05`, 27 span): query DOM `[class*="bg-red-900"]` → **3 bar error** (`hasDashedBorder=true` semua), title `"80ms — ditolak_otorisasi"`×2 + `"2.45s — gagal_teknis"`×1 — persis 3 span `error_type` yang di-seed Checkpoint 2. 24 bar normal (`bg-sky-700`, solid) vs 3 bar error (`bg-red-900`, dashed) — **jelas berbeda dua sinyal independen** (warna+bentuk), DITAMBAH teks `error_type` eksplisit ada di `title` attribute DAN di teks halaman (`get_page_text` menunjukkan badge "ditolak_otorisasi"/"gagal_teknis" + ikon "✕" di label span).
+
+**KK1 dan KK2 M5.3 TERPENUHI PENUH.**
+
+**Commit:** `dashboard/` (repo sendiri): `2c02142` — `feat: komponen Waterfall + halaman detail trace (KK1/KK2)` (mencakup Task 7+8); `nirwana-chatbot`: *(diisi setelah commit)*
+
+---
+
+---
+
 ---
 
 ---

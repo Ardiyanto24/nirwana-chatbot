@@ -40,7 +40,7 @@
         {
           "refId": "A",
           "queryType": "search",
-          "service": "",
+          "service": "nirwana-chatbot-input-layer",
           "tags": "$tags",
           "minDuration": "",
           "maxDuration": "",
@@ -69,15 +69,15 @@
       "id": 3,
       "type": "timeseries",
       "title": "Latency per Layer (p95)",
-      "description": "Durasi p95 per span_name (layer/langkah), dari metrik traces_span_metrics_duration_milliseconds_bucket (spanmetricsconnector) - untuk mengetahui layer mana yang paling lama (bottleneck)",
+      "description": "Durasi p95 per (span_name, prompt_id) - prompt_id WAJIB untuk disambiguasi karena span 'chat' dipakai ulang lintas banyak layer (Context Resolution, Decomposition, Domain Gate, Retriever, Query Engine, Interpretation semua memanggil LLM lewat span bernama sama). Dari metrik traces_span_metrics_duration_milliseconds_bucket (spanmetricsconnector). Pakai increase() atas $__range (bukan rate() atas window tetap) karena volume traffic dev/test rendah - rate() butuh >=2 sample dalam window untuk hasil bermakna. Beberapa span dengan bucket histogram default (2ms-15s) yang kurang cocok untuk span sangat cepat (<2ms, non-LLM) atau sangat lambat (>15s, LLM reasoning berat) bisa tampil NaN - keterbatasan diterima, bukan bug (lihat decisions.md).",
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
       "gridPos": {"h": 10, "w": 24, "x": 0, "y": 26},
       "fieldConfig": {"defaults": {"unit": "ms"}, "overrides": []},
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket[5m])) by (le, span_name))",
-          "legendFormat": "{{span_name}}",
+          "expr": "histogram_quantile(0.95, sum(increase(traces_span_metrics_duration_milliseconds_bucket[$__range])) by (le, span_name, prompt_id))",
+          "legendFormat": "{{span_name}} ({{prompt_id}})",
           "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}
         }
       ]

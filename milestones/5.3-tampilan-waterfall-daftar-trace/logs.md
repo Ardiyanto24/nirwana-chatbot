@@ -217,7 +217,7 @@ Tidak berlaku.
 
 **KK1 dan KK2 M5.3 TERPENUHI PENUH.**
 
-**Commit:** `dashboard/` (repo sendiri): `2c02142` — `feat: komponen Waterfall + halaman detail trace (KK1/KK2)` (mencakup Task 7+8); `nirwana-chatbot`: *(diisi setelah commit)*
+**Commit:** `dashboard/` (repo sendiri): `2c02142` — `feat: komponen Waterfall + halaman detail trace (KK1/KK2)` (mencakup Task 7+8); `nirwana-chatbot`: `7529391` — `docs(milestone-5.3): logs checkpoint 5 - KK1 dan KK2 terpenuhi`
 
 ---
 

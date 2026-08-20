@@ -1,0 +1,47 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Kebutuhan tunggal sederhana, KK1 - kesetaraan struktural langsung vs HTTP",
+  "timestamp": "2026-08-20T03:09:21.080587+00:00",
+  "raw_payload_direct": {
+    "session_id": "eval-7.17-e01-direct",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "raw_payload_http": {
+    "session_id": "eval-7.17-e01-http",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "hasil_langsung": {
+    "trace_id": "9cd05095e8bd4c0e38e922d83b54f15c",
+    "terverifikasi": true,
+    "narasi_non_kosong": true,
+    "execution_statuses": [],
+    "matches_statuses": [
+      "perlu_eksekusi"
+    ]
+  },
+  "hasil_http": {
+    "status_code": 200,
+    "body": {
+      "session_id": "eval-7.17-e01-http",
+      "turn_index": 1,
+      "narasi": "Sistem mengalami kendala teknis saat mengambil data tingkat keterisian properti untuk bulan Juni 2026. Hasil yang diperoleh dari hitungan baru pada turn ini menunjukkan data tidak tersedia (nilai kosong). Perlu dicatat bahwa bulan tersebut masih berada di masa depan, sehingga data aktual belum dapat diakses. Kami akan terus memantau ketersediaan informasi ini.",
+      "terverifikasi": true,
+      "catatan_verifikasi": null,
+      "visualisasi": [
+        {
+          "atomic_intent_id": "6839cb57-8c31-4642-893a-2d11f7e3ae0b",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "error": null
+}

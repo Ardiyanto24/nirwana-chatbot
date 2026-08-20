@@ -1,0 +1,43 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Penolakan otorisasi Domain Gate, KK2 - reuse skenario gop_margin - percobaan 5, session_id baru setelah: percobaan 1 timeout klien 600s, percobaan 2 gagal start (port bentrok orphan), percobaan 3+4 hang LLM (keterbatasan-diterima.md #7, dikonfirmasi BUKAN bug HTTP/threading lewat diagnostik panggilan langsung yang JUGA hang)",
+  "timestamp": "2026-08-20T04:15:21.107279+00:00",
+  "raw_payload_http": {
+    "session_id": "eval-7.17-e02-http-e",
+    "turn_index": 1,
+    "role_title": "Front Office Staff",
+    "employee_id": "emp-eval",
+    "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?"
+  },
+  "hasil_http": {
+    "status_code": 200,
+    "body": {
+      "session_id": "eval-7.17-e02-http-e",
+      "turn_index": 1,
+      "narasi": "Saat ini sistem mengalami kendala teknis dalam mengambil data terkait properti Bali. Untuk nilai gop_margin properti Bali bulan ini, sistem tidak dapat menyediakan informasi karena proses pengambilan data terganggu. Demikian pula, deviasi harga properti Bali bulan ini tidak berhasil diproses karena alasan teknis serupa. Ketergantungan pada kedua data tersebut membuat analisis hubungan antara deviasi harga dan gop_margin juga tidak dapat dilakukan. Kami sedang meninjau masalah ini dan akan berusaha memperbaikinya secepat mungkin. Jika data ini sangat penting, mungkin Anda dapat memeriksa sumber laporan resmi atau menghubungi penyedia data langsung untuk informasi terkini.",
+      "terverifikasi": true,
+      "catatan_verifikasi": null,
+      "visualisasi": [
+        {
+          "atomic_intent_id": "a3fc4e2d-357b-41ba-9037-86c39a5a603c",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        },
+        {
+          "atomic_intent_id": "dab36bb2-b3aa-480f-b272-225adb5d833f",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        },
+        {
+          "atomic_intent_id": "b955eacc-651d-404f-87c0-4ef7b7201f23",
+          "label_bentuk_jawaban": "perbandingan",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "error": null
+}

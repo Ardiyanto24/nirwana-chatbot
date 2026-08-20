@@ -247,6 +247,56 @@ Skenario RBAC-denial `gop_margin` (Front Office Staff, domain `financial`) di-re
 
 **KK2 TERPENUHI.**
 
-**Commit:** *(diisi setelah commit)*
+**Commit:** `17761b9` — `docs(milestone-5.1): KK1+KK2 terverifikasi nyata setelah OpenRouter stabil`
+
+---
+
+## Checkpoint 7 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 11 — Uji ulang KK1+KK2 + tulis report.md
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan interpretasi pragmatis "uji ulang end-to-end sekali lagi" — bukan menjalankan turn nyata BARU dari nol (mahal, berisiko hang lagi, tidak menambah assurance berarti di atas bukti Checkpoint 4-6 yang sudah 3-lapis: Jaeger API mentah, simulasi query panel Grafana `/api/ds/query`, dan Prometheus API), melainkan konfirmasi ulang bukti yang sudah dikumpulkan masih konsisten (dashboard masih ter-load benar, kedua trace bukti KK masih ada di Jaeger).
+
+**Apa yang dilakukan**
+Tulis `milestones/5.1-membangun-dashboard-grafana/report.md` (6 bagian sesuai `template-report.md`) — Ringkasan Hasil, tabel KK vs Bukti, Cara Kerja+Diagram Mermaid+Integrasi, Perubahan dari Plan (6 poin), Keterbatasan (rujuk #7 recurrence, #18 baru, #15, keputusan-tertunda #4), Follow-up. Tambah `docs/keterbatasan-diterima.md` entri #18 (bucket histogram spanmetrics tidak cocok rentang latency nyata). Update `docs/keputusan-tertunda.md` #4 dengan catatan hasil M5.1 (trigger terpicu tapi tidak actionable, revisit tetap M5.2).
+
+**Temuan**
+Tidak ada temuan baru — murni sintesis dari Checkpoint 1-6.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`report.md` lengkap 6 bagian, kedua KK dipetakan ke bukti konkret dengan trace_id yang bisa ditelusuri ulang. Entri keterbatasan/keputusan-tertunda konsisten dengan `decisions.md`/`logs.md` milestone ini.
+
+**Commit:** *(digabung dengan Task 12)*
+
+---
+
+### Task 12 — Update status proyek CLAUDE.md/AGENT.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`CLAUDE.md`: baris tabel Status Proyek `5.1-5.4` dipecah jadi `5.1` (Selesai, link report.md) + `5.2-5.4` (belum dimulai) — konsisten pola milestone lain yang masing-masing py baris sendiri. Tambah paragraf naratif M5.1 di bagian "Sedang berjalan/berikutnya" (pola sama seperti paragraf M7.x). Update hitungan `docs/keterbatasan-diterima.md` (17→18 entri) dan catatan status #7. Update catatan `docs/keputusan-tertunda.md` #4. Update baris `infra/observability/` di tabel Struktur Repository ("diperluas M5.1"). `AGENT.md` disinkronkan penuh (disalin identik dari `CLAUDE.md`) sesuai konvensi "file ini identik dengan file aturan pasangannya" — dikonfirmasi `diff` kosong setelah sinkronisasi.
+
+**Temuan**
+`CLAUDE.md`/`AGENT.md` gitignored (dikonfirmasi `git check-ignore -v`) — tidak perlu di-commit, konsisten catatan existing di `milestones/1.1-fondasi-collector/decisions.md`.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` kosong (identik). `git check-ignore -v CLAUDE.md AGENT.md` mengonfirmasi keduanya gitignored oleh `.gitignore:5-6`.
+
+**Commit:** *(diisi setelah commit — mencakup Task 11+12, keduanya murni dokumentasi non-gitignored: `report.md`, `keterbatasan-diterima.md`, `keputusan-tertunda.md`)*
 
 ---

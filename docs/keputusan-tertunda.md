@@ -35,6 +35,8 @@ Dokumen ini mencatat keputusan teknis yang genuinely terbuka tapi **belum saatny
 1. Milestone 5.x (Observability Dashboard) benar-benar mulai dan menentukan kebutuhan chart library nyata — revisit bentuk `deret` untuk 3 label ini (dan mungkin juga `tren`) berdasar kebutuhan render sesungguhnya, bukan tebakan.
 2. Kalau eval/produksi M4.5 menunjukkan `deret` generik (row mentah tanpa struktur x/y eksplisit) sulit dikonsumsi konsisten lintas 67 view (kolom berbeda-beda nama), pertimbangkan skema lebih terstruktur (mis. field `label`/`nilai` universal) lebih awal, tidak perlu menunggu PIC 5.
 
+**Update (Milestone 5.1, 2026-08-20):** trigger #1 di atas secara literal terpicu (PIC 5/Milestone 5.x benar-benar mulai), TAPI dikonfirmasi TIDAK actionable dalam lingkup M5.1 spesifik — M5.1 (Grafana) memvisualisasikan data trace/span observability (skema `traces`/`spans` dokumen arsitektur induk Bagian 4), sama sekali BUKAN skema `DataVisualisasi` (jawaban chatbot) yang dibahas entri ini. Skema `DataVisualisasi` baru relevan dikonsumsi Milestone 5.2+ (Next.js dashboard publik, saat chart library nyata untuk merender jawaban chatbot ditentukan) — lihat `milestones/5.1-membangun-dashboard-grafana/decisions.md` Keputusan 9. Status entri ini TETAP AKTIF, revisit substantif masih menunggu M5.2.
+
 ---
 
 ## 1. Database untuk Proyek Ini (Session Memory + Kemungkinan Migrasi Daftar Role) — ✅ SELESAI (M1.5)

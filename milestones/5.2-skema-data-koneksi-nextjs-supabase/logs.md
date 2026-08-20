@@ -139,3 +139,53 @@ Tidak berlaku.
 **Commit:** `nirwana-chatbot`: `f2464a3` — `chore(milestone-5.2): gitignore folder dashboard (repo Next.js terpisah)`; `b1a7fa8` — `docs(milestone-5.2): logs checkpoint 3` (CLAUDE.md/AGENT.md gitignored, tidak di-commit)
 
 ---
+
+## Checkpoint 4 — Kredensial + Modul Koneksi Server-Only
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 6 — `.env.local` + `db.ts` singleton
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`npm install postgres server-only`. Tulis `dashboard/.env.local.example` (template, tanpa nilai asli) + `dashboard/.env.local` (nilai asli — role `nirwana_dashboard_reader` dari Checkpoint 2, Session Pooler port 5432, `?sslmode=require` eksplisit). Tulis `dashboard/src/lib/db.ts` — singleton `globalThis`-guarded (Keputusan 4), `postgres(connectionString, { ssl: 'require' })`.
+
+**Temuan**
+`.gitignore` bawaan `create-next-app` (`.env*`) TERLALU LEBAR — ikut mengecualikan `.env.local.example` (template tanpa secret, seharusnya di-commit). Diperbaiki: tambah `!.env*.example` setelah baris `.env*`.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada (temuan di atas ditemukan+diperbaiki sebelum sempat jadi masalah nyata — dicek via `git status --porcelain` menunjukkan `.env.local.example` hilang dari staging padahal sudah dibuat).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+`git check-ignore -v .env.local.example` mengonfirmasi baris `.gitignore:34:.env*` sebagai penyebab. Tambah pola negasi `!.env*.example`, dikonfirmasi ulang `git check-ignore` tidak lagi menandainya, sementara `.env.local` (nilai asli) tetap ter-ignore.
+
+**Hasil Verifikasi**
+`git status --porcelain` di `dashboard/` menunjukkan `.env.local.example` ter-tracking, `.env.local` tidak muncul sama sekali (aman).
+
+**Commit:** *(digabung Task 7)*
+
+---
+
+### Task 7 — Route debug murni koneksi
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `dashboard/src/app/api/debug/route.ts` — `SELECT now()` lewat `sql` dari `db.ts`, TANPA menyentuh `traces`/`spans` (memisahkan pembuktian "koneksi jalan" dari "query hierarkis jalan" di Checkpoint 5, Keputusan 8).
+
+**Temuan**
+Next.js dev server (sudah berjalan sejak Checkpoint 3) otomatis pick up route baru + `.env.local` tanpa perlu restart manual (log: `Reload env: .env.local`).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada — berhasil percobaan PERTAMA (koneksi Session Pooler + SSL eksplisit + role read-only baru langsung jalan tanpa iterasi debugging).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`curl http://localhost:3000/api/debug` → `200`, body `{"connected":true,"db_time":"2026-08-20T15:10:30.319Z"}` — timestamp ASLI dari Supabase, bukan mock/hardcode.
+
+**Commit:** `dashboard/` (repo sendiri): `036f2d7` — `feat: modul koneksi Postgres server-only + route debug`; `nirwana-chatbot`: *(diisi setelah commit)*
+
+---

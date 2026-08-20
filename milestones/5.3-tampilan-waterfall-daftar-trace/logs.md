@@ -271,7 +271,7 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `report.md` lengkap 6 bagian, kedua KK dipetakan ke bukti konkret dengan `trace_id` yang bisa ditelusuri ulang.
 
-**Commit:** *(digabung Task 11)*
+**Commit:** `6f4147f` — `docs(milestone-5.3): report dan pembaruan status project` (digabung Task 11)
 
 ---
 
@@ -294,7 +294,7 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `diff CLAUDE.md AGENT.md` kosong (identik). Keduanya gitignored, tidak di-commit.
 
-**Commit:** *(diisi setelah commit — report.md, non-gitignored)*
+**Commit:** `6f4147f` — `docs(milestone-5.3): report dan pembaruan status project` (report.md, non-gitignored)
 
 ---
 

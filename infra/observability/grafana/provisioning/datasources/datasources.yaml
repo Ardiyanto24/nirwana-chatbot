@@ -1,0 +1,19 @@
+# Provisioning-as-code (Milestone 5.1, Keputusan 3) - datasource didefinisikan
+# di sini, bukan diklik manual lewat UI Grafana. File ini di-mount read-only
+# ke container, load otomatis saat Grafana start.
+apiVersion: 1
+
+datasources:
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    isDefault: false
+    editable: false
+
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

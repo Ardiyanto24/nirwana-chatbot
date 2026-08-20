@@ -27,3 +27,21 @@ services:
       - "9090:9090" # Prometheus UI
     depends_on:
       - otel-collector
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: nirwana-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - grafana-data:/var/lib/grafana # cache sekunder saja - sumber kebenaran config ada di provisioning/ (git)
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000" # Grafana UI (host 3001 - port 3000 dipakai proses lain di mesin developer, lihat logs.md Checkpoint 2)
+    depends_on:
+      - jaeger
+      - prometheus
+
+volumes:
+  grafana-data:

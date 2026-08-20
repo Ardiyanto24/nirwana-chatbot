@@ -1,23 +1,36 @@
-# Observability — Fondasi Bersama (Milestone 1.1)
+# Observability — Fondasi Bersama (Milestone 1.1) + Dashboard Grafana (Milestone 5.1)
 
-Fondasi OTel Collector lokal yang dipakai bersama oleh seluruh 9 layer AI Chatbot (PIC 1-4). Dokumen ini untuk PIC lain yang perlu mengarahkan instrumentasi mereka ke sini — bukan dokumentasi arsitektur (lihat `docs/01-architecture/rancangan-observability-ai-chatbot.md` untuk itu).
+Fondasi OTel Collector lokal yang dipakai bersama oleh seluruh 9 layer AI Chatbot (PIC 1-4), plus dashboard Grafana self-hosted (PIC 5, Milestone 5.1) di atasnya. Dokumen ini untuk PIC lain yang perlu mengarahkan instrumentasi mereka ke sini — bukan dokumentasi arsitektur (lihat `docs/01-architecture/rancangan-observability-ai-chatbot.md` untuk itu).
 
 ## Menjalankan Stack
+
+Isi `GRAFANA_ADMIN_PASSWORD` di `.env` (lihat `.env.example`) sebelum menjalankan stack.
 
 ```bash
 cd infra/observability
 docker compose up -d
 ```
 
-Tiga service akan berjalan:
+Empat service akan berjalan:
 
 | Service | Fungsi | Akses |
 |---|---|---|
 | `otel-collector` | Titik penerima OTLP **tunggal** untuk seluruh 9 layer | grpc `localhost:4317`, http `localhost:4318` |
 | `jaeger` | Penyimpanan & UI trace (jalur privat) | UI `http://localhost:16686` |
 | `prometheus` | Penyimpanan & UI metrics (jalur privat) | UI `http://localhost:9090` |
+| `grafana` | Dashboard privat di atas Jaeger+Prometheus (Milestone 5.1) | UI `http://localhost:3001` (login `admin`/`$GRAFANA_ADMIN_PASSWORD`) — host port 3001, bukan 3000 default, karena 3000 dipakai proses lain di mesin developer (lihat `milestones/5.1-membangun-dashboard-grafana/logs.md` Checkpoint 2) |
 
 Hentikan dengan `docker compose down` (dari folder yang sama).
+
+## Grafana (Milestone 5.1)
+
+Self-hosted, bukan Grafana Cloud (alasan lengkap: `milestones/5.1-membangun-dashboard-grafana/decisions.md` Keputusan 1) — Grafana Cloud hosted eksternal tidak bisa menjangkau Jaeger/Prometheus di jaringan Docker Compose lokal ini tanpa tunnel tambahan.
+
+Datasource dan dashboard didefinisikan **provisioning-as-code** (Keputusan 3), bukan diklik manual lewat UI — file-nya di-commit git dan di-mount read-only ke container:
+- `grafana/provisioning/datasources/datasources.yaml` — datasource Jaeger + Prometheus.
+- `grafana/provisioning/dashboards/dashboards.yaml` + `grafana/dashboards/*.json` — dashboard panel.
+
+Perubahan lewat UI Grafana saat debugging TIDAK persisten (hilang saat container restart, by design) — perubahan permanen wajib dituliskan balik ke file provisioning di atas.
 
 ## Endpoint yang Dipakai Instrumentasi Kamu (PIC 2-4)
 

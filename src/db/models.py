@@ -10,12 +10,23 @@ observability Milestone 5.x/6.x di project Supabase yang sama (Keputusan 1
 dan 5). `role_permissions` (Milestone 2.2) adalah salinan Lapis-1 milik
 proyek ini sendiri - BUKAN tabel produksi `mart_cleaned.role_permissions`,
 lihat docstring `RolePermissionRow`.
+
+`TraceRow`/`SpanRow` (Milestone 5.2) genuinely MEMBUAT tabel yang sebelumnya
+cuma "dipesan secara konsep" di atas - field PERSIS kontrak Bagian 4
+rancangan-observability-ai-chatbot.md, tidak boleh didesain ulang di sini.
+Dikonsumsi PIC 5 (Next.js `dashboard/`, repo terpisah) via connection Node
+read-only TERPISAH dari DATABASE_URL Python (least-privilege, lihat
+milestones/5.2-skema-data-koneksi-nextjs-supabase/decisions.md Keputusan 9)
+- kedua model ini sendiri TETAP didefinisikan di sini (Python) karena PIC 6
+(custom exporter Go) belum ada, dan M5.2 perlu SQLModel.metadata.create_all()
+untuk membuat tabelnya pertama kali (lihat seed_sample_trace.py).
 """
 
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, DateTime
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
 
@@ -145,3 +156,46 @@ class ConversationTurnRow(SQLModel, table=True):
     narasi: str
     status: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class TraceRow(SQLModel, table=True):
+    """Satu baris per trace (= satu turn user) - Milestone 5.2. Skema PERSIS
+    kontrak Bagian 4 rancangan-observability-ai-chatbot.md, dikonsumsi
+    dashboard publik Next.js (repo terpisah `dashboard/`) via koneksi
+    read-only. `status` mengikuti taksonomi StatusEksekusi project
+    (berhasil/sebagian/ditolak_otorisasi/gagal_teknis/terblokir_ketergantungan)
+    tapi disimpan str polos (bukan Enum native Postgres), konsisten pola
+    SessionMemoryPackageRow. `role_title` untuk analisis distribusi, BUKAN
+    identitas personal - lihat decisions.md M5.2."""
+
+    __tablename__ = "traces"
+
+    trace_id: str = Field(primary_key=True)
+    session_id: str = Field(index=True)
+    turn_index: int
+    started_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    ended_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    status: str | None = None
+    role_title: str | None = None
+
+
+class SpanRow(SQLModel, table=True):
+    """Satu baris per span (banyak per trace) - Milestone 5.2. Skema PERSIS
+    kontrak Bagian 4 rancangan-observability-ai-chatbot.md. `parent_span_id`
+    null untuk span akar (`invoke_agent`, M7.6-7.16) - dashboard Next.js
+    membangun tree hierarkis dari kolom ini (decisions.md M5.2 Keputusan 6).
+    Index eksplisit pada `trace_id` (Postgres tidak otomatis mengindeks
+    kolom FK di sisi child, decisions.md M5.2 Keputusan 5)."""
+
+    __tablename__ = "spans"
+
+    span_id: str = Field(primary_key=True)
+    trace_id: str = Field(foreign_key="traces.trace_id", index=True)
+    parent_span_id: str | None = Field(default=None, foreign_key="spans.span_id", index=True)
+    layer_name: str
+    operation_name: str | None = None
+    started_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    ended_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    duration_ms: int | None = None
+    error_type: str | None = None
+    attributes: dict = Field(default_factory=dict, sa_column=Column(JSONB))

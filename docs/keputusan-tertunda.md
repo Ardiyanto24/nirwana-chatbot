@@ -4,6 +4,23 @@ Dokumen ini mencatat keputusan teknis yang genuinely terbuka tapi **belum saatny
 
 ---
 
+## 5. Strategi Penanganan Narasi Gagal Verifikasi Kesetiaan (Milestone 7.17) — Saat Ini Diganti Pesan Generik Total
+
+**Status:** AKTIF — endpoint `POST /v1/turns` SUDAH memakai strategi "ganti total dengan pesan generik" (`src/main.py::_build_turn_response()`) begitu `terverifikasi=False`, TAPI ini dikonfirmasi user sebagai keputusan fase-awal, bukan strategi final.
+
+**Muncul di:** Milestone 7.17 (Membangun Endpoint API), Checkpoint 1 (2026-08-20), saat merancang bentuk response untuk kasus `HasilVerifikasiNarasi.lolos=False`/`None`.
+
+**Konteks kemunculan:** Verifikasi kesetiaan (M4.5) bisa gagal karena SATU klaim tambahan tidak berdasar di tengah narasi yang SEBAGIAN BESAR valid (contoh konkret: angka benar + penjelasan sebab-akibat karangan LLM) — tidak ada mekanisme retry balik ke M4.4 (sengaja, M7.5). User memilih pendekatan konservatif (ganti SELURUH narasi dengan pesan generik) demi keamanan fase awal, eksplisit meminta ini dicatat sebagai keputusan yang layak ditinjau ulang, bukan final. Lihat `milestones/7.17-.../decisions.md` Keputusan 1, `docs/keterbatasan-diterima.md` #16.
+
+**Kenapa belum ditutup permanen:** Belum ada bukti nyata seberapa SERING pola "sebagian valid, sebagian karangan" ini terjadi di produksi (baru diamati sekali sebagai contoh hipotetis saat plan, bukan dari data nyata) — merancang strategi lebih halus (mis. minta LLM regenerasi HANYA bagian yang ditandai gagal, atau deteksi+strip kalimat spesifik yang mengandung klaim tidak berdasar) butuh investasi desain (kemungkinan perubahan M4.4/M4.5, bukan sekadar M7.17) yang belum sepadan tanpa bukti pola ini genuinely sering terjadi.
+
+**Pemicu peninjauan ulang:**
+1. Ada bukti nyata (traffic produksi atau eval berkelanjutan) menunjukkan pola "narasi sebagian valid, gagal verifikasi karena satu klaim" terjadi CUKUP SERING sehingga membuang informasi valid secara signifikan bagi user.
+2. PIC yang memegang M4.4/M4.5 (atau siapa pun yang mengerjakannya berikutnya) py kapasitas untuk merancang mekanisme lebih halus — mis. retry bertarget (minta LLM regenerasi TANPA klaim yang ditandai gagal, mirror pola retry-dengan-feedback M1.6) atau post-processing strip kalimat spesifik.
+3. Frontend (konsumen `docs/panduan-integrasi-frontend.md`) melaporkan keluhan nyata soal pesan generik yang terlalu sering muncul/kurang informatif.
+
+---
+
 ## 4. Skema `DataVisualisasi` untuk 3 Label Selain `tren`/`nilai_tunggal` (Milestone 4.5) — Provisional, Menunggu PIC 5
 
 **Status:** AKTIF — skema SUDAH dipakai produksi (`DataVisualisasi`, `src/schemas/interpretation.py`: `nilai_tunggal` scalar untuk label `nilai_tunggal`, `deret: list[dict]` untuk 4 label lain), TAPI perluasan bentuk `deret` ke `perbandingan`/`peringkat`/`komposisi` eksplisit BUKAN kontrak resmi — instruksi diri sendiri (agen) dicatat sadar sebagai provisional, mirror pola `docs/keputusan-tertunda.md` #2/#3.

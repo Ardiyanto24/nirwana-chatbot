@@ -256,3 +256,31 @@ Gap ini kini TERTUTUP sebagai bukti — status entri diubah dari "diterima karen
 **Dampak + mitigasi:** M7.15 tidak bisa mendemonstrasikan skenario "selesai dari eksekusi BERHASIL turn sebelumnya" secara hidup (live) di lingkungan kerja saat ini — SELURUH eksekusi nyata yang mencapai `chatbot_api` akan `SEBAGIAN`, yang secara BENAR (bukan bug) tidak pernah ditawarkan `match_atomic_intents()` sebagai kandidat "selesai" (Keputusan 4 M1.7 — desain yang SENGAJA menolak data tidak pasti sebagai basis pencocokan, prinsip yang justru terbukti bekerja benar di sini). Mekanisme re-keying (`sumber_arsip()`) dan penggabungan (`susun_paket_narasi()`) TETAP terverifikasi benar via unit test deterministik (`tests/orchestration/test_paket_narasi.py`, Checkpoint 4 M7.15) yang TIDAK bergantung pada `chatbot_api` sama sekali — gap ini murni soal bukti END-TO-END LIVE untuk SATU cabang spesifik (selesai-dari-BERHASIL), bukan soal kebenaran logic. Lihat `milestones/7.15-.../audit.md` untuk detail 4 percobaan.
 
 **Pemicu peninjauan ulang:** Begitu data `chatbot_api` lokal genuinely direfresh oleh tim database engineering (atau `EXECUTION_DATA_STALENESS_THRESHOLD_JAM` dikalibrasi ulang berbasis jadwal refresh nyata, `docs/keputusan-tertunda.md` #3), ulangi skenario 2-turn E01 M7.15 untuk membuktikan cabang "selesai dari BERHASIL" secara live — prioritaskan sebelum M7.16 (Verifikasi Alur Penuh End-to-End) kalau skenario e2e-nya juga butuh kombinasi serupa.
+
+---
+
+## 16. Narasi yang Gagal Verifikasi Kesetiaan (M4.5) Diganti Pesan Generik — Bagian Valid Ikut Terbuang
+
+**Ditemukan di:** Milestone 7.17 (`milestones/7.17-membangun-endpoint-api/decisions.md` Keputusan 1, 2026-08-20), saat merancang bentuk response endpoint HTTP — keputusan desain eksplisit user, bukan bug yang ditemukan mid-implementation.
+
+**Konteks penemuan:** `HasilVerifikasiNarasi` (M4.5) bisa mengembalikan `lolos=False` (narasi mengandung klaim tidak berdasar data) atau `lolos=None` (verifikasi itu sendiri gagal teknis). Tidak ada mekanisme retry balik ke M4.4 (sengaja, M7.5 Keputusan 4-5) — narasi ASLI tetap ada di `HasilNarasi.narasi`, tidak pernah diperbaiki otomatis. Contoh konkret yang dibahas saat plan: narasi "revenue turun 18.75% [BENAR, didukung data] disebabkan penurunan wisatawan asing [karangan LLM, TIDAK didukung data]" — verifikasi gagal karena SATU klaim tambahan, bukan seluruh narasi salah.
+
+**Kenapa diterima (bukan strategi lebih halus dari awal):** User memilih pendekatan konservatif untuk fase awal endpoint HTTP pertama project — mencegah klaim tidak berdasar sampai ke user sama sekali dinilai lebih penting daripada mempertahankan bagian narasi yang valid, sambil strategi yang lebih baik belum dirancang.
+
+**Dampak + mitigasi:** Kapan pun `terverifikasi=False` (mencakup `lolos=False` DAN `lolos=None`), SELURUH `narasi` diganti pesan generik (`src/main.py::_build_turn_response()`) — termasuk bagian yang sebenarnya didukung data. User kehilangan informasi valid yang sebenarnya bisa disampaikan (mis. angka yang benar) hanya karena SATU klaim tambahan gagal verifikasi. Mitigasi saat ini: `catatan_verifikasi` tetap diisi `alasan` dari `HasilVerifikasiNarasi` (transparan bahwa verifikasi gagal, meski tanpa isi narasi aslinya).
+
+**Pemicu peninjauan ulang:** Lihat `docs/keputusan-tertunda.md` #5 (strategi lebih halus penanganan narasi gagal verifikasi).
+
+---
+
+## 17. Celah Defensif Laten (`IndexError`/`KeyError`) Ditemukan Saat Riset M7.17 — Diterima Tanpa Perbaikan
+
+**Ditemukan di:** Milestone 7.17, riset plan (pembacaan kode menyeluruh untuk memetakan exception yang bisa lolos dari `proses_turn()`, 2026-08-20) — BUKAN reproduksi nyata (beda dari preseden #14, celah `detect_turn_dependency()` M7.6, yang dibuktikan crash nyata lewat eval).
+
+**Konteks penemuan:** Dua kelas celah: (a) `IndexError` kalau LLM merespons SUKSES (HTTP 200) tapi `response.choices` kosong — 5 titik (`detect_turn_dependency` M1.3, 3 sub-langkah Decomposition M1.6, `susun_narasi` M4.4), tidak tertangkap `try/except APIError` yang sudah ada karena `IndexError` bukan `APIError`; (b) `KeyError` kalau invarian fan-in ID meleset (`verifikasi_gate_semua`/`eksekusi_atomic_intent_semua`, M7.13/M7.14, dict indexing langsung bukan `.get()`). Keduanya BELUM PERNAH terjadi nyata di eval/produksi manapun sepanjang project.
+
+**Kenapa diterima (bukan diperbaiki sekarang):** M7.17 py batasan mengikat eksplisit "Tidak termasuk: Logic internal kesembilan layer itu sendiri" (`rancangan-orkestrasi-api.md`). Beda kualitatif dari preseden M7.6/M7.7 (bug SUDAH terbukti nyata menyebabkan crash, memicu pengecualian eksplisit dari batasan) — di sini celah masih hipotetis, user memilih tidak membuat pengecualian yang sama untuk kasus yang belum terbukti terjadi.
+
+**Dampak + mitigasi:** Kalau salah satu celah ini genuinely terpicu, exception akan menjalar sampai endpoint HTTP M7.17 dan tertangkap oleh handler catch-all `Exception` → 500 generik (`{"detail": "<pesan aman>"}`, TIDAK bocor detail internal) — endpoint tetap AMAN, tapi klien tidak mendapat sinyal presisi soal apa yang genuinely gagal, hanya "kegagalan internal" generik.
+
+**Pemicu peninjauan ulang:** Begitu salah satu celah ini genuinely terpicu sekali (terdeteksi lewat log/Jaeger 500 tak terduga), prioritaskan perbaikan di file pemilik masing-masing (M1.3/M1.6/M4.4 untuk `IndexError`, M7.13/M7.14 untuk `KeyError`), didokumentasikan di `decisions.md` file pemilik — mirror pola perbaikan M7.6/M7.7.

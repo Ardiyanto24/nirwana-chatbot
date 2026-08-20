@@ -88,3 +88,32 @@ Diagnosis: dikonfirmasi data SUDAH tersimpan benar (bug murni di baris print, bu
 **Commit:** `0486966` — `docs(milestone-5.3): logs checkpoint 2`
 
 ---
+
+## Checkpoint 3 — Shell Aplikasi Dasar
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 4 — Nav + tema fixed-dark + layout/page
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ubah `dashboard/src/app/globals.css` (fixed dark theme, hapus `@media (prefers-color-scheme: dark)`, `--background:#020617`/`--foreground:#e2e8f0`). Buat `dashboard/src/components/Nav.tsx` (`Nav`+`Footer`, link `/`+`/traces`, konvensi visual ditiru dari `nirwana-database/web`). Update `dashboard/src/app/layout.tsx` (`lang="id"`, metadata layak, pasang `<Nav/>`+`<Footer/>`). Ganti `dashboard/src/app/page.tsx` (halaman index ringkas, bukan boilerplate).
+
+**Temuan**
+Dev server sebelumnya (dari sesi lanjutan M5.2) masih hidup di background (PID 22448) — dimatikan sebelum restart bersih dengan bind eksplisit `-H 127.0.0.1` (lesson learned insiden akses `localhost:3000`, Keputusan 10).
+
+**Error/Kegagalan (jika ada)**
+Tool `computer` (screenshot) gagal ("Browser pane is not displayed") — bukan bug implementasi, panel Browser sisi user belum terbuka secara visual di client. Diatasi dengan verifikasi alternatif setara: `get_page_text`, `read_console_messages`, dan `javascript_tool` (baca `getComputedStyle`/query DOM langsung) — sama-sama bukti nyata dari browser sungguhan, bukan `curl`.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Screenshot tidak esensial untuk pembuktian — DOM/computed-style query memberi bukti setara (bahkan lebih presisi untuk nilai warna eksak) tanpa bergantung compositing visual.
+
+**Hasil Verifikasi**
+`get_page_text` → title "Nirwana Chatbot — Observability" (bukan lagi "Create Next App"), konten halaman index sesuai yang ditulis. `read_console_messages` → tidak ada error React/hydration. `javascript_tool` (`getComputedStyle(document.body)`) → `backgroundColor="rgb(2, 6, 23)"` (=`#020617`, PERSIS sesuai CSS), `color="rgb(226, 232, 240)"` (=`#e2e8f0`, PERSIS sesuai CSS); `document.querySelector('header')`/`'footer'` keduanya ada; link Nav `["Ringkasan", "Trace"]` sesuai desain.
+
+**Commit:** `dashboard/` (repo sendiri): `2ea4659` — `feat: shell aplikasi dasar - Nav, footer, tema fixed-dark`; `nirwana-chatbot`: *(diisi setelah commit)*
+
+---
+
+---

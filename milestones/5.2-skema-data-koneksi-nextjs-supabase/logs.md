@@ -89,3 +89,53 @@ Diagnosis: dikonfirmasi transaksi gagal total (rollback penuh, dicek nyata — `
 **Commit:** `3353480` — `feat(milestone-5.2): tambah model TraceRow/SpanRow + seed data contoh trace`
 
 ---
+
+## Checkpoint 3 — Scaffold Repo Next.js Kosong
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 4 — `create-next-app` + repo terpisah + gitignore
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`npx create-next-app@latest dashboard --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm` dari root `nirwana-chatbot` — App Router+TypeScript+Tailwind+ESLint, versi terinstal nyata: Next.js `16.3.1`, React `19.2.8`, TypeScript `^5` (sangat dekat preseden `nirwana-database/web`: 16.3.0/19.2.8/^5). `create-next-app` TIDAK auto-init git kali ini (beda dari beberapa versi lama) — `git init` dijalankan manual di `dashboard/`. Tambah baris `dashboard/` ke `.gitignore` `nirwana-chatbot` (mirror komentar `nirwana-database/.gitignore` untuk `web/`). Commit awal (`b986f6c`) DI DALAM repo `dashboard/` sendiri (19 file, scaffold apa adanya).
+
+**Temuan**
+`.gitignore` bawaan `create-next-app` sudah benar mengecualikan `node_modules/`, `.next/`, `.env*` — tidak perlu penyesuaian manual.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`git status` di dalam `dashboard/` mengonfirmasi repo terpisah genuinely aktif (bukan fallback ke repo induk) setelah `git init`; `git log` menunjukkan 1 commit root.
+
+**Commit:** `dashboard/` (repo sendiri): `b986f6c` — `chore: scaffold Next.js app (create-next-app)`; `nirwana-chatbot`: *(digabung Task 5)*
+
+---
+
+### Task 5 — Verifikasi `npm run dev` + update Struktur Repository
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`npm run dev` dijalankan background, dipoll sampai siap. Update baris placeholder folder Next.js di tabel "Struktur Repository" `CLAUDE.md`/`AGENT.md` — dari "Belum dibuat, lokasi belum ditentukan" jadi informasi konkret (repo terpisah gitignored, versi terinstal, rujukan Keputusan 1).
+
+**Temuan**
+Dev server pakai Turbopack meski `--no-turbopack` diberikan ke `create-next-app` (kemungkinan default Next.js 16 sudah Turbopack-first, flag hanya memengaruhi bagian lain) — tidak memengaruhi fungsi apa pun untuk M5.2, tidak ditindaklanjuti.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`curl http://localhost:3000` → `200` nyata (log dev server: `GET / 200 in 3.2s`, `✓ Ready in 772ms`).
+
+**Commit:** `nirwana-chatbot`: *(diisi setelah commit)* — `.gitignore` + `logs.md` (CLAUDE.md/AGENT.md gitignored, tidak di-commit)
+
+---

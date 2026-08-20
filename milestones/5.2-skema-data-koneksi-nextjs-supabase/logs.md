@@ -136,6 +136,6 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `curl http://localhost:3000` → `200` nyata (log dev server: `GET / 200 in 3.2s`, `✓ Ready in 772ms`).
 
-**Commit:** `nirwana-chatbot`: *(diisi setelah commit)* — `.gitignore` + `logs.md` (CLAUDE.md/AGENT.md gitignored, tidak di-commit)
+**Commit:** `nirwana-chatbot`: `f2464a3` — `chore(milestone-5.2): gitignore folder dashboard (repo Next.js terpisah)`; `b1a7fa8` — `docs(milestone-5.2): logs checkpoint 3` (CLAUDE.md/AGENT.md gitignored, tidak di-commit)
 
 ---

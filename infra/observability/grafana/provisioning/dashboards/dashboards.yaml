@@ -1,0 +1,15 @@
+# Provisioning-as-code (Milestone 5.1, decisions.md Keputusan 3) - provider
+# dashboard, mengarah ke file JSON di ../../dashboards/ (di-mount terpisah
+# lewat docker-compose.yml ke /var/lib/grafana/dashboards).
+apiVersion: 1
+
+providers:
+  - name: "Nirwana Observability"
+    orgId: 1
+    folder: ""
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards

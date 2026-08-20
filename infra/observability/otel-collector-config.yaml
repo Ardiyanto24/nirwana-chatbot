@@ -28,10 +28,15 @@ connectors:
   # Dimension custom: prompt.id (disambiguator span "chat" yang nama-nya
   # reused lintas layer) + error.type (taksonomi status kegagalan) - keduanya
   # sudah terpasang di instrumentasi existing PIC 1-4, zero-touch ke kode layer.
+  # riwayat.status (decisions.md Keputusan 5) - atribut span riwayat.simpan
+  # (src/orchestration/riwayat_percakapan.py, M7.18), sumber panel "Distribusi
+  # Status" karena satu-satunya sinyal status level-turn yang mencakup nilai
+  # positif "berhasil" (error.type hanya terpasang di jalur kegagalan).
   span_metrics:
     dimensions:
       - name: prompt.id
       - name: error.type
+      - name: riwayat.status
     metrics_flush_interval: 15s
 
 exporters:

@@ -1,0 +1,120 @@
+{
+  "uid": "nirwana-chatbot-observability",
+  "title": "Nirwana Chatbot - Observability",
+  "description": "Milestone 5.1 - trace per turn, waterfall span, latency per layer, distribusi status, frekuensi error.type",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "tags": ["nirwana-chatbot", "milestone-5.1"],
+  "time": {"from": "now-24h", "to": "now"},
+  "refresh": "",
+  "templating": {
+    "list": [
+      {
+        "name": "traceId",
+        "type": "textbox",
+        "label": "Trace ID",
+        "description": "Tempel trace_id dari respons /v1/turns atau dari baris panel Daftar Trace di bawah",
+        "current": {"text": "", "value": ""},
+        "query": ""
+      },
+      {
+        "name": "tags",
+        "type": "textbox",
+        "label": "Filter Tags",
+        "description": "Sintaks Jaeger, mis. error.type=ditolak_otorisasi",
+        "current": {"text": "", "value": ""},
+        "query": ""
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "traces",
+      "title": "Daftar Trace (Search)",
+      "description": "Search trace lewat Jaeger datasource, filter opsional pakai variable $tags (mis. error.type=ditolak_otorisasi)",
+      "datasource": {"type": "jaeger", "uid": "PC9A941E8F2E49454"},
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 0},
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "search",
+          "service": "",
+          "tags": "$tags",
+          "minDuration": "",
+          "maxDuration": "",
+          "limit": 20,
+          "datasource": {"type": "jaeger", "uid": "PC9A941E8F2E49454"}
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "traces",
+      "title": "Detail Trace / Waterfall",
+      "description": "Isi variable $traceId (di atas) dengan trace_id turn nyata untuk melihat urutan span dan durasi tiap layer",
+      "datasource": {"type": "jaeger", "uid": "PC9A941E8F2E49454"},
+      "gridPos": {"h": 16, "w": 24, "x": 0, "y": 10},
+      "targets": [
+        {
+          "refId": "A",
+          "query": "$traceId",
+          "queryType": "",
+          "datasource": {"type": "jaeger", "uid": "PC9A941E8F2E49454"}
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Latency per Layer (p95)",
+      "description": "Durasi p95 per span_name (layer/langkah), dari metrik traces_span_metrics_duration_milliseconds_bucket (spanmetricsconnector) - untuk mengetahui layer mana yang paling lama (bottleneck)",
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 26},
+      "fieldConfig": {"defaults": {"unit": "ms"}, "overrides": []},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(traces_span_metrics_duration_milliseconds_bucket[5m])) by (le, span_name))",
+          "legendFormat": "{{span_name}}",
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "piechart",
+      "title": "Distribusi Status (per turn)",
+      "description": "Sumber: atribut riwayat.status pada span riwayat.simpan (M7.18) - satu-satunya sinyal status level-turn yang mencakup nilai positif 'berhasil' (decisions.md Keputusan 5)",
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 36},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(traces_span_metrics_calls_total{span_name=\"riwayat.simpan\"}) by (riwayat_status)",
+          "legendFormat": "{{riwayat_status}}",
+          "instant": true,
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "barchart",
+      "title": "Frekuensi error.type",
+      "description": "Sumber: atribut error.type (level span/atomic-intent) - perhatian khusus pada ditolak_otorisasi/gagal_teknis yang menandakan bug/kegagalan, dibanding hasil berhasil biasa",
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 36},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(traces_span_metrics_calls_total{error_type!=\"\"}) by (error_type)",
+          "legendFormat": "{{error_type}}",
+          "instant": true,
+          "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}
+        }
+      ]
+    }
+  ]
+}

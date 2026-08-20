@@ -170,8 +170,10 @@ Diagnosis dilakukan bertahap, didorong lebih jauh dari preseden M7.16 karena per
 
 Ditanyakan ke user (`AskUserQuestion`) bagaimana melanjutkan mengingat retry sederhana sudah 2× gagal dan root cause terbukti eksternal. **Keputusan user**: kerjakan bagian yang TIDAK butuh panggilan LLM sekarang (panel dashboard, config), verifikasi real-turn KK1/KK2 ditunda sampai OpenRouter stabil — dicatat eksplisit, BUKAN diam-diam dilewati. Milestone TETAP berstatus belum selesai sampai verifikasi nyata benar-benar terlaksana.
 
-**Hasil Verifikasi**
+**Hasil Verifikasi (status saat itu)**
 BELUM TERPENUHI — diblokir prasyarat eksternal (OpenRouter). Task 6 (dan turunannya Task 8/Task 10 di Checkpoint 5/6) ditandai **BLOCKED-EXTERNAL**, ditinjau ulang begitu OpenRouter kembali stabil. Bukan kegagalan implementasi M5.1 — seluruh komponen non-LLM (dashboard, datasource, spanmetricsconnector) sudah terbukti bekerja (Checkpoint 1-3, Task 5).
+
+**Update — TERPENUHI setelah resume (lihat bagian "Resume Setelah OpenRouter Stabil" di bawah).**
 
 **Commit:** tidak ada perubahan kode untuk task ini sendiri (murni diagnosis) — dicatat bersama commit `docs` checkpoint ini
 
@@ -195,9 +197,56 @@ Tidak ada.
 **Diagnosis dan Perbaikan (jika ada error)**
 Lihat poin 1 "Apa yang dilakukan" di atas.
 
-**Hasil Verifikasi**
+**Hasil Verifikasi (status saat itu)**
 `GET /api/dashboards/uid/nirwana-chatbot-observability` (auth admin) mengembalikan `200` dengan 5 panel: `traces`×2 (Task 5, KK1), `timeseries` (Task 7, latency), `piechart`+`barchart` (Task 9, KK2) — bukti config/provisioning valid dan diterima Grafana. **BUKAN bukti data benar** (belum ada data nyata mengalir karena Task 6/8/10 masih BLOCKED-EXTERNAL) — panel-panel ini akan tampil kosong sampai turn nyata berhasil dan diverifikasi.
 
+**Update — data nyata terverifikasi setelah resume, DUA bug query ditemukan+diperbaiki (lihat bagian "Resume Setelah OpenRouter Stabil" di bawah).**
+
 **Commit:** `f4de0bb` — `feat(milestone-5.1): panel daftar trace, waterfall, latency, distribusi status, error.type`
+
+---
+
+## Resume Setelah OpenRouter Stabil (2026-08-20, sesi lanjutan)
+
+Instruksi user: "mari lanjutkan lagi proses yang tadi sempat dihentikan". Lingkungan kerja ditemukan mati total (Docker Desktop tidak jalan, kedua server mati) — kemungkinan mesin restart di antara sesi. Seluruh stack dinyalakan ulang dari nol (Docker Desktop, `docker compose up -d` 4 service, `chatbot_api` lokal, server aplikasi `uvicorn`).
+
+**Metodologi baru** (atas instruksi user: "coba lakukan pengecekan berkala, misal melihat jumlah span, kalau bertambah berarti aman"): sebelum retry pipeline penuh yang mahal, dilakukan cek murah dulu — panggilan LLM tunggal via `test_openrouter_single_call.py` (script sisa Checkpoint 4). Kalau itu cepat (~10-12 detik), lanjut ke turn nyata; kalau hang lagi, tidak perlu buang waktu ke pipeline penuh.
+
+### Task 6 (KK1) — Berhasil
+
+Cek OpenRouter: `test_openrouter_single_call.py` → `12.4s`, normal (sebelumnya hang >120s). Kirim turn nyata (`session_id="milestone-5.1-cp4-kk1-retry2"`, payload sama persis contoh `docs/panduan-integrasi-frontend.md` 3.1) via `POST /v1/turns` (background, `--max-time 600`).
+
+**Pemantauan berkala span count** (polling Jaeger API tiap 45s, trace_id `d13c84ac3249cc1266a8935b4523e4b4`): 6→13→14→18→28, lalu stagnan 6× check berturut-turut (~4.5 menit) — TERNYATA bukan hang, hanya keterlambatan flush batch span (pelajaran penting: stagnan span count TIDAK selalu berarti macet, terutama menjelang span induk lama seperti `retriever.cari_kandidat_view` yang menunggu 2 panggilan LLM berurutan sebelum anak-anaknya di-flush). Curl selesai `curl_exit=0`, `http_status=200`.
+
+**Bukti KK1 (3 lapis independen):**
+1. Waterfall lengkap dari Jaeger API: `invoke_agent` (314483ms) sebagai root, dengan seluruh 9 layer bersarang benar (`input.validate` → 5× `chat` (context resolution+decomposition) → `domain_gate.identifikasi_semua`(+2 chat anak) → `domain_gate.periksa_otorisasi_semua`(+1 authorization.check) → `domain_gate.deteksi_constraint_semua` → `retriever.proses_semua`(+2 chat anak) → `query_engine.susun_dan_verifikasi_request_semua`(+2 chat anak) → `orchestration.wave` → `verification_gate.verifikasi_gate_semua` → `execution.eksekusi_atomic_intent_semua` → `execution.susun_dan_simpan_paket_semua` → `orchestration.susun_paket_narasi` → 2× `chat` (interpretation)) — 28 span total, seluruh durasi per span terlihat individual.
+2. **Simulasi query panel Grafana sungguhan** via `POST /api/ds/query` (persis target Panel 2 "Detail Trace/Waterfall": datasource Jaeger `uid=PC9A941E8F2E49454`, `query=$traceId`) → `200`, dataframe 28 baris dengan field `operationName`/`parentSpanID`/`duration` lengkap — bukti Grafana (bukan cuma Jaeger API mentah) benar-benar bisa menampilkan trace ini.
+3. Respons turn: `narasi` melaporkan kendala teknis jujur (konsisten `keterbatasan-diterima.md` #15, data `chatbot_api` lokal stale), `terverifikasi=true` — turn valid, bukan crash.
+
+**KK1 TERPENUHI.**
+
+### Task 8 (Latency per Layer) — Berhasil, dengan 2 bug ditemukan+diperbaiki
+
+Metrik `riwayat_status="gagal_teknis"` dari turn di atas dikonfirmasi masuk Prometheus (`traces_span_metrics_calls_total{span_name="riwayat.simpan"}` = 1, trace terpisah `c7b00c22f361d110f234b15d4ff882aa` sesuai pola M7.18 — `riwayat.simpan` tidak ter-nest di bawah `invoke_agent`). 13 nilai `prompt_id` berbeda muncul benar di Prometheus (satu per jenis panggilan `chat`).
+
+**Bug 1**: Panel "Daftar Trace (Search)" gagal `400 Bad Request` — `service: ""` ditolak Jaeger API (wajib non-empty). Diperbaiki: `service: "nirwana-chatbot-input-layer"`.
+
+**Bug 2**: Panel "Latency per Layer" awalnya group by `span_name` saja — MERUSAK tujuan panel karena span `chat` dipakai ulang di ~13 lokasi berbeda (context resolution, decomposition, domain gate, retriever, query engine, interpretation semua pakai nama sama), jadi seluruh durasi tergabung jadi satu series tak bermakna. Diperbaiki: group by `(span_name, prompt_id)` sesuai desain dimension Keputusan 4. Ditemukan juga `histogram_quantile(... rate(...[5m]) ...)` mengembalikan `NaN` untuk hampir semua series — root cause: volume traffic dev/test terlalu jarang (`rate()` butuh ≥2 sample dalam window untuk hasil bermakna), diganti `increase(...[$__range])` (pola Grafana standar untuk histogram low-volume).
+
+**Verifikasi setelah fix** (simulasi query panel via `/api/ds/query`, persis target panel): 11/29 series menunjukkan nilai nyata (bukan `NaN`) — `input.validate`=48.1ms (non-LLM) vs berbagai `chat`/prompt_id=4858ms-15000ms (LLM) — **perbedaan latency antar layer terlihat jelas**, bottleneck (LLM call) vs non-LLM terbukti. Sisa `NaN` (18/29 series) — span sangat cepat (<2ms, non-LLM seperti `verification_gate.check`) atau sangat lambat (>15s) tidak cocok dengan bucket histogram default `spanmetricsconnector` (2ms-15s) — dicatat sebagai keterbatasan diterima (bucket boundary belum dituning), BUKAN blocker karena tujuan inti panel (bottleneck LLM vs non-LLM terlihat) sudah tercapai.
+
+**Task 8 (KK Lingkup dokumen "bottleneck terlihat") TERPENUHI**, dengan catatan keterbatasan bucket histogram.
+
+### Task 10 (KK2 — Frekuensi error.type) — Berhasil
+
+Skenario RBAC-denial `gop_margin` (Front Office Staff, domain `financial`) di-reuse persis dari `evals/7.17-membangun-endpoint-api/payloads/E02.json`. Percobaan 1 (`session_id="milestone-5.1-cp6-kk2-rbac"`) HANG — span count stagnan 6 selama >9 menit (kali ini genuinely hang, dikonfirmasi `curl_exit=28` setelah `--max-time 600` habis, BUKAN salah baca notifikasi seperti Task 6). Server di-restart bersih, OpenRouter dicek ulang sehat (`10.4s`), retry `session_id="milestone-5.1-cp6-kk2-rbac-retry2"` — kali ini mendapat `http_status=503` (`curl_exit=0`, respons bersih "Layanan AI sedang tidak tersedia" — jalur kegagalan terkontrol, BUKAN hang) setelah 49 span dan ~10 menit.
+
+**Bukti KK2 dari trace 503 tersebut (`48ab532d38dae3db2b05a5aae6d2b63d`)**: DUA span `authorization.check` dengan `error.type="ditolak_otorisasi"`, `rbac.decision="deny"` (domain `financial` ditolak untuk Front Office Staff, persis skenario `gop_margin`) — bersanding dengan span `allow` lain (Domain Gate benar memisahkan domain yang diizinkan/ditolak per atomic intent). SATU span `chat` (interpretation) dengan `error.type="gagal_teknis"` (penyebab 503 akhir).
+
+**Simulasi query panel Grafana sungguhan** ("Frekuensi error.type", `POST /api/ds/query`, expr `sum(traces_span_metrics_calls_total{error_type!=""}) by (error_type)`) → 2 series terpisah: `error_type="ditolak_otorisasi"` (value=2), `error_type="gagal_teknis"` (value=1) — **dua kategori error jelas terpisah dan bisa dibedakan**, sesuai bunyi literal KK2 ("terlihat menonjol dan bisa dibedakan dari sekadar hasil berhasil biasa").
+
+**KK2 TERPENUHI.**
+
+**Commit:** *(diisi setelah commit)*
 
 ---

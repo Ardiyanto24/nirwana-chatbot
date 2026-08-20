@@ -273,7 +273,7 @@ Gap ini kini TERTUTUP sebagai bukti — status entri diubah dari "diterima karen
 
 ---
 
-## 17. Celah Defensif Laten (`IndexError`/`KeyError`) Ditemukan Saat Riset M7.17 — Diterima Tanpa Perbaikan
+## 17. Celah Defensif Laten (`IndexError`/`KeyError`) Ditemukan Saat Riset M7.17 — SEBAGIAN DIPERBAIKI (2026-08-20)
 
 **Ditemukan di:** Milestone 7.17, riset plan (pembacaan kode menyeluruh untuk memetakan exception yang bisa lolos dari `proses_turn()`, 2026-08-20) — BUKAN reproduksi nyata (beda dari preseden #14, celah `detect_turn_dependency()` M7.6, yang dibuktikan crash nyata lewat eval).
 
@@ -284,3 +284,7 @@ Gap ini kini TERTUTUP sebagai bukti — status entri diubah dari "diterima karen
 **Dampak + mitigasi:** Kalau salah satu celah ini genuinely terpicu, exception akan menjalar sampai endpoint HTTP M7.17 dan tertangkap oleh handler catch-all `Exception` → 500 generik (`{"detail": "<pesan aman>"}`, TIDAK bocor detail internal) — endpoint tetap AMAN, tapi klien tidak mendapat sinyal presisi soal apa yang genuinely gagal, hanya "kegagalan internal" generik.
 
 **Pemicu peninjauan ulang:** Begitu salah satu celah ini genuinely terpicu sekali (terdeteksi lewat log/Jaeger 500 tak terduga), prioritaskan perbaikan di file pemilik masing-masing (M1.3/M1.6/M4.4 untuk `IndexError`, M7.13/M7.14 untuk `KeyError`), didokumentasikan di `decisions.md` file pemilik — mirror pola perbaikan M7.6/M7.7.
+
+**TERPICU + SEBAGIAN DIPERBAIKI (2026-08-20, Milestone 7.18, Checkpoint 7):** eksekusi nyata `evals/7.18-database-percakapan/run_eval.py` (endpoint `POST /v1/turns` lewat HTTP sungguhan) memicu titik PERTAMA dari 5 yang terdaftar — `klasifikasi_kebutuhan()` (salah satu "3 sub-langkah Decomposition M1.6") crash `TypeError: 'NoneType' object is not subscriptable` di `response.choices[0]` (bukan `IndexError` seperti diperkirakan semula, tapi akar penyebab identik: `response.choices` bernilai `None`, bukan list kosong — sama-sama tidak tertangkap `except APIError`). Diperbaiki sesuai rencana yang sudah tercatat di atas: guard `if not response.choices:` ditambahkan, reuse fallback aman yang sudah ada, didokumentasikan `milestones/1.6-decomposition/decisions.md` Keputusan 15 (Addendum) + `logs.md`. **Cakupan perbaikan SENGAJA dibatasi hanya `klasifikasi.py`** — 4 titik lain (`detect_turn_dependency` M1.3, `pemecahan.py`/`verifikasi.py` M1.6, `susun_narasi` M4.4) TETAP berstatus diterima/belum diperbaiki, karena belum masing-masing terbukti crash nyata (mirror prinsip precedent M7.6/M7.7: perbaiki yang terbukti, bukan borongan preventif) — `susun_narasi()` M4.4 khususnya SENGAJA tidak disentuh karena bertentangan dengan keputusan desain "tanpa fallback" yang sudah dikunci milestone itu sendiri.
+
+**Pemicu peninjauan ulang (sisa, 4 titik):** sama seperti sebelumnya — begitu salah satu dari `detect_turn_dependency` (M1.3)/`pemecahan.py`/`verifikasi.py` (M1.6)/`susun_narasi` (M4.4) genuinely terpicu, perbaiki di file pemilik masing-masing dengan pola yang sama (kecuali `susun_narasi` yang butuh diskusi eksplisit dengan user dulu, karena menyentuh keputusan desain "tanpa fallback" M4.4, bukan sekadar celah defensif yang lupa ditutup).

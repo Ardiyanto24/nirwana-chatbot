@@ -206,3 +206,24 @@ Entri Checkpoint 1-9 ditulis sebagai bagian Task 14. Lihat `report.md` dan `CLAU
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada checkpoint baru di luar plan. Penyimpangan: penyederhanaan span retry-attribute Checkpoint 7 (dicatat di atas).
+
+---
+
+## Addendum (2026-08-20) — Fix Guard `response.choices` Kosong/`None` di `klasifikasi_kebutuhan()`
+
+**Ditemukan:** Milestone 7.18, Checkpoint 7 (eksekusi nyata `evals/7.18-database-percakapan/run_eval.py`) — endpoint `POST /v1/turns` crash HTTP 500 dua kali berturut-turut (`session_id` `eval-7.18-e01c`/`eval-7.18-e01d`). Traceback ditangkap lewat pemanggilan manual `uv run python -m uvicorn` (stderr tidak dibuang, beda dari skrip eval yang pakai `DEVNULL`), menunjuk `klasifikasi_kebutuhan()` (`src/layers/decomposition/klasifikasi.py:69`) — `response.choices` bernilai `None`, celah yang sudah lebih dulu terdaftar `docs/keterbatasan-diterima.md` #17 ("3 sub-langkah Decomposition M1.6", ditemukan riset M7.17, sengaja diterima tanpa perbaikan karena belum terbukti nyata).
+
+**Apa yang dilakukan:** Sesuai pemicu peninjauan ulang yang sudah tercatat lebih dulu di entri #17 itu sendiri, `klasifikasi.py` diberi guard `if not response.choices:` sebelum baris indexing — reuse mekanisme fallback aman yang sudah ada (`_FALLBACK = KlasifikasiKebutuhan.MAJEMUK_BERGANTUNG` + span attribute `decomposition.forced_fallback_reason`), tanpa mengubah skema. Detail lengkap keputusan (termasuk kenapa cakupan SENGAJA dibatasi hanya `klasifikasi.py`, bukan seluruh 5 titik #17) di `decisions.md` Keputusan 15 (Addendum). Test baru `tests/layers/decomposition/test_klasifikasi_kegagalan.py` (mocked, mirror pola `test_turn_dependency_kegagalan.py` M1.3) membuktikan fallback bekerja untuk `choices=None` DAN `choices=[]`.
+
+**Hasil Verifikasi**
+```
+$ uv run pytest tests/layers/decomposition/test_klasifikasi_kegagalan.py -v
+test_choices_none_fallback_aman_tanpa_exception_menjalar PASSED
+test_choices_kosong_list_fallback_aman PASSED
+2 passed in 10.08s
+```
+Diverifikasi ulang nyata via HTTP: request diagnostik yang sebelumnya crash (payload identik) dijalankan ulang setelah fix — hasil dicatat di `milestones/7.18-database-percakapan/logs.md` Checkpoint 7.
+
+**Dampak lintas-dokumen:** `docs/keterbatasan-diterima.md` #17 diperbarui — titik `klasifikasi.py` ditandai DIPERBAIKI (SEBAGIAN, 4 titik lain tetap AKTIF). `milestones/7.18-database-percakapan/logs.md` mencatat temuan ini ditutup di M1.6 (di sini), bukan di M7.18 sendiri — konsisten prinsip perbaikan logic internal layer jadi tanggung jawab milestone pemilik, mirror pola M7.6 Keputusan 12/Addendum M1.3.
+
+**Commit:** lihat commit `fix(milestone-1.6): ...` di root repo.

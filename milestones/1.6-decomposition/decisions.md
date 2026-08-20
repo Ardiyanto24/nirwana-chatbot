@@ -184,6 +184,31 @@ User eksplisit meminta retry (bukan langsung flag-and-pass-through atau hard-fai
 
 ---
 
+## Keputusan 15 (Addendum): `klasifikasi_kebutuhan()` Diberi Guard `response.choices` Kosong/`None` — Fallback Aman Sama Seperti Kegagalan `APIError`
+
+**Status:** Ditemukan di Milestone 7.18 (2026-08-20, saat eksekusi nyata Checkpoint 7 — endpoint `POST /v1/turns` crash HTTP 500), diperbaiki di sini — bukan ditutup di M7.18 sendiri, karena perbaikan logic internal M1.6 adalah tanggung jawab milestone pemilik layer ini, bukan milestone penyambung/pengguna. Pemicu peninjauan ulang yang sudah tercatat lebih dulu di `docs/keterbatasan-diterima.md` #17 (ditemukan riset M7.17, 2026-08-20, "belum terbukti terjadi nyata") kini genuinely terpicu — entri itu sendiri sudah eksplisit mengarahkan "prioritaskan perbaikan di file pemilik masing-masing... mirror pola perbaikan M7.6/M7.7" begitu ini terjadi.
+
+**Latar Belakang**
+Eksekusi nyata `evals/7.18-database-percakapan/run_eval.py` (percobaan langsung ke server debug, session_id `eval-7.18-e01c`/`e01d`) menghasilkan HTTP 500 dua kali berturut-turut. Traceback (`uvicorn` stderr, sebelumnya dibuang ke `DEVNULL` di skrip eval — ditangkap ulang lewat pemanggilan manual `uv run python -m uvicorn` dengan stderr tertangkap) menunjukkan `TypeError: 'NoneType' object is not subscriptable` di `klasifikasi_kebutuhan()` (`src/layers/decomposition/klasifikasi.py:69`, baris `response.choices[0].message.content`) — `response.choices` bernilai `None`. Ini PERSIS kelas celah yang sudah didokumentasikan `docs/keterbatasan-diterima.md` #17 sebagai salah satu dari 5 titik ("3 sub-langkah Decomposition M1.6"), ditemukan saat riset M7.17 tapi sengaja diterima tanpa perbaikan karena "belum pernah terjadi nyata". Fungsi ini SUDAH punya mekanisme fallback aman untuk `openai.APIError` (Keputusan 4/9 di atas), tapi respons HTTP 200 dengan body malformed (`choices=None`) tidak raise `APIError` sama sekali — tidak tertangkap `except APIError` yang sudah ada.
+
+**Keputusan yang Dipilih**
+Tambah guard `if not response.choices:` SEBELUM baris indexing, REUSE persis mekanisme fallback `_FALLBACK` (`KlasifikasiKebutuhan.MAJEMUK_BERGANTUNG`) yang sudah ada untuk `APIError` — mencatat span attribute `decomposition.forced_fallback_reason=f"empty_response: choices={response.choices!r}"`, TANPA mengubah skema `KlasifikasiKebutuhan` atau signature fungsi.
+
+**Alasan**
+Konsisten filosofi Keputusan 3 (retry+fallback aman) — respons API yang tidak bisa dipercaya (baik karena exception maupun karena body malformed) sama-sama diperlakukan sebagai sinyal "tidak bisa menentukan klasifikasi, fallback ke asumsi paling konservatif" (`MAJEMUK_BERGANTUNG` dipilih sebagai fallback di Keputusan awal karena mendorong verifikasi lebih ketat di langkah berikutnya, bukan melewatkan begitu saja). Span attribute tetap membedakan alasan (`empty_response: ...` vs alasan `api_error: ...` yang sudah ada di jalur except), menjaga observability tanpa mengubah kontrak tipe.
+
+**Cakupan perbaikan — SENGAJA DIBATASI hanya `klasifikasi.py`, BUKAN seluruh 5 titik di `keterbatasan-diterima.md` #17.** `pemecahan.py`/`verifikasi.py` (2 sub-langkah Decomposition lain) dan `detect_turn_dependency()` (M1.3) TIDAK disentuh — mirror pola M7.6/M7.7 yang memperbaiki tepat SATU fungsi yang genuinely terbukti crash, bukan seluruh fungsi serupa yang "kemungkinan besar" py celah sama tapi belum terbukti. `susun_narasi()` (M4.4) SENGAJA TIDAK disentuh sama sekali — desain M4.4 eksplisit "tanpa fallback, biarkan menjalar" (lihat `milestones/4.4-penyusunan-narasi/decisions.md`), guard serupa di sana berarti mengubah keputusan desain yang sudah dikunci, bukan sekadar mem-fix bug, di luar wewenang satu temuan insidental untuk memutuskan sepihak.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Memperbaiki seluruh 5 titik `keterbatasan-diterima.md` #17 sekaligus** — ditolak, hanya `klasifikasi.py` yang genuinely terbukti crash lewat eksekusi nyata; 4 titik lain tetap berstatus "diterima, belum terbukti" sampai masing-masing genuinely terpicu, konsisten prinsip precedent M7.6/M7.7 (fix yang terbukti, bukan fix preventif borongan).
+- **Guard serupa untuk `susun_narasi()` (M4.4)** — ditolak, bertentangan langsung dengan keputusan desain M4.4 yang sudah dikunci ("tanpa fallback" adalah pilihan sadar, bukan celah).
+- **Membiarkan exception menjalar apa adanya (status quo)** — ditolak, sudah terbukti crash HTTP 500 nyata di M7.18, blocking eksekusi eval Checkpoint 7.
+
+**Dampak**
+`tests/layers/decomposition/test_klasifikasi_kegagalan.py` (baru, mocked, mirror pola `test_turn_dependency_kegagalan.py` M1.3) membuktikan fallback ini. `docs/keterbatasan-diterima.md` #17 diperbarui — titik "klasifikasi.py" ditandai DIPERBAIKI, 4 titik lain tetap AKTIF/diterima.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -202,3 +227,4 @@ User eksplisit meminta retry (bukan langsung flag-and-pass-through atau hard-fai
 | 12 | Span `chat` ×3, atribut per langkah | B | Plan |
 | 13 | Konvensi `evals/`, jumlah skenario tidak dipatok | B | Checkpoint 9 |
 | 14 | `decisions.md` sebagai Task pertama | B | Plan |
+| 15 | Addendum M7.18: guard `response.choices` kosong/`None` di `klasifikasi_kebutuhan()` | A | Addendum 2026-08-20 |

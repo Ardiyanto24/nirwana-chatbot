@@ -164,6 +164,21 @@ Kelima invarian `rancangan.md` diverifikasi dari `payloads/E01.json`:
 
 **KK1 M7.18 terbukti TERPENUHI PENUH secara nyata** (bukan simulasi/mock).
 
+**Commit:** `49853e7` — `test(milestone-7.18): eksekusi nyata` (kode+payload), `762fbd4` — `docs(milestone-7.18): logs Checkpoint 1-7`
+
+---
+
+## Checkpoint 8 — Audit
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 12 — `audit.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `evals/7.18-database-percakapan/audit.md` — ringkasan KK1 terpenuhi penuh, tabel invarian vs hasil aktual, kronologi 4 percobaan (3 penyebab kegagalan berbeda-beda sebelum sukses), temuan metodologi (eksekusi nyata sekali lagi menemukan bug produksi tak terlihat dari test mocked, konsisten preseden M7.6/M7.7/M7.11/M7.17).
+
 **Commit:** *(lihat commit gabungan di bawah)*
 
 ---

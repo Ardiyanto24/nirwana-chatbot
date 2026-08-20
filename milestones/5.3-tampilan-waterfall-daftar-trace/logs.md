@@ -30,6 +30,61 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `decisions.md` lengkap dengan 10 entri, setiap entri py "Opsi yang Dipertimbangkan tapi Ditolak" terisi, Daftar Isi Keputusan mencantumkan seluruh 10 entri dengan Checkpoint Terkait.
 
-**Commit:** *(diisi setelah commit checkpoint ini)*
+**Commit:** `68b4773` — `docs(milestone-5.3): keputusan desain waterfall dan daftar trace`
+
+---
+
+## Checkpoint 2 — Data Sample Tambahan (KK1 Multi-Wave + KK2 Span Gagal)
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 2 — Tulis seed_kk_scenarios.py
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `seed_kk_scenarios.py` (mirror `seed_sample_trace.py`, helper `_build_trace()` bersama untuk dua skenario) — trace multi-wave (29 span, root `invoke_agent` + pipeline standar + DUA span `orchestration.wave` sibling `wave.index=1`/`2` masing-masing dengan child `verification_gate`+`execution` sendiri, seluruh `error_type=null`, `status="berhasil"`) dan trace gagal (27 span, 2× `authorization.check` dengan `rbac.domain="financial"`/`rbac.decision="deny"`/`error_type="ditolak_otorisasi"` mirror skenario nyata `gop_margin` M5.1, 1× `execution.eksekusi_atomic_intent_semua` dengan `error_type="gagal_teknis"` mirror jalur revisi-400-exhausted M7.14, `status="sebagian"`). Atribut span (`wave.index`/`wave.intent_count`, `rbac.domain`/`rbac.decision`, `error.type`) dikonfirmasi persis dari `src/orchestration/turn_pipeline.py:234-237` dan `src/layers/domain_gate/otorisasi.py:49-56` sebelum ditulis.
+
+**Temuan**
+Tidak ada temuan tak terduga pada desain data itu sendiri (lihat Task 3 untuk bug eksekusi).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada pada task ini.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+Ditunda ke Task 3 (verifikasi query nyata setelah script dijalankan).
+
+**Commit:** `7825277` — `feat(milestone-5.3): seed data sample multi-wave dan span gagal` (digabung Task 3)
+
+---
+
+### Task 3 — Jalankan script + verifikasi query nyata
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu bug kecil ditemukan+diperbaiki (lihat Error/Kegagalan) — tidak mengubah data yang sudah tersimpan.
+
+**Apa yang dilakukan**
+Jalankan `seed_kk_scenarios.py`. Verifikasi via query Python langsung ke Supabase: jumlah span per trace, span `orchestration.wave` (parent+`wave.index`), span dengan `error_type` terisi.
+
+**Temuan**
+Tidak ada temuan baru di luar bug eksekusi di bawah.
+
+**Error/Kegagalan (jika ada)**
+```
+sqlalchemy.orm.exc.DetachedInstanceError: Instance <TraceRow ...> is not bound to a Session; attribute refresh operation cannot proceed
+```
+Terjadi di `print()` SETELAH kedua commit (trace, lalu span) sudah sukses — mengakses `mw_trace.trace_id` di luar blok `with Session(...)` memicu SQLAlchemy mencoba refresh atribut dari session yang sudah ditutup (`expire_on_commit` default `True`).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Diagnosis: dikonfirmasi data SUDAH tersimpan benar (bug murni di baris print, bukan di transaksi DB) — query langsung ke `TraceRow` sesudahnya menunjukkan kedua trace baru ada dengan `session_id` yang benar. Perbaikan: capture `trace_id` ke variabel lokal SEBELUM masuk blok `with Session(...)` (aman karena `trace_id` diset eksplisit di kode, bukan auto-generated oleh DB) — tidak perlu re-run script, data existing tetap dipakai.
+
+**Hasil Verifikasi**
+- `sample-mw-e2a07d4512`: 29 span, 2 span `orchestration.wave` (`wave1`/`wave2`) SAMA-SAMA anak langsung `...-root` dengan `wave.index=1`/`2` — struktur sibling benar (KK1). 0 span `error_type` terisi.
+- `sample-fail-37d0b3fd05`: 27 span, 3 span `error_type` terisi — 2× `ditolak_otorisasi` (`rbac.domain="financial"`) + 1× `gagal_teknis` — persis desain (KK2).
+- Trace M5.2 (`sample-6d7f5cea8dfd`) tetap utuh, tidak tersentuh (dikonfirmasi tetap muncul di listing `TraceRow`).
+
+**Commit:** *(diisi setelah commit checkpoint ini — logs.md)*
 
 ---

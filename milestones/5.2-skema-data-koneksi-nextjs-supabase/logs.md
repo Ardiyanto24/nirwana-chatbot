@@ -30,6 +30,62 @@ Tidak berlaku.
 **Hasil Verifikasi**
 `decisions.md` lengkap dengan 12 entri, setiap entri py section "Opsi yang Dipertimbangkan tapi Ditolak" terisi, Daftar Isi Keputusan di akhir dokumen mencantumkan seluruh 12 entri dengan Checkpoint Terkait.
 
-**Commit:** *(diisi setelah commit checkpoint ini)*
+**Commit:** `0c17077` — `docs(milestone-5.2): keputusan desain skema data dan koneksi Next.js`
+
+---
+
+## Checkpoint 2 — Provisioning Tabel `traces`/`spans` + Data Contoh
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 2 — Tambah TraceRow/SpanRow + role read-only
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu penyesuaian urutan eksekusi (lihat Temuan) — GRANT role dijalankan SETELAH tabel benar-benar dibuat (Task 3), bukan sebelum seperti urutan penomoran plan, karena `GRANT SELECT ON traces, spans` butuh tabel itu sudah ada.
+
+**Apa yang dilakukan**
+Tambah `TraceRow`/`SpanRow` (SQLModel, `table=True`) ke `src/db/models.py` — field persis kontrak Bagian 4 (`trace_id`/`span_id` text PK, `started_at`/`ended_at` `DateTime(timezone=True)` eksplisit untuk timestamptz, `attributes` `JSONB` eksplisit dari `sqlalchemy.dialects.postgresql`, index eksplisit `spans.trace_id`+`spans.parent_span_id`). Tulis `provision_readonly_role.py` (role `nirwana_dashboard_reader`, password via env var `NEW_READONLY_ROLE_PASSWORD` — tidak pernah di-print/commit) — dijalankan SETELAH Task 3 (lihat urutan di atas).
+
+**Temuan**
+- Dependency urutan eksekusi: `GRANT SELECT ON public.traces, public.spans` gagal kalau tabel belum ada — plan menomori Task 2 (model+role) sebelum Task 3 (seed+create tabel), tapi eksekusi nyata WAJIB Task 3 dulu (buat tabel) baru role-granting bagian Task 2 bisa jalan. Tidak mengubah keputusan/desain, murni urutan eksekusi.
+- Format username Supabase pooler untuk role BARU (bukan hanya `postgres` bawaan) mengikuti pola `<role_name>.<project_ref>` — dikonfirmasi nyata lewat percobaan koneksi langsung, bukan diasumsikan dari dokumentasi.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada error pada langkah ini sendiri (error FK terjadi di Task 3, dicatat di sana).
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku untuk task ini.
+
+**Hasil Verifikasi**
+Ditunda ke akhir Task 3 (role hanya bisa diverifikasi setelah tabel ada) — lihat Hasil Verifikasi Task 3.
+
+**Commit:** `3353480` — `feat(milestone-5.2): tambah model TraceRow/SpanRow + seed data contoh trace` (digabung Task 3, satu perubahan model+seed+role koheren)
+
+---
+
+### Task 3 — Seed data contoh trace realistis
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `seed_sample_trace.py` (mirror `seed_employees.py`) — 29 span (1 root `invoke_agent` + 28 anak, meniru struktur nyata M5.1 termasuk percabangan paralel `rewrite`/`memory.retrieve` yang overlap waktu, sesuai preseden M7.7). Jalankan — `SQLModel.metadata.create_all(engine)` membuat tabel `traces`/`spans` PERTAMA KALI di project ini.
+
+**Temuan**
+Percobaan pertama gagal `ForeignKeyViolation` — `session.add(trace); session.add_all(spans); session.commit()` dalam SATU commit menyebabkan `spans` di-insert (via `executemany` batch) sebelum baris `traces`-nya benar-benar ter-commit dan terlihat oleh constraint checker Postgres (FK Postgres dicek per-statement, bukan ditunda ke akhir transaksi kecuali `DEFERRABLE` eksplisit — kolom ini tidak dideklarasikan begitu). Bukan bug desain skema, murni urutan operasi dalam satu unit-of-work SQLAlchemy.
+
+**Error/Kegagalan (jika ada)**
+```
+psycopg.errors.ForeignKeyViolation: insert or update on table "spans" violates foreign key constraint "spans_trace_id_fkey"
+DETAIL: Key (trace_id)=(sample-8c63c7295916) is not present in table "traces".
+```
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Diagnosis: dikonfirmasi transaksi gagal total (rollback penuh, dicek nyata — `SELECT` ke `TraceRow` sesudahnya mengembalikan 0 baris, bukan baris parsial). Perbaikan: pisah jadi DUA commit eksplisit — `session.add(trace); session.commit()` dulu, baru `session.add_all(spans); session.commit()`. Re-run berhasil.
+
+**Hasil Verifikasi**
+- Query langsung: `trace rows: 1`, `span rows: 29`, `root spans (parent_span_id IS NULL): 1` (`sample-6d7f5cea8dfd-root`) — struktur hierarkis benar tersimpan.
+- **Uji role read-only (least-privilege, Task 2)**: koneksi nyata sebagai `nirwana_dashboard_reader.dvpzxitjhhnilsuyskau@...pooler.supabase.com:5432` (Session Pooler) — `SELECT count(*) FROM traces` → `1`, `SELECT count(*) FROM spans` → `29` (BERHASIL); `INSERT INTO traces (...)` → `psycopg.errors.InsufficientPrivilege: permission denied for table traces` (GAGAL, sesuai ekspektasi) — kedua arah uji (positif+negatif) lolos nyata.
+- `trace_id` sample untuk dipakai verifikasi Checkpoint 5: **`sample-6d7f5cea8dfd`**.
+
+**Commit:** `3353480` — `feat(milestone-5.2): tambah model TraceRow/SpanRow + seed data contoh trace`
 
 ---

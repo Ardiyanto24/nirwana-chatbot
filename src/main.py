@@ -19,6 +19,19 @@ False ATAU None/GAGAL_TEKNIS) diganti pesan generik aman, BUKAN narasi
 asli - keputusan konservatif fase awal (Keputusan 1), dicatat
 provisional di docs/keputusan-tertunda.md #5.
 
+Milestone 7.18: setelah TurnResponse dibangun, `_simpan_riwayat_
+percakapan_aman()` menulis satu baris ke tabel `conversation_turns`
+(riwayat untuk kebutuhan APLIKASI, terpisah dari Session Memory) lewat
+`simpan_riwayat_turn()` (src/orchestration/riwayat_percakapan.py).
+Panggilan ini SENGAJA dibungkus try/except yang menangkap Exception
+dan TIDAK re-raise - SATU-SATUNYA titik "tangkap-dan-diam" di seluruh
+project (forced literal KK2 M7.18: kegagalan menulis riwayat TIDAK
+BOLEH menggagalkan response ke user). Kegagalan tetap tercatat sebagai
+sinyal terpisah lewat span `riwayat.simpan` (error.type=gagal_teknis)
+milik simpan_riwayat_turn() sendiri, terlihat di Jaeger meski tidak
+sampai ke response HTTP - lihat
+milestones/7.18-database-percakapan/decisions.md Keputusan 5.
+
 Jalankan: uv run uvicorn src.main:app --port 8001
 (port 8000 dipakai chatbot_api, yang WAJIB jalan bersamaan karena
 dipanggil proses_turn() secara internal saat Execution)
@@ -35,6 +48,10 @@ from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.observability.tracing import setup_tracing
+from src.orchestration.riwayat_percakapan import (
+    simpan_riwayat_turn,
+    tentukan_status_keseluruhan_turn,
+)
 from src.orchestration.turn_pipeline import proses_turn
 from src.schemas.api_response import TurnResponse
 from src.schemas.orchestration import KeadaanTurn
@@ -117,6 +134,26 @@ def _build_turn_response(keadaan: KeadaanTurn) -> TurnResponse:
     )
 
 
+def _simpan_riwayat_percakapan_aman(keadaan: KeadaanTurn, turn_response: TurnResponse) -> None:
+    # SATU-SATUNYA try/except "tangkap-dan-diam" (tidak re-raise) di
+    # seluruh project - forced literal KK2 M7.18 ("kegagalan penulisan
+    # riwayat tidak boleh menggagalkan pengiriman response ke user").
+    # Kegagalan TETAP tercatat sebagai sinyal terpisah lewat span
+    # riwayat.simpan (error.type=gagal_teknis) milik simpan_riwayat_turn()
+    # sendiri, bukan disembunyikan - hanya tidak sampai ke response HTTP.
+    try:
+        status = tentukan_status_keseluruhan_turn(keadaan.paket_narasi)
+        simpan_riwayat_turn(
+            session_id=keadaan.payload.session_id,
+            turn_index=keadaan.payload.turn_index,
+            pertanyaan=keadaan.payload.question,
+            narasi=turn_response.narasi,
+            status=status,
+        )
+    except Exception:
+        pass
+
+
 @app.post("/v1/turns", response_model=TurnResponse)
 def submit_turn(payload: dict) -> TurnResponse:
     # def BIASA (bukan async def) SENGAJA - proses_turn() sepenuhnya
@@ -128,4 +165,6 @@ def submit_turn(payload: dict) -> TurnResponse:
     # event loop TUNGGAL uvicorn sepenuhnya (ditemukan nyata Checkpoint 6,
     # server berhenti merespons apa pun selama satu turn diproses).
     keadaan = proses_turn(payload)
-    return _build_turn_response(keadaan)
+    turn_response = _build_turn_response(keadaan)
+    _simpan_riwayat_percakapan_aman(keadaan, turn_response)
+    return turn_response

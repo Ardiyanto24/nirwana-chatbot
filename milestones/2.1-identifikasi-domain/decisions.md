@@ -221,6 +221,28 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 
 ---
 
+## Keputusan 13 (Addendum): Migrasi Model Verifikasi Titik Buta — DeepSeek V4 Pro 0423 → DeepSeek V4 Pro 0813
+
+**Status:** Diputuskan 2026-08-20, di luar siklus milestone ini (sudah closed) — perubahan cross-cutting terhadap 6 titik verifier DeepSeek V4 Pro project sekaligus, diinisiasi permintaan user, dikonfirmasi lewat `AskUserQuestion`.
+
+**Latar Belakang**
+User meminta migrasi biaya untuk 6 titik verifier project yang semula seragam `deepseek/deepseek-v4-pro` (versi `0423`): kombinasi antara `deepseek/deepseek-v4-flash-0731` (jauh lebih murah/cepat) dan `deepseek/deepseek-v4-pro-0813` (rilis resmi 2026-08-13, upgrade dari versi preview `0423`). Riset menemukan Artificial Analysis Intelligence Index kedua model nyaris identik (Flash 0731 = 52, Pro 0813 = 53), sementara lompatan skor Pro 0813 terkonsentrasi di benchmark coding/agentic/cyber yang tidak relevan untuk tugas verifier project ini. Pro 0813 juga LEBIH MAHAL dari Pro 0423 lama (+26% input, +90% output) — migrasi bukan downgrade seragam, melainkan realokasi berdasar risiko per titik.
+
+**Keputusan yang Dipilih**
+Konstanta `OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA` (`verifikasi_titik_buta.py`) diubah dari `deepseek/deepseek-v4-pro` menjadi `deepseek/deepseek-v4-pro-0813` — **tetap tier Pro**, hanya upgrade versi.
+
+**Alasan**
+Keputusan 9 milestone ini eksplisit menandai risiko verifikasi titik buta ASIMETRIS ke arah "domain terlewat" (false-negative = domain yang seharusnya diperiksa lolos tanpa terdeteksi = potensi kebocoran otorisasi lintas-domain). Ini titik pencegah kebocoran RBAC paling awal di pipeline (Domain Gate). Mempertahankan tier Pro (versi terbaru 0813) menjaga margin keamanan yang sama seperti desain awal; premium biaya Pro 0813 vs Pro 0423 diterima karena taruhannya adalah kebocoran data lintas-role, bukan sekadar kualitas jawaban.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Migrasi ke Flash 0731 (ikut 3 titik simetris lain)** — ditolak, menghapus margin ekstra di titik yang eksplisit didokumentasikan asimetris/berisiko kebocoran RBAC (Keputusan 9 milestone ini).
+- **Tetap di Pro 0423 (status quo)** — ditolak, versi preview lama tidak lagi jadi rilis utama DeepSeek per 2026-08-13; tidak ada alasan menahan versi lama saat versi lebih baru tersedia di tier harga yang sama (Pro).
+
+**Dampak**
+`src/config/llm.py` konstanta `OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA` diubah nilainya (docstring diperbarui, pointer ke keputusan ini). Tidak ada perubahan skema/signature/`reasoning="high"`/kontrak fungsi.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -237,3 +259,4 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 | 10 | Granularitas: per atomic intent | A | Plan |
 | 11 | Cakupan grounding: 10 domain + 1 contoh, bukan 67 view | A | Checkpoint 4 |
 | 12 | `decisions.md` sebagai Task pertama | B | Plan |
+| 13 | Addendum: migrasi model verifikasi titik buta Pro 0423 → Pro 0813 | A | Addendum 2026-08-20 |

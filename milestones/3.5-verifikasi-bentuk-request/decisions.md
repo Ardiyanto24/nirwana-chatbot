@@ -222,6 +222,28 @@ Tidak ada.
 
 ---
 
+## Keputusan 14 (Addendum): Migrasi Model Verifikasi Bentuk Request — DeepSeek V4 Pro 0423 → DeepSeek V4 Flash 0731
+
+**Status:** Diputuskan 2026-08-20, di luar siklus milestone ini (sudah closed) — perubahan cross-cutting terhadap 6 titik verifier DeepSeek V4 Pro project sekaligus, diinisiasi permintaan user, dikonfirmasi lewat `AskUserQuestion`.
+
+**Latar Belakang**
+User meminta migrasi biaya untuk 6 titik verifier project yang semula seragam `deepseek/deepseek-v4-pro` (versi `0423`): kombinasi antara `deepseek/deepseek-v4-flash-0731` (jauh lebih murah/cepat) dan `deepseek/deepseek-v4-pro-0813` (rilis resmi 2026-08-13, upgrade dari versi preview `0423`). Riset menemukan Artificial Analysis Intelligence Index kedua model nyaris identik (Flash 0731 = 52, Pro 0813 = 53), sementara lompatan skor Pro 0813 terkonsentrasi di benchmark coding/agentic/cyber yang tidak relevan untuk tugas verifier project ini. Pro 0813 juga LEBIH MAHAL dari Pro 0423 lama — migrasi bukan downgrade seragam, melainkan realokasi berdasar risiko per titik.
+
+**Keputusan yang Dipilih**
+Konstanta `OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST` (`verifikasi_bentuk_request.py`) diubah dari `deepseek/deepseek-v4-pro` menjadi `deepseek/deepseek-v4-flash-0731`.
+
+**Alasan**
+Keputusan 1/3/4 milestone ini menegaskan LLM di sini HANYA dipicu untuk Kriteria 2 (bentuk/struktur request), dan HANYA setelah pre-check deterministik Kriteria 1 (perbandingan string sederhana) lolos — ruang ambiguitas semantik yang tersisa untuk LLM jauh lebih sempit dibanding verifikasi titik buta (M2.1)/cakupan-individu (M2.3) yang menilai keseluruhan makna dan berisiko kebocoran RBAC. Bukan titik pencegah kebocoran otorisasi. Selisih reasoning yang nyaris tidak ada (52 vs 53) memadai untuk cakupan sesempit ini, penghematan biaya jadi prioritas.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Tetap di tier Pro (upgrade ke 0813)** — ditolak, cakupan verifikasi di sini sudah dipersempit pre-check deterministik (Keputusan 1/3), tidak ada argumen kuat menahan tier lebih mahal.
+- **Tetap di Pro 0423 (status quo)** — ditolak, versi preview lama tidak lagi jadi rilis utama DeepSeek per 2026-08-13, tidak memberi penghematan biaya.
+
+**Dampak**
+`src/config/llm.py` konstanta `OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST` diubah nilainya (docstring diperbarui, pointer ke keputusan ini). Tidak ada perubahan skema/signature/`reasoning="high"`/kontrak fungsi.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -239,3 +261,4 @@ Tidak ada.
 | 11 | File implementasi baru di subpackage `query_engine/` yang sudah ada | B | Checkpoint 4 |
 | 12 | Observability: span `chat` + reuse `REQUEST_DOMAIN`/`REQUEST_VIEW_NAME` | B | Checkpoint 3-4 |
 | 13 | Orkestrator batch `verifikasi_bentuk_request_semua()` | B | Checkpoint 4 |
+| 14 | Addendum: migrasi model verifikasi bentuk request Pro 0423 → Flash 0731 | A | Addendum 2026-08-20 |

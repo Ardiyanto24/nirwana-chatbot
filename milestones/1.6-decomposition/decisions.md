@@ -209,6 +209,29 @@ Konsisten filosofi Keputusan 3 (retry+fallback aman) — respons API yang tidak 
 
 ---
 
+## Keputusan 16 (Addendum): Migrasi Model Verifikasi (Langkah 6) — DeepSeek V4 Pro 0423 → DeepSeek V4 Flash 0731
+
+**Status:** Diputuskan 2026-08-20, di luar siklus milestone ini (sudah closed) — perubahan cross-cutting terhadap 6 titik verifier DeepSeek V4 Pro project sekaligus, diinisiasi permintaan user, dikonfirmasi lewat `AskUserQuestion`.
+
+**Latar Belakang**
+User meminta migrasi biaya untuk 6 titik verifier project yang semula seragam `deepseek/deepseek-v4-pro` (versi `0423`, dikunci Keputusan 2 milestone ini): kombinasi antara `deepseek/deepseek-v4-flash-0731` (dipakai sejak M1.3, jauh lebih murah/cepat) dan `deepseek/deepseek-v4-pro-0813` (rilis resmi 2026-08-13, upgrade dari versi preview `0423`). Riset menemukan Artificial Analysis Intelligence Index kedua model nyaris identik (Flash 0731 = 52, Pro 0813 = 53 — selisih 1 poin), sementara lompatan skor Pro 0813 terkonsentrasi di benchmark coding/agentic/cyber (Terminal Bench, DeepSWE, Cybergym) yang tidak relevan untuk tugas verifier project ini (semantik Bahasa Indonesia, bukan kode). Pro 0813 juga LEBIH MAHAL dari Pro 0423 lama (+26% input, +90% output di OpenRouter) — migrasi bukan downgrade-harga seragam, melainkan realokasi berdasar risiko: titik asimetris/leak-RBAC dipertahankan di tier Pro (naik ke 0813), titik simetris/tersaring-downstream dipindah ke Flash untuk penghematan nyata.
+
+**Keputusan yang Dipilih**
+Konstanta `OPENROUTER_MODEL_DECOMPOSITION_VERIFIKASI` (`verifikasi.py`, Langkah 6) diubah dari `deepseek/deepseek-v4-pro` menjadi `deepseek/deepseek-v4-flash-0731`.
+
+**Alasan**
+Peran Langkah 6 di sini adalah "keragaman peran verifier independen" (Keputusan 2 milestone ini), bukan asimetri leak-risk eksplisit seperti verifikasi titik buta Domain Gate (M2.1) atau cakupan-individu (M2.3) — kesalahan hasil pemecahan di sini masih tersaring lagi oleh Domain Gate dan Verification Gate (M2.4) di layer-layer setelahnya sebelum sampai eksekusi nyata, sehingga margin ekstra tier Pro tidak sekritis titik RBAC. Skor reasoning yang nyaris setara (52 vs 53) membuat Flash 0731 kandidat aman untuk peran ini.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Seluruh 6 titik project ke Flash 0731** — ditolak, menghapus margin ekstra di titik yang eksplisit didokumentasikan asimetris/berisiko kebocoran RBAC (M2.1 Keputusan 9, M2.3 Keputusan 2/8) atau kejujuran output (M4.5 Keputusan 1).
+- **Seluruh 6 titik upgrade ke Pro 0813 tanpa Flash** — ditolak user sendiri, tidak memberi penghematan biaya (Pro 0813 lebih mahal dari Pro 0423 lama), bertentangan dengan tujuan eksplisit "kompromi harga".
+- **Tetap di Pro 0423 (status quo)** — ditolak, versi preview lama tidak lagi jadi rilis utama DeepSeek per 2026-08-13, tidak memberi penghematan biaya sama sekali.
+
+**Dampak**
+`src/config/llm.py` konstanta `OPENROUTER_MODEL_DECOMPOSITION_VERIFIKASI` diubah nilainya (docstring diperbarui, pointer ke keputusan ini). Tidak ada perubahan skema/signature/`reasoning="high"`/kontrak fungsi — murni penggantian model di panggilan yang sudah ada.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -228,3 +251,4 @@ Konsisten filosofi Keputusan 3 (retry+fallback aman) — respons API yang tidak 
 | 13 | Konvensi `evals/`, jumlah skenario tidak dipatok | B | Checkpoint 9 |
 | 14 | `decisions.md` sebagai Task pertama | B | Plan |
 | 15 | Addendum M7.18: guard `response.choices` kosong/`None` di `klasifikasi_kebutuhan()` | A | Addendum 2026-08-20 |
+| 16 | Addendum: migrasi model verifikasi Pro 0423 → Flash 0731 | A | Addendum 2026-08-20 |

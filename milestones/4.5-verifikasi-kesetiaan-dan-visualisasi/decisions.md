@@ -228,6 +228,28 @@ Tidak ada alternatif dipertimbangkan karena forced by aturan template `report.md
 
 ---
 
+## Keputusan 15 (Addendum): Migrasi Model Verifikasi Kesetiaan — DeepSeek V4 Pro 0423 → DeepSeek V4 Pro 0813
+
+**Status:** Diputuskan 2026-08-20, di luar siklus milestone ini (sudah closed) — perubahan cross-cutting terhadap 6 titik verifier DeepSeek V4 Pro project sekaligus, diinisiasi permintaan user, dikonfirmasi lewat `AskUserQuestion`.
+
+**Latar Belakang**
+User meminta migrasi biaya untuk 6 titik verifier project yang semula seragam `deepseek/deepseek-v4-pro` (versi `0423`, dikunci Keputusan 1 milestone ini): kombinasi antara `deepseek/deepseek-v4-flash-0731` (jauh lebih murah/cepat) dan `deepseek/deepseek-v4-pro-0813` (rilis resmi 2026-08-13, upgrade dari versi preview `0423`). Riset menemukan Artificial Analysis Intelligence Index kedua model nyaris identik (Flash 0731 = 52, Pro 0813 = 53), sementara lompatan skor Pro 0813 terkonsentrasi di benchmark coding/agentic/cyber yang tidak relevan untuk tugas verifier project ini. Pro 0813 juga LEBIH MAHAL dari Pro 0423 lama (+26% input, +90% output) — migrasi bukan downgrade seragam, melainkan realokasi berdasar risiko per titik.
+
+**Keputusan yang Dipilih**
+Konstanta `OPENROUTER_MODEL_VERIFIKASI_KESETIAAN` (`verifikasi_kesetiaan.py`) diubah dari `deepseek/deepseek-v4-pro` menjadi `deepseek/deepseek-v4-pro-0813` — **tetap tier Pro**, hanya upgrade versi.
+
+**Alasan**
+Titik ini adalah garda TERAKHIR sebelum narasi sampai ke user (verifier independen atas hasil `susun_narasi()` M4.4), langsung terikat prinsip "Kejujuran terhadap keterbatasan" `CLAUDE.md` — mencegah klaim sebab-akibat/data yang mengada-ada lolos ke output final (KK1 M4.5, dibuktikan nyata Checkpoint 6-8 milestone ini). Karena tidak ada verifikasi lain setelahnya (beda dari titik-titik yang masih tersaring layer berikutnya), margin keamanan di sini paling perlu dijaga — tetap tier Pro, upgrade ke 0813 meski lebih mahal dari 0423.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Migrasi ke Flash 0731 (ikut 3 titik simetris lain)** — ditolak, ini garda hilir terakhir sebelum output ke user, tidak ada layer verifikasi berikutnya yang bisa menangkap kesalahan kalau verifier di sini melemah.
+- **Tetap di Pro 0423 (status quo)** — ditolak, versi preview lama tidak lagi jadi rilis utama DeepSeek per 2026-08-13.
+
+**Dampak**
+`src/config/llm.py` konstanta `OPENROUTER_MODEL_VERIFIKASI_KESETIAAN` diubah nilainya (docstring diperbarui, pointer ke keputusan ini). Tidak ada perubahan skema/signature/`reasoning="high"`/kontrak fungsi. `susun_data_visualisasi()` (deterministik, tanpa AI) tidak tersentuh.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -246,3 +268,4 @@ Tidak ada alternatif dipertimbangkan karena forced by aturan template `report.md
 | 12 | `prompt_reliability` config native | B | Plan |
 | 13 | Gap taksonomi `label_bentuk_jawaban` dicatat, tidak diperbaiki | B | Plan |
 | 14 | Closure wajib konfirmasi Catatan Serah Terima | B | Plan |
+| 15 | Addendum: migrasi model verifikasi kesetiaan Pro 0423 → Pro 0813 | A | Addendum 2026-08-20 |

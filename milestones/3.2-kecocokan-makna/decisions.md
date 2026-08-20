@@ -245,6 +245,28 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 
 ---
 
+## Keputusan 15 (Addendum): Migrasi Model Verifikasi Langkah 2 — DeepSeek V4 Pro 0423 → DeepSeek V4 Flash 0731
+
+**Status:** Diputuskan 2026-08-20, di luar siklus milestone ini (sudah closed) — perubahan cross-cutting terhadap 6 titik verifier DeepSeek V4 Pro project sekaligus, diinisiasi permintaan user, dikonfirmasi lewat `AskUserQuestion`.
+
+**Latar Belakang**
+User meminta migrasi biaya untuk 6 titik verifier project yang semula seragam `deepseek/deepseek-v4-pro` (versi `0423`): kombinasi antara `deepseek/deepseek-v4-flash-0731` (jauh lebih murah/cepat) dan `deepseek/deepseek-v4-pro-0813` (rilis resmi 2026-08-13, upgrade dari versi preview `0423`). Riset menemukan Artificial Analysis Intelligence Index kedua model nyaris identik (Flash 0731 = 52, Pro 0813 = 53), sementara lompatan skor Pro 0813 terkonsentrasi di benchmark coding/agentic/cyber yang tidak relevan untuk tugas verifier project ini. Pro 0813 juga LEBIH MAHAL dari Pro 0423 lama — migrasi bukan downgrade seragam, melainkan realokasi berdasar risiko per titik.
+
+**Keputusan yang Dipilih**
+Konstanta `OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI` (`kecocokan_makna.py`, Langkah 2) diubah dari `deepseek/deepseek-v4-pro` menjadi `deepseek/deepseek-v4-flash-0731`.
+
+**Alasan**
+Keputusan 4 milestone ini eksplisit menandai risiko Langkah 2 SIMETRIS ("KK1 dan KK2 sama-sama penting") — beda dari verifikasi titik buta Domain Gate (M2.1)/cakupan-individu (M2.3) yang asimetris dan berisiko kebocoran RBAC. Hasil Langkah 2 MENGGANTIKAN Langkah 1 (koreksi dua arah), tapi tidak ada arah kesalahan yang lebih dikhawatirkan dari arah lainnya di sini — bukan titik pencegah kebocoran otorisasi. Selisih reasoning yang nyaris tidak ada (52 vs 53) membuat Flash 0731 memadai, penghematan biaya jadi prioritas.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Tetap di tier Pro (upgrade ke 0813)** — ditolak, risiko titik ini simetris (bukan leak-risk RBAC seperti M2.1/M2.3), tidak ada argumen kuat menahan tier lebih mahal di sini.
+- **Tetap di Pro 0423 (status quo)** — ditolak, versi preview lama tidak lagi jadi rilis utama DeepSeek per 2026-08-13, tidak memberi penghematan biaya.
+
+**Dampak**
+`src/config/llm.py` konstanta `OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI` diubah nilainya (docstring diperbarui, pointer ke keputusan ini). Tidak ada perubahan skema/signature/`reasoning="high"`/kontrak fungsi Langkah 2 — Langkah 1 (`OPENROUTER_MODEL_KECOCOKAN_MAKNA_GENERATE`, Qwen3-32B) tidak tersentuh.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -263,3 +285,4 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 | 12 | Reuse skema AtomicIntent/Domain/KandidatView/StatusEksekusi | B | Checkpoint 3 |
 | 13 | Konvensi nama fungsi `_atomic_intent`/`_semua` | B | Checkpoint 9-10 |
 | 14 | decisions.md sebagai Task pertama | B | Plan |
+| 15 | Addendum: migrasi model verifikasi Langkah 2 Pro 0423 → Flash 0731 | A | Addendum 2026-08-20 |

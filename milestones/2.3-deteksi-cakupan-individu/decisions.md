@@ -205,6 +205,28 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 
 ---
 
+## Keputusan 13 (Addendum): Migrasi Model Verifikasi Cakupan Individu — DeepSeek V4 Pro 0423 → DeepSeek V4 Pro 0813
+
+**Status:** Diputuskan 2026-08-20, di luar siklus milestone ini (sudah closed) — perubahan cross-cutting terhadap 6 titik verifier DeepSeek V4 Pro project sekaligus, diinisiasi permintaan user, dikonfirmasi lewat `AskUserQuestion`.
+
+**Latar Belakang**
+User meminta migrasi biaya untuk 6 titik verifier project yang semula seragam `deepseek/deepseek-v4-pro` (versi `0423`): kombinasi antara `deepseek/deepseek-v4-flash-0731` (jauh lebih murah/cepat) dan `deepseek/deepseek-v4-pro-0813` (rilis resmi 2026-08-13, upgrade dari versi preview `0423`). Riset menemukan Artificial Analysis Intelligence Index kedua model nyaris identik (Flash 0731 = 52, Pro 0813 = 53), sementara lompatan skor Pro 0813 terkonsentrasi di benchmark coding/agentic/cyber yang tidak relevan untuk tugas verifier project ini. Pro 0813 juga LEBIH MAHAL dari Pro 0423 lama (+26% input, +90% output) — migrasi bukan downgrade seragam, melainkan realokasi berdasar risiko per titik.
+
+**Keputusan yang Dipilih**
+Konstanta `OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI` (`verifikasi_cakupan_individu.py`) diubah dari `deepseek/deepseek-v4-pro` menjadi `deepseek/deepseek-v4-pro-0813` — **tetap tier Pro**, hanya upgrade versi.
+
+**Alasan**
+Keputusan 2/8 milestone ini menandai risiko verifikasi cakupan-individu ASIMETRIS arah sama dengan verifikasi titik buta Domain Gate (M2.1 Keputusan 9): false-negative = constraint cakupan-individu terlewat = potensi staff melihat data performa staff lain (kebocoran RBAC lintas-individu, bukan cuma lintas-domain). Prinsip yang sama berlaku: mempertahankan tier Pro (upgrade ke 0813) menjaga margin keamanan, premium biaya vs Pro 0423 diterima karena taruhannya kebocoran data.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Migrasi ke Flash 0731 (ikut 3 titik simetris lain)** — ditolak, menghapus margin ekstra di titik yang eksplisit didokumentasikan asimetris/berisiko kebocoran RBAC (Keputusan 2/8 milestone ini).
+- **Tetap di Pro 0423 (status quo)** — ditolak, versi preview lama tidak lagi jadi rilis utama DeepSeek per 2026-08-13.
+
+**Dampak**
+`src/config/llm.py` konstanta `OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI` diubah nilainya (docstring diperbarui, pointer ke keputusan ini). Tidak ada perubahan skema/signature/`reasoning="high"`/kontrak fungsi.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -221,3 +243,4 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 | 10 | `evals/2.3-.../` dibuat | B | Checkpoint 9 |
 | 11 | Prompt-file-first + Promptfoo natif sejak awal | B | Checkpoint 4-5, 10 |
 | 12 | `decisions.md` sebagai Task pertama | B | Plan |
+| 13 | Addendum: migrasi model verifikasi cakupan individu Pro 0423 → Pro 0813 | A | Addendum 2026-08-20 |

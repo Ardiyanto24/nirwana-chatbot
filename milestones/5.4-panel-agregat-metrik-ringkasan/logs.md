@@ -88,6 +88,43 @@ Tidak berlaku.
 
 ---
 
+## Checkpoint 3 — Query Agregat (`summary.ts`)
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 4 — Buat `summary.ts`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan satu detail teknis tambahan yang tidak eksplisit disebut plan: seluruh angka SQL (`COUNT(*)`, `AVG(...)`) di-cast eksplisit `::int`/`::float8` di query, bukan dibiarkan tipe native Postgres (`bigint`/`numeric`) yang berisiko dikembalikan sebagai string oleh driver `postgres` tanpa konfigurasi tambahan.
+
+**Apa yang dilakukan**
+Dibuat `dashboard/src/lib/summary.ts` — `getStatusDistribution()`, `getLatencyPerLayer()` (`GROUP BY layer_name`, `PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms)`, urut p95 DESC), `getErrorTypeFrequency()`, fungsi murni `computeOverallStats(statusDistribution)`, dan `getSummaryMetrics()` yang menjalankan ketiga query paralel (`Promise.all`) lalu memanggil `computeOverallStats()`.
+
+Verifikasi dijalankan lewat skrip ad-hoc `verify_summary.mjs` (di scratchpad session, TIDAK di-commit — mereplikasi query SQL persis `summary.ts` langsung via `postgres` package, dijalankan `node` dari `cwd=dashboard/` supaya resolusi module `"postgres"` jalan, baca `DATABASE_URL` dari `.env.local` manual karena tidak pakai `next dev`).
+
+**Temuan**
+- Dengan cast eksplisit, seluruh field (`count`, `avg_ms`, `p95_ms`) dikonfirmasi `typeof === "number"` di JS — tidak ada ambiguitas tipe.
+- Data nyata Supabase saat ini punya 10 `layer_name` distinct di tabel `spans` (`orchestration`, `retriever`, `interpretation`, `domain_gate`, `query_engine`, `execution`, `decomposition`, `context_resolution`, `input_layer`, `verification_gate`) — sebaran cukup kaya untuk tabel Latency per Layer meski hanya 3 trace.
+- `layer_name="orchestration"` py p95 tertinggi (40200ms) — masuk akal karena span ini membungkus `invoke_agent`/durasi total turn, bukan bug.
+
+**Error/Kegagalan (jika ada)**
+Percobaan pertama skrip verifikasi gagal: `ERR_UNSUPPORTED_ESM_URL_SCHEME` karena `import postgres from "<path-absolut-windows>"` — Node ESM loader menolak path Windows absolut (`C:\...`) sebagai specifier import tanpa `file://` prefix.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Diperbaiki dengan mengganti import jadi bare specifier `import postgres from "postgres"` dan menjalankan `node` dengan working directory `dashboard/` (supaya resolusi `node_modules` standar berfungsi) — bukan mengubah `summary.ts` itu sendiri (bug murni di skrip verifikasi ad-hoc, bukan kode produksi).
+
+**Hasil Verifikasi**
+Output skrip nyata dicocokkan dengan hitung manual dari data yang sudah diketahui (M5.2/M5.3):
+- `statusDistribution`: `berhasil=2, sebagian=1` — cocok persis.
+- `errorTypeFrequency`: `ditolak_otorisasi=2, gagal_teknis=1` — cocok persis.
+- `totalTraces=3, successRate=0.6666666666666666` (= 2/3 eksak) — cocok persis.
+- `latencyPerLayer`: 10 baris, seluruhnya angka bertipe `number` valid, terurut `p95_ms` DESC.
+
+Ini bukti awal KK1 ("cocok dengan penghitungan manual") SEBELUM UI dibangun, sesuai rencana verifikasi checkpoint ini di plan.
+
+**Commit:** `576b24f` (repo `dashboard/`) — `feat(dashboard): query agregat lintas-trace (summary.ts)`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada — penolakan plan pertama dan riset ulang terjadi SEBELUM Checkpoint 1 resmi dimulai (bagian dari proses "Rencanakan sebelum mengimplementasikan" di `CLAUDE.md`, bukan checkpoint implementasi), sehingga dicatat sebagai bagian dari narasi Task 1 di atas, bukan checkpoint terpisah di luar plan.

@@ -241,6 +241,6 @@ Tidak berlaku.
 
 **KK1 dan KK2 M5.2 TERPENUHI PENUH.**
 
-**Commit:** `dashboard/` (repo sendiri): `38cccf5` — `feat: lapisan query trace+span hierarkis (KK1/KK2)` (mencakup Task 8+9); `nirwana-chatbot`: *(diisi setelah commit)*
+**Commit:** `dashboard/` (repo sendiri): `38cccf5` — `feat: lapisan query trace+span hierarkis (KK1/KK2)` (mencakup Task 8+9); `nirwana-chatbot`: `923bbb4` — `docs(milestone-5.2): logs checkpoint 5 - KK1 dan KK2 terpenuhi`
 
 ---

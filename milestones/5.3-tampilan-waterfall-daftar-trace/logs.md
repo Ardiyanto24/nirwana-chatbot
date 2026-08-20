@@ -112,7 +112,7 @@ Screenshot tidak esensial untuk pembuktian — DOM/computed-style query memberi 
 **Hasil Verifikasi**
 `get_page_text` → title "Nirwana Chatbot — Observability" (bukan lagi "Create Next App"), konten halaman index sesuai yang ditulis. `read_console_messages` → tidak ada error React/hydration. `javascript_tool` (`getComputedStyle(document.body)`) → `backgroundColor="rgb(2, 6, 23)"` (=`#020617`, PERSIS sesuai CSS), `color="rgb(226, 232, 240)"` (=`#e2e8f0`, PERSIS sesuai CSS); `document.querySelector('header')`/`'footer'` keduanya ada; link Nav `["Ringkasan", "Trace"]` sesuai desain.
 
-**Commit:** `dashboard/` (repo sendiri): `2ea4659` — `feat: shell aplikasi dasar - Nav, footer, tema fixed-dark`; `nirwana-chatbot`: *(diisi setelah commit)*
+**Commit:** `dashboard/` (repo sendiri): `2ea4659` — `feat: shell aplikasi dasar - Nav, footer, tema fixed-dark`; `nirwana-chatbot`: `d1546fa` — `docs(milestone-5.3): logs checkpoint 3`
 
 ---
 

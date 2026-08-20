@@ -1,0 +1,650 @@
+{
+  "kejadian_id": "E02",
+  "deskripsi": "Kebutuhan dengan wave (reuse M7.14 E01)",
+  "timestamp": "2026-08-20T00:34:19.112890+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.16-e02",
+    "turn_index": 1,
+    "role_title": "Front Office Staff",
+    "employee_id": "emp-eval",
+    "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.16-e02",
+      "turn_index": 1,
+      "role_title": "Front Office Staff",
+      "employee_id": "emp-eval",
+      "question": "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?",
+      "history": []
+    },
+    "ketergantungan": {
+      "is_dependent": false,
+      "referenced_turn_index": null
+    },
+    "rewrite": {
+      "rewritten_question": "Bagaimana Gross Operating Profit (GOP) margin properti di Bali dipengaruhi oleh deviasi harga yang terjadi pada bulan ini?"
+    },
+    "session_memory": null,
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+          "teks_kebutuhan": "Hitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+          "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+            "8580ee40-46a5-407e-b60b-1e3cd4383d42"
+          ]
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 1
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+          "teks_kebutuhan": "Hitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+          "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+            "8580ee40-46a5-407e-b60b-1e3cd4383d42"
+          ]
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+          "teks_kebutuhan": "Hitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "financial",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "financial",
+          "properties_ref",
+          "reservation"
+        ],
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+          "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+            "8580ee40-46a5-407e-b60b-1e3cd4383d42"
+          ]
+        },
+        "domains": [
+          "reservation",
+          "financial",
+          "properties_ref"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+          "teks_kebutuhan": "Hitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+          "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+            "8580ee40-46a5-407e-b60b-1e3cd4383d42"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+          "teks_kebutuhan": "Hitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+          "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+            "8580ee40-46a5-407e-b60b-1e3cd4383d42"
+          ]
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          },
+          {
+            "domain": "financial",
+            "diizinkan": false,
+            "alasan": "role 'Front Office Staff' tidak memiliki akses ke domain 'financial'"
+          },
+          {
+            "domain": "properties_ref",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+          "teks_kebutuhan": "Hitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [],
+        "view_name_final": null,
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 8.380117724275806,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      },
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+          "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+          "label_bentuk_jawaban": "perbandingan",
+          "relasi": "bergantung",
+          "bergantung_pada": [
+            "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+            "8580ee40-46a5-407e-b60b-1e3cd4383d42"
+          ]
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_gop_impact_monthly",
+              "domain": "reservation",
+              "skor": 13.302770506809832,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "ditemukan",
+            "cukup": true,
+            "alasan": "grain punya dimensi pembanding, cukup untuk perbandingan",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_gop_impact_monthly",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+            "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+            "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ],
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+            "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+              "8580ee40-46a5-407e-b60b-1e3cd4383d42"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+            "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+            "label_bentuk_jawaban": "perbandingan",
+            "relasi": "bergantung",
+            "bergantung_pada": [
+              "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+              "8580ee40-46a5-407e-b60b-1e3cd4383d42"
+            ]
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali"
+            }
+          },
+          "status": "berhasil",
+          "lolos": false,
+          "alasan": "Params hanya berisi {\"property_name\": \"Bali\"} yang menyaring ke satu properti tunggal tanpa adanya pembanding entitas lain (misal properti lain) atau pemisahan periode yang kontras, sehingga tidak memungkinkan analisis perbandingan."
+        }
+      ]
+    ],
+    "verification_gate": [
+      [
+        {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "request_final": {
+            "domain": "reservation",
+            "view_name": "v_reservation_gop_impact_monthly",
+            "params": {
+              "property_name": "Bali",
+              "period_date": "2026-08"
+            }
+          },
+          "lolos": true,
+          "terkoreksi": false,
+          "alasan_penolakan": null
+        }
+      ]
+    ],
+    "execution": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "gagal_teknis",
+        "nilai_hasil": null,
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 2,
+        "kegagalan_alasan": "revisi_exhausted",
+        "data_quality_status": null,
+        "last_refreshed_at": null
+      }
+    ],
+    "paket_narasi": [
+      {
+        "atomic_intent_id": "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+        "session_id": "eval-7.16-e02",
+        "turn_index": 1,
+        "teks_kebutuhan": "Hitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Sistem tidak berhasil memproses kebutuhan ini karena kendala teknis."
+        ],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      },
+      {
+        "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+        "session_id": "eval-7.16-e02",
+        "turn_index": 1,
+        "teks_kebutuhan": "Hitung deviasi harga properti di Bali pada bulan ini",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      },
+      {
+        "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+        "session_id": "eval-7.16-e02",
+        "turn_index": 1,
+        "teks_kebutuhan": "Analisis pengaruh deviasi harga terhadap perubahan GOP margin properti di Bali",
+        "label_bentuk_jawaban": "perbandingan",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [
+          "Sistem tidak berhasil memproses kebutuhan ini karena kendala teknis."
+        ],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "interpretation": {
+      "narasi": {
+        "narasi": "Saat ini, sistem mengalami kendala teknis sehingga tidak dapat menghitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini maupun deviasi harga properti di wilayah yang sama. Kedua data tersebut belum tersedia karena proses eksekusi terganggu, sehingga analisis pengaruh deviasi harga terhadap perubahan GOP margin juga tidak dapat dilakukan. Kami akan terus memantau dan mencoba mengakses data terkini untuk memberikan informasi yang lebih lengkap."
+      },
+      "verifikasi_narasi": {
+        "narasi": "Saat ini, sistem mengalami kendala teknis sehingga tidak dapat menghitung Gross Operating Profit (GOP) margin properti di Bali pada bulan ini maupun deviasi harga properti di wilayah yang sama. Kedua data tersebut belum tersedia karena proses eksekusi terganggu, sehingga analisis pengaruh deviasi harga terhadap perubahan GOP margin juga tidak dapat dilakukan. Kami akan terus memantau dan mencoba mengakses data terkini untuk memberikan informasi yang lebih lengkap.",
+        "status": "berhasil",
+        "lolos": true,
+        "alasan": null
+      },
+      "visualisasi": [
+        {
+          "atomic_intent_id": "9d5a2740-0001-49c2-9eb6-d7e5364e3bc4",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        },
+        {
+          "atomic_intent_id": "8580ee40-46a5-407e-b60b-1e3cd4383d42",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        },
+        {
+          "atomic_intent_id": "40251a64-b61d-482a-b45f-5d6974cfb21a",
+          "label_bentuk_jawaban": "perbandingan",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "trace_id": "10c6cb22892e62c71fd128c6de9c1bac",
+  "cakupan_span": {
+    "span_names_ditemukan": [
+      "authorization.check",
+      "chat",
+      "domain_gate.cakupan_individu.check",
+      "domain_gate.deteksi_constraint_semua",
+      "domain_gate.identifikasi_semua",
+      "domain_gate.periksa_otorisasi_semua",
+      "execute_tool",
+      "execution.eksekusi_atomic_intent_semua",
+      "execution.susun_dan_simpan_paket_semua",
+      "input.validate",
+      "invoke_agent",
+      "memory.store",
+      "orchestration.susun_paket_narasi",
+      "orchestration.wave",
+      "query_engine.susun_dan_verifikasi_request_semua",
+      "retriever.cari_kandidat_view",
+      "retriever.proses_semua",
+      "verification_gate.check",
+      "verification_gate.verifikasi_gate",
+      "verification_gate.verifikasi_gate_semua"
+    ],
+    "cakupan_unik": {
+      "input_layer": {
+        "input.validate": true
+      },
+      "context_resolution.matching": {
+        "matching.evaluate": false
+      },
+      "domain_gate": {
+        "domain_gate.identifikasi_semua": true,
+        "domain_gate.periksa_otorisasi_semua": true,
+        "domain_gate.deteksi_constraint_semua": true
+      },
+      "retriever": {
+        "retriever.proses_semua": true
+      },
+      "query_engine": {
+        "query_engine.susun_dan_verifikasi_request_semua": true
+      },
+      "verification_gate": {
+        "verification_gate.verifikasi_gate_semua": true
+      },
+      "execution": {
+        "execution.eksekusi_atomic_intent_semua": true,
+        "execution.susun_dan_simpan_paket_semua": true
+      },
+      "orchestration": {
+        "orchestration.susun_paket_narasi": true
+      }
+    },
+    "chat_count_sebelum_domain_gate": 7,
+    "chat_count_setelah_paket_narasi": 2,
+    "wave_count": 2,
+    "memory_retrieve_ada": false,
+    "narasi_non_kosong": true,
+    "lengkap": false
+  },
+  "error": null
+}

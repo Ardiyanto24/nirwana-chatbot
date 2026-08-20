@@ -1,0 +1,332 @@
+{
+  "kejadian_id": "E01",
+  "deskripsi": "Kebutuhan tunggal sederhana (reuse M7.9 E01)",
+  "timestamp": "2026-08-20T00:19:56.853107+00:00",
+  "raw_payload": {
+    "session_id": "eval-7.16-e01",
+    "turn_index": 1,
+    "role_title": "General Manager",
+    "employee_id": "emp-eval",
+    "question": "Berapa occupancy rate properti kita bulan Juni 2026?"
+  },
+  "hasil": {
+    "payload": {
+      "session_id": "eval-7.16-e01",
+      "turn_index": 1,
+      "role_title": "General Manager",
+      "employee_id": "emp-eval",
+      "question": "Berapa occupancy rate properti kita bulan Juni 2026?",
+      "history": []
+    },
+    "ketergantungan": {
+      "is_dependent": false,
+      "referenced_turn_index": null
+    },
+    "rewrite": {
+      "rewritten_question": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?"
+    },
+    "session_memory": null,
+    "decomposition": {
+      "klasifikasi": "tunggal",
+      "atomic_intents": [
+        {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        }
+      ],
+      "verifikasi_valid": true,
+      "verifikasi_alasan": null,
+      "retry_count": 0
+    },
+    "matches": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "perlu_eksekusi",
+        "paket": null
+      }
+    ],
+    "domain_gate": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domains": [
+          "reservation"
+        ],
+        "status": "berhasil"
+      }
+    ],
+    "otorisasi": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ]
+      }
+    ],
+    "cakupan_individu": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "domain_decisions": [
+          {
+            "domain": "reservation",
+            "diizinkan": true,
+            "alasan": null
+          }
+        ],
+        "constraint": {
+          "terdeteksi": false,
+          "alasan": null
+        }
+      }
+    ],
+    "retriever": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "kecukupan": [
+          {
+            "kandidat": {
+              "view_name": "v_reservation_room_type_daily",
+              "domain": "reservation",
+              "skor": 5.489189566728378,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "sebagian",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          },
+          {
+            "kandidat": {
+              "view_name": "v_lookup_daily_occupancy",
+              "domain": "reservation",
+              "skor": 1.2179204707217226,
+              "sumber": "bm25"
+            },
+            "kecocokan_label": "sebagian",
+            "cukup": true,
+            "alasan": "nilai_tunggal selalu bisa diambil dari grain apa pun",
+            "sumber_keputusan": "deterministik"
+          }
+        ],
+        "view_name_final": "v_reservation_room_type_daily",
+        "status": "berhasil"
+      }
+    ],
+    "query_engine": [
+      [
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+            "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2026-06-01",
+              "period_date_to": "2026-06-30"
+            }
+          },
+          "status": "berhasil"
+        },
+        {
+          "atomic_intent": {
+            "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+            "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+            "label_bentuk_jawaban": "nilai_tunggal",
+            "relasi": "independen",
+            "bergantung_pada": null
+          },
+          "request": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2026-06-01",
+              "period_date_to": "2026-06-30"
+            }
+          },
+          "status": "berhasil",
+          "lolos": true,
+          "alasan": null
+        }
+      ]
+    ],
+    "verification_gate": [
+      [
+        {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        {
+          "request_final": {
+            "domain": "reservation",
+            "view_name": "v_reservation_room_type_daily",
+            "params": {
+              "period_date_from": "2026-06-01",
+              "period_date_to": "2026-06-30"
+            }
+          },
+          "lolos": true,
+          "terkoreksi": false,
+          "alasan_penolakan": null
+        }
+      ]
+    ],
+    "execution": [
+      {
+        "atomic_intent": {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "relasi": "independen",
+          "bergantung_pada": null
+        },
+        "status": "gagal_teknis",
+        "nilai_hasil": null,
+        "bug_prioritas_tinggi": false,
+        "retry_count_infra": 0,
+        "revisi_count": 2,
+        "kegagalan_alasan": "revisi_exhausted",
+        "data_quality_status": null,
+        "last_refreshed_at": null
+      }
+    ],
+    "paket_narasi": [
+      {
+        "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+        "session_id": "eval-7.16-e01",
+        "turn_index": 1,
+        "teks_kebutuhan": "Berapa tingkat keterisian properti kita pada bulan Juni tahun 2026?",
+        "label_bentuk_jawaban": "nilai_tunggal",
+        "nilai_hasil": {
+          "rows": []
+        },
+        "catatan_interpretasi": [],
+        "status": "gagal_teknis",
+        "sumber": "eksekusi_baru"
+      }
+    ],
+    "interpretation": {
+      "narasi": {
+        "narasi": "Saat ini sistem mengalami kendala teknis dalam mengambil data tingkat keterisian properti untuk bulan Juni tahun 2026. Hasil yang diperoleh dari proses eksekusi terbaru menunjukkan tidak ada data yang bisa disajikan (data kosong). Kami sedang memeriksa masalah ini dan akan berusaha memperbaikinya secepat mungkin. Jika Anda perlu informasi ini, mungkin bisa mencoba kembali dalam beberapa waktu atau menghubungi tim dukungan untuk detail lebih lanjut."
+      },
+      "verifikasi_narasi": {
+        "narasi": "Saat ini sistem mengalami kendala teknis dalam mengambil data tingkat keterisian properti untuk bulan Juni tahun 2026. Hasil yang diperoleh dari proses eksekusi terbaru menunjukkan tidak ada data yang bisa disajikan (data kosong). Kami sedang memeriksa masalah ini dan akan berusaha memperbaikinya secepat mungkin. Jika Anda perlu informasi ini, mungkin bisa mencoba kembali dalam beberapa waktu atau menghubungi tim dukungan untuk detail lebih lanjut.",
+        "status": "berhasil",
+        "lolos": true,
+        "alasan": null
+      },
+      "visualisasi": [
+        {
+          "atomic_intent_id": "16298d74-d77d-4c5e-93b4-8ddd8fbf29db",
+          "label_bentuk_jawaban": "nilai_tunggal",
+          "nilai_tunggal": null,
+          "deret": []
+        }
+      ]
+    }
+  },
+  "trace_id": "f8f5ed90aa1b7dca2169ca6fd7856203",
+  "cakupan_span": {
+    "span_names_ditemukan": [
+      "authorization.check",
+      "chat",
+      "domain_gate.cakupan_individu.check",
+      "domain_gate.deteksi_constraint_semua",
+      "domain_gate.identifikasi_semua",
+      "domain_gate.periksa_otorisasi_semua",
+      "execute_tool",
+      "execution.eksekusi_atomic_intent_semua",
+      "execution.susun_dan_simpan_paket_semua",
+      "input.validate",
+      "invoke_agent",
+      "memory.store",
+      "orchestration.susun_paket_narasi",
+      "orchestration.wave",
+      "query_engine.susun_dan_verifikasi_request_semua",
+      "retriever.cari_kandidat_view",
+      "retriever.proses_semua",
+      "verification_gate.check",
+      "verification_gate.verifikasi_gate",
+      "verification_gate.verifikasi_gate_semua"
+    ],
+    "cakupan_unik": {
+      "input_layer": {
+        "input.validate": true
+      },
+      "context_resolution.matching": {
+        "matching.evaluate": false
+      },
+      "domain_gate": {
+        "domain_gate.identifikasi_semua": true,
+        "domain_gate.periksa_otorisasi_semua": true,
+        "domain_gate.deteksi_constraint_semua": true
+      },
+      "retriever": {
+        "retriever.proses_semua": true
+      },
+      "query_engine": {
+        "query_engine.susun_dan_verifikasi_request_semua": true
+      },
+      "verification_gate": {
+        "verification_gate.verifikasi_gate_semua": true
+      },
+      "execution": {
+        "execution.eksekusi_atomic_intent_semua": true,
+        "execution.susun_dan_simpan_paket_semua": true
+      },
+      "orchestration": {
+        "orchestration.susun_paket_narasi": true
+      }
+    },
+    "chat_count_sebelum_domain_gate": 5,
+    "chat_count_setelah_paket_narasi": 2,
+    "wave_count": 1,
+    "memory_retrieve_ada": false,
+    "narasi_non_kosong": true,
+    "lengkap": false
+  },
+  "error": null
+}

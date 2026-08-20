@@ -244,3 +244,55 @@ Tidak berlaku.
 **Commit:** `dashboard/` (repo sendiri): `38cccf5` — `feat: lapisan query trace+span hierarkis (KK1/KK2)` (mencakup Task 8+9); `nirwana-chatbot`: `923bbb4` — `docs(milestone-5.2): logs checkpoint 5 - KK1 dan KK2 terpenuhi`
 
 ---
+
+## Checkpoint 6 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 10 — Uji ulang KK + tulis report.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Closing check: `npm test` (5/5 hijau), `curl /api/debug` (`200`, timestamp Supabase asli), `curl /debug/trace/sample-6d7f5cea8dfd` (`200`) — semua tetap konsisten dengan Checkpoint 5. Tulis `milestones/5.2-.../report.md` (6 bagian sesuai `template-report.md`) — Ringkasan, tabel KK vs Bukti, Cara Kerja+Diagram Mermaid+Integrasi, Perubahan dari Plan (5 poin), Keterbatasan, Follow-up. Update `docs/keputusan-tertunda.md` #4 dengan temuan: kemungkinan besar entri ini TIDAK PERNAH relevan untuk PIC 5 milestone manapun (5.1-5.4) — `DataVisualisasi` dikonsumsi frontend chat eksternal, bukan dashboard observability PIC 5. TIDAK diubah status/trigger-nya secara sepihak, dicatat sebagai temuan untuk ditinjau user.
+
+**Temuan**
+Tidak ada temuan baru — murni sintesis Checkpoint 1-5 + satu observasi analitis (relevansi jangka panjang keputusan-tertunda #4 untuk PIC 5).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`report.md` lengkap 6 bagian, kedua KK dipetakan ke bukti konkret dengan trace_id yang bisa ditelusuri ulang (`sample-6d7f5cea8dfd`).
+
+**Commit:** *(digabung Task 11)*
+
+---
+
+### Task 11 — Update status proyek CLAUDE.md/AGENT.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`CLAUDE.md`: baris tabel Status Proyek `5.2-5.4` dipecah jadi `5.2` (Selesai, link report.md) + `5.3-5.4` (belum dimulai). Tambah paragraf naratif M5.2 di "Sedang berjalan/berikutnya" (pola sama M7.x/M5.1). Update catatan `docs/keputusan-tertunda.md` #4 (ringkasan temuan relevansi PIC 5). `AGENT.md` disinkronkan penuh (disalin identik dari `CLAUDE.md`), dikonfirmasi `diff` kosong.
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`diff CLAUDE.md AGENT.md` kosong (identik). `CLAUDE.md`/`AGENT.md` gitignored (pola sudah dikonfirmasi M5.1), tidak di-commit.
+
+**Commit:** *(diisi setelah commit — Task 10+11, keduanya file non-gitignored: `report.md`, `docs/keputusan-tertunda.md`)*
+
+---
+
+---

@@ -40,6 +40,54 @@ Tidak berlaku (bukan error teknis).
 
 ---
 
+## Checkpoint 2 — Util Format Bersama
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 2 — Buat `format.ts`, refactor `WaterfallRow.tsx`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Dibuat `dashboard/src/lib/format.ts` berisi `humanizeDuration(ms: number | null)` (dipindah persis dari `WaterfallRow.tsx`, logic tidak diubah) dan `formatPercent(ratio: number)` baru (`${(ratio*100).toFixed(1)}%`). `WaterfallRow.tsx` diedit: definisi lokal `humanizeDuration` dihapus, diganti `import { humanizeDuration } from "@/lib/format";`.
+
+**Temuan**
+Tidak ada temuan baru di luar yang sudah dicatat Checkpoint 1 (gaya import relatif untuk test, tidak ada `vitest.config.ts`).
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`grep humanizeDuration` di seluruh `dashboard/src` mengonfirmasi HANYA satu definisi (`format.ts`), dipakai `WaterfallRow.tsx` via import alias `@/lib/format` (komponen tetap boleh pakai alias karena bukan file test) dan dipakai `format.test.ts` via import relatif.
+
+**Commit:** *(gabung dengan Task 3, lihat di bawah)*
+
+### Task 3 — Tulis `format.test.ts`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Ditulis `dashboard/src/lib/format.test.ts` mengikuti gaya persis `trace-tree.test.ts` (`import {describe,expect,it} from "vitest"`, import relatif `from "./format"`). 6 `it()` (3 `humanizeDuration`: null→"?", <1000ms polos, >=1000ms 2-desimal termasuk kasus nyata 5600ms dari span narasi M5.2; 3 `formatPercent`: 0&1, 2/3 - kasus nyata tingkat keberhasilan data sample M5.2+M5.3, pembulatan 1/3 dan 0.005).
+
+**Temuan**
+Tidak ada.
+
+**Error/Kegagalan (jika ada)**
+Tidak ada.
+
+**Diagnosis dan Perbaikan (jika ada error)**
+Tidak berlaku.
+
+**Hasil Verifikasi**
+`npm test` di `dashboard/` (real, dijalankan lewat Bash tool) → `Test Files 2 passed (2)`, `Tests 16 passed (16)` (10 test lama `trace-tree.test.ts` + 6 test baru `format.test.ts`, masing-masing `it()` dihitung Vitest sebagai satu test meski berisi >1 `expect`; output dikonfirmasi nyata, bukan asumsi).
+
+**Commit:** `dc61cea` (repo `dashboard/`) — `refactor(dashboard): ekstrak humanizeDuration ke lib/format.ts + formatPercent`
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 Tidak ada — penolakan plan pertama dan riset ulang terjadi SEBELUM Checkpoint 1 resmi dimulai (bagian dari proses "Rencanakan sebelum mengimplementasikan" di `CLAUDE.md`, bukan checkpoint implementasi), sehingga dicatat sebagai bagian dari narasi Task 1 di atas, bukan checkpoint terpisah di luar plan.

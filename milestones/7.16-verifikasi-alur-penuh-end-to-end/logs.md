@@ -93,3 +93,42 @@ Hang: didiagnosis sebagai instans berulang `docs/keterbatasan-diterima.md` #7 (b
 **Commit:** `0e52118` — `test(milestone-7.16): eksekusi nyata alur penuh end-to-end`
 
 ---
+
+## Checkpoint 4 — Audit
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 5 — Tulis audit.md
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Menulis `evals/7.16-verifikasi-alur-penuh-end-to-end/audit.md` — verdict kedua KK M7.16 TERPENUHI PENUH ketiga skenario (setelah koreksi verdict `matching.evaluate`), analisis lengkap per kejadian (E01 rentang layer baru terbukti, E02 bukti gabungan gap-M7.15+Execution-nyata dalam satu turn, E03 akhirnya `SEBAGIAN` nyata setelah 3 percobaan), bagian "Insiden Operasional" (jeda istirahat+restart infra, 2x hang E03), "Temuan Metodologi" (bug verifikasi `matching.evaluate`). Menambah addendum recurrence ke `docs/keterbatasan-diterima.md` #7 (dipicu oleh trigger (a) entri itu sendiri).
+
+**Temuan**
+Tidak ada temuan tak terduga di luar yang sudah dicatat Checkpoint 3.
+
+**Hasil Verifikasi**
+Review isi `audit.md` mencerminkan `payloads/*.json` apa adanya, termasuk nilai `lengkap=False` asli (dari skrip sebelum diperbaiki) yang TIDAK diubah — verdict terkoreksi didokumentasikan terpisah di audit, bukan menimpa data mentah.
+
+**Commit:** `7851e2b` — `docs(milestone-7.16): audit` (juga mencakup `logs.md` Checkpoint 1-3)
+
+---
+
+## Checkpoint 5 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-20 · **Selesai:** 2026-08-20
+
+### Task 6-8 — Finalisasi logs.md, tulis report.md, update status proyek
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Finalisasi `logs.md` (checkpoint ini). Tulis `milestones/7.16-verifikasi-alur-penuh-end-to-end/report.md` — kedua KK dipetakan terpenuhi penuh, konfirmasi eksplisit "Catatan Serah Terima" (`rancangan-orkestrasi-api.md` bagian akhir) soal span `invoke_agent` siap dipakai PIC 5. Update tabel "Status Proyek" `CLAUDE.md`+`AGENT.md` (working tree saja, gitignored) — M7.16 selesai, **11/11 Sambungan Level 2 selesai, PIC 7 LEVEL 2 SELESAI SEPENUHNYA**, M7.17 (Endpoint API) berikutnya.
+
+**Hasil Verifikasi**
+Baca ulang `report.md` — KK M7.16 dipetakan jujur "Terpenuhi Penuh" dengan bukti konkret (bukan diklaim tanpa dasar), termasuk catatan transparan soal koreksi bug verifikasi dan 2x hang E03. `CLAUDE.md`/`AGENT.md` diperbarui working tree, TIDAK di-commit.
+
+**Commit:** `docs(milestone-7.16): logs, report` (CLAUDE.md/AGENT.md TIDAK termasuk — gitignored, working tree saja) + `docs(keterbatasan-diterima): recurrence hang E03 M7.16` (perubahan file backlog project-wide, dipisah dari commit milestone)
+
+---

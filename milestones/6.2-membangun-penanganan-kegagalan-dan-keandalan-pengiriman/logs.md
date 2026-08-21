@@ -154,6 +154,58 @@ Tidak ada.
 **Hasil Verifikasi**
 `docker exec ... psql \dt` menunjukkan `traces`+`spans` ada. `\d traces`/`\d spans` mengonfirmasi skema PERSIS kontrak Bagian 4 (termasuk FK `spans_parent_span_id_fkey`/`spans_trace_id_fkey` yang jadi fokus test Checkpoint 7). INSERT+SELECT manual (1 baris `traces`+1 baris `spans`) berhasil, lalu `TRUNCATE ... CASCADE` untuk membersihkan sebelum test nyata Checkpoint 7.
 
-**Commit:** *(lihat commit setelah entri log ini)*
+**Commit:** `397d6fc` — `chore(milestone-6.2): skrip Postgres lokal disposable untuk fault injection`
+
+---
+
+## Checkpoint 6 — Build + Deploy Image Final
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 8 — Rebuild `ocb` dengan Seluruh Perubahan Checkpoint 2-4
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`docker compose up -d --build otel-collector` — build KEDUA sesi M6.2 ini (build pertama di Checkpoint 2 hanya mencakup retry/queue; Checkpoint 4 (eviction TTL) belum pernah di-deploy sampai titik ini, cuma diverifikasi via `go build`/`go test` lokal+container `golang:1.26`). ~8-9 menit (`ocb` compile step, konsisten preseden sesi-sesi sebelumnya).
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`docker ps` — SELURUH 5 container (`nirwana-otel-collector` + 3 observability lain + `nirwana-m62-fault-postgres` dari Checkpoint 5) `Up`. `docker logs --since 2m` nol error/fatal/panic, `"Everything is ready. Begin running and processing data."` — config retry/queue/eviction ter-parse bersih.
+
+**Commit:** *(tidak ada kode baru - deploy murni)*
+
+---
+
+## Checkpoint 7 — Verifikasi Nyata KK1 (Fault Injection, Tanpa Restart Collector)
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 9 — Simulasi Outage + Pemulihan Postgres Lokal
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+1. `.env` di-backup (`SUPABASE_EXPORTER_DSN` asli disalin ke scratchpad), lalu diganti sementara mengarah ke Postgres lokal Checkpoint 5 (`host.docker.internal:5433` - DNS Docker Desktop untuk container menjangkau host, BUKAN `localhost` yang di dalam container merujuk ke dirinya sendiri).
+2. `docker compose up -d otel-collector` — SATU restart, titik AWAL test (sesuai Keputusan 2, bukan mid-test).
+3. `docker stop nirwana-m62-fault-postgres` — simulasi outage SEBELUM span dikirim (deterministik: percobaan export PERTAMA dipastikan genuinely gagal).
+4. `send_test_span_kk1.py` (baru, mirror `smoke_test/send_dummy_span.py`) — kirim `invoke_agent`+`chat` (session_id `m6.2-fault-injection-kk1`, `role_title="General Manager"`), `force_flush()` supaya export segera.
+5. `docker start nirwana-m62-fault-postgres` — simulasi pulih ~15 detik setelah span dikirim, jauh di bawah `MaxElapsedTime` 5 menit.
+6. Query Postgres lokal langsung untuk verifikasi.
+
+**Temuan**
+Retry backoff eksponensial GENUINELY teramati di log: interval `4.68s` → `7.91s` → `18.81s` (mendekati `Multiplier=1.5` dari `initial_interval=5s`, sesuai konfigurasi Checkpoint 2). `docker start` postgres TIDAK langsung membuatnya `accepting connections` - percobaan retry pertama SETELAH `docker start` (di detik ke-~15) MASIH gagal `connection refused` (Postgres masih dalam proses startup internal sendiri) - percobaan retry BERIKUTNYA (interval berikutnya, ~19 detik kemudian) yang akhirnya berhasil. Ini realistis: `docker start` container TIDAK instan siap menerima koneksi.
+
+**Error/Kegagalan**
+Tidak ada kegagalan yang tidak terduga - SEMUA "error" yang tercatat log (`connection refused`, `UpsertTrace gagal`) adalah PERILAKU YANG DIHARAPKAN dari simulasi outage itu sendiri, bukan bug.
+
+**Hasil Verifikasi**
+Query `SELECT trace_id, session_id, turn_index, role_title FROM traces` di Postgres lokal menunjukkan 1 baris (`58c7b9d23a2d2b4efd025f24b9305bbd`, `m6.2-fault-injection-kk1`, turn_index=1, `role_title="General Manager"`) — LENGKAP. `SELECT ... FROM spans` menunjukkan 2 baris (`invoke_agent` akar + `chat` anak, relasi `parent_span_id` benar). **TIDAK ADA pengiriman ulang manual apa pun dari sisi pengirim** — span HANYA dikirim SEKALI (Task 4), seluruh proses sampai akhirnya tertulis murni mekanisme retry+queue `exporterhelper` (Checkpoint 2) + `Buffer` in-memory (Checkpoint 4, addendum M6.1) bekerja bersama. **KK1 M6.2 TERBUKTI PENUH.**
+
+`.env` dikembalikan ke DSN Supabase asli, `docker compose up -d otel-collector` (restart KEDUA dan TERAKHIR untuk test ini) — startup bersih, siap Checkpoint 8.
+
+**Commit:** *(lihat commit setelah entri log ini - skrip test baru)*
 
 ---

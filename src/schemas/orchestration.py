@@ -111,6 +111,17 @@ tanpa skema baru (konsisten preferensi M7.12-14). Keduanya non-Optional,
 selalu terisi kalau `proses_turn()` selesai tanpa exception - `APIError`
 dari `susun_narasi()` (M4.4, sengaja tanpa fallback) dibiarkan menjalar,
 TIDAK ditangkap M7.15 (preseden M7.5 Keputusan 4-5).
+
+Field `invoke_agent_trace_id`/`invoke_agent_span_id` (M6.1 addendum,
+gap ditemukan riset PIC 6): identitas span `invoke_agent` (hex string,
+`opentelemetry.trace.format_trace_id()`/`format_span_id()`), di-capture
+`turn_pipeline.py` SEBELUM `with`-block span itu exit. Dipakai `main.py`
+merekonstruksi `SpanContext`/`NonRecordingSpan` supaya span `riwayat.simpan`
+(dibuka SETELAH `invoke_agent` sudah ditutup - context asli sudah tidak
+aktif) bisa di-attach sebagai anak `invoke_agent`, BUKAN jadi trace akar
+terpisah seperti sebelumnya. Selalu terisi kalau `proses_turn()` selesai
+tanpa exception (non-Optional, mirror field lain). Lihat
+milestones/6.1-membangun-exporter-dasar/decisions.md Keputusan 2.
 """
 
 from pydantic import BaseModel
@@ -147,3 +158,5 @@ class KeadaanTurn(BaseModel):
     execution: list[HasilEksekusiAtomicIntent]
     paket_narasi: list[SessionMemoryPackage]
     interpretation: tuple[HasilNarasi, HasilVerifikasiNarasi, list[DataVisualisasi] | None]
+    invoke_agent_trace_id: str
+    invoke_agent_span_id: str

@@ -124,11 +124,20 @@ satu `list[SessionMemoryPackage]`. Hasilnya diteruskan `susun_dan_
 verifikasi_narasi()` (M7.5, sudah tersambung internal) - `APIError` dari
 `susun_narasi()` (M4.4) dibiarkan menjalar (preseden M7.5). Lihat
 milestones/7.15-sambungan-interpretation-lengkap/decisions.md.
+
+Milestone 6.1 (addendum, gap ditemukan riset PIC 6): trace_id/span_id
+span `invoke_agent` di-capture (hex string, `otel_trace.format_trace_id()`/
+`format_span_id()`) SEBELUM `with`-block-nya exit, diteruskan lewat
+`KeadaanTurn` - dipakai `main.py` merekonstruksi context supaya span
+`riwayat.simpan` (M7.18) bisa jadi anak `invoke_agent`, bukan trace akar
+terpisah. Lihat milestones/6.1-membangun-exporter-dasar/decisions.md
+Keputusan 2.
 """
 
 from concurrent.futures import ThreadPoolExecutor
 
 from opentelemetry import context as otel_context
+from opentelemetry import trace as otel_trace
 
 from src.layers.context_resolution.matching import match_and_archive
 from src.layers.context_resolution.rewrite import rewrite_to_standalone
@@ -262,6 +271,16 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             atomic_intents_narasi, paket_narasi_result, payload.session_id, payload.turn_index
         )
 
+        # M6.1 addendum: capture identitas span invoke_agent SEBELUM
+        # with-block ini exit - dipakai main.py merekonstruksi SpanContext
+        # supaya riwayat.simpan (dibuka setelah with-block ini sudah
+        # ditutup) bisa jadi anak invoke_agent, bukan trace akar terpisah.
+        # Lihat milestones/6.1-membangun-exporter-dasar/decisions.md
+        # Keputusan 2.
+        span_context = span.get_span_context()
+        invoke_agent_trace_id = otel_trace.format_trace_id(span_context.trace_id)
+        invoke_agent_span_id = otel_trace.format_span_id(span_context.span_id)
+
         return KeadaanTurn(
             payload=payload,
             ketergantungan=ketergantungan,
@@ -278,4 +297,6 @@ def proses_turn(raw: dict) -> KeadaanTurn:
             execution=execution_result,
             paket_narasi=paket_narasi_result,
             interpretation=interpretation_result,
+            invoke_agent_trace_id=invoke_agent_trace_id,
+            invoke_agent_span_id=invoke_agent_span_id,
         )

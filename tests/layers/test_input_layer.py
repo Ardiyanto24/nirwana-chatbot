@@ -58,6 +58,8 @@ def _keadaan_turn_dummy(raw: dict) -> KeadaanTurn:
         execution=[],
         paket_narasi=[],
         interpretation=_INTERPRETATION_DUMMY,
+        invoke_agent_trace_id="0123456789abcdef0123456789abcdef",
+        invoke_agent_span_id="0123456789abcdef",
     )
 
 VALID_PAYLOAD_TURN1 = {

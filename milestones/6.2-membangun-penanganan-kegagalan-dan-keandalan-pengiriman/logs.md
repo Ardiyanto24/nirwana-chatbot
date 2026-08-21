@@ -88,6 +88,48 @@ Baca ulang signature `Optional[T].Get() *T` vs `Optional[T].HasValue() bool` (du
 **Hasil Verifikasi**
 `go test ./... -v` — 24 test total (5 baru + 19 existing M6.1), SEMUA PASS, 0 gagal. `go mod tidy` dijalankan (4 package baru jadi direct dependency, sebelumnya indirect) — `go build`+`go test` tetap bersih setelahnya.
 
-**Commit:** *(lihat commit setelah entri log ini)*
+**Commit:** `3ec615d` — `test(milestone-6.2): validasi wiring Config retry/queue`
+
+---
+
+## Checkpoint 4 — Buffer Eviction TTL (keterbatasan-diterima.md #20)
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21 (sesi sempat terputus restart komputer di antara Checkpoint 3 dan 4 — Docker Desktop mati total, semua 4 container `Exited (255)`. Dipulihkan: relaunch Docker Desktop, `docker compose up -d` — semua container `Up` bersih, `.env`/`SUPABASE_EXPORTER_DSN` ter-load normal tanpa perlu intervensi manual, tidak ada data/state yang hilang dari sesi sebelumnya karena git sudah menyimpan seluruh commit Checkpoint 1-3.)
+
+### Task 5 — `Buffer` Ditambah Eviction TTL
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`pendingEntry{span mappedSpan, arrivedAt time.Time}` menggantikan `mappedSpan` polos sebagai tipe elemen `pending map[string][]pendingEntry` — `arrivedAt` diisi `time.Now()` saat `Ingest()` menahan span (BUKAN `Row.StartedAt` span asli, yang mencerminkan waktu pembuatan span di Python, bisa jauh lebih tua dari waktu genuinely tiba di buffer kalau upstream delay). `NewBuffer()` sekarang menerima `evictionTTL time.Duration` dan LANGSUNG menjalankan goroutine `evictionLoop()` (interval 1/10 TTL, dibatasi 1-5 menit) yang memanggil `evictExpired(now)` periodik — method ini TERPISAH dari loop-nya sendiri (testable langsung dengan `now` buatan, tidak perlu menunggu ticker nyata). `Stop()` menutup `stopCh` lalu MENUNGGU `doneCh` (evictionLoop genuinely exit, bukan fire-and-forget) — dipanggil dari `shutdown()` `tracesExporter` (factory.go) sebelum `storage.Close()`. `insertableLocked()`/`drainLocked()`/`PendingSpansFor()` disesuaikan bekerja dengan `pendingEntry` (unwrap ke `mappedSpan` di titik yang butuh).
+
+**Temuan**
+Mengubah tipe elemen `pending` (dari `mappedSpan` ke `pendingEntry`) berdampak ke SEMUA fungsi yang menyentuhnya (`Ingest`, `drainLocked`, `PendingSpansFor`) — refactor lebih luas dari yang terlihat di deskripsi task plan ("Buffer ditambah pelacakan waktu"), tapi tetap dalam SATU task koheren (tidak ada perubahan behavior lain selain menambah dimensi waktu).
+
+**Error/Kegagalan**
+Tidak ada di kode produksi. (Lihat Task 6 untuk satu bug kecil di test yang ditemukan+diperbaiki sebelum eksekusi pertama.)
+
+**Hasil Verifikasi**
+`go build ./...` bersih.
+
+**Commit:** `a4522dc` (gabung dengan Task 6, lihat di bawah)
+
+### Task 6 — Unit Test Eviction
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+3 test baru di `buffer_test.go`: `TestBuffer_EvictExpired_SpanMelewatiTTLDihapusDanLogged` (span pending + `evictExpired(now)` dipanggil dengan `now` 2 jam ke depan, TTL 1 jam — harus ter-evict, `PendingCount()` jadi 0, TIDAK ikut ter-INSERT, DAN 1 WARN log tercatat via `zap/zaptest/observer` dengan `trace_id`/`span_id` benar), `TestBuffer_EvictExpired_SpanBelumMelewatiTTLTetapBertahan` (kebalikan — `now` cuma +5 menit, MASIH di bawah TTL 1 jam, span harus tetap utuh), `TestBuffer_Stop_GoroutineEvictionBerhentiBersih` (`Stop()` dipanggil di goroutine terpisah, harus kembali dalam <5 detik — membuktikan `doneCh` genuinely ditutup, bukan hang). 6 test `NewBuffer(...)` existing (M6.1) diperbarui menambah argumen `time.Hour` + `t.Cleanup(buf.Stop)` (sed, supaya goroutine eviction test lama tidak menggantung sepanjang sisa test run).
+
+**Temuan**
+`go test -race` TIDAK BISA jalan langsung di host Windows — race detector Go butuh cgo, cgo butuh compiler C (`gcc`), TIDAK ada di PATH host ini (dikonfirmasi `which gcc` kosong). Diselesaikan menjalankan test SET LENGKAP di dalam container `golang:1.26` resmi (sudah bawa gcc) via `docker run -v <path>:/app -w /app golang:1.26 go test ./... -race` — MSYS_NO_PATHCONV=1 diperlukan supaya Git Bash tidak salah menerjemahkan path `-w /app` jadi path Windows.
+
+**Error/Kegagalan**
+Satu bug kecil di test SENDIRI (bukan produksi), ditemukan sebelum run pertama: draft awal `TestBuffer_EvictExpired_SpanMelewatiTTLDihapusDanLogged` sempat memakai `logs.FilterMessageSnippet(...).All()[0].ContextMap()` tanpa memastikan filter cocok — diperiksa ulang manual sebelum eksekusi (bukan trial-error), tidak sampai menyebabkan test run gagal.
+
+**Hasil Verifikasi**
+`go test ./... -race -v` (container `golang:1.26`) — **27 test total, SEMUA PASS, nol race condition terdeteksi**. Test lama (24) tetap hijau setelah refactor `pendingEntry`.
+
+**Commit:** `a4522dc` — `feat(milestone-6.2): eviction TTL Buffer untuk trace anchor tak pernah tiba`
 
 ---

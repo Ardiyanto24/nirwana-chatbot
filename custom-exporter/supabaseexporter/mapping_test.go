@@ -100,6 +100,44 @@ func TestMapTraces_AnchorSpanMembawaSessionDanTurnIndex(t *testing.T) {
 	}
 }
 
+// TestMapTraces_RoleTitleDariAttribute - addendum M6.1 (keterbatasan-
+// diterima.md #19): role_title akhirnya jadi span attribute di
+// invoke_agent (turn_pipeline.py), diekstrak ke mappedSpan.RoleTitle.
+func TestMapTraces_RoleTitleDariAttribute(t *testing.T) {
+	td := ptrace.NewTraces()
+	rs := td.ResourceSpans().AppendEmpty()
+	ss := rs.ScopeSpans().AppendEmpty()
+	ss.Scope().SetName("orchestration")
+	span := addSpan(ss, 6, 1, "invoke_agent", time.Now())
+	span.Attributes().PutStr("session.id", "sess-role")
+	span.Attributes().PutInt("turn.index", 1)
+	span.Attributes().PutStr("role_title", "Front Office Staff")
+
+	mapped, err := MapTraces(td)
+	if err != nil {
+		t.Fatalf("MapTraces error: %v", err)
+	}
+	if mapped[0].RoleTitle == nil || *mapped[0].RoleTitle != "Front Office Staff" {
+		t.Errorf("role_title salah, dapat %v", mapped[0].RoleTitle)
+	}
+}
+
+func TestMapTraces_RoleTitleNilKalauTidakAda(t *testing.T) {
+	td := ptrace.NewTraces()
+	rs := td.ResourceSpans().AppendEmpty()
+	ss := rs.ScopeSpans().AppendEmpty()
+	ss.Scope().SetName("domain_gate.otorisasi")
+	addSpan(ss, 7, 1, "authorization.check", time.Now())
+
+	mapped, err := MapTraces(td)
+	if err != nil {
+		t.Fatalf("MapTraces error: %v", err)
+	}
+	if mapped[0].RoleTitle != nil {
+		t.Errorf("role_title harus nil kalau atribut tidak ada, dapat %v", *mapped[0].RoleTitle)
+	}
+}
+
 func TestMapTraces_SpanBiasaBukanAnchor(t *testing.T) {
 	td := ptrace.NewTraces()
 	rs := td.ResourceSpans().AppendEmpty()

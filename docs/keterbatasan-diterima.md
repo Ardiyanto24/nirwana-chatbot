@@ -325,16 +325,18 @@ Gap ini kini TERTUTUP sebagai bukti — status entri diubah dari "diterima karen
 
 ---
 
-## 20. `Buffer` Exporter Go (Milestone 6.1) Murni In-Memory — Tidak Persisten Lintas Restart Proses Collector
+## 20. `Buffer` Exporter Go (Milestone 6.1) Murni In-Memory — Tidak Persisten Lintas Restart Proses Collector — DIPERBAIKI (2026-08-21)
 
 **Ditemukan di:** Milestone 6.1, Checkpoint 7 (`milestones/6.1-membangun-exporter-dasar/decisions.md` Keputusan 6), 2026-08-21 — keputusan desain sadar saat membangun `custom-exporter/supabaseexporter/buffer.go`.
 
 **Konteks penemuan:** Span `invoke_agent` (satu-satunya pembawa `session.id`+`turn.index` yang wajib untuk baris `traces`) SELALU berakhir belakangan dibanding anak-anaknya — exporter Go menahan (`buffer` in-memory) span anak sampai `invoke_agent` tiba. Cakupan M6.1 ("jalur data paling sederhana") sengaja TIDAK menambahkan mekanisme eviction/timeout untuk trace yang anchor-nya tidak pernah tiba (mis. `proses_turn()` crash di tengah jalan sebelum `invoke_agent` selesai, atau Collector di-restart sebelum flush terjadi).
 
-**Kenapa diterima (bukan diperbaiki di M6.1):** Penanganan kegagalan/keandalan pengiriman secara eksplisit adalah cakupan Milestone 6.2 (`rancangan-custom-exporter-supabase.md` Lingkup M6.2), bukan M6.1 — menambahkan eviction/persistence sekarang akan mendahului scope milestone berikutnya tanpa manfaat langsung untuk KK M6.1 sendiri.
+**Kenapa awalnya diterima (bukan langsung diperbaiki di M6.1):** Penanganan kegagalan/keandalan pengiriman secara eksplisit adalah cakupan Milestone 6.2 (`rancangan-custom-exporter-supabase.md` Lingkup M6.2), bukan M6.1 — menambahkan eviction/persistence saat itu akan mendahului scope milestone berikutnya tanpa manfaat langsung untuk KK M6.1 sendiri.
 
-**Dampak + mitigasi:** (a) Span anak untuk trace yang anchor-nya tidak pernah tiba akan tertahan selamanya di memori proses Collector — risiko memory leak lambat pada volume tinggi/jangka panjang tanpa restart; (b) begitu proses Collector di-restart (deploy ulang, crash, dsb), SELURUH span yang masih tertahan (belum ter-flush) HILANG tanpa jejak — tidak ada persistence/write-ahead log. Mitigasi saat ini: tidak ada, murni diterima sebagai batasan cakupan M6.1.
+**DIPERBAIKI (2026-08-21, Milestone 6.2):** `Buffer` (`buffer.go`) ditambah TTL eviction — setiap entri `pending` mencatat waktu kedatangannya (`pendingEntry.arrivedAt`), goroutine background (`evictionLoop`) membuang entri yang tertahan melebihi `BufferEvictionTTL` (default 60 menit, YAML-configurable, jauh di atas worst-case hang LLM tercatat project ~25 menit — entri #7) dengan WARN log eksplisit (bukan silent drop). Sekaligus, `exporterhelper.WithRetry`/`WithQueue` diaktifkan (sebelumnya TIDAK dipakai sama sekali, default resmi package disabled) — kegagalan penulisan Postgres SESAAT sekarang di-retry otomatis (backoff eksponensial, jendela 5 menit) alih-alih hilang permanen sekali gagal. Diverifikasi nyata (fault injection Postgres lokal disposable, `docker stop`/`docker start` TANPA restart Collector): trace+span akhirnya tertulis lengkap murni lewat retry, tanpa pengiriman ulang manual.
 
-**Pemicu peninjauan ulang:** Milestone 6.2 (Penanganan Kegagalan dan Keandalan Pengiriman) — wajib ditinjau ulang sebagai bagian scope resmi milestone itu, bukan opsional.
+**Dampak + mitigasi (historis, sebelum perbaikan):** (a) Span anak untuk trace yang anchor-nya tidak pernah tiba tertahan selamanya di memori proses Collector; (b) restart Collector menghilangkan SELURUH span tertahan tanpa jejak. Setelah perbaikan: (a) dibatasi TTL 60 menit (bukan lagi selamanya); (b) kegagalan transien (BUKAN restart Collector) kini pulih otomatis lewat retry — restart Collector genuine TETAP menghilangkan queue/buffer in-memory (tidak ada persistent write-ahead log, di luar cakupan literal M6.2 "gangguan sesaat", bukan crash proses Collector itu sendiri).
+
+**Pemicu peninjauan ulang:** Tidak ada lagi untuk cakupan M6.2 (retry+eviction). Kalau di masa depan dibutuhkan ketahanan TERHADAP restart Collector itu sendiri (bukan cuma gangguan Supabase sesaat), itu butuh persistent queue (`storage` extension `exporterhelper.QueueBatchConfig`) — di luar cakupan yang pernah diminta dokumen sumber manapun, dicatat sebagai potensi kebutuhan masa depan, bukan keterbatasan aktif saat ini.
 
 ---

@@ -235,3 +235,25 @@ Container Postgres lokal disposable (Checkpoint 5-7) dibongkar (`docker rm -f ni
 **Commit:** *(tidak ada kode baru - verifikasi murni, hasil di atas)*
 
 ---
+
+## Checkpoint 9 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 11 — `report.md` + `keterbatasan-diterima.md` + `CLAUDE.md`/`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`report.md` ditulis (6 bagian sesuai `template-report.md`): Ringkasan Hasil, tabel KK-vs-Bukti (keduanya "Ya", merujuk Checkpoint 7-8), Cara Kerja+diagram Mermaid+Integrasi, Perubahan dari Plan (2 penyesuaian: struktur Config Task 2, insiden restart komputer Checkpoint 3-4), Keterbatasan (rujuk #20 DIPERBAIKI), Follow-up (project-wide: **tidak ada lagi milestone belum dikerjakan**). `docs/keterbatasan-diterima.md` #20 diperbarui status DIPERBAIKI dengan narasi perbaikan lengkap. `CLAUDE.md`/`AGENT.md`: baris M6.2 di tabel Status Proyek → Selesai (link `report.md`), paragraf "Sisa pekerjaan project" (sebelumnya menyatakan M6.2 satu-satunya milestone belum dimulai) diganti total dengan narasi penutupan M6.2 + pernyataan eksplisit **PROJECT SELESAI SEPENUHNYA (7/7 PIC, 24 milestone)**, ringkasan keterbatasan diterima #20 diperbarui, baris tabel Struktur Repository `custom-exporter/` diperbarui kontribusinya.
+
+**Temuan**
+Ini adalah milestone PENUTUP seluruh project — tidak ada milestone lain yang tersisa di `rancangan-*.md` manapun setelah M6.2 selesai (dikonfirmasi silang terhadap tabel Status Proyek `CLAUDE.md` yang sebelumnya secara eksplisit menyatakan M6.2 "satu-satunya milestone yang belum dimulai di seluruh project").
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Kedua KK sumber (`rancangan-custom-exporter-supabase.md` Lingkup M6.2) sudah diuji ulang end-to-end secara nyata di Checkpoint 7 (KK1) dan Checkpoint 8 (KK2) sebelum `report.md` ditulis — bukan diasumsikan.
+
+**Commit:** *(lihat commit setelah entri log ini)*

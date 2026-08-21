@@ -126,6 +126,27 @@ Tidak ada alternatif dipertimbangkan karena forced by tidak adanya migration too
 
 ---
 
+### Keputusan 8 (Addendum M6.1): "Simplifikasi diterima" Keputusan 5 (span `riwayat.simpan` tidak ter-nest) DIPERBAIKI
+
+**Status:** Ditemukan+diperbaiki di Milestone 6.1 (PIC 6, Custom Exporter Go) — dicatat di sini karena kepemilikan kode (`main.py::_simpan_riwayat_percakapan_aman()`) tetap M7.18, mengikuti preseden penulisan gap-fix di file pemilik.
+
+**Latar Belakang**
+Keputusan 5 di atas eksplisit mencatat "Simplifikasi diterima" bahwa span `riwayat.simpan` TIDAK ter-nest di bawah `invoke_agent` karena "Memperbaikinya butuh threading context OTel lintas-boundary... di luar cakupan KK M7.18". Riset M6.1 menemukan simplifikasi ini bukan sekadar kosmetik — tanpa perbaikan, exporter Go PIC 6 tidak akan PERNAH bisa mengisi `traces.status` untuk trace utama (satu-satunya sumber `riwayat.status` ada di trace `riwayat.simpan` yang terpisah), mematikan fitur distribusi status M5.1-5.4 begitu data asli mengalir. Lihat `milestones/6.1-membangun-exporter-dasar/decisions.md` Keputusan 2.
+
+**Keputusan yang Dipilih**
+`_simpan_riwayat_percakapan_aman()` sekarang merekonstruksi `SpanContext`/`NonRecordingSpan` dari `KeadaanTurn.invoke_agent_trace_id`/`invoke_agent_span_id` (M7.6 addendum, lihat `milestones/7.6-.../decisions.md` Keputusan 10), `opentelemetry.context.attach()`/`detach()` membungkus panggilan `simpan_riwayat_turn()` — persis "threading context OTel lintas-boundary" yang sebelumnya dianggap di luar cakupan.
+
+**Alasan**
+Threading context ternyata TIDAK sekompleks yang diperkirakan Keputusan 5 — pola `context.attach()`/`detach()` sudah ada presedennya sejak M7.7 (`turn_pipeline.py`), tinggal direkonstruksi dari trace_id/span_id string alih-alih objek `Context` langsung (menghindari `arbitrary_types_allowed` di `KeadaanTurn`).
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Korelasi `session_id`+`turn_index` di sisi exporter Go (bukan perbaikan di Python)** — ditolak, lihat alasan lengkap di `milestones/6.1-.../decisions.md` Keputusan 2 (menambah heuristik rapuh, bukan menghilangkan kompleksitas).
+
+**Dampak**
+`error.type=gagal_teknis` pada span `riwayat.simpan` (kalau `simpan_riwayat_turn()` gagal) sekarang genuinely terlihat sebagai anak `invoke_agent` di Jaeger/Supabase — pesan asli Keputusan 5 "terlihat di Jaeger by service+span name" masih benar, TAPI sekarang JUGA correctly ternested, bukan sekadar dicari terpisah. Verifikasi nyata: lihat `milestones/6.1-.../logs.md` Checkpoint 2.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -137,3 +158,4 @@ Tidak ada alternatif dipertimbangkan karena forced by tidak adanya migration too
 | 5 | `main.py` tangkap-dan-diam (pola baru pertama) | B | Plan |
 | 6 | Tidak ada fungsi retrieve baru | B | Plan |
 | 7 | `create_all()` sekali jalan, tanpa Alembic | B | Plan |
+| 8 | Span `riwayat.simpan` di-nest ke `invoke_agent` (Addendum M6.1, perbaikan Keputusan 5) | A | M6.1 Checkpoint 2 |

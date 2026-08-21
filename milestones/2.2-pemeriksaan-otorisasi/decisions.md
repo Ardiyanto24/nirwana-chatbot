@@ -185,6 +185,27 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 
 ---
 
+## Keputusan 12 (Addendum): `rbac.role_title` Direkam di Span `authorization.check`
+
+**Status:** Ditemukan+diperbaiki di Milestone 6.1 (2026-08-21, saat verifikasi produksi exporter Go menemukan `role_title` tidak pernah jadi span attribute di titik keputusan RBAC manapun), diperbaiki di sini atas instruksi eksplisit user — bukan ditutup di M6.1 sendiri, karena perbaikan instrumentasi span layer ini adalah tanggung jawab milestone pemilik, bukan milestone exporter yang menemukannya (preseden M1.3 Keputusan 12, M1.5 Keputusan 14).
+
+**Latar Belakang**
+User menegaskan `role_title` adalah komponen inti akses-kontrol, bukan sekadar metadata tampilan: "role tittle ini adalah komponen yang sangat penting untuk access rules ... semuanya harus berdasarkan role tittle yang tanggung jawabnya sudah diaatur". `periksa_otorisasi_atomic_intent()` (fungsi ini) menerima `role_title` sebagai parameter dan memakainya langsung di `periksa_domain(domain, role_title)` — keputusan izin/tolak per domain — TAPI span `authorization.check` yang dibuka di sekitar keputusan itu tidak pernah merekamnya sendiri, hanya `domain`/`decision`. Audit-trail RBAC jadi tidak lengkap: trace bisa menunjukkan domain apa ditolak, tapi tidak untuk role APA.
+
+**Keputusan yang Dipilih**
+`span.set_attribute("rbac.role_title", role_title)` ditambahkan di `periksa_otorisasi_atomic_intent()` (`src/layers/domain_gate/otorisasi.py`), sebelum `keputusan = periksa_domain(...)`.
+
+**Alasan**
+Prefix `rbac.*` konsisten atribut RBAC lain di span yang sama (`rbac.domain`, `rbac.decision`) — bukan bare `role_title` seperti di `invoke_agent` (yang mengikuti pola nama kolom Supabase `session.id`/`turn.index` untuk ekstraksi langsung exporter Go, beda tujuan).
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+Tidak ada alternatif dipertimbangkan — forced by instruksi eksplisit user, penambahan atribut tunggal tanpa trade-off desain.
+
+**Dampak**
+`docs/keterbatasan-diterima.md` #19 diperbarui status jadi DIPERBAIKI (lihat `milestones/6.1-.../decisions.md` Keputusan 12 untuk gambaran penuh, termasuk sisi exporter Go). Tidak ada perubahan skema/kontrak — murni tambahan span attribute.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -196,6 +217,7 @@ Tidak ada — forced by instruksi eksplisit user/`CLAUDE.md`.
 | 5 | Tidak ada folder `evals/2.2-.../` | B | Plan |
 | 6 | File baru di subpackage `domain_gate/` yang sama | B | Checkpoint 4-5 |
 | 7 | Skema di file `authorization.py` terpisah | B | Checkpoint 2 |
+| 12 | Addendum M6.1: `rbac.role_title` direkam di span `authorization.check` | A | Addendum 2026-08-21 |
 | 8 | Pola seed sekali-jalan di `milestones/2.2-.../` | B | Checkpoint 3 |
 | 9 | Entri `GAGAL_TEKNIS` dilewati | B | Checkpoint 5 |
 | 10 | Sumber matriks: tabel Supabase baru | A | Checkpoint 3 |

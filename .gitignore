@@ -20,3 +20,11 @@ prompt_reliability/.promptfoo/
 # nirwana-database/.gitignore untuk api/ dan web/) - lihat
 # milestones/5.2-skema-data-koneksi-nextjs-supabase/decisions.md Keputusan 1.
 dashboard/
+
+# Milestone 6.1 -- custom-exporter/ (Go, PIC 6) TETAP di repo yang sama
+# (decisions.md Keputusan 5, beda dari dashboard/ di atas). dist/ adalah
+# output auto-generated `ocb` (go.mod/go.sum/main.go/binary regenerated
+# tiap kali builder dijalankan) - bukan sumber yang ditulis tangan.
+custom-exporter/dist/
+custom-exporter/**/*.exe
+custom-exporter/**/*.test

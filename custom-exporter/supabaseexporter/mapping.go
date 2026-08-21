@@ -75,12 +75,16 @@ func mapSpan(scopeName string, span ptrace.Span) (SpanRow, error) {
 // mappedSpan pasangan SpanRow dengan penanda apakah span ini "anchor" -
 // span pembawa session.id+turn.index (satu-satunya sumber trace-level
 // session_id/turn_index yang WAJIB ada untuk baris `traces`, lihat
-// decisions.md Keputusan 6 "Strategi Buffering").
+// decisions.md Keputusan 6 "Strategi Buffering"). RoleTitle BARU (M6.1
+// addendum, keterbatasan-diterima.md #19 - role_title akhirnya jadi span
+// attribute di invoke_agent, turn_pipeline.py) - opsional (tetap nil
+// kalau tidak ada, TIDAK mengubah status isAnchor()).
 type mappedSpan struct {
 	Row       SpanRow
 	SessionID *string
 	TurnIndex *int
 	Status    *string
+	RoleTitle *string
 }
 
 // MapTraces mengonversi satu batch ptrace.Traces (bisa berisi banyak
@@ -112,6 +116,10 @@ func MapTraces(td ptrace.Traces) ([]mappedSpan, error) {
 				if v, ok := attrs.Get("riwayat.status"); ok {
 					s := v.AsString()
 					ms.Status = &s
+				}
+				if v, ok := attrs.Get("role_title"); ok {
+					s := v.AsString()
+					ms.RoleTitle = &s
 				}
 
 				results = append(results, ms)

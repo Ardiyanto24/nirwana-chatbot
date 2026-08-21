@@ -58,8 +58,34 @@ exporters:
   # dikompilasi JADI SATU dengan Collector ini via ocb, lihat
   # custom-exporter/builder-config.yaml). DSN dari env var (kredensial role
   # write-only nirwana_exporter_writer, Checkpoint 4 - TIDAK di-hardcode).
+  #
+  # retry_on_failure/sending_queue (Milestone 6.2, decisions.md Keputusan 1)
+  # - nilai di bawah SAMA PERSIS dengan default resmi exporterhelper
+  #   (configretry.NewDefaultBackOffConfig()/exporterhelper.NewDefaultQueueConfig())
+  #   - ditulis eksplisit di sini (bukan diandalkan diam-diam) supaya operator
+  #   tidak perlu baca kode Go untuk tahu perilaku retry/queue exporter ini,
+  #   konsisten pola batch/memory_limiter di atas. Sebelum M6.2, exporter ini
+  #   TIDAK memakai retry/queue sama sekali (default disabled) - satu batch
+  #   gagal berarti data hilang total tanpa percobaan ulang.
   supabase:
     dsn: ${env:SUPABASE_EXPORTER_DSN}
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 5m
+      multiplier: 1.5
+      randomization_factor: 0.5
+    sending_queue:
+      queue_size: 1000
+      num_consumers: 10
+      batch:
+        flush_timeout: 200ms
+        min_size: 8192
+    # Buffer in-memory (buffer.go) - trace yang span akarnya (invoke_agent)
+    # tidak pernah tiba (proses_turn() crash, dst) tertahan sampai TTL ini
+    # lewat, lalu di-evict dengan WARN log (keterbatasan-diterima.md #20).
+    buffer_eviction_ttl: 60m
 
 service:
   telemetry:

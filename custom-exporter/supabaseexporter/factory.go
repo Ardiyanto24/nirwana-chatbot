@@ -3,8 +3,11 @@ package supabaseexporter
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configoptional"
+	"go.opentelemetry.io/collector/config/configretry"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -12,23 +15,44 @@ import (
 
 const typeStr = "supabase"
 
-// Config - satu-satunya field yang dibutuhkan M6.1 (DSN Postgres role
-// nirwana_exporter_writer, Checkpoint 4). Retry/batching/queue config
-// (M6.2) belum ditambahkan di sini - Lingkup M6.1 sengaja "jalur data
-// paling sederhana".
+// Config M6.2 - DSN (M6.1) + retry/queue (M6.2, decisions.md Keputusan 1).
+// RetrySettings/QueueSettings memakai TIPE RESMI configretry/exporterhelper
+// langsung (bukan field custom flat per-parameter) - field-name mapstructure
+// (`retry_on_failure`/`sending_queue`) konsisten konvensi SELURUH exporter
+// resmi OTel Collector (mis. otlpexporter), dan confmap sudah menangani
+// merge default<-override YAML otomatis untuk kedua tipe ini tanpa perlu
+// logic fallback manual (lihat createDefaultConfig()). BufferEvictionTTL
+// (Keputusan 3, default 60 menit) diteruskan ke Buffer di Checkpoint 4.
 type Config struct {
-	DSN string `mapstructure:"dsn"`
+	DSN               string                                                   `mapstructure:"dsn"`
+	RetrySettings     configretry.BackOffConfig                                `mapstructure:"retry_on_failure"`
+	QueueSettings     configoptional.Optional[exporterhelper.QueueBatchConfig] `mapstructure:"sending_queue"`
+	BufferEvictionTTL time.Duration                                            `mapstructure:"buffer_eviction_ttl"`
 }
 
 func (c *Config) Validate() error {
 	if c.DSN == "" {
 		return errors.New("dsn wajib diisi (connection string role nirwana_exporter_writer)")
 	}
+	if c.BufferEvictionTTL <= 0 {
+		return errors.New("buffer_eviction_ttl wajib positif")
+	}
 	return nil
 }
 
+// createDefaultConfig menetapkan default resmi exporterhelper untuk retry
+// (Enabled=true, InitialInterval=5s, MaxInterval=30s, MaxElapsedTime=5m -
+// configretry.NewDefaultBackOffConfig()) dan queue (QueueSize=1000,
+// NumConsumers=10 - exporterhelper.NewDefaultQueueConfig(), Keputusan 5
+// TIDAK diturunkan paksa) - YAML exporters.supabase HANYA perlu mengisi
+// field yang ingin di-override, sisanya otomatis pakai nilai ini (confmap
+// merge, bukan logic manual).
 func createDefaultConfig() component.Config {
-	return &Config{}
+	return &Config{
+		RetrySettings:     configretry.NewDefaultBackOffConfig(),
+		QueueSettings:     configoptional.Some(exporterhelper.NewDefaultQueueConfig()),
+		BufferEvictionTTL: 60 * time.Minute,
+	}
 }
 
 // NewFactory mendaftarkan exporter "supabase" ke OTel Collector -
@@ -61,6 +85,8 @@ func createTracesExporter(ctx context.Context, set exporter.Settings, cfg compon
 
 	return exporterhelper.NewTraces(ctx, set, cfg, te.pushTraces,
 		exporterhelper.WithShutdown(te.shutdown),
+		exporterhelper.WithRetry(c.RetrySettings),
+		exporterhelper.WithQueue(c.QueueSettings),
 	)
 }
 

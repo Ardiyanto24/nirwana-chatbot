@@ -176,6 +176,29 @@ Tidak ada alternatif dipertimbangkan — forced by aturan `CLAUDE.md` sendiri.
 
 ---
 
+---
+
+### Keputusan 10 (Addendum M6.1): `KeadaanTurn` +2 field identitas `invoke_agent`, `proses_turn()` men-capture trace_id/span_id sebelum span exit
+
+**Status:** Ditemukan di tengah implementasi Milestone 6.1 (PIC 6, Custom Exporter Go) — dicatat di sini karena kepemilikan kode (`KeadaanTurn`/`proses_turn()`) tetap M7.6, mengikuti preseden penulisan gap-fix di file pemilik (M7.6/M7.7/M7.11/M7.17/M7.18), bukan di `decisions.md` milestone penemunya.
+
+**Latar Belakang**
+Riset M6.1 menemukan span `riwayat.simpan` (M7.18) dibuka SETELAH `with`-block `invoke_agent` (baris ini) sudah exit — `riwayat.simpan` jadi trace akar terpisah (trace_id BEDA), bukan anak `invoke_agent`. Akibatnya exporter Go PIC 6 tidak akan pernah bisa mengisi `traces.status` untuk trace utama begitu data asli mengalir (satu-satunya sumber `riwayat.status` ada di trace lain). Lihat `milestones/6.1-membangun-exporter-dasar/decisions.md` Keputusan 2 untuk analisis lengkap+alternatif yang ditolak.
+
+**Keputusan yang Dipilih**
+`KeadaanTurn` (`src/schemas/orchestration.py`) ditambah 2 field `str` non-Optional: `invoke_agent_trace_id`, `invoke_agent_span_id` — diisi dari `span.get_span_context()` (`otel_trace.format_trace_id()`/`format_span_id()`) tepat sebelum `return KeadaanTurn(...)` di `proses_turn()`, MASIH di dalam `with`-block `invoke_agent` (span belum exit, `get_span_context()` valid).
+
+**Alasan**
+Menyimpan `trace_id`/`span_id` sebagai string (bukan objek `opentelemetry.context.Context` mentah) menghindari kebutuhan `arbitrary_types_allowed` di `KeadaanTurn` (Pydantic `BaseModel` biasa) — `main.py` (kepemilikan M7.18) merekonstruksi `SpanContext`/`NonRecordingSpan` dari kedua string ini, pola standar OTel untuk "link ke span yang sudah ditutup" (identik mekanisme W3C traceparent propagation).
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Simpan objek `Context` OTel mentah di `KeadaanTurn`** — butuh `model_config = ConfigDict(arbitrary_types_allowed=True)`, mengubah karakter tipe-ketat schema yang dipakai 13+ milestone Sambungan lain. Ditolak, string hex jauh lebih ringan dan idiomatic.
+
+**Dampak**
+`KeadaanTurn` sekarang 15 field. Fixture test yang mengonstruksi `KeadaanTurn` manual (`tests/test_main.py`, `tests/layers/test_input_layer.py`) diperbarui menyertakan 2 field baru (dummy hex valid). Verifikasi Jaeger real (span `riwayat.simpan` genuinely bersarang di trace `invoke_agent`) — lihat `milestones/6.1-.../logs.md` Checkpoint 2 untuk status verifikasi.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -189,3 +212,4 @@ Tidak ada alternatif dipertimbangkan — forced by aturan `CLAUDE.md` sendiri.
 | 7 | `APIError` `detect_turn_dependency()` dibiarkan menjalar, dicatat keterbatasan diterima | B | Plan |
 | 8 | `tests/orchestration/` cakupan sempit (tanpa LLM/Jaeger saja) | B | Plan |
 | 9 | Update Struktur Repository di Checkpoint 2 | B | Plan |
+| 10 | `KeadaanTurn` +2 field identitas `invoke_agent` (Addendum M6.1) | A | M6.1 Checkpoint 2 |

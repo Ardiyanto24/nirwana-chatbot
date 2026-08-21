@@ -1,8 +1,16 @@
 services:
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    # Image resmi otel/opentelemetry-collector-contrib DIGANTI build custom
+    # (Milestone 6.1, PIC 6) - ocb menghasilkan SATU distribusi Collector
+    # utuh yang MENGGANTIKAN image resmi, bukan komponen tempel (decisions.md
+    # Keputusan Jenis B "builder-config.yaml wajib mendaftarkan seluruh
+    # komponen existing"). Dockerfile: ../../custom-exporter/Dockerfile.
+    build:
+      context: ../../custom-exporter
     container_name: nirwana-otel-collector
     command: ["--config=/etc/otel-collector-config.yaml"]
+    environment:
+      - SUPABASE_EXPORTER_DSN=${SUPABASE_EXPORTER_DSN}
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:

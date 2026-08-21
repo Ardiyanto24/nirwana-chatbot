@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sort"
 	"sync"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -56,31 +57,132 @@ type traceSpanWriter interface {
 // sesungguhnya (span akar SEJATI = ParentSpanID nil, BUKAN lagi
 // disamakan dengan isAnchor()).
 //
-// Cakupan SENGAJA dibatasi (forced by Lingkup M6.1 "jalur data paling
+// Cakupan SENGAJA dibatasi M6.1 (forced by Lingkup "jalur data paling
 // sederhana"): `known`/`written` murni in-memory, tidak query existence ke
 // DB saat cold-start proses baru. Trace yang span akarnya TIDAK PERNAH
-// tiba (mis. proses_turn() crash sebelum invoke_agent selesai) akan
-// tertahan selamanya di memori - penanganan eviction/timeout adalah
-// cakupan M6.2 (reliability), BUKAN M6.1.
+// tiba (mis. proses_turn() crash sebelum invoke_agent selesai) SEBELUM
+// M6.2 tertahan selamanya di memori (docs/keterbatasan-diterima.md #20).
+//
+// M6.2 (decisions.md Keputusan 3): setiap entri `pending` mencatat waktu
+// KEDATANGAN-nya sendiri (`pendingEntry.arrivedAt`, BUKAN `Row.StartedAt`
+// span aslinya - yang mencerminkan kapan span itu DIBUAT di sisi Python,
+// bisa jauh lebih tua dari kapan ia genuinely tiba di buffer ini kalau
+// pipeline upstream sempat delay). Goroutine background (`evictionLoop`)
+// memeriksa berkala, membuang entri yang tertahan melebihi
+// `evictionTTL` (default 60 menit, jauh di atas worst-case hang LLM
+// tercatat project ~25 menit - keterbatasan-diterima.md #7) dengan WARN
+// log per span (bukan silent drop).
 type Buffer struct {
 	mu      sync.Mutex
 	writer  traceSpanWriter
-	pending map[string][]mappedSpan
+	pending map[string][]pendingEntry
 	known   map[string]bool
 	written map[string]bool
 	logger  *zap.Logger
+
+	evictionTTL time.Duration
+	stopCh      chan struct{}
+	doneCh      chan struct{}
 }
 
-func NewBuffer(writer traceSpanWriter, logger *zap.Logger) *Buffer {
+// pendingEntry membungkus mappedSpan dengan waktu kedatangannya di buffer -
+// dasar perhitungan TTL eviction (Keputusan 3 M6.2), terpisah dari
+// mappedSpan.Row.StartedAt yang murni properti span asli.
+type pendingEntry struct {
+	span      mappedSpan
+	arrivedAt time.Time
+}
+
+// NewBuffer membuat Buffer DAN langsung menjalankan goroutine eviction
+// background - dipasangkan dengan Stop() (dipanggil shutdown() tracesExporter,
+// factory.go) supaya tidak goroutine leak saat Collector berhenti/restart.
+func NewBuffer(writer traceSpanWriter, logger *zap.Logger, evictionTTL time.Duration) *Buffer {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
-	return &Buffer{
-		writer:  writer,
-		pending: make(map[string][]mappedSpan),
-		known:   make(map[string]bool),
-		written: make(map[string]bool),
-		logger:  logger,
+	if evictionTTL <= 0 {
+		// Config.Validate() (factory.go) sudah menolak nilai <=0 sebelum
+		// sampai sini - fallback ini murni jaring pengaman kalau Buffer
+		// dipakai langsung (mis. dari test) tanpa lewat Validate().
+		evictionTTL = 60 * time.Minute
+	}
+	b := &Buffer{
+		writer:      writer,
+		pending:     make(map[string][]pendingEntry),
+		known:       make(map[string]bool),
+		written:     make(map[string]bool),
+		logger:      logger,
+		evictionTTL: evictionTTL,
+		stopCh:      make(chan struct{}),
+		doneCh:      make(chan struct{}),
+	}
+	go b.evictionLoop()
+	return b
+}
+
+// evictionLoop menjalankan evictExpired() secara periodik sampai Stop()
+// dipanggil. Interval dipilih 1/10 TTL (dibatasi 1-5 menit) - cukup
+// responsif tanpa membebani CPU untuk TTL yang sangat panjang/pendek.
+func (b *Buffer) evictionLoop() {
+	defer close(b.doneCh)
+
+	interval := b.evictionTTL / 10
+	if interval < time.Minute {
+		interval = time.Minute
+	}
+	if interval > 5*time.Minute {
+		interval = 5 * time.Minute
+	}
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-b.stopCh:
+			return
+		case now := <-ticker.C:
+			b.evictExpired(now)
+		}
+	}
+}
+
+// Stop menghentikan goroutine eviction background dengan bersih, MENUNGGU
+// goroutine genuinely selesai (bukan fire-and-forget) - dipanggil dari
+// shutdown() tracesExporter.
+func (b *Buffer) Stop() {
+	close(b.stopCh)
+	<-b.doneCh
+}
+
+// evictExpired memindai SELURUH pending, membuang entri yang tertahan
+// melebihi evictionTTL. Dipanggil evictionLoop (waktu nyata) ATAU
+// langsung oleh unit test (deterministik, tidak bergantung timing ticker
+// nyata). WARN log per span yang di-evict - bukan silent drop, konsisten
+// "Kejujuran terhadap keterbatasan" (CLAUDE.md).
+func (b *Buffer) evictExpired(now time.Time) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	for traceID, entries := range b.pending {
+		remaining := make([]pendingEntry, 0, len(entries))
+		for _, e := range entries {
+			waited := now.Sub(e.arrivedAt)
+			if waited > b.evictionTTL {
+				b.logger.Warn("Span dievict dari buffer - induk/span akar tidak pernah tiba dalam TTL",
+					zap.String("trace_id", traceID),
+					zap.String("span_id", e.span.Row.SpanID),
+					zap.Duration("tertahan", waited),
+					zap.Duration("ttl", b.evictionTTL))
+				continue
+			}
+			remaining = append(remaining, e)
+		}
+		if len(remaining) == 0 {
+			delete(b.pending, traceID)
+		} else {
+			b.pending[traceID] = remaining
+		}
 	}
 }
 
@@ -130,7 +232,7 @@ func (b *Buffer) Ingest(ctx context.Context, ms mappedSpan) error {
 		return b.drainLocked(ctx, traceID)
 	}
 
-	b.pending[traceID] = append(b.pending[traceID], ms)
+	b.pending[traceID] = append(b.pending[traceID], pendingEntry{span: ms, arrivedAt: time.Now()})
 	return nil
 }
 
@@ -158,13 +260,13 @@ func (b *Buffer) insertableLocked(ms mappedSpan) bool {
 func (b *Buffer) drainLocked(ctx context.Context, traceID string) error {
 	var errs []error
 	for {
-		remaining := make([]mappedSpan, 0, len(b.pending[traceID]))
-		var ready []mappedSpan
-		for _, sp := range b.pending[traceID] {
-			if b.insertableLocked(sp) {
-				ready = append(ready, sp)
+		remaining := make([]pendingEntry, 0, len(b.pending[traceID]))
+		var ready []pendingEntry
+		for _, e := range b.pending[traceID] {
+			if b.insertableLocked(e.span) {
+				ready = append(ready, e)
 			} else {
-				remaining = append(remaining, sp)
+				remaining = append(remaining, e)
 			}
 		}
 
@@ -178,7 +280,7 @@ func (b *Buffer) drainLocked(ctx context.Context, traceID string) error {
 		}
 
 		sort.SliceStable(ready, func(i, j int) bool {
-			return ready[i].Row.StartedAt.Before(ready[j].Row.StartedAt)
+			return ready[i].span.Row.StartedAt.Before(ready[j].span.Row.StartedAt)
 		})
 
 		// Span yang GAGAL ditulis (mis. FK yang genuinely tak terduga)
@@ -186,19 +288,19 @@ func (b *Buffer) drainLocked(ctx context.Context, traceID string) error {
 		// insertable pada pass ini tetap harus dicoba, supaya satu span
 		// bermasalah tidak diam-diam menjatuhkan seluruh drain trace ini
 		// (Kejujuran terhadap keterbatasan - lihat CLAUDE.md).
-		for _, sp := range ready {
-			if err := b.writer.InsertSpan(ctx, sp.Row); err != nil {
+		for _, e := range ready {
+			if err := b.writer.InsertSpan(ctx, e.span.Row); err != nil {
 				parent := "<nil>"
-				if sp.Row.ParentSpanID != nil {
-					parent = *sp.Row.ParentSpanID
+				if e.span.Row.ParentSpanID != nil {
+					parent = *e.span.Row.ParentSpanID
 				}
 				b.logger.Error("InsertSpan gagal (drain)",
-					zap.String("trace_id", traceID), zap.String("span_id", sp.Row.SpanID),
+					zap.String("trace_id", traceID), zap.String("span_id", e.span.Row.SpanID),
 					zap.String("parent_span_id", parent), zap.Error(err))
 				errs = append(errs, err)
 				continue
 			}
-			b.written[sp.Row.SpanID] = true
+			b.written[e.span.Row.SpanID] = true
 		}
 
 		b.pending[traceID] = remaining
@@ -213,12 +315,14 @@ func (b *Buffer) PendingCount() int {
 	return len(b.pending)
 }
 
-// PendingSpansFor mengembalikan salinan span yang tertahan untuk satu
-// trace_id - dipakai unit test.
+// PendingSpansFor mengembalikan salinan span (mappedSpan, tanpa arrivedAt)
+// yang tertahan untuk satu trace_id - dipakai unit test.
 func (b *Buffer) PendingSpansFor(traceID string) []mappedSpan {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	out := make([]mappedSpan, len(b.pending[traceID]))
-	copy(out, b.pending[traceID])
+	for i, e := range b.pending[traceID] {
+		out[i] = e.span
+	}
 	return out
 }

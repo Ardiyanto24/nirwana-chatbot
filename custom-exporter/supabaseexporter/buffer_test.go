@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // fakeWriter merekam pemanggilan UpsertTrace/InsertSpan di memori - tanpa
@@ -36,7 +37,8 @@ func intPtr(i int) *int       { return &i }
 // selalu berakhir/ter-export paling belakangan).
 func TestBuffer_SpanAnakSebelumAnchor(t *testing.T) {
 	fw := &fakeWriter{}
-	buf := NewBuffer(fw, zap.NewNop())
+	buf := NewBuffer(fw, zap.NewNop(), time.Hour)
+	t.Cleanup(buf.Stop)
 	ctx := context.Background()
 	now := time.Now()
 
@@ -129,7 +131,8 @@ func TestBuffer_SpanAnakSebelumAnchor(t *testing.T) {
 // tetap induk-sebelum-anak di SETIAP kedalaman.
 func TestBuffer_CucuSebelumIndukNonRoot(t *testing.T) {
 	fw := &fakeWriter{}
-	buf := NewBuffer(fw, zap.NewNop())
+	buf := NewBuffer(fw, zap.NewNop(), time.Hour)
+	t.Cleanup(buf.Stop)
 	ctx := context.Background()
 	now := time.Now()
 
@@ -212,7 +215,8 @@ func TestBuffer_CucuSebelumIndukNonRoot(t *testing.T) {
 // insertableLocked + drainLocked kaskade.
 func TestBuffer_CucuTibaSetelahAnchorSebelumIndukNonRoot(t *testing.T) {
 	fw := &fakeWriter{}
-	buf := NewBuffer(fw, zap.NewNop())
+	buf := NewBuffer(fw, zap.NewNop(), time.Hour)
+	t.Cleanup(buf.Stop)
 	ctx := context.Background()
 	now := time.Now()
 
@@ -312,7 +316,8 @@ func TestBuffer_CucuTibaSetelahAnchorSebelumIndukNonRoot(t *testing.T) {
 // menempatkannya lebih dulu).
 func TestBuffer_SpanNonRootJugaBawaSessionTurnIndex(t *testing.T) {
 	fw := &fakeWriter{}
-	buf := NewBuffer(fw, zap.NewNop())
+	buf := NewBuffer(fw, zap.NewNop(), time.Hour)
+	t.Cleanup(buf.Stop)
 	ctx := context.Background()
 	now := time.Now()
 
@@ -387,7 +392,8 @@ func TestBuffer_SpanNonRootJugaBawaSessionTurnIndex(t *testing.T) {
 // berikutnya untuk trace_id yang sama langsung ditulis tanpa ditahan.
 func TestBuffer_TraceSudahDikenalLangsungInsert(t *testing.T) {
 	fw := &fakeWriter{}
-	buf := NewBuffer(fw, zap.NewNop())
+	buf := NewBuffer(fw, zap.NewNop(), time.Hour)
+	t.Cleanup(buf.Stop)
 	ctx := context.Background()
 
 	anchor := mappedSpan{
@@ -419,7 +425,8 @@ func TestBuffer_TraceSudahDikenalLangsungInsert(t *testing.T) {
 // anchor-nya.
 func TestBuffer_DuaTraceBerbedaTidakSalingMengganggu(t *testing.T) {
 	fw := &fakeWriter{}
-	buf := NewBuffer(fw, zap.NewNop())
+	buf := NewBuffer(fw, zap.NewNop(), time.Hour)
+	t.Cleanup(buf.Stop)
 	ctx := context.Background()
 
 	childA := mappedSpan{Row: SpanRow{SpanID: "a-child", TraceID: "trace-A", LayerName: "domain_gate", StartedAt: time.Now()}}
@@ -446,5 +453,118 @@ func TestBuffer_DuaTraceBerbedaTidakSalingMengganggu(t *testing.T) {
 		if sp.TraceID == "trace-A" {
 			t.Errorf("span trace-A TIDAK BOLEH ikut ter-INSERT hanya karena trace-B dapat anchor")
 		}
+	}
+}
+
+// TestBuffer_EvictExpired_SpanMelewatiTTLDihapusDanLogged - Milestone 6.2
+// Checkpoint 4 (keterbatasan-diterima.md #20). Memanggil evictExpired()
+// LANGSUNG dengan `now` buatan (bukan menunggu ticker background nyata) -
+// deterministik, tidak bergantung waktu dinding sungguhan. Span yang
+// tertahan melebihi TTL harus dibuang DAN di-WARN log (bukan silent
+// drop, "Kejujuran terhadap keterbatasan" CLAUDE.md).
+func TestBuffer_EvictExpired_SpanMelewatiTTLDihapusDanLogged(t *testing.T) {
+	fw := &fakeWriter{}
+	core, logs := observer.New(zap.WarnLevel)
+	logger := zap.New(core)
+
+	buf := NewBuffer(fw, logger, time.Hour) // TTL panjang - evictExpired() dipanggil manual, bukan menunggu ticker
+	t.Cleanup(buf.Stop)
+	ctx := context.Background()
+
+	child := mappedSpan{
+		Row: SpanRow{
+			SpanID:        "span-stuck",
+			TraceID:       "trace-evict",
+			ParentSpanID:  strPtr("span-tidak-pernah-tiba"),
+			LayerName:     "domain_gate",
+			OperationName: strPtr("chat"),
+			StartedAt:     time.Now(),
+		},
+	}
+	if err := buf.Ingest(ctx, child); err != nil {
+		t.Fatalf("Ingest error: %v", err)
+	}
+	if buf.PendingCount() != 1 {
+		t.Fatalf("harus 1 trace tertahan sebelum eviction, dapat %d", buf.PendingCount())
+	}
+
+	// evictExpired dipanggil dengan `now` 2 jam ke depan - jauh melewati
+	// TTL 1 jam, span HARUS ter-evict.
+	buf.evictExpired(time.Now().Add(2 * time.Hour))
+
+	if buf.PendingCount() != 0 {
+		t.Errorf("span melewati TTL harus ter-evict, tapi masih %d trace tertahan", buf.PendingCount())
+	}
+	if len(fw.insertedSpans) != 0 {
+		t.Errorf("span yang di-evict TIDAK BOLEH ter-INSERT (parent-nya genuinely tidak pernah tiba)")
+	}
+
+	warnLogs := logs.FilterMessageSnippet("dievict").All()
+	if len(warnLogs) != 1 {
+		t.Fatalf("harus 1 WARN log eviction, dapat %d", len(warnLogs))
+	}
+	fields := warnLogs[0].ContextMap()
+	if fields["span_id"] != "span-stuck" {
+		t.Errorf("WARN log harus menyebut span_id yang di-evict, dapat %v", fields["span_id"])
+	}
+	if fields["trace_id"] != "trace-evict" {
+		t.Errorf("WARN log harus menyebut trace_id, dapat %v", fields["trace_id"])
+	}
+}
+
+// TestBuffer_EvictExpired_SpanBelumMelewatiTTLTetapBertahan - kebalikan
+// test di atas: span yang BELUM melewati TTL tidak boleh ikut ter-evict
+// hanya karena evictExpired() dipanggil.
+func TestBuffer_EvictExpired_SpanBelumMelewatiTTLTetapBertahan(t *testing.T) {
+	fw := &fakeWriter{}
+	buf := NewBuffer(fw, zap.NewNop(), time.Hour)
+	t.Cleanup(buf.Stop)
+	ctx := context.Background()
+
+	child := mappedSpan{
+		Row: SpanRow{
+			SpanID:        "span-belum-lama",
+			TraceID:       "trace-belum-evict",
+			ParentSpanID:  strPtr("span-akan-tiba"),
+			LayerName:     "domain_gate",
+			StartedAt:     time.Now(),
+		},
+	}
+	if err := buf.Ingest(ctx, child); err != nil {
+		t.Fatalf("Ingest error: %v", err)
+	}
+
+	// `now` cuma 5 menit ke depan - MASIH jauh di bawah TTL 1 jam.
+	buf.evictExpired(time.Now().Add(5 * time.Minute))
+
+	if buf.PendingCount() != 1 {
+		t.Errorf("span BELUM melewati TTL TIDAK BOLEH ter-evict, pending count dapat %d, ingin 1", buf.PendingCount())
+	}
+	if got := buf.PendingSpansFor("trace-belum-evict"); len(got) != 1 || got[0].Row.SpanID != "span-belum-lama" {
+		t.Errorf("span yang belum expired harus tetap utuh di pending, dapat %+v", got)
+	}
+}
+
+// TestBuffer_Stop_GoroutineEvictionBerhentiBersih memverifikasi Stop()
+// genuinely menunggu goroutine evictionLoop selesai (tidak fire-and-forget)
+// - dipanggil berkali-kali TIDAK BOLEH panic/hang (mis. dari shutdown()
+// tracesExporter yang bisa terpanggil lebih dari sekali di beberapa
+// skenario lifecycle Collector).
+func TestBuffer_Stop_GoroutineEvictionBerhentiBersih(t *testing.T) {
+	fw := &fakeWriter{}
+	buf := NewBuffer(fw, zap.NewNop(), time.Hour)
+
+	done := make(chan struct{})
+	go func() {
+		buf.Stop()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// Stop() kembali - goroutine evictionLoop genuinely sudah exit
+		// (doneCh ditutup evictionLoop sendiri via defer, Stop() menunggunya).
+	case <-time.After(5 * time.Second):
+		t.Fatal("Stop() tidak kembali dalam 5 detik - goroutine evictionLoop kemungkinan tidak berhenti bersih")
 	}
 }

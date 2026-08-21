@@ -81,7 +81,7 @@ func createTracesExporter(ctx context.Context, set exporter.Settings, cfg compon
 		return nil, err
 	}
 
-	te := &tracesExporter{storage: storage, buffer: NewBuffer(storage, set.TelemetrySettings.Logger)}
+	te := &tracesExporter{storage: storage, buffer: NewBuffer(storage, set.TelemetrySettings.Logger, c.BufferEvictionTTL)}
 
 	return exporterhelper.NewTraces(ctx, set, cfg, te.pushTraces,
 		exporterhelper.WithShutdown(te.shutdown),
@@ -119,6 +119,7 @@ func (te *tracesExporter) pushTraces(ctx context.Context, td ptrace.Traces) erro
 }
 
 func (te *tracesExporter) shutdown(context.Context) error {
+	te.buffer.Stop()
 	te.storage.Close()
 	return nil
 }

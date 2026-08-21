@@ -1,0 +1,31 @@
+# Distribusi OTel Collector custom - Nirwana Chatbot RBAC PIC 6 (Milestone
+# 6.1). Checkpoint 3 (fast-fail gate) hanya py otlpreceiver+debugexporter
+# untuk membuktikan tooling ocb sendiri bekerja. Checkpoint 8 Task 14
+# memperluas mendaftarkan SELURUH komponen yang sudah dipakai
+# infra/observability/otel-collector-config.yaml (Temuan D decisions.md -
+# ocb menggantikan SELURUH image Collector, bukan komponen tempel, jadi
+# WAJIB seluruh komponen existing terdaftar supaya tidak regresi M5.1)
+# PLUS modul lokal supabaseexporter (custom, Checkpoint 5-8).
+
+dist:
+  name: nirwana-otelcol
+  description: "Distribusi OTel Collector custom - Nirwana Chatbot RBAC PIC 6"
+  output_path: ./dist
+
+receivers:
+  - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.159.0
+
+processors:
+  - gomod: go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.159.0
+  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.159.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.159.0
+
+exporters:
+  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.159.0
+  - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.159.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.159.0
+  - gomod: github.com/nirwana-chatbot/custom-exporter/supabaseexporter v0.0.0
+    path: ./supabaseexporter
+
+connectors:
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.159.0

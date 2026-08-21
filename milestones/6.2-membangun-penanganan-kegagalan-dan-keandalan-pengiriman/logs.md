@@ -133,3 +133,27 @@ Satu bug kecil di test SENDIRI (bukan produksi), ditemukan sebelum run pertama: 
 **Commit:** `a4522dc` — `feat(milestone-6.2): eviction TTL Buffer untuk trace anchor tak pernah tiba`
 
 ---
+
+## Checkpoint 5 — Postgres Lokal Disposable untuk Fault Injection
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 7 — `setup_local_postgres.py`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`milestones/6.2-.../setup_local_postgres.py` (mirror gaya `seed_employees.py`/`seed_sample_trace.py`): `docker run` Postgres lokal (`postgres:16`, container `nirwana-m62-fault-postgres`, port host 5433, kredensial superuser default lokal-only - Keputusan 6), poll `pg_isready` sampai siap, `SQLModel.metadata.create_all(engine, tables=[TraceRow.__table__, SpanRow.__table__])` — SENGAJA hanya 2 tabel (bukan `create_all()` polos yang akan membuat SELURUH tabel project seperti `session_memory_packages`/`roles` yang tidak relevan). Print 2 bentuk DSN: `postgresql+psycopg://...` (dipakai skrip Python sendiri) dan `postgres://...` (bentuk plain untuk `SUPABASE_EXPORTER_DSN` exporter Go/pgx, dipakai Checkpoint 7).
+
+**Temuan**
+Image `postgres:16` belum pernah ditarik di mesin ini - proses `docker run` pertama makan waktu >60 detik (pull image), command dipindah ke background otomatis. Tidak masalah, hanya perlu menunggu notifikasi selesai.
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+`docker exec ... psql \dt` menunjukkan `traces`+`spans` ada. `\d traces`/`\d spans` mengonfirmasi skema PERSIS kontrak Bagian 4 (termasuk FK `spans_parent_span_id_fkey`/`spans_trace_id_fkey` yang jadi fokus test Checkpoint 7). INSERT+SELECT manual (1 baris `traces`+1 baris `spans`) berhasil, lalu `TRUNCATE ... CASCADE` untuk membersihkan sebelum test nyata Checkpoint 7.
+
+**Commit:** *(lihat commit setelah entri log ini)*
+
+---

@@ -52,15 +52,14 @@ exporters:
   prometheus:
     endpoint: 0.0.0.0:8889
 
-  # --- Jalur publik (slot kosong, JANGAN DIHAPUS) ---
-  # Diisi Milestone 6.1 (rancangan-custom-exporter-supabase.md, PIC 6) dengan
-  # custom exporter Go yang menulis span ke Supabase. Bentuk contoh (belum aktif):
-  #
-  # otlphttp/supabase_exporter:
-  #   endpoint: http://custom-exporter:4319
-  #
-  # Setelah exporter publik ini diisi, tambahkan namanya ke daftar `exporters`
-  # pipeline `traces` di bawah (mis. [otlp_grpc/jaeger, otlphttp/supabase_exporter]).
+  # --- Jalur publik (Milestone 6.1, PIC 6) ---
+  # Komponen NATIVE Collector (BUKAN otlphttp forwarding ke service terpisah
+  # seperti ilustrasi placeholder M1.1 - decisions.md M6.1 Keputusan 1:
+  # dikompilasi JADI SATU dengan Collector ini via ocb, lihat
+  # custom-exporter/builder-config.yaml). DSN dari env var (kredensial role
+  # write-only nirwana_exporter_writer, Checkpoint 4 - TIDAK di-hardcode).
+  supabase:
+    dsn: ${env:SUPABASE_EXPORTER_DSN}
 
 service:
   telemetry:
@@ -70,7 +69,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch, attributes]
-      exporters: [otlp_grpc/jaeger]
+      exporters: [otlp_grpc/jaeger, supabase]
     # Pipeline BARU aditif (Milestone 5.1) - receiver `otlp` yang sama secara
     # fan-out, TIDAK mengubah pipeline `traces` di atas. Connector `span_metrics`
     # bertindak sebagai exporter di sini, dan sebagai receiver di pipeline

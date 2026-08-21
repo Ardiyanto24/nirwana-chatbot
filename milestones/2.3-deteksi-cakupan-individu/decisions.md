@@ -227,6 +227,27 @@ Keputusan 2/8 milestone ini menandai risiko verifikasi cakupan-individu ASIMETRI
 
 ---
 
+## Keputusan 14 (Addendum): `rbac.role_title` Direkam di Span `domain_gate.cakupan_individu.check`
+
+**Status:** Ditemukan+diperbaiki di Milestone 6.1 (2026-08-21, sesi verifikasi produksi exporter Go yang sama dengan addendum M2.2 Keputusan 12), diperbaiki di sini atas instruksi eksplisit user — bukan ditutup di M6.1 sendiri (preseden M1.3 Keputusan 12, M1.5 Keputusan 14, M2.2 Keputusan 12).
+
+**Latar Belakang**
+Sama seperti M2.2 Keputusan 12: `deteksi_constraint_atomic_intent()` menerima `role_title` sebagai parameter dan memakainya di SELURUH cabang keputusan (pre-filter tier Staff, pre-filter domain, deteksi+verifikasi LLM) — TAPI span `domain_gate.cakupan_individu.check` tidak pernah merekamnya. Constraint cakupan-individu adalah mekanisme RBAC KEDUA project ini (bukan cuma domain-level M2.2) — audit-trail-nya juga butuh `role_title` untuk alasan yang sama.
+
+**Keputusan yang Dipilih**
+`span.set_attribute("rbac.role_title", role_title)` ditambahkan di AWAL blok `with tracer.start_as_current_span("domain_gate.cakupan_individu.check")` (`src/layers/domain_gate/cakupan_individu.py`), SEBELUM keempat jalur return (pre-filter role, pre-filter domain, fail-closed gagal teknis, hasil normal) — supaya SELURUH jalur return konsisten membawanya, bukan cuma jalur yang benar-benar memanggil LLM.
+
+**Alasan**
+Ditempatkan di awal (bukan per-cabang) karena keempat jalur sama-sama valid membutuhkan atribut ini untuk audit — meletakkannya di satu titik menghindari duplikasi 4x dan risiko satu cabang baru nanti lupa menambahkannya.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+Tidak ada alternatif dipertimbangkan — forced by instruksi eksplisit user, penambahan atribut tunggal tanpa trade-off desain (mirror M2.2 Keputusan 12).
+
+**Dampak**
+`docs/keterbatasan-diterima.md` #19 diperbarui status jadi DIPERBAIKI (lihat `milestones/6.1-.../decisions.md` Keputusan 12 untuk gambaran penuh). Tidak ada perubahan skema/kontrak.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -244,3 +265,4 @@ Keputusan 2/8 milestone ini menandai risiko verifikasi cakupan-individu ASIMETRI
 | 11 | Prompt-file-first + Promptfoo natif sejak awal | B | Checkpoint 4-5, 10 |
 | 12 | `decisions.md` sebagai Task pertama | B | Plan |
 | 13 | Addendum: migrasi model verifikasi cakupan individu Pro 0423 → Pro 0813 | A | Addendum 2026-08-20 |
+| 14 | Addendum M6.1: `rbac.role_title` direkam di span `cakupan_individu.check` | A | Addendum 2026-08-21 |

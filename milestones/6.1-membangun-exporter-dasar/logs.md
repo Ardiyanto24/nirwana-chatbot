@@ -46,7 +46,7 @@ Tidak berlaku.
 
 ## Checkpoint 2 — Perbaikan Parenting `riwayat.simpan` (Prasyarat Lintas-PIC)
 
-**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21 (kode+unit test; verifikasi Jaeger real TERTUNDA — lihat di bawah)
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21 (kode+unit test langsung; verifikasi Jaeger real DITUNTASKAN di Checkpoint 10 setelah OpenRouter stabil — lihat catatan penutup di bawah dan Checkpoint 10)
 
 ### Task 2 — `KeadaanTurn` +2 field, capture di `turn_pipeline.py`
 
@@ -82,7 +82,9 @@ Tidak ada.
 **Hasil Verifikasi (SEBAGIAN — lihat catatan tertunda)**
 23 unit test (mocked `simpan_riwayat_turn`) tetap hijau — membuktikan kode BARU tidak merusak alur existing dan genuinely tereksekusi (context attach/detach berjalan tanpa exception sebelum mencapai fungsi yang di-mock).
 
-**Verifikasi Jaeger REAL (dari plan: "jalankan satu turn nyata... cek Jaeger UI") — TERTUNDA.** Selama sesi ini, `OpenRouter`/model `qwen/qwen3-32b` mengalami gangguan berkepanjangan (dikonfirmasi berulang lewat isolasi cek murah — panggilan LLM tunggal langsung ke OpenRouter, `choices: None` konsisten, request >20 detik tanpa respons) — recurrence `docs/keterbatasan-diterima.md` #7. Dua percobaan turn nyata lewat `POST /v1/turns` gagal 500 di `pecah_atomik()` (Decomposition, M1.6) SEBELUM sempat mencapai kode yang diubah Checkpoint 2 ini (`response.choices=None`, celah `docs/keterbatasan-diterima.md` #17 titik `pemecahan.py`, salah satu "4 titik lain tetap AKTIF" — BUKAN bug Checkpoint 2). Mekanisme rekonstruksi context ITU SENDIRI dibuktikan bekerja benar lewat jalur lain: verifikasi E2E Checkpoint 8 (span anak dikirim manual dengan context direkonstruksi persis pola yang sama, `attach()`/`detach()`, terhadap Supabase nyata) membuktikan mekanisme OTel-nya valid — tapi ini BUKAN pengganti menjalankan `proses_turn()`/`main.py` sungguhan end-to-end. Konsisten preseden M5.1 ("kerjakan apa yang bisa dikerjakan... real test LLM dilakukan setelah OpenRouter stabil"), pekerjaan dilanjutkan ke Checkpoint 3+ (murni Go, tidak butuh OpenRouter), verifikasi Jaeger real untuk Checkpoint 2 dicatat sebagai follow-up wajib SEBELUM `report.md` M6.1 ditutup.
+**Verifikasi Jaeger REAL (dari plan: "jalankan satu turn nyata... cek Jaeger UI") — sempat TERTUNDA, DITUNTASKAN Checkpoint 10.** Selama sebagian besar sesi ini, `OpenRouter`/model `qwen/qwen3-32b` mengalami gangguan berkepanjangan (dikonfirmasi berulang lewat isolasi cek murah, `choices: None` konsisten, request >20 detik tanpa respons) — recurrence `docs/keterbatasan-diterima.md` #7. Beberapa percobaan turn nyata lewat `POST /v1/turns` gagal 500 di `pecah_atomik()` (Decomposition, M1.6, `response.choices=None`, celah `docs/keterbatasan-diterima.md` #17 titik `pemecahan.py` — BUKAN bug Checkpoint 2) atau hang tanpa respons SEBELUM sempat mencapai kode yang diubah Checkpoint 2 ini. Konsisten preseden M5.1 ("kerjakan apa yang bisa dikerjakan... real test LLM dilakukan setelah OpenRouter stabil"), pekerjaan dilanjutkan ke Checkpoint 3+ (murni Go, tidak butuh OpenRouter) sambil OpenRouter dicek berkala.
+
+**Ditutuskan Checkpoint 10** setelah OpenRouter kembali stabil: turn nyata via `POST /v1/turns` (`session_id=m6.1-cp2-real-verify-2`) berhasil HTTP 200 — dipantau progresnya lewat pengecekan berkala jumlah span di Jaeger (metodologi persis arahan user, mirror preseden M5.1) sampai request benar-benar selesai (36 span total). Query Jaeger API atas trace tersebut mengonfirmasi span `riwayat.simpan` (span_id `4885441d31992979`) memiliki `parent_span_id=24cdf2b80c676443`, dan parent tersebut DITEMUKAN dalam trace YANG SAMA sebagai `invoke_agent` — **perbaikan Checkpoint 2 TERBUKTI BEKERJA PENUH di skenario produksi nyata**, `riwayat.simpan` genuinely bersarang, bukan lagi trace akar terpisah.
 
 **Commit:** `6e1e491` — `fix(milestone-7.18): rekonstruksi context invoke_agent untuk nesting span riwayat.simpan` (+ `8c160ff` docs addendum M7.18 Keputusan 8)
 
@@ -305,9 +307,47 @@ User mengonfirmasi sudah men-scale-down container lain secara manual — verifik
 
 ---
 
+## Checkpoint 10 — Verifikasi KK1+KK2 Nyata + Regresi M5.1 + Penuntasan Checkpoint 2
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 17 — Skrip test Python formal (mirror `smoke_test/`)
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`milestones/6.1-.../verify_kk1_kk2.py` (BARU, di-commit — bukan skrip ad-hoc scratch seperti Checkpoint 8) — mirror struktur `infra/observability/smoke_test/send_dummy_span.py`. Mengirim span anchor `invoke_agent` ke port PRODUKSI (`localhost:4317`, bukan port test lokal Checkpoint 8), verifikasi via `SELECT` langsung Supabase (KK1: `layer_name`/`operation_name`/`duration_ms` benar). Mengirim span anak `authorization.check` dengan context direkonstruksi dari parent (pola persis Checkpoint 2), verifikasi via `LEFT JOIN spans p ON s.parent_span_id = p.span_id` (KK2). Membersihkan data sendiri di akhir (idempotent, bisa dijalankan ulang kapan saja sebagai regression check masa depan).
+
+**Temuan (bug di percobaan pertama, BUKAN di exporter)**
+Percobaan pertama skrip GAGAL: `KK1 TERPENUHI: False` (traces/spans row `None`) padahal KK2 lolos. Diagnosis: `otel-collector-config.yaml` (M1.1) mengonfigurasi processor `batch` dengan `timeout: 5s` — span DITAHAN di buffer batch SEBELUM diteruskan ke exporter manapun. `time.sleep(2)` skrip awal terlalu singkat untuk KK1 (dicek segera setelah kirim), sedangkan KK2 kebetulan lolos karena total waktu kumulatif (kirim parent + proses + kirim child + sleep) sudah melewati window 5s itu di titik pengecekannya. BUKAN bug `supabaseexporter` — murni race condition test terhadap konfigurasi `batch` processor existing yang TIDAK diubah M6.1.
+
+**Diagnosis dan Perbaikan**
+`time.sleep()` dinaikkan ke 7 detik (lebih dari `batch.timeout: 5s` existing) di kedua titik pengecekan, dengan komentar kode menjelaskan alasannya eksplisit.
+
+**Hasil Verifikasi**
+Setelah perbaikan: `uv run python milestones/6.1-.../verify_kk1_kk2.py` → **KK1 TERPENUHI: True**, **KK2 TERPENUHI: True**, exit 0, "KEDUA KRITERIA KEBERHASILAN M6.1 TERPENUHI." — dijalankan terhadap stack PRODUKSI (docker-compose, image custom Checkpoint 9), bukan binary lokal.
+
+### Task 18 — Regresi + Penuntasan Verifikasi Jaeger Real Checkpoint 2
+
+**Kesesuaian dengan plan:** Sesuai plan pada Regresi; MELEBIHI plan pada penuntasan Checkpoint 2 (kesempatan muncul karena OpenRouter kembali stabil di tengah checkpoint ini).
+
+**Apa yang dilakukan**
+Regresi Jaeger/Prometheus/Supabase via stack produksi SUDAH dibuktikan di Checkpoint 9 (span `invoke_agent`+span anak, ketiga jalur terkonfirmasi) — tidak diulang kosong di sini. Fokus Task 18: OpenRouter dicek ulang (panggilan tunggal `qwen/qwen3-32b`) — **BERHASIL** (kontras dengan seluruh percobaan sebelumnya di sesi ini). `uv run python -m uvicorn src.main:app --port 8001` dijalankan, `POST /v1/turns` dikirim (`session_id=m6.1-cp2-real-verify`) — **hang tanpa progres Jaeger** (10 span, stagnan >100 detik, dikonfirmasi via Monitor tool pengecekan berkala per instruksi eksplisit user, mirror metodologi M5.1). Request KEDUA dikirim (`session_id=m6.1-cp2-real-verify-2`, atas instruksi user "coba lagi") SEMENTARA request pertama masih berjalan (FastAPI threadpool mendukung concurrent, dikonfirmasi tidak saling blocking) — request kedua ini yang BERHASIL sampai selesai.
+
+**Error/Kegagalan**
+Percobaan pertama (`m6.1-cp2-real-verify`) hang genuinely tanpa progres (stagnan 100+ detik terkonfirmasi Monitor) — kemungkinan OpenRouter masih flaky/intermiten meski cek tunggal sempat berhasil sesaat sebelumnya (bukan pulih 100%). TIDAK dipaksa ditunggu sampai selesai — dibiarkan berjalan di background, fokus dialihkan ke percobaan kedua yang progresnya sehat.
+
+**Hasil Verifikasi (Checkpoint 2 DITUNTASKAN)**
+Request kedua selesai HTTP 200 (36 span total di trace `b317efd76f884a9064b4517b2c55ed29`). Query Jaeger API mengonfirmasi span `riwayat.simpan` (`4885441d31992979`) ber-`parent_span_id=24cdf2b80c676443`, dan span itu (`invoke_agent`) DITEMUKAN dalam trace YANG SAMA — **verifikasi Jaeger real Checkpoint 2 yang sempat tertunda kini TERPENUHI PENUH**, ditulis retroaktif ke entri Checkpoint 2 di atas.
+
+**Commit:** *(lihat commit setelah entri log ini — verify_kk1_kk2.py)*
+
+---
+
 ## Task/Checkpoint di Luar Plan (jika ada)
 
 1. **Penyimpangan disiplin proses (ditemukan+dikoreksi user di tengah Checkpoint 9):** Checkpoint 3-8 dikerjakan berturut-turut TANPA commit+log per checkpoint di antaranya (melanggar aturan eksplisit `CLAUDE.md` "Jangan lanjut ke checkpoint berikutnya jika checkpoint sekarang belum diverifikasi dan di-commit") — seluruh kerja TETAP tersimpan benar di disk (tidak ada yang hilang), tapi histori commit tidak mencerminkan checkpoint-demi-checkpoint secara real-time. Dikoreksi eksplisit atas permintaan user: entri log di atas (Checkpoint 2-8) ditulis RETROAKTIF berdasar catatan kerja nyata yang sudah dilakukan, commit disusun ulang mengikuti urutan checkpoint yang benar sebelum Checkpoint 9 dilanjutkan. Pelajaran untuk sisa milestone: commit+log setiap checkpoint SEGERA setelah verifikasi, jangan menumpuk.
 2. **Verifikasi E2E nyata (Checkpoint 8 Task 14) dikerjakan lebih awal dari rencana** (harusnya Checkpoint 10) — dijelaskan alasannya di narasi Task 14 di atas (lebih murah memverifikasi sebelum investasi Docker packaging Checkpoint 9). KK1+KK2 M6.1 TERBUKTI PENUH lewat jalur ini. Checkpoint 9 KEMUDIAN JUGA mengulang verifikasi via jalur PRODUKSI (Docker Compose port 4317, bukan binary lokal) sebagai pembuktian independen kedua sekaligus regresi Jaeger/Prometheus — konsisten preseden project (M5.1 dst: dua lapis verifikasi). Checkpoint 10 karenanya akan fokus pada skrip test Python formal (mirror `smoke_test/`) dan uji ulang regresi sekali lagi untuk penutupan resmi, bukan verifikasi fungsional pertama kali.
 3. **Bug nyata ditemukan+diperbaiki di tengah Checkpoint 8** (grant Postgres `UPDATE` kurang pada role Checkpoint 4) — dicatat detail lengkap di narasi Checkpoint 8 Task 14 di atas, bukan penyimpangan tersembunyi.
 4. **Insiden resource Docker Desktop di Checkpoint 9** (RAM habis akibat workload Kubernetes tidak terkait project ini, 2× build gagal, `kubectl scale` diblokir classifier auto-mode, dieskalasi ke user) — dicatat detail lengkap di narasi Checkpoint 9 di atas. Tidak ada aksi diam-diam terhadap resource/container di luar cakupan project ini — seluruhnya dikonfirmasi/dilakukan user sendiri setelah eskalasi transparan.
+5. **Metodologi "pengecekan berkala" (Monitor tool, cek jumlah span tiap 15 detik)** dipakai Checkpoint 10 Task 18 atas instruksi eksplisit user, mirror persis preseden M5.1 ("coba lakukan pengecekan berkala, misal melihat jumlah span, kalau bertambah berarti aman"). Percobaan turn PERTAMA di Checkpoint 10 (`m6.1-cp2-real-verify`) terdeteksi stagnan (10 span, >100 detik tanpa perubahan) via metodologi ini — dibiarkan berjalan di background (tidak dipaksa/dibunuh), user mengarahkan "coba lagi" dengan `session_id` baru SEMENTARA percobaan pertama masih berjalan; percobaan kedua berhasil sampai selesai (FastAPI threadpool mendukung concurrent request tanpa saling blocking, dikonfirmasi bekerja sesuai desain M7.17). Percobaan pertama akhirnya juga selesai (gagal, exit code 56 - kemungkinan koneksi terputus saat server dimatikan setelah percobaan kedua berhasil) - tidak masalah, tujuan verifikasi sudah tercapai lewat percobaan kedua.

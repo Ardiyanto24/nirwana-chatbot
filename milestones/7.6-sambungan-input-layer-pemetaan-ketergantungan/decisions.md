@@ -199,6 +199,27 @@ Menyimpan `trace_id`/`span_id` sebagai string (bukan objek `opentelemetry.contex
 
 ---
 
+### Keputusan 11 (Addendum M6.1): `role_title` Direkam sebagai Atribut Bare di Span `invoke_agent`
+
+**Status:** Ditemukan+diperbaiki setelah M6.1 dinyatakan selesai (2026-08-21, bagian dari rangkaian perbaikan `role_title` yang sama dengan addendum M2.2 Keputusan 12/M2.3 Keputusan 14) — dicatat di sini karena kepemilikan kode (`proses_turn()`) tetap M7.6, mengikuti preseden Keputusan 10 di atas.
+
+**Latar Belakang**
+`traces.role_title` (skema Bagian 4, kolom Supabase) hanya bisa diisi exporter Go dari SATU span per trace yang membawanya persis dengan nama kolom (`session.id`/`turn.index` mengikuti pola sama). `invoke_agent` sudah membawa `session.id`+`turn.index` tapi tidak `role_title` — akibatnya kolom itu permanen NULL untuk data asli (`docs/keterbatasan-diterima.md` #19).
+
+**Keputusan yang Dipilih**
+`proses_turn()` menambahkan `if "role_title" in raw: span.set_attribute("role_title", str(raw["role_title"]))` di blok pembukaan span `invoke_agent`, SEBELUM `validate_turn_payload(raw)` dipanggil (memakai `raw` dict mentah, bukan `payload.role_title` — konsisten pola `session.id`/`turn.index` yang juga dibaca dari `raw` di titik yang sama, sebelum validasi Pydantic selesai).
+
+**Alasan**
+Atribut BARE (`role_title`, tanpa prefix) — BUKAN `rbac.role_title` seperti span RBAC di M2.2/M2.3 (Keputusan 12/14 addendum masing-masing) — karena tujuannya beda: ini murni untuk ekstraksi langsung `mapping.go` (`MapTraces()`) ke kolom Supabase `traces.role_title`, mengikuti pola penamaan `session.id`/`turn.index` yang sudah ada di span yang sama, bukan untuk audit-trail keputusan RBAC per span.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+Tidak ada alternatif dipertimbangkan — forced by instruksi eksplisit user, konsisten pola penamaan atribut existing di span yang sama.
+
+**Dampak**
+`docs/keterbatasan-diterima.md` #19 diperbarui status jadi DIPERBAIKI. `mapping.go` (M6.1, exporter Go) menambah ekstraksi `mappedSpan.RoleTitle` dari atribut ini. Diverifikasi nyata: trace produksi `0767cf9b32464b44cca43e8d5d810295` (skenario `gop_margin`) menghasilkan `traces.role_title='Front Office Staff'` di Supabase — lihat `milestones/6.1-.../decisions.md` Keputusan 12 untuk detail penuh.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -213,3 +234,4 @@ Menyimpan `trace_id`/`span_id` sebagai string (bukan objek `opentelemetry.contex
 | 8 | `tests/orchestration/` cakupan sempit (tanpa LLM/Jaeger saja) | B | Plan |
 | 9 | Update Struktur Repository di Checkpoint 2 | B | Plan |
 | 10 | `KeadaanTurn` +2 field identitas `invoke_agent` (Addendum M6.1) | A | M6.1 Checkpoint 2 |
+| 11 | `role_title` direkam bare di span `invoke_agent` (Addendum M6.1) | A | Addendum 2026-08-21 |

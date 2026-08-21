@@ -32,6 +32,16 @@ milik simpan_riwayat_turn() sendiri, terlihat di Jaeger meski tidak
 sampai ke response HTTP - lihat
 milestones/7.18-database-percakapan/decisions.md Keputusan 5.
 
+Milestone 6.1 (addendum, gap ditemukan riset PIC 6): span `riwayat.simpan`
+tadinya jadi trace akar terpisah dari `invoke_agent` (context sudah exit
+saat `_simpan_riwayat_percakapan_aman()` dipanggil) - `traces.status`
+akibatnya tidak akan pernah terisi untuk trace utama begitu data asli
+mengalir ke Supabase (PIC 6). Diperbaiki dengan merekonstruksi
+`SpanContext`/`NonRecordingSpan` dari `KeadaanTurn.invoke_agent_trace_id`/
+`invoke_agent_span_id`, `context.attach()`/`detach()` membungkus
+`simpan_riwayat_turn()`. Lihat
+milestones/6.1-membangun-exporter-dasar/decisions.md Keputusan 2.
+
 Jalankan: uv run uvicorn src.main:app --port 8001
 (port 8000 dipakai chatbot_api, yang WAJIB jalan bersamaan karena
 dipanggil proses_turn() secara internal saat Execution)
@@ -44,6 +54,8 @@ from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from openai import APIError
+from opentelemetry import context as otel_context
+from opentelemetry import trace as otel_trace
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -141,15 +153,33 @@ def _simpan_riwayat_percakapan_aman(keadaan: KeadaanTurn, turn_response: TurnRes
     # Kegagalan TETAP tercatat sebagai sinyal terpisah lewat span
     # riwayat.simpan (error.type=gagal_teknis) milik simpan_riwayat_turn()
     # sendiri, bukan disembunyikan - hanya tidak sampai ke response HTTP.
+    #
+    # M6.1 addendum: context invoke_agent DIREKONSTRUKSI dari trace_id/
+    # span_id di KeadaanTurn (with-block invoke_agent asli sudah exit saat
+    # fungsi ini dipanggil, Context aslinya tidak lagi bisa dipakai ulang)
+    # - span riwayat.simpan supaya genuinely jadi anak invoke_agent, bukan
+    # trace akar terpisah. Lihat
+    # milestones/6.1-membangun-exporter-dasar/decisions.md Keputusan 2.
     try:
-        status = tentukan_status_keseluruhan_turn(keadaan.paket_narasi)
-        simpan_riwayat_turn(
-            session_id=keadaan.payload.session_id,
-            turn_index=keadaan.payload.turn_index,
-            pertanyaan=keadaan.payload.question,
-            narasi=turn_response.narasi,
-            status=status,
+        span_context = otel_trace.SpanContext(
+            trace_id=int(keadaan.invoke_agent_trace_id, 16),
+            span_id=int(keadaan.invoke_agent_span_id, 16),
+            is_remote=True,
+            trace_flags=otel_trace.TraceFlags(otel_trace.TraceFlags.SAMPLED),
         )
+        ctx = otel_trace.set_span_in_context(otel_trace.NonRecordingSpan(span_context))
+        token = otel_context.attach(ctx)
+        try:
+            status = tentukan_status_keseluruhan_turn(keadaan.paket_narasi)
+            simpan_riwayat_turn(
+                session_id=keadaan.payload.session_id,
+                turn_index=keadaan.payload.turn_index,
+                pertanyaan=keadaan.payload.question,
+                narasi=turn_response.narasi,
+                status=status,
+            )
+        finally:
+            otel_context.detach(token)
     except Exception:
         pass
 

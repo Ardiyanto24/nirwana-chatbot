@@ -309,17 +309,19 @@ Gap ini kini TERTUTUP sebagai bukti — status entri diubah dari "diterima karen
 
 ---
 
-## 19. `role_title` Tidak Pernah Jadi Span Attribute — Kolom `traces.role_title` Permanen NULL untuk Data Asli (Milestone 6.1)
+## 19. `role_title` Tidak Pernah Jadi Span Attribute — Kolom `traces.role_title` Permanen NULL untuk Data Asli (Milestone 6.1) — DIPERBAIKI (2026-08-21)
 
 **Ditemukan di:** Milestone 6.1, riset perencanaan (`milestones/6.1-membangun-exporter-dasar/decisions.md` Keputusan 7), 2026-08-21 — grep menyeluruh `src/` untuk `span.set_attribute` yang membawa `role_title`.
 
 **Konteks penemuan:** Skema Bagian 4 (`rancangan-observability-ai-chatbot.md`) mengunci kolom `traces.role_title` (nullable) untuk keperluan analisis distribusi role di dashboard publik. Riset exporter Go (PIC 6) menemukan `role_title` TIDAK PERNAH di-set sebagai span attribute di manapun sepanjang `src/` — hanya dipakai sebagai parameter fungsi RBAC internal (`periksa_otorisasi_semua()`, `deteksi_constraint_semua()`, dst), tidak pernah `span.set_attribute("role_title", ...)` atau setara.
 
-**Kenapa diterima (bukan diperbaiki di M6.1):** KK1 Milestone 6.1 secara literal hanya mewajibkan "nama layer, durasi, status" terisi — `role_title` tidak disebut. Memperbaikinya butuh menyentuh instrumentasi Python di titik yang berbeda sifat dari perbaikan bertarget `riwayat.simpan` (Keputusan 2 milestone yang sama) — scope creep di luar literal yang diminta KK M6.1, dan berisiko menambah kompleksitas ke Checkpoint 2 yang sudah py tanggung jawab sendiri.
+**Kenapa awalnya diterima (bukan langsung diperbaiki di M6.1):** KK1 Milestone 6.1 secara literal hanya mewajibkan "nama layer, durasi, status" terisi — `role_title` tidak disebut. Memperbaikinya butuh menyentuh instrumentasi Python di titik yang berbeda sifat dari perbaikan bertarget `riwayat.simpan` (Keputusan 2 milestone yang sama) — scope creep di luar literal yang diminta KK M6.1, dan berisiko menambah kompleksitas ke Checkpoint 2 yang sudah py tanggung jawab sendiri.
 
-**Dampak + mitigasi:** Kolom `traces.role_title` akan tetap NULL untuk SELURUH data asli begitu PIC 6 mulai mengalirkannya — panel dashboard M5.1-5.4 yang mengelompokkan by role (kalau ada) tidak akan punya data bermakna. Kolom tetap nullable di skema, tidak menyebabkan error/crash di manapun — murni data kosong, bukan data salah.
+**DIPERBAIKI (2026-08-21):** Setelah M6.1 dinyatakan selesai, user menegaskan `role_title` adalah komponen inti akses-kontrol RBAC (bukan sekadar metadata dashboard) dan meminta perbaikan segera. `rbac.role_title` direkam di span `authorization.check` (M2.2, `otorisasi.py`) dan `domain_gate.cakupan_individu.check` (M2.3, `cakupan_individu.py`) — titik keputusan RBAC sesungguhnya; `role_title` (bare) direkam di span `invoke_agent` (M7.6, `turn_pipeline.py`) untuk ekstraksi langsung exporter Go ke `traces.role_title`. Perbaikan ini SEKALIGUS membuka penemuan dan perbaikan bug FK independen di `Buffer` exporter Go (lihat `milestones/6.1-.../decisions.md` Keputusan 12 untuk rangkaian lengkap). Diverifikasi nyata: trace produksi `0767cf9b32464b44cca43e8d5d810295` (skenario `gop_margin`, 39 span, nesting 4 level) menghasilkan `traces.role_title='Front Office Staff'` di Supabase, nol FK error.
 
-**Pemicu peninjauan ulang:** Kalau ada kebutuhan konkret menampilkan distribusi role di dashboard publik dengan data asli, `role_title` perlu ditambahkan sebagai span attribute di `invoke_agent` (`turn_pipeline.py`, M7.6) — kemungkinan lewat pola yang sama dengan `session.id`/`turn.index` yang sudah ada di span itu.
+**Dampak + mitigasi (historis, sebelum perbaikan):** Kolom `traces.role_title` NULL untuk SELURUH data asli sebelum perbaikan ini — panel dashboard M5.1-5.4 yang mengelompokkan by role tidak punya data bermakna selama jendela waktu itu.
+
+**Pemicu peninjauan ulang:** Tidak ada lagi — entri ditutup. Dipertahankan sebagai catatan sejarah (bukan dihapus), sesuai prinsip "Kejujuran terhadap keterbatasan" — status non-normal yang sudah berlalu tetap tersurat, bukan disamarkan seolah tidak pernah terjadi.
 
 ---
 

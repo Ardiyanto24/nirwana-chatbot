@@ -215,6 +215,39 @@ Kalau komponen apa pun terlewat, mengganti image Collector (Checkpoint 9) akan m
 **Opsi yang Dipertimbangkan tapi Ditolak**
 Tidak ada alternatif dipertimbangkan karena forced by cara kerja `ocb` (menggantikan distribusi, bukan menempel).
 
+### Keputusan 12 (Addendum): `role_title` Diperbaiki + Strategi Buffering Dirombak Total (Bug FK Ganda Ditemukan+Diperbaiki Verifikasi Produksi)
+
+**Status:** Ditemukan+diperbaiki setelah M6.1 dinyatakan selesai (2026-08-21), dipicu pertanyaan user "kenapa role title tidak pernah jadi span? ... role tittle ini adalah komponen yang sangat penting untuk access rules" dan persetujuan eksplisit ("yaa") untuk memperbaikinya sekarang — MEMBATALKAN Keputusan 7 di atas. Perbaikan `role_title` kemudian membuka rangkaian verifikasi produksi yang menemukan (dan memperbaiki) DUA bug independen di strategi buffering Keputusan 6, keduanya luput dari unit test Checkpoint 7 asli.
+
+**Latar Belakang**
+
+*Bagian A — role_title.* User menegaskan `role_title` bukan sekadar metadata tampilan, melainkan komponen inti audit-trail RBAC (Lapis 1 project ini). Span `authorization.check` (M2.2) dan `domain_gate.cakupan_individu.check` (M2.3) — titik keputusan RBAC yang sesungguhnya — TIDAK PERNAH merekam `role_title` sendiri, hanya `invoke_agent` yang akhirnya diberi atribut `role_title` (bukan `rbac.role_title` — beda namespace, `invoke_agent` mengikuti pola bare-attribute matching nama kolom Supabase `session.id`/`turn.index`, sedangkan span RBAC memakai prefix `rbac.*`).
+
+*Bagian B — Bug FK #1 (urutan insert).* Verifikasi nyata skenario `gop_margin` (trace `f831b5b7df9e903f1eb5b5095bf9fcde`) menunjukkan `rbac.role_title` benar di Jaeger, TAPI 0 baris tersimpan di Supabase — `docker logs` menunjukkan `spans_parent_span_id_fkey` terlanggar berulang. Akar masalah: `flushLocked()` (Checkpoint 7 asli) menulis span tertahan dalam urutan KEDATANGAN mentah, bukan urutan topological (induk-sebelum-anak) — trace multi-level (mis. `invoke_agent` → `domain_gate.periksa_otorisasi_semua` → `authorization.check`) py induk NON-ROOT yang SENDIRI berakhir belakangan anaknya, sehingga cucu bisa ter-buffer sebelum induk langsungnya.
+
+**Rangkaian percobaan perbaikan Bug FK #1** (didokumentasikan lengkap, bukan disembunyikan — "log adalah catatan peristiwa"):
+1. **Percobaan 1**: urutkan span pending berdasar `StartedAt` menaik sebelum insert (span anak selalu MULAI setelah induknya, walau bisa BERAKHIR/ter-buffer duluan). Lolos unit test baru, TAPI verifikasi produksi ulang (trace baru) MASIH menunjukkan FK error — trace sudah "dikenal" (anchor sudah tiba di batch sebelumnya) menyebabkan span berikutnya di-insert LANGSUNG tanpa pernah dicek ulang lewat sort ini.
+2. **Percobaan 2**: rombak `Buffer` total — `written map[string]bool` (span_id yang sudah tertulis) + `insertableLocked()` (trace dikenal DAN (akar ATAU induk sudah `written`)) + `drainLocked()` kaskade (fixpoint loop, menangani kedalaman nesting berapa pun). Lolos unit test skenario cross-batch, TAPI verifikasi produksi MASIH menunjukkan FK error (2 kejadian, bukan 14 seperti Percobaan 1 — jelas ADA perbaikan, tapi belum tuntas) dan Supabase menunjukkan 0 span sama sekali untuk trace itu.
+3. **Diagnosis root cause sesungguhnya**: ditambahkan logging span_id/parent_span_id ke setiap kegagalan `InsertSpan` (`zap.Logger` diteruskan ke `Buffer`, `factory.go` diteruskan `set.TelemetrySettings.Logger`) DAN `pushTraces()` diubah TIDAK lagi `return err` di span pertama yang gagal (satu batch `chat` processor Collector bisa membawa span dari BEBERAPA trace_id, berhenti di kegagalan pertama membuang SISA batch yang genuinely tidak bermasalah — `errors.Join` dipakai mengumpulkan seluruh kegagalan tanpa mengorbankan sibling yang insertable). Log baru menunjukkan `InsertSpan gagal (anchor)` untuk DUA `span_id` BERBEDA pada trace yang SAMA.
+
+**Bug FK #2 (akar masalah sesungguhnya) — konflasi `isAnchor()` dengan "span akar".** Dump lengkap trace `eadc58b474e238446e8e6b95a9e663ec` ke Jaeger menemukan EMPAT span berbeda membawa `session.id`+`turn.index`: `invoke_agent` (akar sejati), `input.validate` (M1.2), span `chat` penyusun narasi (M4.4), dan `riwayat.simpan` (M7.18) — SEMUA independen men-set kedua atribut ini untuk kebutuhan observability masing-masing, TIDAK ADA yang mendokumentasikan ini sebagai "hanya `invoke_agent`". Desain Checkpoint 7 ASLI (dan kedua percobaan perbaikan di atas) mengasumsikan `isAnchor()` (=py `session.id`+`turn.index`) SAMA DENGAN "span akar, selalu insertable" — salah: cabang `if ms.isAnchor()` di `Ingest()` meng-`InsertSpan` LANGSUNG tanpa pernah memeriksa `ParentSpanID`-nya sendiri, sehingga `input.validate`/`riwayat.simpan`/`chat` narasi (SEMUA non-root) melanggar FK persis saat tiba sebelum induk langsungnya (paling sering `invoke_agent`) sempat ter-INSERT.
+
+**Keputusan yang Dipilih**
+1. `role_title` direkam sebagai `rbac.role_title` di span `authorization.check` (`otorisasi.py`) dan `domain_gate.cakupan_individu.check` (`cakupan_individu.py`), DAN sebagai `role_title` (bare) di span `invoke_agent` (`turn_pipeline.py`) — diekstrak exporter Go (`mapping.go`) ke `mappedSpan.RoleTitle`, diteruskan sampai `TraceRow.RoleTitle` (`buffer.go`).
+2. `isAnchor()` (mapping.go, TIDAK diubah — tetap murni deteksi atribut) DIPISAHKAN perannya di `Buffer`: memicu `UpsertTrace`+`known[traceID]=true` TETAP boleh dari span mana pun yang membawa `session.id`+`turn.index` (aman dipanggil berkali-kali, `traceUpsertArgs` sudah `ON CONFLICT DO UPDATE`+`COALESCE`) — TAPI keputusan "boleh insert langsung atau harus ditahan" SEKARANG SELALU lewat `insertableLocked()` yang sesungguhnya (akar sejati = `ParentSpanID == nil`, bukan lagi disamakan dengan `isAnchor()`).
+3. `pushTraces()` tidak lagi berhenti di kegagalan span pertama (`errors.Join`), dan setiap kegagalan `InsertSpan`/`UpsertTrace` dicatat via `zap.Logger` dengan `trace_id`/`span_id`/`parent_span_id` — kegagalan residual (mis. dependency yang genuinely tidak pernah tiba) sekarang terlihat di `docker logs`, bukan silently menjatuhkan seluruh batch.
+
+**Alasan**
+`role_title` adalah input LANGSUNG ke keputusan `periksa_domain()`/deteksi constraint (Lapis 1 RBAC project ini) — merekamnya di titik keputusan itu sendiri (bukan cuma `invoke_agent`) memberi audit-trail yang genuinely bisa menjelaskan KENAPA suatu domain ditolak/diizinkan per role, sesuai penegasan user. Perbaikan Buffer BUKAN pilihan desain baru, melainkan koreksi bug — verifikasi produksi (bukan cuma unit test sintetis) adalah satu-satunya cara menemukan pola nesting nyata (span yang SAMA-SAMA membawa `session.id`+`turn.index` tapi berbeda kedalaman) yang tidak pernah terpikirkan saat menulis Checkpoint 7/unit test aslinya.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Menghentikan diagnosis di Percobaan 1 (StartedAt-sort saja)** — ditolak, verifikasi produksi ulang MEMBUKTIKAN masih gagal; berhenti di sini akan mengulang pola "menganggap perubahan benar tanpa bukti" yang dilarang `CLAUDE.md`.
+- **Menganggap 2 error residual Percobaan 2 sebagai keterbatasan diterima, bukan bug** — ditolak, jumlahnya kecil TAPI konsisten (bukan flaky), dan investigasi lanjutan (logging diagnostik) membuktikan itu genuinely bug desain (konflasi `isAnchor()`/akar), bukan noise infrastruktur.
+- **Menandai `isAnchor()` di mapping.go sebagai yang salah, mengubah kriterianya jadi `ParentSpanID==nil`** — ditolak; `isAnchor()` justru BENAR mendeteksi "span pembawa metadata trace" (tujuan aslinya di `MapTraces()`), yang SALAH adalah `Buffer` menyamakannya dengan "aman insert tanpa cek induk". Memperbaiki di `Buffer` (bukan `mapping.go`) menjaga `isAnchor()` tetap dipakai benar untuk kedua perannya (trigger UpsertTrace vs insertability).
+
+**Dampak**
+`docs/keterbatasan-diterima.md` #19 (role_title tidak pernah jadi span) diperbarui status jadi DIPERBAIKI. Keputusan 6 di atas (strategi buffering) TETAP DIPERTAHANKAN sebagai catatan sejarah desain awal (bukan dihapus) — implementasi aktualnya sekarang mengikuti addendum ini. Keputusan 7 di atas (role_title tidak diperbaiki) DIBATALKAN oleh addendum ini. 4 unit test baru di `buffer_test.go` mereplikasi persis kedua bug (`TestBuffer_CucuSebelumIndukNonRoot`, `TestBuffer_CucuTibaSetelahAnchorSebelumIndukNonRoot`, `TestBuffer_SpanNonRootJugaBawaSessionTurnIndex`, plus assertion role_title di `mapping_test.go`). Verifikasi akhir (trace `0767cf9b32464b44cca43e8d5d810295`, real production turn skenario `gop_margin`, nesting 4 level) membuktikan 39/39 span tersimpan, nol FK error, `traces.role_title='Front Office Staff'` DAN `traces.status='ditolak_otorisasi'` terisi benar dari data asli — pertama kalinya KEDUA kolom itu terisi dari eksekusi nyata (sebelumnya hanya seed manual M5.2/M5.3).
+
 ---
 
 ## Daftar Isi Keputusan
@@ -226,9 +259,10 @@ Tidak ada alternatif dipertimbangkan karena forced by cara kerja `ocb` (menggant
 | 3 | Toolchain Go — Instal Lokal | A | Plan / Checkpoint 3 |
 | 4 | Nama Folder — `custom-exporter/` | A | Plan |
 | 5 | Struktur Repo — Bagian `nirwana-chatbot` yang Sama | A | Plan |
-| 6 | Strategi Buffering untuk Trace Belum Dikenal | A | Plan / Checkpoint 7 |
-| 7 | `role_title` Tidak Diperbaiki di Milestone Ini | A | Plan |
+| 6 | Strategi Buffering untuk Trace Belum Dikenal (lihat Addendum 12) | A | Plan / Checkpoint 7 |
+| 7 | `role_title` Tidak Diperbaiki di Milestone Ini (DIBATALKAN, lihat Addendum 12) | A | Plan |
 | 8 | Algoritma Pemetaan `layer_name`/`operation_name` | B | Checkpoint 6 |
 | 9 | Driver Postgres Go — `pgx` | B | Checkpoint 5 |
 | 10 | Encoding `trace_id`/`span_id` — Hex String Standar OTel | B | Checkpoint 6 |
 | 11 | `builder-config.yaml` Wajib Mendaftarkan Seluruh Komponen Existing | B | Checkpoint 8 |
+| 12 | Addendum: `role_title` diperbaiki + Bug FK ganda ditemukan+diperbaiki verifikasi produksi | A | Addendum 2026-08-21 |

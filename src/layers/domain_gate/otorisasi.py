@@ -39,15 +39,21 @@ def periksa_otorisasi_atomic_intent(
     atomic_intent_domains: AtomicIntentDomains, role_title: str
 ) -> AtomicIntentAuthorization:
     """Untuk SATU atomic intent, periksa seluruh domainnya - span
-    `authorization.check` per domain (atribut rbac.domain/rbac.decision,
-    error.type=ditolak_otorisasi bila ditolak), sesuai kontrak
-    rancangan-observability-ai-chatbot.md Bagian 2 baris 38."""
+    `authorization.check` per domain (atribut rbac.domain/rbac.decision/
+    rbac.role_title, error.type=ditolak_otorisasi bila ditolak), sesuai
+    kontrak rancangan-observability-ai-chatbot.md Bagian 2 baris 38.
+    `rbac.role_title` BARU (M6.1 addendum) - role_title sudah dipakai
+    untuk keputusan sejak awal tapi tidak pernah direkam di span-nya
+    sendiri, melemahkan nilai span ini sebagai jejak audit akses ("domain
+    apa ditolak" tanpa "untuk role apa"). Lihat
+    milestones/6.1-membangun-exporter-dasar/decisions.md addendum."""
     tracer = get_tracer(_TRACER_NAME)
     domain_decisions: list[DomainAuthorization] = []
 
     for domain in atomic_intent_domains.domains:
         with tracer.start_as_current_span("authorization.check") as span:
             span.set_attribute("rbac.domain", domain.value)
+            span.set_attribute("rbac.role_title", role_title)
 
             keputusan = periksa_domain(domain, role_title)
 

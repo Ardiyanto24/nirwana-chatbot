@@ -193,6 +193,14 @@ def proses_turn(raw: dict) -> KeadaanTurn:
                 span.set_attribute("turn.index", int(raw["turn_index"]))
             except (TypeError, ValueError):
                 pass
+        # role_title BARU (M6.1 addendum, keterbatasan-diterima.md #19) -
+        # sebelumnya tidak pernah jadi span attribute di manapun, membuat
+        # kolom traces.role_title (Bagian 4) permanen NULL untuk data asli.
+        # Nama TANPA namespace (bukan "role.title") - dipilih match persis
+        # nama kolom Supabase snake_case, disambut apa adanya oleh
+        # exporter Go (mapping.go MapTraces()).
+        if "role_title" in raw:
+            span.set_attribute("role_title", str(raw["role_title"]))
 
         payload = validate_turn_payload(raw)
         ketergantungan = detect_turn_dependency(payload)

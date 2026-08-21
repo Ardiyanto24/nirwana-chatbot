@@ -209,3 +209,29 @@ Query `SELECT trace_id, session_id, turn_index, role_title FROM traces` di Postg
 **Commit:** *(lihat commit setelah entri log ini - skrip test baru)*
 
 ---
+
+## Checkpoint 8 — Verifikasi Nyata KK2 (Volume Tinggi, Supabase Asli)
+
+**Mulai:** 2026-08-21 · **Selesai:** 2026-08-21
+
+### Task 10 — Turn Multi-Wave Nyata + Perbandingan Jaeger vs Supabase
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+DSN sudah kembali ke Supabase (Checkpoint 7). `uvicorn` di-start ulang (mati sejak restart komputer). Turn nyata dikirim (`session_id=m6.2-kk2-volume-tinggi`, pertanyaan "Bagaimana gop_margin properti Bali dipengaruhi deviasi harga bulan ini?" — reuse pola majemuk-bergantung `gop_margin` M7.9/M7.14) dengan `role_title="General Manager"` (BUKAN "Front Office Staff" seperti payload asli M7.14 E01 — sengaja dipilih role yang DIIZINKAN domain `financial`, supaya pipeline berjalan LEBIH JAUH — query_engine, verification_gate, execution/`chatbot_api` — menghasilkan LEBIH BANYAK span dibanding skenario RBAC-denial, demi "puluhan span sekaligus" KK2). Pengecekan berkala (`Monitor` tool, atas instruksi eksplisit user "lakukan cek berkala, apakah span bertambah atau tidak") memantau jumlah span di Jaeger tiap 15 detik sepanjang turn berjalan.
+
+**Temuan**
+Pertumbuhan span teramati SEHAT dan progresif: 27→29→30→32→33→36→37→38→39→40→41, lalu LOMPATAN BESAR 41→65 (wave 2 tereksekusi penuh, konsisten pola "banyak span sekaligus dalam jendela singkat" yang KK2 uji), lalu 65→66→69 (penutup: `orchestration.susun_paket_narasi`, `chat` narasi, `riwayat.simpan`). Turn berakhir `status="gagal_teknis"` (BUKAN `berhasil`) — data `chatbot_api` lokal stale (`docs/keterbatasan-diterima.md` #15, kondisi sudah diketahui sebelumnya, BUKAN kegagalan verifikasi ini) - tidak masalah untuk tujuan KK2 (volume+keandalan pengiriman, bukan soal keberhasilan bisnis eksekusi).
+
+**Error/Kegagalan**
+Tidak ada.
+
+**Hasil Verifikasi**
+Jaeger: trace `213fbcbd8726b1449510a3cf29eca6a2`, **69 span** (final, stabil - dikonfirmasi 2 pengecekan berturut tanpa perubahan). Supabase: query langsung `SELECT COUNT(*) FROM spans WHERE trace_id=...` = **69 span** — **COCOK PERSIS**. `traces` row: `status='gagal_teknis'`, `role_title='General Manager'` — benar. `docker logs --since 3m` NOL baris error/reject/foreign key. `docker stats --no-stream nirwana-otel-collector`: CPU 3.77%, memori 19.18MiB/2.687GiB (0.70%) — jauh dari kehabisan sumber daya. **KK2 M6.2 TERBUKTI PENUH.**
+
+Container Postgres lokal disposable (Checkpoint 5-7) dibongkar (`docker rm -f nirwana-m62-fault-postgres`) — tugasnya selesai, tidak dibutuhkan lagi.
+
+**Commit:** *(tidak ada kode baru - verifikasi murni, hasil di atas)*
+
+---

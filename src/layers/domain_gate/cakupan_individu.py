@@ -52,6 +52,12 @@ def deteksi_constraint_atomic_intent(
     tracer = get_tracer(_TRACER_NAME)
 
     with tracer.start_as_current_span("domain_gate.cakupan_individu.check") as span:
+        # rbac.role_title BARU (M6.1 addendum) - role_title dipakai untuk
+        # keputusan constraint sejak awal tapi tidak pernah direkam di
+        # span-nya sendiri. Diset di awal (bukan per-cabang) supaya
+        # SELURUH jalur return (4 titik di bawah) konsisten membawanya.
+        span.set_attribute("rbac.role_title", role_title)
+
         if role_title not in ROLE_STAFF_TIER:
             span.set_attribute("rbac.individual_scope_constraint", False)
             span.set_attribute("domain_gate.cakupan_individu.pre_filter", "role_bukan_staff_tier")

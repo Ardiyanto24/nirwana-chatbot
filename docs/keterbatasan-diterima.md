@@ -308,3 +308,31 @@ Gap ini kini TERTUTUP sebagai bukti — status entri diubah dari "diterima karen
 **Pemicu peninjauan ulang:** (a) kalau PIC 5 lanjut ke M5.2+ dan volume data nyata (bukan test manual) cukup untuk menghitung distribusi latency aktual per layer, tuning bucket boundary eksplisit berdasar data itu; (b) kalau ada kebutuhan konkret melihat p95 span non-LLM yang sangat cepat (mis. debugging performa `verification_gate.check`), prioritaskan bucket resolusi tinggi di rentang sub-10ms lebih dulu daripada rentang LLM yang sudah bisa didekati kasar.
 
 ---
+
+## 19. `role_title` Tidak Pernah Jadi Span Attribute — Kolom `traces.role_title` Permanen NULL untuk Data Asli (Milestone 6.1)
+
+**Ditemukan di:** Milestone 6.1, riset perencanaan (`milestones/6.1-membangun-exporter-dasar/decisions.md` Keputusan 7), 2026-08-21 — grep menyeluruh `src/` untuk `span.set_attribute` yang membawa `role_title`.
+
+**Konteks penemuan:** Skema Bagian 4 (`rancangan-observability-ai-chatbot.md`) mengunci kolom `traces.role_title` (nullable) untuk keperluan analisis distribusi role di dashboard publik. Riset exporter Go (PIC 6) menemukan `role_title` TIDAK PERNAH di-set sebagai span attribute di manapun sepanjang `src/` — hanya dipakai sebagai parameter fungsi RBAC internal (`periksa_otorisasi_semua()`, `deteksi_constraint_semua()`, dst), tidak pernah `span.set_attribute("role_title", ...)` atau setara.
+
+**Kenapa diterima (bukan diperbaiki di M6.1):** KK1 Milestone 6.1 secara literal hanya mewajibkan "nama layer, durasi, status" terisi — `role_title` tidak disebut. Memperbaikinya butuh menyentuh instrumentasi Python di titik yang berbeda sifat dari perbaikan bertarget `riwayat.simpan` (Keputusan 2 milestone yang sama) — scope creep di luar literal yang diminta KK M6.1, dan berisiko menambah kompleksitas ke Checkpoint 2 yang sudah py tanggung jawab sendiri.
+
+**Dampak + mitigasi:** Kolom `traces.role_title` akan tetap NULL untuk SELURUH data asli begitu PIC 6 mulai mengalirkannya — panel dashboard M5.1-5.4 yang mengelompokkan by role (kalau ada) tidak akan punya data bermakna. Kolom tetap nullable di skema, tidak menyebabkan error/crash di manapun — murni data kosong, bukan data salah.
+
+**Pemicu peninjauan ulang:** Kalau ada kebutuhan konkret menampilkan distribusi role di dashboard publik dengan data asli, `role_title` perlu ditambahkan sebagai span attribute di `invoke_agent` (`turn_pipeline.py`, M7.6) — kemungkinan lewat pola yang sama dengan `session.id`/`turn.index` yang sudah ada di span itu.
+
+---
+
+## 20. `Buffer` Exporter Go (Milestone 6.1) Murni In-Memory — Tidak Persisten Lintas Restart Proses Collector
+
+**Ditemukan di:** Milestone 6.1, Checkpoint 7 (`milestones/6.1-membangun-exporter-dasar/decisions.md` Keputusan 6), 2026-08-21 — keputusan desain sadar saat membangun `custom-exporter/supabaseexporter/buffer.go`.
+
+**Konteks penemuan:** Span `invoke_agent` (satu-satunya pembawa `session.id`+`turn.index` yang wajib untuk baris `traces`) SELALU berakhir belakangan dibanding anak-anaknya — exporter Go menahan (`buffer` in-memory) span anak sampai `invoke_agent` tiba. Cakupan M6.1 ("jalur data paling sederhana") sengaja TIDAK menambahkan mekanisme eviction/timeout untuk trace yang anchor-nya tidak pernah tiba (mis. `proses_turn()` crash di tengah jalan sebelum `invoke_agent` selesai, atau Collector di-restart sebelum flush terjadi).
+
+**Kenapa diterima (bukan diperbaiki di M6.1):** Penanganan kegagalan/keandalan pengiriman secara eksplisit adalah cakupan Milestone 6.2 (`rancangan-custom-exporter-supabase.md` Lingkup M6.2), bukan M6.1 — menambahkan eviction/persistence sekarang akan mendahului scope milestone berikutnya tanpa manfaat langsung untuk KK M6.1 sendiri.
+
+**Dampak + mitigasi:** (a) Span anak untuk trace yang anchor-nya tidak pernah tiba akan tertahan selamanya di memori proses Collector — risiko memory leak lambat pada volume tinggi/jangka panjang tanpa restart; (b) begitu proses Collector di-restart (deploy ulang, crash, dsb), SELURUH span yang masih tertahan (belum ter-flush) HILANG tanpa jejak — tidak ada persistence/write-ahead log. Mitigasi saat ini: tidak ada, murni diterima sebagai batasan cakupan M6.1.
+
+**Pemicu peninjauan ulang:** Milestone 6.2 (Penanganan Kegagalan dan Keandalan Pengiriman) — wajib ditinjau ulang sebagai bagian scope resmi milestone itu, bukan opsional.
+
+---

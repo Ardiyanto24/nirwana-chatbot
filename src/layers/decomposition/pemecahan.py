@@ -65,7 +65,9 @@ def _build_user_prompt(
     return "\n".join(lines)
 
 
-def _call_llm(question: str, klasifikasi: KlasifikasiKebutuhan, feedback: str | None = None):
+def _call_llm(
+    question: str, klasifikasi: KlasifikasiKebutuhan, feedback: str | None = None
+):
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`)."""
     client = get_openrouter_client()
@@ -74,7 +76,10 @@ def _call_llm(question: str, klasifikasi: KlasifikasiKebutuhan, feedback: str | 
         model=OPENROUTER_MODEL_DECOMPOSITION,
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": _build_user_prompt(question, klasifikasi, feedback)},
+            {
+                "role": "user",
+                "content": _build_user_prompt(question, klasifikasi, feedback),
+            },
         ],
         response_format={"type": "json_object"},
         temperature=0,
@@ -103,7 +108,9 @@ def _parse_and_transform(
     anomalies: list[str] = []
     try:
         data = json.loads(raw_content)
-        raw_items = [_RawAtomicIntent.model_validate(item) for item in data["kebutuhan"]]
+        raw_items = [
+            _RawAtomicIntent.model_validate(item) for item in data["kebutuhan"]
+        ]
     except (json.JSONDecodeError, KeyError, ValidationError, TypeError) as exc:
         return _fallback_result(question), [f"parse_error: {exc}"]
 
@@ -125,11 +132,15 @@ def _parse_and_transform(
             resolved = [index_to_uuid[i] for i in requested if i in valid_indices]
             dropped = [i for i in requested if i not in valid_indices]
             if dropped:
-                anomalies.append(f"index_{item.index}_dangling_bergantung_pada: {dropped}")
+                anomalies.append(
+                    f"index_{item.index}_dangling_bergantung_pada: {dropped}"
+                )
             if not resolved:
                 # Tidak ada rujukan valid tersisa - turunkan jadi independen
                 # (closed-space safe default, mirror bounds-check M1.3).
-                anomalies.append(f"index_{item.index}_no_valid_dependency_fallback_independen")
+                anomalies.append(
+                    f"index_{item.index}_no_valid_dependency_fallback_independen"
+                )
                 relasi = RelasiKebutuhan.INDEPENDEN
             else:
                 bergantung_pada = resolved
@@ -148,7 +159,9 @@ def _parse_and_transform(
             anomalies.append(f"index_{item.index}_construction_failed: {exc}")
 
     if not atomic_intents:
-        return _fallback_result(question), anomalies + ["all_items_failed_fallback_applied"]
+        return _fallback_result(question), anomalies + [
+            "all_items_failed_fallback_applied"
+        ]
 
     return PemecahanResult(atomic_intents=atomic_intents), anomalies
 
@@ -169,7 +182,9 @@ def pecah_atomik(
         try:
             response = _call_llm(question, klasifikasi, feedback)
         except APIError as exc:
-            span.set_attribute("decomposition.forced_fallback_reason", f"api_error: {exc}")
+            span.set_attribute(
+                "decomposition.forced_fallback_reason", f"api_error: {exc}"
+            )
             result = _fallback_result(question)
             span.set_attribute("intent.count", len(result.atomic_intents))
             span.set_attribute("intent.relation_type", "independen")

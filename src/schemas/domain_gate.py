@@ -24,7 +24,7 @@ juga menaruh tipe hasil antara di modul schemas/, bukan lokal di file
 layer.
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 from pydantic import BaseModel, model_validator
 from typing_extensions import Self
@@ -33,7 +33,7 @@ from src.schemas.decomposition import AtomicIntent
 from src.schemas.session_memory import StatusEksekusi
 
 
-class Domain(str, Enum):
+class Domain(StrEnum):
     RESERVATION = "reservation"
     FNB = "fnb"
     FACILITY = "facility"

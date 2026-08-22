@@ -42,7 +42,7 @@ cukup. Lihat milestones/3.3-kecukupan-struktural/decisions.md
 Keputusan 9.
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 from pydantic import BaseModel, model_validator
 from typing_extensions import Self
@@ -52,7 +52,7 @@ from src.schemas.domain_gate import Domain
 from src.schemas.session_memory import StatusEksekusi
 
 
-class SumberPencarian(str, Enum):
+class SumberPencarian(StrEnum):
     BM25 = "bm25"
     EMBEDDING_FALLBACK = "embedding_fallback"
 
@@ -88,7 +88,7 @@ class HasilPencarianKandidat(BaseModel):
         return self
 
 
-class LabelKecocokanMakna(str, Enum):
+class LabelKecocokanMakna(StrEnum):
     DITEMUKAN = "ditemukan"
     SEBAGIAN = "sebagian"
     TIDAK_DITEMUKAN = "tidak_ditemukan"
@@ -122,7 +122,7 @@ class HasilKecocokanMakna(BaseModel):
         return self
 
 
-class SumberKeputusanKecukupan(str, Enum):
+class SumberKeputusanKecukupan(StrEnum):
     DETERMINISTIK = "deterministik"
     LLM = "llm"
 

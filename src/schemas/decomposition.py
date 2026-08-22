@@ -14,21 +14,21 @@ setelah respons LLM diterima, mirror preseden turun_dependency.py (M1.3).
 Lihat decisions.md Keputusan 7.
 """
 
-from enum import Enum
+from enum import StrEnum
+from typing import Self
 
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.session_memory import LabelBentukJawaban
 
 
-class KlasifikasiKebutuhan(str, Enum):
+class KlasifikasiKebutuhan(StrEnum):
     TUNGGAL = "tunggal"
     MAJEMUK_INDEPENDEN = "majemuk_independen"
     MAJEMUK_BERGANTUNG = "majemuk_bergantung"
 
 
-class RelasiKebutuhan(str, Enum):
+class RelasiKebutuhan(StrEnum):
     INDEPENDEN = "independen"
     BERGANTUNG = "bergantung"
 
@@ -43,9 +43,7 @@ class AtomicIntent(BaseModel):
     @model_validator(mode="after")
     def bergantung_pada_konsisten_dengan_relasi(self) -> Self:
         if self.relasi == RelasiKebutuhan.BERGANTUNG and not self.bergantung_pada:
-            raise ValueError(
-                "relasi=bergantung wajib punya bergantung_pada non-kosong"
-            )
+            raise ValueError("relasi=bergantung wajib punya bergantung_pada non-kosong")
         if self.relasi == RelasiKebutuhan.INDEPENDEN and self.bergantung_pada:
             raise ValueError("relasi=independen tidak boleh punya bergantung_pada")
         return self

@@ -11,12 +11,12 @@ supaya tidak ada objek ORM "terlepas sesi" bocor ke business logic, mirror
 pola RewriteResult/TurnDependencyResult. Lihat decisions.md Keputusan 8.
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 from pydantic import BaseModel
 
 
-class LabelBentukJawaban(str, Enum):
+class LabelBentukJawaban(StrEnum):
     NILAI_TUNGGAL = "nilai_tunggal"
     TREN = "tren"
     PERBANDINGAN = "perbandingan"
@@ -24,7 +24,7 @@ class LabelBentukJawaban(str, Enum):
     KOMPOSISI = "komposisi"
 
 
-class StatusEksekusi(str, Enum):
+class StatusEksekusi(StrEnum):
     BERHASIL = "berhasil"
     SEBAGIAN = "sebagian"
     DITOLAK_OTORISASI = "ditolak_otorisasi"

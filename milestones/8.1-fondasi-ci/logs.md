@@ -102,6 +102,35 @@ Riwayat 199+ commit yang baru live publik (dikonfirmasi Checkpoint 1) genuinely 
 **Hasil Verifikasi**
 `ruff check`+`format --check` → "All checks passed!"/"4 files already formatted". `uv run pytest tests/layers/verification_gate/` → 26/26 passed.
 
+**Commit:** `96a0a39` — `chore(milestone-8.1): pembersihan ruff - Verification Gate` (termasuk logs.md checkpoint ini)
+
+---
+
+## Checkpoint 6 — Bersihkan Unit 3: Decomposition
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 6 — Ruff fix Unit 3 + audit/migrasi UP042 lintas-unit
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan 1 keputusan tambahan ditemukan di tengah checkpoint (lihat Temuan — Keputusan 17).
+
+**Apa yang dilakukan**
+`ruff check` pada 7 file Unit 3 menunjukkan `UP035` (auto-fix) + 2x `UP042` (`class X(str, Enum)` -> `StrEnum`, ditandai "unsafe"). Uji empiris (`str(Old.A)`="Old.A" vs `str(New.A)`="a") mengonfirmasi beda perilaku nyata. Cek lebih lanjut: 9 lokasi `UP042` total tersebar `src/schemas/{decomposition,domain_gate,matching,retriever,session_memory}.py`, dipakai 49 file lintas hampir seluruh layer.
+
+Diajukan ke user via `AskUserQuestion` - user pilih "terapkan tapi audit dulu". Agent Explore mengaudit SELURUH `src/`+`tests/` untuk pemakaian `str()`/f-string/`.format()`/span-attribute ke-9 enum: konfirmasi 38 titik `.value` eksplisit di 19 file (termasuk titik krusial `verifikasi.py:49-50` yang membangun prompt LLM verifikasi Decomposition - dicek manual, memakai `ai.relasi.value`/`ai.label_bentuk_jawaban.value`, BUKAN `str()` mentah), HANYA 1 titik kosmetik berisiko (`tests/layers/domain_gate/test_konteks_domain.py:16`, teks pesan assert-fail saja). Dicatat sebagai **Keputusan 17** (Jenis A, ditemukan Checkpoint 6).
+
+Terapkan `ruff check --fix --unsafe-fixes --select UP042 src/` (project-wide, 9/9 fixed). Lanjutkan pembersihan normal Unit 3 sendiri (`ruff format`+`check --fix` pada 7 file) - 3 temuan tambahan auto-fixed, 0 manual.
+
+**Hasil Verifikasi**
+Unit 3: `ruff check`+`format --check` pada 7 file -> "All checks passed!"/"7 files already formatted". `uv run pytest tests/layers/decomposition/` -> 5 passed, **1 failed** (`test_kelompok_b_verifikasi_menangkap_pemecahan_keliru`).
+
+Migrasi UP042 lintas-unit: `uv run pytest tests/` FULL SUITE (705 test, 498.98s) -> **698 passed, 6 failed, 1 skipped**. Investigasi causality untuk 6 kegagalan (SEMUANYA di modul real-LLM-call): (1) re-run 6 test dalam isolasi - 1 (`test_kelompok_a_rujukan...`) langsung PASSED, mengonfirmasi flaky; (2) `git stash` KHUSUS 5 file schema UP042 (kembali ke kode lama `(str, Enum)`), re-run 3 test yang masih gagal - **2 dari 3 GAGAL IDENTIK tanpa perubahan saya sama sekali** (`test_titik_buta_...`, `test_guard_anti_false_positive_...`, keduanya `result.gagal=True` - bukan soal string formatting, `verifikasi_cakupan_individu` murni panggilan LLM klasifikasi); (3) `test_kelompok_b_verifikasi_menangkap_pemecahan_keliru` PASSED sekali tanpa perubahan, lalu GAGAL LAGI setelah `git stash pop` (perubahan dikembalikan) saat re-run Unit 3 penuh - diverifikasi manual `verifikasi.py:49-50` membangun prompt via `.value` eksplisit (bukan `str()` mentah), TIDAK ADA jalur kausal yang mungkin ke perubahan StrEnum. Kesimpulan: seluruh 6 kegagalan adalah non-determinisme LLM pra-eksisting (pola sudah didokumentasikan berulang di project ini - `docs/keterbatasan-diterima.md` #7 dkk.), BUKAN regresi dari migrasi StrEnum maupun pembersihan Unit 3.
+
+`git stash pop` mengembalikan perubahan Unit 3+UP042 sebelum commit.
+
+**Temuan**
+Keputusan 17 (lihat `decisions.md`) - migrasi UP042 diterapkan project-wide di checkpoint ini, bukan ditunda per-unit. Unit 10 (`matching.py`, `session_memory.py`), Unit 11 (`retriever.py`), Unit 12 (`domain_gate.py`) akan menemukan skema mereka sudah bersih `UP042` saat checkpoint masing-masing nanti.
+
 **Commit:** (menyusul)
 
 ---

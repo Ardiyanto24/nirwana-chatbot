@@ -297,6 +297,32 @@ Checkpoint 4-15 sekarang realistis (66 temuan total di seluruh 12 unit, bukan 93
 
 ---
 
+## Keputusan 17: Migrasi `UP042` (`StrEnum`) Diterapkan Lintas-Unit Setelah Audit
+
+**Status:** Ditemukan di tengah implementasi pada Checkpoint 6.
+
+**Latar Belakang**
+Saat membersihkan Unit 3 (Decomposition), `UP042` muncul (`class X(str, Enum)` → `enum.StrEnum`) — ditandai ruff sendiri sebagai "unsafe fix". Uji coba empiris (`uv run python -c "..."`) mengonfirmasi beda perilaku nyata: `str(Old.A)` = `"Old.A"` vs `str(New.A)` = `"a"`. Cek lebih lanjut menemukan 9 lokasi total (bukan cuma di Unit 3) tersebar di `src/schemas/{decomposition,domain_gate,matching,retriever,session_memory}.py` — dipakai di 49 file lintas HAMPIR SELURUH layer (grep `\bDomain\b` dkk.). Genuinely tidak bisa diputuskan per-unit karena blast radius lintas-unit (mis. `RelasiKebutuhan` didefinisikan di Unit 3 tapi dipakai `narasi.py`/Unit 5).
+
+Diajukan ke user via `AskUserQuestion` dengan 3 opsi (keluarkan dari rule set / terapkan setelah audit menyeluruh / putuskan case-by-case per unit) — user pilih **audit dulu, baru terapkan**.
+
+**Keputusan yang Dipilih**
+Agent Explore mengaudit SELURUH `src/`+`tests/` untuk pemakaian `str()`/f-string/`.format()`/span-attribute dari instance ke-9 enum. Hasil: codebase konsisten memakai `.value` eksplisit di setiap titik yang menulis ke prompt/span/DB (38 titik `.value` di 19 file `src/` + 3 di `tests/`) — HANYA 1 titik berisiko ditemukan, itupun di test assertion message (`tests/layers/domain_gate/test_konteks_domain.py:16`, `f"deskripsi {domain} tidak boleh kosong"`), murni kosmetik (teks assert yang cuma tampil kalau assert gagal, tidak pernah dibandingkan persis). `repr()`/`!r` dan serialisasi container/JSON/Pydantic dikonfirmasi TIDAK terpengaruh (cuma `str()`/f-string langsung ke instance yang berbeda).
+
+Karena aman di seluruh 9 lokasi, `ruff check --fix --unsafe-fixes --select UP042 src/` dijalankan SEKALI untuk seluruh project (bukan per-unit), diverifikasi dengan **full suite** `pytest tests/` (bukan subset Unit 3) — konsisten pola verifikasi Unit 8/Support (Keputusan turunan tabel unit) untuk perubahan yang genuinely lintas-layer.
+
+**Alasan**
+Memecah fix yang SUDAH terbukti aman lewat audit menyeluruh jadi 4 checkpoint terpisah (menunggu Unit 3, 10, 11, 12 masing-masing) hanya menambah overhead tanpa manfaat isolasi risiko tambahan — audit sudah membuktikan tidak ada risiko independen per-unit yang perlu dipisah. Menerapkan sekali sekarang, dengan bukti audit tertulis, lebih koheren daripada menyebar keputusan yang sama ke 4 titik waktu berbeda.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Keluarkan UP042 dari rule set (seperti E501)** — ditolak user; berbeda dari E501 (yang genuinely tidak bisa diperbaiki dengan aman), UP042 TERBUKTI aman diterapkan setelah audit, jadi tidak ada alasan kuat untuk mempertahankan pola lama yang kurang modern.
+- **Case-by-case per unit saat encountered** — ditolak user; blast radius lintas-unit (`RelasiKebutuhan` didefinisikan Unit 3, dipakai Unit 5) bikin "per-unit" tidak benar-benar bisa mengisolasi keputusan ini secara konsisten.
+
+**Dampak**
+Unit 10 (Context Resolution: `matching.py`, `session_memory.py`), Unit 11 (Retriever: `retriever.py`), Unit 12 (Domain Gate: `domain_gate.py`) akan MENEMUKAN skema mereka sudah bersih dari `UP042` saat checkpoint masing-masing dijalankan nanti — dicatat di sini supaya tidak membingungkan ("kenapa sudah 0 temuan padahal belum dikerjakan"). Satu file test (`test_konteks_domain.py`) ikut ter-reformat pesan assert-nya sebagai bagian fix ini walau technically milik Unit 12 — dicatat eksplisit, bukan disembunyikan.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -317,3 +343,4 @@ Checkpoint 4-15 sekarang realistis (66 temuan total di seluruh 12 unit, bukan 93
 | 14 | Update Tabel "Struktur Repository" di Checkpoint yang Sama | B | Plan |
 | 15 | Commit `ci.yml` Pakai Tipe `ci` | B | Plan |
 | 16 | Keluarkan E501 (Line-Too-Long) dari Rule Set | A | Checkpoint 3 |
+| 17 | Migrasi `UP042` (`StrEnum`) Diterapkan Lintas-Unit Setelah Audit | A | Checkpoint 6 |

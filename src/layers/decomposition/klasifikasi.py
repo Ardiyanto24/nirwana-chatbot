@@ -56,7 +56,9 @@ def klasifikasi_kebutuhan(question: str) -> KlasifikasiKebutuhan:
         try:
             response = _call_llm(question)
         except APIError as exc:
-            span.set_attribute("decomposition.forced_fallback_reason", f"api_error: {exc}")
+            span.set_attribute(
+                "decomposition.forced_fallback_reason", f"api_error: {exc}"
+            )
             span.set_attribute("decomposition.classification", _FALLBACK.value)
             return _FALLBACK
 

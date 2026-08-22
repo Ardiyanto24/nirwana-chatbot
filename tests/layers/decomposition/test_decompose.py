@@ -40,7 +40,9 @@ def test_kelompok_a_majemuk_bergantung_relasi_benar():
     dependent_intents = [
         ai for ai in result.atomic_intents if ai.relasi == RelasiKebutuhan.BERGANTUNG
     ]
-    assert len(dependent_intents) >= 1, "harus ada minimal 1 kebutuhan berelasi bergantung"
+    assert len(dependent_intents) >= 1, (
+        "harus ada minimal 1 kebutuhan berelasi bergantung"
+    )
 
     independent_ids = {
         ai.atomic_intent_id
@@ -48,7 +50,9 @@ def test_kelompok_a_majemuk_bergantung_relasi_benar():
         if ai.relasi == RelasiKebutuhan.INDEPENDEN
     }
     for dep in dependent_intents:
-        assert dep.bergantung_pada, "kebutuhan bergantung wajib punya bergantung_pada terisi"
+        assert dep.bergantung_pada, (
+            "kebutuhan bergantung wajib punya bergantung_pada terisi"
+        )
         assert set(dep.bergantung_pada).issubset(independent_ids), (
             "relasi bergantung harus merujuk ke kebutuhan independen yang benar-benar ada"
         )

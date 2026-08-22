@@ -10,7 +10,7 @@ konsistensi mirror pola `AtomicIntent.bergantung_pada_konsisten_dengan_relasi`
 (src/schemas/decomposition.py, M1.6).
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 from pydantic import BaseModel, model_validator
 from typing_extensions import Self
@@ -19,7 +19,7 @@ from src.schemas.decomposition import AtomicIntent
 from src.schemas.session_memory import SessionMemoryPackage
 
 
-class MatchStatus(str, Enum):
+class MatchStatus(StrEnum):
     SELESAI = "selesai"
     PERLU_EKSEKUSI = "perlu_eksekusi"
 

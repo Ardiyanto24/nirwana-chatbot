@@ -102,6 +102,24 @@ Job `test-gate` — `needs: [test-python-fast, go-test, test-python-llm]`, `if: 
 **Hasil Verifikasi**
 `actionlint` → 0 temuan. Logic diverifikasi baca manual (tidak bisa dites nyata sampai ada run CI sungguhan dengan kombinasi hasil beragam — menyusul Checkpoint 7+).
 
-**Commit:** (menyusul)
+**Commit:** `91b87c8` — `feat(milestone-8.2): job test-gate aggregator`
+
+---
+
+## Checkpoint 6 — User Menambahkan Secret
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 6 — Verifikasi keberadaan secret
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+User menjalankan `gh secret set OPENROUTER_API_KEY`/`DATABASE_URL` sendiri (saya hanya memberi contoh command, TIDAK menjalankannya — larangan keamanan memasukkan API key).
+
+**Hasil Verifikasi**
+`gh secret list --repo Ardiyanto24/nirwana-chatbot` → kedua nama secret terkonfirmasi ada (`DATABASE_URL`, `OPENROUTER_API_KEY`), timestamp `2026-08-22`. Nilai TIDAK terlihat/tidak diperiksa (`gh secret list` memang tidak pernah menampilkan nilai).
+
+**Commit:** Tidak ada — perubahan GitHub Settings murni oleh user, tidak ada file repo yang berubah.
 
 ---

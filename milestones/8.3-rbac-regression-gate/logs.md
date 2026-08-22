@@ -154,6 +154,24 @@ Buat `tests/rbac_regression/__init__.py`+`test_zero_leakage.py` (docstring lengk
 **Hasil Verifikasi**
 `ruff format`+`check` → bersih. `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **6 passed, 2.30 detik**. Seluruh KK2 sumber (deteksi kebocoran buatan) terbukti sebagai unit test — verifikasi CI nyata (kode produksi dilonggarkan, bukan cuma test) menyusul Checkpoint 11.
 
+**Commit:** `1ea9c06` — `test(milestone-8.3): skenario zero-leakage - sengaja dibuat gagal`
+
+---
+
+## Checkpoint 9 — Job `rbac-regression` di `ci.yml`
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 9 — Tambah job CI
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah job `rbac-regression` baru di `.github/workflows/ci.yml` (antara `test-python-llm` dan `go-test`) — `uv run pytest tests/rbac_regression/ -v`, `env: DATABASE_URL` saja (secret sudah ada dari M8.2, `OPENROUTER_API_KEY` SENGAJA tidak diberikan, konsisten Keputusan 1+4). Job terpisah TOTAL dari `test-python-fast`/`test-python-llm`/`test-gate` (Keputusan 3) — tidak ditambahkan ke `needs:` job aggregator manapun, akan jadi required status check independen di Checkpoint 10.
+
+**Hasil Verifikasi**
+`go install github.com/rhysd/actionlint/cmd/actionlint@latest` (preseden M8.1/M8.2) → `actionlint .github/workflows/ci.yml` → **0 temuan**. Verifikasi fungsional nyata (run CI sungguhan) menyusul Checkpoint 11.
+
 **Commit:** (menyusul)
 
 ---

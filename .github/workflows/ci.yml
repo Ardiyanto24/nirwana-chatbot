@@ -156,6 +156,26 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
+  rbac-regression:
+    name: rbac-regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --group dev
+      - run: uv run pytest tests/rbac_regression/ -v
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        # Job TERPISAH dari test-python-fast/test-python-llm (Milestone
+        # 8.3, Keputusan 3, forced KK sumber) - kegagalan di sini adalah
+        # sinyal kebocoran RBAC prioritas tinggi, bukan kegagalan unit
+        # test generik. Klasifikasi Domain Gate (LLM) di-fix ke hasil
+        # historis (Keputusan 1) - genuinely TANPA OPENROUTER_API_KEY,
+        # cuma DATABASE_URL untuk periksa_otorisasi_semua() nyata
+        # (Keputusan 4).
+
   go-test:
     name: go-test
     runs-on: ubuntu-latest

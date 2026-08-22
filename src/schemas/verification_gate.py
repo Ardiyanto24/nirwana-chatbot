@@ -10,10 +10,9 @@ File terpisah dari schemas/cakupan_individu.py (M2.3) - subpackage layer
 BEDA (verification_gate/ vs domain_gate/), lihat decisions.md Keputusan 3.
 """
 
-from typing import Any
+from typing import Any, Self
 
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.domain_gate import Domain
 

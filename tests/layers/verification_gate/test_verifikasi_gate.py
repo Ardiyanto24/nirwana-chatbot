@@ -22,10 +22,16 @@ from src.layers.verification_gate.verifikasi_gate import (
     verifikasi_kelengkapan_penegakan,
     verifikasi_kepatuhan_sumber,
 )
-from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import (
+    AtomicIntentConstraint,
+    ConstraintCakupanIndividu,
+)
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
@@ -339,7 +345,9 @@ def test_verifikasi_gate_semua_dipanggil_dengan_argumen_benar(monkeypatch):
     retriever_result, BUKAN request.view_name) - PERSIS dari sumber yang
     benar (decisions.md Keputusan 5-7)."""
     atomic_intent = _buat_atomic_intent()
-    request = _buat_request(view_name="v_housekeeping_staff_daily", params={"limit": 10})
+    request = _buat_request(
+        view_name="v_housekeeping_staff_daily", params={"limit": 10}
+    )
     query_engine_entry = _buat_query_engine_entry(
         atomic_intent, "v_housekeeping_staff_daily", lolos=True, request=request
     )
@@ -378,9 +386,13 @@ def test_verifikasi_gate_semua_skip_hasil_verifikasi_none(monkeypatch):
     constraint_item = _buat_atomic_intent_constraint(atomic_intent, terdeteksi=False)
 
     def _gagal_kalau_terpanggil(*args, **kwargs):
-        raise AssertionError("verifikasi_gate TIDAK BOLEH terpanggil untuk hasil_verifikasi=None")
+        raise AssertionError(
+            "verifikasi_gate TIDAK BOLEH terpanggil untuk hasil_verifikasi=None"
+        )
 
-    monkeypatch.setattr(verifikasi_gate_module, "verifikasi_gate", _gagal_kalau_terpanggil)
+    monkeypatch.setattr(
+        verifikasi_gate_module, "verifikasi_gate", _gagal_kalau_terpanggil
+    )
 
     hasil = verifikasi_gate_semua(
         [query_engine_entry], [retriever_item], [constraint_item], employee_id="E0001"
@@ -398,9 +410,13 @@ def test_verifikasi_gate_semua_skip_lolos_false(monkeypatch):
     constraint_item = _buat_atomic_intent_constraint(atomic_intent, terdeteksi=False)
 
     def _gagal_kalau_terpanggil(*args, **kwargs):
-        raise AssertionError("verifikasi_gate TIDAK BOLEH terpanggil untuk item lolos=False")
+        raise AssertionError(
+            "verifikasi_gate TIDAK BOLEH terpanggil untuk item lolos=False"
+        )
 
-    monkeypatch.setattr(verifikasi_gate_module, "verifikasi_gate", _gagal_kalau_terpanggil)
+    monkeypatch.setattr(
+        verifikasi_gate_module, "verifikasi_gate", _gagal_kalau_terpanggil
+    )
 
     hasil = verifikasi_gate_semua(
         [query_engine_entry], [retriever_item], [constraint_item], employee_id="E0001"
@@ -417,7 +433,9 @@ def test_verifikasi_gate_semua_multi_item_tidak_tertukar(monkeypatch):
     intent_a = _buat_atomic_intent("kebutuhan A")
     intent_b = _buat_atomic_intent("kebutuhan B")
 
-    entry_a = _buat_query_engine_entry(intent_a, "v_housekeeping_staff_daily", lolos=True)
+    entry_a = _buat_query_engine_entry(
+        intent_a, "v_housekeeping_staff_daily", lolos=True
+    )
     entry_b = _buat_query_engine_entry(intent_b, "v_hr_watchlist_monthly", lolos=True)
 
     retriever_a = _buat_hasil_kecukupan(intent_a, "v_housekeeping_staff_daily")
@@ -447,12 +465,19 @@ def test_verifikasi_gate_semua_multi_item_tidak_tertukar(monkeypatch):
         employee_id="E0001",
     )
 
-    assert diterima_per_intent["v_housekeeping_staff_daily"]["constraint_terdeteksi"] is True
     assert (
-        diterima_per_intent["v_housekeeping_staff_daily"]["view_name_tervalidasi_retriever"]
+        diterima_per_intent["v_housekeeping_staff_daily"]["constraint_terdeteksi"]
+        is True
+    )
+    assert (
+        diterima_per_intent["v_housekeeping_staff_daily"][
+            "view_name_tervalidasi_retriever"
+        ]
         == "v_housekeeping_staff_daily"
     )
-    assert diterima_per_intent["v_hr_watchlist_monthly"]["constraint_terdeteksi"] is False
+    assert (
+        diterima_per_intent["v_hr_watchlist_monthly"]["constraint_terdeteksi"] is False
+    )
     assert (
         diterima_per_intent["v_hr_watchlist_monthly"]["view_name_tervalidasi_retriever"]
         == "v_hr_watchlist_monthly"
@@ -485,13 +510,16 @@ def test_verifikasi_gate_semua_urutan_dan_panjang_dipertahankan(monkeypatch):
     monkeypatch.setattr(
         verifikasi_gate_module,
         "verifikasi_gate",
-        lambda req, constraint, employee_id, view_name_tervalidasi_retriever: HasilVerifikasiGate(
-            request_final=req, lolos=True, terkoreksi=False
+        lambda req, constraint, employee_id, view_name_tervalidasi_retriever: (
+            HasilVerifikasiGate(request_final=req, lolos=True, terkoreksi=False)
         ),
     )
 
     hasil = verifikasi_gate_semua(
-        [entry_1, entry_2, entry_3], retriever_items, constraint_items, employee_id="E0001"
+        [entry_1, entry_2, entry_3],
+        retriever_items,
+        constraint_items,
+        employee_id="E0001",
     )
 
     assert len(hasil) == 1

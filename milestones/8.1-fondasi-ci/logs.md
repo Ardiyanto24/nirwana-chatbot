@@ -69,3 +69,39 @@ Riwayat 199+ commit yang baru live publik (dikonfirmasi Checkpoint 1) genuinely 
 **Commit:** `0ff978f` — `chore(milestone-8.1): konfigurasi global ruff` (kode); `docs` menyusul untuk decisions.md+logs.md
 
 ---
+
+## Checkpoint 4 — Bersihkan Unit 1: Input Layer
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 4 — Ruff fix Unit 1
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`uv run ruff format` + `uv run ruff check --fix` pada 3 file Unit 1. 2 dari 3 temuan awal auto-fixed (`UP035` import `Self` dari `typing_extensions`→`typing` di `turn_payload.py`, plus 1 lain setelah format). 1 temuan non-autofix (`SIM105` di `input_layer.py`, try/except/pass untuk `turn.index` span attribute best-effort) diperbaiki manual: diganti `contextlib.suppress(TypeError, ValueError)` — murni perubahan gaya, semantik identik.
+
+**Hasil Verifikasi**
+`ruff check` + `ruff format --check` pada 3 file → "All checks passed!" / "3 files already formatted". `uv run pytest tests/layers/test_input_layer.py` → 12/12 passed.
+
+**Commit:** `e718cac` — `chore(milestone-8.1): pembersihan ruff - Input Layer`
+
+---
+
+## Checkpoint 5 — Bersihkan Unit 2: Verification Gate
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 5 — Ruff fix Unit 2
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 4 file Unit 2. Seluruh 3 temuan (2× `I001` import unsorted, 1× `UP035` `typing_extensions.Self`) auto-fixed, 0 manual.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"4 files already formatted". `uv run pytest tests/layers/verification_gate/` → 26/26 passed.
+
+**Commit:** (menyusul)
+
+---

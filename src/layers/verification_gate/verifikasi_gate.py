@@ -21,9 +21,15 @@ milestones/7.13-sambungan-verification-gate/decisions.md.
 
 from src.config.katalog_view import DAFTAR_VIEW_PER_DOMAIN
 from src.observability.tracing import get_tracer
-from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import (
+    AtomicIntentConstraint,
+    ConstraintCakupanIndividu,
+)
 from src.schemas.decomposition import AtomicIntent
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
@@ -31,7 +37,9 @@ LIMIT_MAKSIMUM = 1000
 _TRACER_NAME = "verification_gate.verifikasi_gate"
 
 
-def verifikasi_bentuk_request_statis(request: QueryEngineRequest) -> tuple[bool, str | None]:
+def verifikasi_bentuk_request_statis(
+    request: QueryEngineRequest,
+) -> tuple[bool, str | None]:
     """Cek 1: view_name terdaftar di domain yang dinyatakan, limit (kalau
     ada) tidak melebihi batas chatbot_api (1000, api-chatbot.md)."""
     view_valid = DAFTAR_VIEW_PER_DOMAIN.get(request.domain, frozenset())
@@ -98,7 +106,9 @@ def verifikasi_kelengkapan_penegakan(
     return True, None
 
 
-def _tolak(span, check_name: str, alasan: str, terkoreksi: bool = False) -> HasilVerifikasiGate:
+def _tolak(
+    span, check_name: str, alasan: str, terkoreksi: bool = False
+) -> HasilVerifikasiGate:
     span.set_attribute("verification.check_name", check_name)
     span.set_attribute("error.type", "gagal_teknis")
     return HasilVerifikasiGate(
@@ -128,7 +138,9 @@ def verifikasi_gate(
                 return hasil
 
         with tracer.start_as_current_span("verification_gate.check") as span:
-            lolos, alasan = verifikasi_kepatuhan_sumber(request, view_name_tervalidasi_retriever)
+            lolos, alasan = verifikasi_kepatuhan_sumber(
+                request, view_name_tervalidasi_retriever
+            )
             span.set_attribute("verification.check_name", "kepatuhan_sumber")
             if not lolos:
                 hasil = _tolak(span, "kepatuhan_sumber", alasan)
@@ -148,7 +160,9 @@ def verifikasi_gate(
             )
             span.set_attribute("verification.check_name", "kelengkapan_penegakan")
             if not lolos:
-                hasil = _tolak(span, "kelengkapan_penegakan", alasan, terkoreksi=terkoreksi)
+                hasil = _tolak(
+                    span, "kelengkapan_penegakan", alasan, terkoreksi=terkoreksi
+                )
                 span_wrap.set_attribute("verification_gate.lolos", False)
                 return hasil
 
@@ -163,7 +177,9 @@ def verifikasi_gate(
 
 
 def verifikasi_gate_semua(
-    query_engine_result: list[tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]],
+    query_engine_result: list[
+        tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]
+    ],
     retriever_result: list[HasilKecukupanStruktural],
     cakupan_individu_result: list[AtomicIntentConstraint],
     employee_id: str,
@@ -192,7 +208,9 @@ def verifikasi_gate_semua(
     (Keputusan 7 - panjang ketiganya bisa berbeda per konstruksi
     pipeline)."""
     tracer = get_tracer(_TRACER_NAME)
-    with tracer.start_as_current_span("verification_gate.verifikasi_gate_semua") as span:
+    with tracer.start_as_current_span(
+        "verification_gate.verifikasi_gate_semua"
+    ) as span:
         span.set_attribute("intent.count", len(query_engine_result))
 
         retriever_by_id = {

@@ -50,7 +50,9 @@ def test_lolos_false_wajib_alasan_penolakan():
 
 
 def test_lolos_true_valid():
-    hasil = HasilVerifikasiGate(request_final=_buat_request(), lolos=True, terkoreksi=True)
+    hasil = HasilVerifikasiGate(
+        request_final=_buat_request(), lolos=True, terkoreksi=True
+    )
     assert hasil.lolos is True
     assert hasil.request_final is not None
     assert hasil.alasan_penolakan is None
@@ -58,7 +60,10 @@ def test_lolos_true_valid():
 
 def test_lolos_false_valid():
     hasil = HasilVerifikasiGate(
-        request_final=None, lolos=False, terkoreksi=False, alasan_penolakan="view_name tidak cocok"
+        request_final=None,
+        lolos=False,
+        terkoreksi=False,
+        alasan_penolakan="view_name tidak cocok",
     )
     assert hasil.lolos is False
     assert hasil.request_final is None

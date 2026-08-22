@@ -46,6 +46,24 @@ Buat `tests/rbac_regression/__init__.py`+`test_zero_leakage.py` (docstring lengk
 **Hasil Verifikasi**
 `uv run pytest tests/rbac_regression/ --collect-only` → "no tests collected" (0 test, wajar - kerangka). `ruff check`+`format --check` → bersih (2 import awal dihapus, belum dipakai sampai Checkpoint 3+).
 
+**Commit:** `e4c79ab` — `feat(milestone-8.3): kerangka package tests/rbac_regression`
+
+---
+
+## Checkpoint 3 — Skenario 1: `gop_margin`
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 3 — Encode skenario `gop_margin`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`test_gop_margin_financial_ditolak_view_reservation_tetap_benar()` — domain teridentifikasi di-fix `[reservation, financial, properties_ref]` (hasil historis M2.1), `periksa_otorisasi_semua()` NYATA (Front Office Staff), `cari_bm25()` NYATA dengan `domain_diizinkan` hasil otorisasi. Assert: `financial` ditolak, TIDAK ADA kandidat domain `financial`, kandidat `v_reservation_gop_impact_monthly` tetap ditemukan.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → bersih. `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **1 passed, 2.43 detik** — genuinely tanpa LLM.
+
 **Commit:** (menyusul)
 
 ---

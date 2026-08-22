@@ -84,6 +84,24 @@ Job `test-python-llm` — `needs: changes`, `if:` di level job (union OR seluruh
 **Hasil Verifikasi**
 `actionlint` → 0 temuan. Sanity check lokal: union SEMUA 11 file (skenario `shared=true`) → `pytest --collect-only` → 69 test collected, tidak ada error path. Verifikasi FUNGSIONAL (union benar-benar path-filtered sesuai grup yang berubah, dengan secret asli) tidak bisa dites sampai secret GitHub genuinely ada — menyusul Checkpoint 9-10.
 
+**Commit:** `78bdddb` — `feat(milestone-8.2): job test-python-llm path-filtered`
+
+---
+
+## Checkpoint 5 — Job Aggregator `test-gate`
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 5 — Tambah job `test-gate`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Job `test-gate` — `needs: [test-python-fast, go-test, test-python-llm]`, `if: always()` (wajib, tanpa ini job ikut ter-skip otomatis kalau salah satu `needs` skip). Step tunggal memeriksa `needs.*.result` eksplisit: `test-python-fast`+`go-test` WAJIB `success`; `test-python-llm` boleh `success` ATAU `skipped` (skip union-kosong itu sah), selain itu `exit 1` dengan pesan `::error::` jelas job mana yang gagal.
+
+**Hasil Verifikasi**
+`actionlint` → 0 temuan. Logic diverifikasi baca manual (tidak bisa dites nyata sampai ada run CI sungguhan dengan kombinasi hasil beragam — menyusul Checkpoint 7+).
+
 **Commit:** (menyusul)
 
 ---

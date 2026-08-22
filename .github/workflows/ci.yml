@@ -170,6 +170,36 @@ jobs:
           cache-dependency-path: custom-exporter/supabaseexporter/go.sum
       - run: go test ./...
 
+  test-gate:
+    name: test-gate
+    needs: [test-python-fast, go-test, test-python-llm]
+    # if: always() WAJIB - tanpa ini, job ini otomatis ikut di-skip kalau
+    # salah satu needs (test-python-llm) skip, padahal skip test-python-llm
+    # itu SAH (union grup kosong) dan tidak boleh menggagalkan gate
+    # (Keputusan 8, decisions.md - atasi gotcha skip-vs-required-check
+    # GitHub Actions).
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Periksa hasil seluruh job test
+        run: |
+          echo "test-python-fast: ${{ needs.test-python-fast.result }}"
+          echo "go-test: ${{ needs.go-test.result }}"
+          echo "test-python-llm: ${{ needs.test-python-llm.result }}"
+          if [ "${{ needs.test-python-fast.result }}" != "success" ]; then
+            echo "::error::test-python-fast tidak lolos (${{ needs.test-python-fast.result }})"
+            exit 1
+          fi
+          if [ "${{ needs.go-test.result }}" != "success" ]; then
+            echo "::error::go-test tidak lolos (${{ needs.go-test.result }})"
+            exit 1
+          fi
+          if [ "${{ needs.test-python-llm.result }}" != "success" ] && [ "${{ needs.test-python-llm.result }}" != "skipped" ]; then
+            echo "::error::test-python-llm tidak lolos (${{ needs.test-python-llm.result }})"
+            exit 1
+          fi
+          echo "Semua job test lolos (test-python-llm skip bersih diterima kalau union grup kosong)."
+
   gitleaks:
     name: gitleaks (secret scan)
     runs-on: ubuntu-latest

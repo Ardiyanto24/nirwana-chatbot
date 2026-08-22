@@ -36,6 +36,20 @@ jobs:
           version: v2.13.1
           working-directory: custom-exporter/supabaseexporter
 
+  go-test:
+    name: go-test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: custom-exporter/supabaseexporter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: custom-exporter/supabaseexporter/go.mod
+          cache-dependency-path: custom-exporter/supabaseexporter/go.sum
+      - run: go test ./...
+
   gitleaks:
     name: gitleaks (secret scan)
     runs-on: ubuntu-latest

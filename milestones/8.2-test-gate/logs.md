@@ -22,6 +22,24 @@ Menulis `milestones/8.2-test-gate/decisions.md` (9 keputusan: 2 Jenis A + 7 Jeni
 **Hasil Verifikasi**
 Review manual `decisions.md` — format Jenis A/B sesuai template, kedua keputusan `AskUserQuestion`+diskusi tercermin akurat.
 
+**Commit:** `4450d6e` — `docs(milestone-8.2): keputusan`
+
+---
+
+## Checkpoint 2 — Job `go-test`
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 2 — Tambah job `go-test`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah job `go-test` di `ci.yml`, `working-directory: custom-exporter/supabaseexporter`, langkah `go test ./...`. Posisi sebelum `gitleaks` (mengikuti urutan job existing, tidak mengubah job M8.1).
+
+**Hasil Verifikasi**
+`actionlint` → 0 temuan. `go test ./...` lokal → `ok`. Verifikasi nyata GitHub Actions menyusul Checkpoint 7 (push pertama).
+
 **Commit:** (menyusul)
 
 ---

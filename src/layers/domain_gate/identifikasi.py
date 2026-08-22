@@ -1,5 +1,9 @@
 """Identifikasi Domain Awal (Milestone 2.1, Langkah 1 Domain Gate).
 
+Komentar sengaja - percobaan Checkpoint 10 Milestone 8.2, membuktikan
+path-filter test-python-llm memicu grup domain_gate. Dihapus setelah
+bukti didapat, TIDAK PERNAH masuk main.
+
 Langkah pertama dari dua mekanisme berurutan Domain Gate - membaca teks
 kebutuhan atomik dan mengenali domain data yang tersentuh, termasuk lewat
 kolom turunan lintas-domain dan pemisahan guests_pii/guests_profile.

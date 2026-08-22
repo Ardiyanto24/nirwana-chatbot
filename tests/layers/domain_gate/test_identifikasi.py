@@ -129,3 +129,10 @@ def test_kelompok_d_baseline_domain_tunggal_tanpa_ambiguitas():
     result = identifikasi_domain(atomic_intent)
     assert result.gagal is False
     assert result.domains == [Domain.RESERVATION]
+
+
+def test_sengaja_gagal_percobaan_gate_m8_2_domain_gate():
+    """Percobaan Checkpoint 10 Milestone 8.2 - membuktikan test-python-llm
+    genuinely path-filtered ke grup domain_gate. Dihapus setelah bukti
+    didapat, TIDAK PERNAH masuk main."""
+    assert 1 == 2, "sengaja gagal untuk percobaan Checkpoint 10 M8.2"

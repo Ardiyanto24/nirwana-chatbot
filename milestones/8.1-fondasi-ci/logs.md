@@ -243,6 +243,24 @@ Tidak ada tindakan perbaikan diambil — konsisten preseden M5.1/M6.1/M7.12/M7.1
 **Hasil Verifikasi**
 `ruff check`+`format --check` → "All checks passed!"/"13 files already formatted". `uv run pytest tests/layers/execution/` → 90 passed, 1 skipped (pra-eksisting) — 15.51s.
 
+**Commit:** `bd52285` — `chore(milestone-8.1): pembersihan ruff - Execution`
+
+---
+
+## Checkpoint 13 — Bersihkan Unit 10: Context Resolution
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 13 — Ruff fix Unit 10
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 14 file Unit 10. Seluruh 4 temuan auto-fixed — 2x `F401` (`enum.Enum` tidak terpakai di `matching.py`/`session_memory.py`, sisa residu migrasi `StrEnum` Checkpoint 6), 1x `UP035`, 1x `F401` import tidak terpakai di test. 0 manual.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"14 files already formatted". `uv run pytest tests/layers/context_resolution/` → 14/14 passed (61.12s).
+
 **Commit:** (menyusul)
 
 ---

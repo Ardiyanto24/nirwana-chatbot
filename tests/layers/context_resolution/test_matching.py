@@ -40,14 +40,16 @@ pytestmark = pytest.mark.skipif(
 def _cleanup(session_id: str) -> None:
     with Session(get_engine()) as session:
         session.exec(
-            text("DELETE FROM session_memory_packages WHERE session_id = :sid").bindparams(
-                sid=session_id
-            )
+            text(
+                "DELETE FROM session_memory_packages WHERE session_id = :sid"
+            ).bindparams(sid=session_id)
         )
         session.commit()
 
 
-def _seed_paket(session_id: str, turn_index: int, teks_kebutuhan: str) -> SessionMemoryPackage:
+def _seed_paket(
+    session_id: str, turn_index: int, teks_kebutuhan: str
+) -> SessionMemoryPackage:
     paket = SessionMemoryPackage(
         atomic_intent_id=str(uuid.uuid4()),
         session_id=session_id,
@@ -68,7 +70,9 @@ def test_kelompok_a_intent_sudah_tersimpan_dicocokkan_tidak_dieksekusi_ulang():
     # dihitung dan tersimpan, dirujuk ulang di turn berikutnya.
     session_id = "test-m17-kelompok-a"
     try:
-        paket_asal = _seed_paket(session_id, turn_index=3, teks_kebutuhan="occupancy rate bulan April 2026")
+        paket_asal = _seed_paket(
+            session_id, turn_index=3, teks_kebutuhan="occupancy rate bulan April 2026"
+        )
 
         atomic_intent_baru = AtomicIntent(
             atomic_intent_id=str(uuid.uuid4()),
@@ -77,9 +81,13 @@ def test_kelompok_a_intent_sudah_tersimpan_dicocokkan_tidak_dieksekusi_ulang():
             relasi=RelasiKebutuhan.INDEPENDEN,
         )
         candidates = retrieve_session_memory(session_id, 3)
-        matches = match_and_archive([atomic_intent_baru], candidates, session_id, turn_index=5)
+        matches = match_and_archive(
+            [atomic_intent_baru], candidates, session_id, turn_index=5
+        )
 
-        assert matches[0].status == MatchStatus.SELESAI, "harus cocok, TIDAK dieksekusi ulang"
+        assert matches[0].status == MatchStatus.SELESAI, (
+            "harus cocok, TIDAK dieksekusi ulang"
+        )
         assert matches[0].paket is not None
         assert matches[0].paket.nilai_hasil == paket_asal.nilai_hasil
         assert matches[0].paket.atomic_intent_id == paket_asal.atomic_intent_id
@@ -92,7 +100,9 @@ def test_kelompok_b_intent_baru_tidak_pernah_cocok_keliru():
     # kandidat manapun) tidak pernah tercocokkan secara keliru.
     session_id = "test-m17-kelompok-b"
     try:
-        _seed_paket(session_id, turn_index=3, teks_kebutuhan="occupancy rate bulan April 2026")
+        _seed_paket(
+            session_id, turn_index=3, teks_kebutuhan="occupancy rate bulan April 2026"
+        )
 
         atomic_intent_baru = AtomicIntent(
             atomic_intent_id=str(uuid.uuid4()),
@@ -101,9 +111,13 @@ def test_kelompok_b_intent_baru_tidak_pernah_cocok_keliru():
             relasi=RelasiKebutuhan.INDEPENDEN,
         )
         candidates = retrieve_session_memory(session_id, 3)
-        matches = match_and_archive([atomic_intent_baru], candidates, session_id, turn_index=5)
+        matches = match_and_archive(
+            [atomic_intent_baru], candidates, session_id, turn_index=5
+        )
 
-        assert matches[0].status == MatchStatus.PERLU_EKSEKUSI, "topik tidak berkaitan, TIDAK boleh cocok"
+        assert matches[0].status == MatchStatus.PERLU_EKSEKUSI, (
+            "topik tidak berkaitan, TIDAK boleh cocok"
+        )
         assert matches[0].paket is None
     finally:
         _cleanup(session_id)
@@ -116,7 +130,9 @@ def test_kelompok_c_rantai_arsip_ulang_turn_tujuh_lima_tiga():
     # fixture independen) - lihat decisions.md Keputusan 13.
     session_id = "test-m17-kelompok-c"
     try:
-        paket_asal = _seed_paket(session_id, turn_index=3, teks_kebutuhan="occupancy rate bulan April 2026")
+        paket_asal = _seed_paket(
+            session_id, turn_index=3, teks_kebutuhan="occupancy rate bulan April 2026"
+        )
 
         # Hop 1: turn 5 merujuk turn 3
         ai_turn5 = AtomicIntent(
@@ -126,7 +142,9 @@ def test_kelompok_c_rantai_arsip_ulang_turn_tujuh_lima_tiga():
             relasi=RelasiKebutuhan.INDEPENDEN,
         )
         candidates_turn3 = retrieve_session_memory(session_id, 3)
-        matches_turn5 = match_and_archive([ai_turn5], candidates_turn3, session_id, turn_index=5)
+        matches_turn5 = match_and_archive(
+            [ai_turn5], candidates_turn3, session_id, turn_index=5
+        )
         assert matches_turn5[0].status == MatchStatus.SELESAI
 
         # Hop 2: turn 7 merujuk turn 5, MEMAKAI baris arsip nyata hasil hop 1
@@ -138,7 +156,9 @@ def test_kelompok_c_rantai_arsip_ulang_turn_tujuh_lima_tiga():
         )
         candidates_turn5 = retrieve_session_memory(session_id, 5)
         assert len(candidates_turn5) == 1, "harus menemukan baris arsip hasil hop 1"
-        matches_turn7 = match_and_archive([ai_turn7], candidates_turn5, session_id, turn_index=7)
+        matches_turn7 = match_and_archive(
+            [ai_turn7], candidates_turn5, session_id, turn_index=7
+        )
 
         assert matches_turn7[0].status == MatchStatus.SELESAI
 

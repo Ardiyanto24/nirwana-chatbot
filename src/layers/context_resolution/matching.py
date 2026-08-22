@@ -90,13 +90,17 @@ def _parse_and_decide(
         result = _RawMatchResult.model_validate(data)
     except (json.JSONDecodeError, ValidationError) as exc:
         return (
-            AtomicIntentMatch(atomic_intent=atomic_intent, status=MatchStatus.PERLU_EKSEKUSI),
+            AtomicIntentMatch(
+                atomic_intent=atomic_intent, status=MatchStatus.PERLU_EKSEKUSI
+            ),
             f"parse_error: {exc}",
         )
 
     if not result.matched or result.candidate_index is None:
         return (
-            AtomicIntentMatch(atomic_intent=atomic_intent, status=MatchStatus.PERLU_EKSEKUSI),
+            AtomicIntentMatch(
+                atomic_intent=atomic_intent, status=MatchStatus.PERLU_EKSEKUSI
+            ),
             None,
         )
 
@@ -106,13 +110,17 @@ def _parse_and_decide(
             f"rentang 1..{len(candidates)}"
         )
         return (
-            AtomicIntentMatch(atomic_intent=atomic_intent, status=MatchStatus.PERLU_EKSEKUSI),
+            AtomicIntentMatch(
+                atomic_intent=atomic_intent, status=MatchStatus.PERLU_EKSEKUSI
+            ),
             reason,
         )
 
     paket = candidates[result.candidate_index - 1]
     return (
-        AtomicIntentMatch(atomic_intent=atomic_intent, status=MatchStatus.SELESAI, paket=paket),
+        AtomicIntentMatch(
+            atomic_intent=atomic_intent, status=MatchStatus.SELESAI, paket=paket
+        ),
         None,
     )
 
@@ -132,7 +140,9 @@ def _match_single(
             response = _call_llm(atomic_intent, candidates)
         except APIError as exc:
             span.set_attribute("matching.forced_fallback_reason", f"api_error: {exc}")
-            return AtomicIntentMatch(atomic_intent=atomic_intent, status=MatchStatus.PERLU_EKSEKUSI)
+            return AtomicIntentMatch(
+                atomic_intent=atomic_intent, status=MatchStatus.PERLU_EKSEKUSI
+            )
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
@@ -141,7 +151,9 @@ def _match_single(
             )
 
         raw_content = response.choices[0].message.content or ""
-        result, forced_reason = _parse_and_decide(raw_content, atomic_intent, candidates)
+        result, forced_reason = _parse_and_decide(
+            raw_content, atomic_intent, candidates
+        )
 
         if forced_reason:
             span.set_attribute("matching.forced_fallback_reason", forced_reason)

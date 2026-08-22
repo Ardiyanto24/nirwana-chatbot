@@ -60,7 +60,9 @@ def _build_user_prompt(payload: TurnPayload) -> str:
             lines.append(f"- Turn {h.turn_index}: Q: {h.question} | A: {h.answer}")
     else:
         lines.append("Tidak ada histori - ini turn pertama dalam sesi.")
-    lines.append(f"\nPertanyaan turn terakhir (turn {payload.turn_index}): {payload.question}")
+    lines.append(
+        f"\nPertanyaan turn terakhir (turn {payload.turn_index}): {payload.question}"
+    )
     return "\n".join(lines)
 
 
@@ -113,7 +115,9 @@ def rewrite_to_standalone(payload: TurnPayload) -> RewriteResult:
             )
 
         if not response.choices:
-            span.set_attribute("rewrite.forced_fallback_reason", "no_choices_in_response")
+            span.set_attribute(
+                "rewrite.forced_fallback_reason", "no_choices_in_response"
+            )
             return RewriteResult(rewritten_question=payload.question)
 
         raw_content = (response.choices[0].message.content or "").strip()
@@ -125,6 +129,8 @@ def rewrite_to_standalone(payload: TurnPayload) -> RewriteResult:
             residual_phrases = _detect_residual_reference(raw_content)
             if residual_phrases:
                 span.set_attribute("rewrite.residual_reference_detected", True)
-                span.set_attribute("rewrite.residual_reference_phrases", residual_phrases)
+                span.set_attribute(
+                    "rewrite.residual_reference_phrases", residual_phrases
+                )
 
         return RewriteResult(rewritten_question=raw_content)

@@ -11,7 +11,7 @@ supaya tidak ada objek ORM "terlepas sesi" bocor ke business logic, mirror
 pola RewriteResult/TurnDependencyResult. Lihat decisions.md Keputusan 8.
 """
 
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 from pydantic import BaseModel
 

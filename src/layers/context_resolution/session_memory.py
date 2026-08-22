@@ -48,7 +48,9 @@ def store_session_memory(package: SessionMemoryPackage) -> None:
             raise
 
 
-def retrieve_session_memory(session_id: str, turn_index: int) -> list[SessionMemoryPackage]:
+def retrieve_session_memory(
+    session_id: str, turn_index: int
+) -> list[SessionMemoryPackage]:
     """Kembalikan seluruh paket Session Memory milik {session_id, turn_index}.
     List kosong (BUKAN exception) kalau turn belum pernah ada/tidak py data -
     forced by Kriteria Keberhasilan sumber. Kegagalan DB (beda dari "tidak
@@ -72,6 +74,4 @@ def retrieve_session_memory(session_id: str, turn_index: int) -> list[SessionMem
             raise
 
         span.set_attribute("memory.packages_found", len(rows))
-        return [
-            SessionMemoryPackage.model_validate(row.model_dump()) for row in rows
-        ]
+        return [SessionMemoryPackage.model_validate(row.model_dump()) for row in rows]

@@ -100,7 +100,9 @@ def detect_turn_dependency(payload: TurnPayload) -> TurnDependencyResult:
         try:
             response = _call_llm(payload)
         except APIError as exc:
-            span.set_attribute("dependency.forced_independent_reason", f"api_error: {exc}")
+            span.set_attribute(
+                "dependency.forced_independent_reason", f"api_error: {exc}"
+            )
             return TurnDependencyResult(is_dependent=False)
 
         if response.usage is not None:
@@ -116,6 +118,8 @@ def detect_turn_dependency(payload: TurnPayload) -> TurnDependencyResult:
         if forced_reason:
             span.set_attribute("dependency.forced_independent_reason", forced_reason)
         if result.is_dependent:
-            span.set_attribute("dependency.referenced_turn_index", result.referenced_turn_index)
+            span.set_attribute(
+                "dependency.referenced_turn_index", result.referenced_turn_index
+            )
 
         return result

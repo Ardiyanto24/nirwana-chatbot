@@ -129,7 +129,9 @@ class _SessionExecGagal:
         raise RuntimeError("simulasi DB tidak terjangkau")
 
 
-def test_kegagalan_db_saat_retrieve_menghasilkan_error_type_lalu_raise_ulang(monkeypatch):
+def test_kegagalan_db_saat_retrieve_menghasilkan_error_type_lalu_raise_ulang(
+    monkeypatch,
+):
     """Addendum Milestone 7.7: retrieve_session_memory() sebelumnya TIDAK
     punya try/except sama sekali di sekitar query DB - diperbaiki mirror
     persis pola store_session_memory() di atas."""

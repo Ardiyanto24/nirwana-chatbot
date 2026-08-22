@@ -21,7 +21,6 @@ from openai import APIError
 
 import src.layers.context_resolution.turn_dependency as modul
 from src.layers.context_resolution.turn_dependency import detect_turn_dependency
-from src.schemas.session_memory import LabelBentukJawaban
 from src.schemas.turn_payload import HistoryTurn, TurnPayload
 
 
@@ -77,4 +76,6 @@ def test_api_error_fallback_aman_tanpa_exception_menjalar(monkeypatch):
 
     assert result.is_dependent is False
     assert result.referenced_turn_index is None
-    assert "api_error" in tracer_rekam.span.atribut["dependency.forced_independent_reason"]
+    assert (
+        "api_error" in tracer_rekam.span.atribut["dependency.forced_independent_reason"]
+    )

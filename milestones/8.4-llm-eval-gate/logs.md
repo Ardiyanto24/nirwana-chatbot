@@ -76,6 +76,24 @@ Tambah job `prompt-eval` (needs: `changes-prompts`) — `if:` OR 18 kondisi (17 
 **Hasil Verifikasi**
 `actionlint .github/workflows/ci.yml` → **0 temuan**.
 
+**Commit:** `8c94556` — `ci(milestone-8.4): job prompt-eval`
+
+---
+
+## Checkpoint 5 — Aggregator `prompt-eval-gate`
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 5 — Tambah aggregator skip-tolerant
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah job `prompt-eval-gate` (needs: `prompt-eval`, `if: always()`) — sukses kalau `prompt-eval` `success` ATAU `skipped` (union 17 filter kosong, sah — kondisi PALING UMUM), gagal kalau `failure`. Mirror mekanisme `test-gate` (Keputusan 8, M8.2) TAPI job terpisah (Keputusan 5, decisions.md M8.4) supaya pesan gagal "prompt reliability gagal" tidak tercampur "unit test Python gagal".
+
+**Hasil Verifikasi**
+`actionlint .github/workflows/ci.yml` → **0 temuan**.
+
 **Commit:** (menyusul)
 
 ---

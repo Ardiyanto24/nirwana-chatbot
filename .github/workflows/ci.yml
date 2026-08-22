@@ -379,6 +379,27 @@ jobs:
           done
           exit $FAILED
 
+  prompt-eval-gate:
+    name: prompt-eval-gate
+    needs: prompt-eval
+    # if: always() WAJIB - job ini genuinely skip kalau union 17 filter
+    # kosong (PR paling umum tidak sentuh prompt), tanpa always() job ini
+    # otomatis ikut skip dan required status check bisa macet (gotcha
+    # sama seperti test-gate, Keputusan 8 M8.2 - lihat Milestone 8.4
+    # Keputusan 5, decisions.md, kenapa aggregator ini TERPISAH dari
+    # test-gate meski mekanismenya identik).
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Periksa hasil job prompt-eval
+        run: |
+          echo "prompt-eval: ${{ needs.prompt-eval.result }}"
+          if [ "${{ needs.prompt-eval.result }}" != "success" ] && [ "${{ needs.prompt-eval.result }}" != "skipped" ]; then
+            echo "::error::prompt-eval tidak lolos (${{ needs.prompt-eval.result }})"
+            exit 1
+          fi
+          echo "prompt-eval lolos atau skip bersih (union 17 filter kosong, sah)."
+
   go-test:
     name: go-test
     runs-on: ubuntu-latest

@@ -12,8 +12,9 @@ satu-satunya sumber data yang memungkinkan itu. Lihat
 milestones/1.3-pemetaan-ketergantungan-turn/decisions.md.
 """
 
+from typing import Self
+
 from pydantic import BaseModel, Field, field_validator, model_validator
-from typing_extensions import Self
 
 from src.config.roles import load_valid_roles
 

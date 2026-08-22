@@ -29,7 +29,9 @@ client = TestClient(app)
 
 _INTERPRETATION_DUMMY = (
     HasilNarasi(narasi="narasi dummy"),
-    HasilVerifikasiNarasi(narasi="narasi dummy", status=StatusEksekusi.BERHASIL, lolos=True, alasan=None),
+    HasilVerifikasiNarasi(
+        narasi="narasi dummy", status=StatusEksekusi.BERHASIL, lolos=True, alasan=None
+    ),
     None,
 )
 
@@ -38,7 +40,9 @@ def _keadaan_turn_dummy(raw: dict) -> KeadaanTurn:
     payload = TurnPayload(**raw)
     return KeadaanTurn(
         payload=payload,
-        ketergantungan=TurnDependencyResult(is_dependent=False, referenced_turn_index=None),
+        ketergantungan=TurnDependencyResult(
+            is_dependent=False, referenced_turn_index=None
+        ),
         rewrite=RewriteResult(rewritten_question=payload.question),
         session_memory=None,
         decomposition=DecompositionResult(
@@ -61,6 +65,7 @@ def _keadaan_turn_dummy(raw: dict) -> KeadaanTurn:
         invoke_agent_trace_id="0123456789abcdef0123456789abcdef",
         invoke_agent_span_id="0123456789abcdef",
     )
+
 
 VALID_PAYLOAD_TURN1 = {
     "session_id": "sess-test",
@@ -89,7 +94,11 @@ VALID_PAYLOAD_TURN3 = {
     "question": "Bagaimana dengan spa?",
     "history": [
         {"turn_index": 1, "question": "Berapa occupancy April?", "answer": "78%"},
-        {"turn_index": 2, "question": "Bandingkan dengan bulan lalu", "answer": "Naik 5%"},
+        {
+            "turn_index": 2,
+            "question": "Bandingkan dengan bulan lalu",
+            "answer": "Naik 5%",
+        },
     ],
 }
 
@@ -177,7 +186,11 @@ def test_turn_index_3_with_duplicate_history_turn_index_rejected():
         **VALID_PAYLOAD_TURN3,
         "history": [
             {"turn_index": 1, "question": "Berapa occupancy April?", "answer": "78%"},
-            {"turn_index": 1, "question": "Berapa occupancy April? (lagi)", "answer": "78%"},
+            {
+                "turn_index": 1,
+                "question": "Berapa occupancy April? (lagi)",
+                "answer": "78%",
+            },
         ],
     }
     response = client.post("/v1/turns", json=payload)

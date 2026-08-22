@@ -6,6 +6,8 @@ Milestone 1.2). Mengemisi span `input.validate` sesuai kontrak Bagian 2
 rancangan-observability-ai-chatbot.md.
 """
 
+import contextlib
+
 from src.observability.tracing import get_tracer
 from src.schemas.turn_payload import TurnPayload
 
@@ -20,8 +22,6 @@ def validate_turn_payload(raw: dict) -> TurnPayload:
         if "session_id" in raw:
             span.set_attribute("session.id", str(raw["session_id"]))
         if "turn_index" in raw:
-            try:
+            with contextlib.suppress(TypeError, ValueError):
                 span.set_attribute("turn.index", int(raw["turn_index"]))
-            except (TypeError, ValueError):
-                pass
         return TurnPayload.model_validate(raw)

@@ -30,6 +30,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: custom-exporter/supabaseexporter/go.mod
+          cache-dependency-path: custom-exporter/supabaseexporter/go.sum
       - uses: golangci/golangci-lint-action@v9
         with:
           version: v2.13.1
@@ -59,6 +60,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: custom-exporter/supabaseexporter/go.mod
+          cache-dependency-path: custom-exporter/supabaseexporter/go.sum
       - name: govulncheck (go.sum)
         working-directory: custom-exporter/supabaseexporter
         run: |

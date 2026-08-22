@@ -351,6 +351,22 @@ Tulis `.github/workflows/ci.yml` — 4 job (`ruff`, `golangci-lint`, `gitleaks`,
 **Hasil Verifikasi**
 `uv run python -c "import yaml; yaml.safe_load(...)"` → valid, 4 job terdeteksi persis nama yang dibutuhkan Checkpoint 19 (branch protection). `actionlint` (diinstal `go install github.com/rhysd/actionlint/cmd/actionlint@latest`) dijalankan terhadap `ci.yml` → 0 temuan. Verifikasi NYATA (run sungguhan GitHub Actions) menyusul Checkpoint 18 setelah file ini di-push.
 
-**Commit:** (menyusul)
+**Commit:** `8367d75` — `ci(milestone-8.1): workflow lint, secret scan, dependency scan`
+
+### Task 18b — Push nyata + 2 bug ditemukan dan diperbaiki via eksekusi nyata
+
+**Kesesuaian dengan plan:** Sesuai plan (verifikasi nyata Checkpoint 17 memang ditunda ke titik ini per catatan Task 18 di atas) — 2 penyesuaian ditemukan HANYA lewat eksekusi nyata, tidak mungkin ditemukan dari validasi lokal (`actionlint`/YAML parse) semata.
+
+**Apa yang dilakukan**
+User mengonfirmasi eksplisit (`AskUserQuestion`) izin push 19 commit lokal ke `origin/main` PUBLIC + lanjut Checkpoint 18-19. `git push origin main` (726e7d6..8367d75) — run CI nyata pertama (`32552049658`) terpicu otomatis dari event `push`.
+
+**Hasil run pertama:** 3/4 job lolos (`ruff`✓, `gitleaks`✓, `dependency-scan`✓), **`golangci-lint` GAGAL**: `golangci-lint v2 is not supported by golangci-lint-action v6, you must update to golangci-lint-action v7` — asumsi awal (v6 mendukung v2) SALAH, cuma ketahuan lewat run nyata. Diperbaiki: upgrade `golangci-lint-action@v6`→`@v9` (major terbaru, dikonfirmasi `action.yml` v9 via `gh api` tetap punya input `version`/`working-directory` yang sama sebelum commit ulang — supaya tidak salah tebak dua kali). Push ulang (`320e80e`) — run kedua (`32552148652`): **4/4 job LOLOS**.
+
+Run kedua menyisakan 2 warning non-fatal: "Restore cache failed: Dependencies file is not found... Supported file pattern: go.sum" pada kedua job yang pakai `actions/setup-go@v5` — cache Go built-in default mencari `go.sum` di ROOT repo, padahal module ada di `custom-exporter/supabaseexporter/`. Tidak menggagalkan job (cuma cache miss), tapi diperbaiki sekalian (`cache-dependency-path: custom-exporter/supabaseexporter/go.sum` di kedua step `setup-go`) — murni efisiensi, bukan correctness, jadi tidak dipush sebagai run verifikasi terpisah (akan terverifikasi otomatis di run Checkpoint 18/19 berikutnya).
+
+**Hasil Verifikasi**
+Run `32552148652` (`gh run watch --exit-status`, exit 0): `ruff`✓ 11s, `gitleaks`✓ 5s, `golangci-lint`✓ 37s, `dependency-scan`✓ 39s — SELURUH 4 job lolos nyata di GitHub Actions, bukan simulasi. `actionlint` re-run setelah fix cache path → 0 temuan.
+
+**Commit:** `320e80e` (fix golangci-lint-action version) — commit fix cache path menyusul, digabung Checkpoint 18.
 
 ---

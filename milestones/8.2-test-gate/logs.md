@@ -214,6 +214,33 @@ Run CI nyata (`32559640670`): **`test-python-llm` KALI INI GENUINELY JALAN** (3m
 
 **Kedua KK sumber M8.2 (tier fast + tier LLM path-filtered) TERPENUHI PENUH lewat eksekusi nyata.**
 
-**Commit:** Branch percobaan `0176dce` tidak pernah masuk `main` (dihapus). Log ini menyusul commit dokumentasi berikut.
+**Commit:** Branch percobaan `0176dce` tidak pernah masuk `main` (dihapus). `4ec930d` — `test(milestone-8.2): verifikasi nyata path-filter test-python-llm`.
+
+---
+
+## Checkpoint 11 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 11 — `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `milestones/8.2-test-gate/report.md` — 2 KK sumber vs bukti nyata (keduanya Ya), diagram Mermaid arsitektur 2-tier, 5 penyimpangan dari plan didaftar eksplisit, keterbatasan (cakupan verifikasi 1/5 grup LLM — keputusan sadar), follow-up ke M8.3/M8.4.
+
+### Task 12 — Perbarui status `CLAUDE.md`+`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baris tabel "Status Proyek" M8.2 ditambahkan (kedua file, identik). Paragraf narasi diperluas dengan 2 paragraf baru (arsitektur 2-tier + diskusi path-filter, temuan mid-implementation) — pola sama seperti update status milestone-milestone sebelumnya.
+
+**Hasil Verifikasi**
+Review manual seluruh 3 dokumen terhadap isi nyata Checkpoint 1-10 — konsisten, tidak ada klaim tanpa bukti.
+
+**12 checkpoint selesai, kedua KK sumber terverifikasi nyata via 2 PR percobaan, branch protection 7 context aktif — MILESTONE 8.2 SELESAI SEPENUHNYA.**
+
+**Commit:** (menyusul)
 
 ---

@@ -273,6 +273,112 @@ jobs:
               - 'src/prompts/loader.py'
               - 'src/config/llm.py'
 
+  prompt-eval:
+    name: prompt-eval
+    needs: changes-prompts
+    runs-on: ubuntu-latest
+    # timeout-minutes eksplisit - riwayat hang OpenRouter tanpa exception
+    # (keterbatasan-diterima.md #7, recurrence M5.1/M7.16/M7.17), job ini
+    # bisa menjalankan sampai 17 config berurutan kalau `shared` berubah.
+    timeout-minutes: 45
+    if: |
+      needs.changes-prompts.outputs.context_resolution_turn_dependency == 'true' ||
+      needs.changes-prompts.outputs.context_resolution_rewrite == 'true' ||
+      needs.changes-prompts.outputs.context_resolution_matching == 'true' ||
+      needs.changes-prompts.outputs.decomposition_klasifikasi == 'true' ||
+      needs.changes-prompts.outputs.decomposition_pemecahan == 'true' ||
+      needs.changes-prompts.outputs.decomposition_verifikasi == 'true' ||
+      needs.changes-prompts.outputs.domain_gate_identifikasi == 'true' ||
+      needs.changes-prompts.outputs.domain_gate_verifikasi_titik_buta == 'true' ||
+      needs.changes-prompts.outputs.domain_gate_deteksi_cakupan_individu == 'true' ||
+      needs.changes-prompts.outputs.domain_gate_verifikasi_cakupan_individu == 'true' ||
+      needs.changes-prompts.outputs.retriever_kecocokan_makna_generate == 'true' ||
+      needs.changes-prompts.outputs.retriever_kecocokan_makna_verifikasi == 'true' ||
+      needs.changes-prompts.outputs.retriever_kecukupan_struktural_fallback == 'true' ||
+      needs.changes-prompts.outputs.query_engine_penyusunan_request == 'true' ||
+      needs.changes-prompts.outputs.query_engine_verifikasi_bentuk_request == 'true' ||
+      needs.changes-prompts.outputs.interpretation_narasi == 'true' ||
+      needs.changes-prompts.outputs.interpretation_verifikasi_kesetiaan == 'true' ||
+      needs.changes-prompts.outputs.shared == 'true'
+    env:
+      PROMPTFOO_CACHE_PATH: ${{ github.workspace }}/.promptfoo-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: npm ci (prompt_reliability)
+        working-directory: prompt_reliability
+        run: npm ci
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --group dev
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.PROMPTFOO_CACHE_PATH }}
+          key: promptfoo-cache-${{ runner.os }}
+          restore-keys: |
+            promptfoo-cache-${{ runner.os }}-
+      - name: Bangun daftar config yang relevan dari filter yang berubah
+        id: targets
+        env:
+          CRT: ${{ needs.changes-prompts.outputs.context_resolution_turn_dependency }}
+          CRR: ${{ needs.changes-prompts.outputs.context_resolution_rewrite }}
+          CRM: ${{ needs.changes-prompts.outputs.context_resolution_matching }}
+          DK: ${{ needs.changes-prompts.outputs.decomposition_klasifikasi }}
+          DP: ${{ needs.changes-prompts.outputs.decomposition_pemecahan }}
+          DV: ${{ needs.changes-prompts.outputs.decomposition_verifikasi }}
+          DGI: ${{ needs.changes-prompts.outputs.domain_gate_identifikasi }}
+          DGVT: ${{ needs.changes-prompts.outputs.domain_gate_verifikasi_titik_buta }}
+          DGDC: ${{ needs.changes-prompts.outputs.domain_gate_deteksi_cakupan_individu }}
+          DGVC: ${{ needs.changes-prompts.outputs.domain_gate_verifikasi_cakupan_individu }}
+          RKG: ${{ needs.changes-prompts.outputs.retriever_kecocokan_makna_generate }}
+          RKV: ${{ needs.changes-prompts.outputs.retriever_kecocokan_makna_verifikasi }}
+          RKF: ${{ needs.changes-prompts.outputs.retriever_kecukupan_struktural_fallback }}
+          QEP: ${{ needs.changes-prompts.outputs.query_engine_penyusunan_request }}
+          QEV: ${{ needs.changes-prompts.outputs.query_engine_verifikasi_bentuk_request }}
+          IN: ${{ needs.changes-prompts.outputs.interpretation_narasi }}
+          IVK: ${{ needs.changes-prompts.outputs.interpretation_verifikasi_kesetiaan }}
+          SHARED: ${{ needs.changes-prompts.outputs.shared }}
+        run: |
+          if [ "$SHARED" = "true" ]; then
+            CONFIGS="prompt_reliability/context_resolution/turn_dependency.promptfooconfig.yaml prompt_reliability/context_resolution/rewrite.promptfooconfig.yaml prompt_reliability/context_resolution/matching.promptfooconfig.yaml prompt_reliability/decomposition/klasifikasi.promptfooconfig.yaml prompt_reliability/decomposition/pemecahan.promptfooconfig.yaml prompt_reliability/decomposition/verifikasi.promptfooconfig.yaml prompt_reliability/domain_gate/identifikasi.promptfooconfig.yaml prompt_reliability/domain_gate/verifikasi_titik_buta.promptfooconfig.yaml prompt_reliability/domain_gate/deteksi_cakupan_individu.promptfooconfig.yaml prompt_reliability/domain_gate/verifikasi_cakupan_individu.promptfooconfig.yaml prompt_reliability/retriever/kecocokan_makna_generate.promptfooconfig.yaml prompt_reliability/retriever/kecocokan_makna_verifikasi.promptfooconfig.yaml prompt_reliability/retriever/kecukupan_struktural_fallback.promptfooconfig.yaml prompt_reliability/query_engine/penyusunan_request.promptfooconfig.yaml prompt_reliability/query_engine/verifikasi_bentuk_request.promptfooconfig.yaml prompt_reliability/interpretation/narasi.promptfooconfig.yaml prompt_reliability/interpretation/verifikasi_kesetiaan.promptfooconfig.yaml"
+          else
+            CONFIGS=""
+            if [ "$CRT" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/context_resolution/turn_dependency.promptfooconfig.yaml"; fi
+            if [ "$CRR" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/context_resolution/rewrite.promptfooconfig.yaml"; fi
+            if [ "$CRM" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/context_resolution/matching.promptfooconfig.yaml"; fi
+            if [ "$DK" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/decomposition/klasifikasi.promptfooconfig.yaml"; fi
+            if [ "$DP" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/decomposition/pemecahan.promptfooconfig.yaml"; fi
+            if [ "$DV" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/decomposition/verifikasi.promptfooconfig.yaml"; fi
+            if [ "$DGI" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/domain_gate/identifikasi.promptfooconfig.yaml"; fi
+            if [ "$DGVT" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/domain_gate/verifikasi_titik_buta.promptfooconfig.yaml"; fi
+            if [ "$DGDC" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/domain_gate/deteksi_cakupan_individu.promptfooconfig.yaml"; fi
+            if [ "$DGVC" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/domain_gate/verifikasi_cakupan_individu.promptfooconfig.yaml"; fi
+            if [ "$RKG" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/retriever/kecocokan_makna_generate.promptfooconfig.yaml"; fi
+            if [ "$RKV" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/retriever/kecocokan_makna_verifikasi.promptfooconfig.yaml"; fi
+            if [ "$RKF" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/retriever/kecukupan_struktural_fallback.promptfooconfig.yaml"; fi
+            if [ "$QEP" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/query_engine/penyusunan_request.promptfooconfig.yaml"; fi
+            if [ "$QEV" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/query_engine/verifikasi_bentuk_request.promptfooconfig.yaml"; fi
+            if [ "$IN" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/interpretation/narasi.promptfooconfig.yaml"; fi
+            if [ "$IVK" = "true" ]; then CONFIGS="$CONFIGS prompt_reliability/interpretation/verifikasi_kesetiaan.promptfooconfig.yaml"; fi
+          fi
+          echo "configs=$CONFIGS" >> "$GITHUB_OUTPUT"
+      - name: Jalankan config yang relevan (satu-per-satu, akumulasi kegagalan)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PROMPTFOO_PYTHON: ${{ github.workspace }}/.venv/bin/python
+        run: |
+          FAILED=0
+          for config in ${{ steps.targets.outputs.configs }}; do
+            echo "::group::$config"
+            uv run python prompt_reliability/run_and_push.py "$config" || FAILED=1
+            echo "::endgroup::"
+          done
+          exit $FAILED
+
   go-test:
     name: go-test
     runs-on: ubuntu-latest

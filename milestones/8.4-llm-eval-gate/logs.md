@@ -58,6 +58,24 @@ Tambah job `changes-prompts` di `.github/workflows/ci.yml` (antara `rbac-regress
 **Hasil Verifikasi**
 `actionlint .github/workflows/ci.yml` → **0 temuan**.
 
+**Commit:** `2390bff` — `ci(milestone-8.4): job changes-prompts (17 filter)`
+
+---
+
+## Checkpoint 4 — Job `prompt-eval`
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 4 — Tambah job eksekusi config relevan
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah job `prompt-eval` (needs: `changes-prompts`) — `if:` OR 18 kondisi (17 filter + `shared`), `timeout-minutes: 45` (Keputusan 8, mengingat riwayat hang OpenRouter). Steps: `actions/setup-node@v4` (Node 22, PERTAMA di repo) + `npm ci` (working-directory `prompt_reliability`) + `astral-sh/setup-uv@v5`+`uv sync` + `actions/cache@v4` untuk `PROMPTFOO_CACHE_PATH` (job-level `env:`, key statis per-OS) + step "Bangun daftar config" (bash, mirror pola M8.2 `test-python-llm` — `SHARED=true` union SEMUA 17 config, selain itu per-filter individual) + step loop `run_and_push.py` per config (akumulasi `FAILED` lewat `||`, TIDAK berhenti di config pertama gagal, `exit $FAILED` di akhir). Env `OPENROUTER_API_KEY`+`DATABASE_URL` (secret M8.2) + `PROMPTFOO_PYTHON=${{ github.workspace }}/.venv/bin/python` (path venv Linux CI, beda dari `Scripts/python.exe` Windows lokal).
+
+**Hasil Verifikasi**
+`actionlint .github/workflows/ci.yml` → **0 temuan**.
+
 **Commit:** (menyusul)
 
 ---

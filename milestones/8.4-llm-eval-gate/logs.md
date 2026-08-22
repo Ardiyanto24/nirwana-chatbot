@@ -94,6 +94,24 @@ Tambah job `prompt-eval-gate` (needs: `prompt-eval`, `if: always()`) — sukses 
 **Hasil Verifikasi**
 `actionlint .github/workflows/ci.yml` → **0 temuan**.
 
-**Commit:** (menyusul)
+**Commit:** `305930a` — `ci(milestone-8.4): aggregator prompt-eval-gate`
+
+---
+
+## Checkpoint 6 — Sanity Check Lokal: Konstruksi Daftar Config
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 6 — Simulasi bash TANPA panggilan LLM
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Salin PERSIS logic step "Bangun daftar config yang relevan" dari `ci.yml` ke script scratch, jalankan 4 kombinasi env var: (1) hanya `DGI=true` → 1 config diharapkan; (2) `SHARED=true` → 17 config diharapkan; (3) `RKG=true`+`IN=true` (dua layer beda) → 2 config diharapkan; (4) semua `false` → 0 config diharapkan (kondisi yang bikin `if:` job `prompt-eval` genuinely skip). Seluruh 17 path config hasil Kombinasi 2 juga diverifikasi genuinely ada di filesystem (bukan asumsi nama file benar).
+
+**Hasil Verifikasi**
+Keempat kombinasi menghasilkan PERSIS jumlah+isi config sesuai ekspektasi manual — Kombinasi 1: 1 config (`domain_gate/identifikasi`); Kombinasi 2: 17/17 config, SEMUANYA dikonfirmasi `-f` ada di disk; Kombinasi 3: 2 config lintas-layer (`retriever/kecocokan_makna_generate`+`interpretation/narasi`); Kombinasi 4: string kosong. Script scratch dihapus setelah verifikasi.
+
+**Commit:** (tidak ada — verifikasi murni, tidak ada perubahan file repo; dicatat di sini)
 
 ---

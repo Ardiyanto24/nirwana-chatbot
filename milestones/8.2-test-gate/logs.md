@@ -147,3 +147,21 @@ Lokal: `pytest tests/layers/execution/test_klasifikasi_respons_revisi.py` → 5/
 **Run kedua (`32558994822`, konklusi `success`):** `changes`✓, `go-test`✓, `test-python-fast`✓ (genuinely lolos setelah fix), `gitleaks`✓, `golangci-lint`✓, `ruff`✓, `dependency-scan`✓, `test-python-llm` SKIP bersih (union kosong, 0 detik), **`test-gate`✓** — MEMBUKTIKAN NYATA `test-python-llm` yang skip TIDAK menggagalkan gate (Keputusan 8 tervalidasi end-to-end untuk kasus "tidak ada grup relevan berubah").
 
 ---
+
+## Checkpoint 8 — Update Branch Protection
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 8 — Tambah 3 required status check baru
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+User mengonfirmasi izin (`AskUserQuestion`). `gh api repos/Ardiyanto24/nirwana-chatbot/branches/main/protection -X PUT` — `required_status_checks.checks` diperluas dari 4 (M8.1) jadi 7 context: `+go-test`, `+test-python-fast`, `+test-gate` (BUKAN `test-python-llm`, sesuai Keputusan 8 — job itu genuinely SKIP by design saat tidak relevan).
+
+**Hasil Verifikasi**
+Re-fetch `--jq '.required_status_checks.contexts'` → 7 context terkonfirmasi persis seperti yang di-set.
+
+**Commit:** (menyusul)
+
+---

@@ -142,6 +142,8 @@ Investigasi (Keputusan 11): `test_klasifikasi_respons_revisi.py::test_400_lalu_2
 **Hasil Verifikasi**
 Lokal: `pytest tests/layers/execution/test_klasifikasi_respons_revisi.py` → 5/5 passed. `ruff check`+`format --check` → bersih. Full suite meniru kondisi CI persis (`OPENROUTER_API_KEY=""`+`CHATBOT_API_BASE_URL=""`+`DATABASE_URL` asli) → **670 passed, 35 skipped, 18.53s, 0 gagal**.
 
-**Commit:** (menyusul, push+verifikasi nyata CI kedua di Task 7 lanjutan)
+**Commit:** `9338677` — `fix(milestone-8.2): mock panggil_meta_chatbot_api di test revisi 400`
+
+**Run kedua (`32558994822`, konklusi `success`):** `changes`✓, `go-test`✓, `test-python-fast`✓ (genuinely lolos setelah fix), `gitleaks`✓, `golangci-lint`✓, `ruff`✓, `dependency-scan`✓, `test-python-llm` SKIP bersih (union kosong, 0 detik), **`test-gate`✓** — MEMBUKTIKAN NYATA `test-python-llm` yang skip TIDAK menggagalkan gate (Keputusan 8 tervalidasi end-to-end untuk kasus "tidak ada grup relevan berubah").
 
 ---

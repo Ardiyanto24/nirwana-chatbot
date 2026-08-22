@@ -162,6 +162,34 @@ User mengonfirmasi izin (`AskUserQuestion`). `gh api repos/Ardiyanto24/nirwana-c
 **Hasil Verifikasi**
 Re-fetch `--jq '.required_status_checks.contexts'` → 7 context terkonfirmasi persis seperti yang di-set.
 
-**Commit:** (menyusul)
+**Commit:** `0498e33` — `chore(milestone-8.2): tambah 3 required status check baru`
+
+---
+
+## Checkpoint 9 — PR Percobaan #1: `test-python-fast`
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 9 — Buat branch percobaan + buka PR
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan 2 kesalahan ditemukan+diperbaiki mid-checkpoint.
+
+**Apa yang dilakukan**
+Branch `test/m8-2-fast-gate-percobaan`, file baru berisi 1 assertion sengaja gagal (`assert 1 == 2`), murni deterministik di luar 5 grup path-filter.
+
+**Kesalahan 1 (ditemukan sebelum push kedua):** Nama file awal `_ci_gate_percobaan_m8_2_fast.py` (awalan underscore) TIDAK terdeteksi konvensi discovery pytest (`test_*.py`/`*_test.py`) — run CI pertama (`32559342176`) menunjukkan `test-python-fast`✓ LOLOS (SALAH, seharusnya gagal) karena test-nya genuinely tidak pernah dikoleksi (`705 tests collected`, sama seperti sebelum file ditambahkan, dikonfirmasi lokal). Diperbaiki: `git mv` ke `test_ci_gate_percobaan_m8_2_fast.py`, diverifikasi lokal (`1 failed`) sebelum push ulang.
+
+**Kesalahan 2 (ditemukan saat commit fix):** `git add -A` (bukan menambahkan file spesifik) ikut men-stage+commit 2 perubahan pra-existing yang TIDAK terkait (`docs/CLAUDE.md` terhapus, `docs/02-implementation-plan/rancangan-ci-cd.md` untracked) — pelanggaran langsung praktik "review apa yang di-`git add`" yang seharusnya diikuti. Diperbaiki SEBELUM push: `git checkout HEAD~1 -- docs/CLAUDE.md` (kembalikan ke index+worktree dari commit sebelum insiden) + `git rm --cached rancangan-ci-cd.md` (untrack, file tetap di disk) + `git commit --amend` + `rm docs/CLAUDE.md` (hapus lagi dari worktree saja, replikasi persis state "unstaged deletion" semula) — diverifikasi `git status --short` menunjukkan tepat 1 file berubah (rename) sebelum `force-with-lease` push ke branch percobaan (aman, BUKAN `main`).
+
+User mengonfirmasi izin (`AskUserQuestion`, sekaligus Checkpoint 10) sebelum push+PR pertama kali dibuka.
+
+### Task 10 — Amati hasil CI nyata, tutup PR
+
+**Hasil Verifikasi**
+Run CI nyata setelah fix (`32559487377`): **`test-python-fast` GAGAL**, `test-python-llm` tetap SKIP (union kosong, benar tidak relevan), **`test-gate` GAGAL** dengan pesan eksplisit `"X test-python-fast tidak lolos (failure)"` — KK2 sumber M8.2 (tier fast) TERPENUHI PENUH.
+
+`gh pr close 2 --delete-branch` — PR ditutup TANPA merge, branch dihapus. `git status -sb` setelah kembali ke `main` dikonfirmasi PERSIS sama seperti sebelum checkpoint ini (`docs/CLAUDE.md`/`rancangan-ci-cd.md` tidak berubah) — insiden `git add -A` tidak meninggalkan jejak di `main`.
+
+**Commit:** Branch percobaan `fe5b3d1` (setelah amend) tidak pernah masuk `main` (dihapus). Log ini menyusul commit dokumentasi berikut.
 
 ---

@@ -40,6 +40,24 @@ Verifikasi empiris dulu flag concurrency CLI: `npx promptfoo eval --help` (dari 
 **Hasil Verifikasi**
 `ruff check` bersih, `ruff format` (1 baris disesuaikan). Run lokal nyata `PROMPTFOO_PYTHON=.venv/Scripts/python.exe uv run python prompt_reliability/run_and_push.py prompt_reliability/decomposition/verifikasi.promptfooconfig.yaml` (config termurah, 2 test case) → **2/2 PASSED, 26 detik, exit code 0**, `push 2 baris ke prompt_eval_runs` tercetak. **Dikonfirmasi NYATA lewat query SQL langsung ke Supabase** (bukan percaya log semata) — 2 baris `PromptEvalRunRow` ditemukan (`prompt_id=decomposition.verifikasi`, `prompt_version=1` benar diextract dari frontmatter, `model=deepseek/deepseek-v4-pro` benar diextract dari YAML, `verdict=lolos` keduanya, `git_commit_hash` cocok HEAD saat itu, `scenario_id` sesuai deskripsi test case).
 
+**Commit:** `5b1d0cc` — `feat(milestone-8.4): wrapper run_and_push.py`
+
+---
+
+## Checkpoint 3 — Job `changes-prompts` (17 Filter + `shared`)
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 3 — Tambah job filter path presisi
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tambah job `changes-prompts` di `.github/workflows/ci.yml` (antara `rbac-regression` dan `go-test`) — `dorny/paths-filter@v3`, 17 filter key (satu per pasangan prompt/config, 1:1 sesuai riset Checkpoint sebelum plan) + 1 filter `shared`. 6 dari 17 filter (4 domain_gate + 2 retriever `kecocokan_makna_*`) menyertakan path file Python `render_context` (`src/layers/domain_gate/<nama>.py`, `src/layers/retriever/kecocokan_makna.py`) — dikonfirmasi file-file itu genuinely ada (`ls` langsung) sebelum ditulis ke filter. `shared` mencakup `provider.py`/`push_results.py`/`run_and_push.py` (BARU, Checkpoint 2 — bug di sini mempengaruhi SEMUA config)/`package.json`/`package-lock.json`/`src/prompts/loader.py`/`src/config/llm.py`.
+
+**Hasil Verifikasi**
+`actionlint .github/workflows/ci.yml` → **0 temuan**.
+
 **Commit:** (menyusul)
 
 ---

@@ -176,6 +176,103 @@ jobs:
         # cuma DATABASE_URL untuk periksa_otorisasi_semua() nyata
         # (Keputusan 4).
 
+  changes-prompts:
+    name: changes-prompts
+    runs-on: ubuntu-latest
+    # Filter TERPISAH dari job `changes` (M8.2) - granularitas beda total:
+    # per-prompt-file presisi (17 config, biaya LLM sungguhan per skenario),
+    # bukan per-layer kasar (Milestone 8.4, Keputusan 1, decisions.md).
+    outputs:
+      context_resolution_turn_dependency: ${{ steps.filter.outputs.context_resolution_turn_dependency }}
+      context_resolution_rewrite: ${{ steps.filter.outputs.context_resolution_rewrite }}
+      context_resolution_matching: ${{ steps.filter.outputs.context_resolution_matching }}
+      decomposition_klasifikasi: ${{ steps.filter.outputs.decomposition_klasifikasi }}
+      decomposition_pemecahan: ${{ steps.filter.outputs.decomposition_pemecahan }}
+      decomposition_verifikasi: ${{ steps.filter.outputs.decomposition_verifikasi }}
+      domain_gate_identifikasi: ${{ steps.filter.outputs.domain_gate_identifikasi }}
+      domain_gate_verifikasi_titik_buta: ${{ steps.filter.outputs.domain_gate_verifikasi_titik_buta }}
+      domain_gate_deteksi_cakupan_individu: ${{ steps.filter.outputs.domain_gate_deteksi_cakupan_individu }}
+      domain_gate_verifikasi_cakupan_individu: ${{ steps.filter.outputs.domain_gate_verifikasi_cakupan_individu }}
+      retriever_kecocokan_makna_generate: ${{ steps.filter.outputs.retriever_kecocokan_makna_generate }}
+      retriever_kecocokan_makna_verifikasi: ${{ steps.filter.outputs.retriever_kecocokan_makna_verifikasi }}
+      retriever_kecukupan_struktural_fallback: ${{ steps.filter.outputs.retriever_kecukupan_struktural_fallback }}
+      query_engine_penyusunan_request: ${{ steps.filter.outputs.query_engine_penyusunan_request }}
+      query_engine_verifikasi_bentuk_request: ${{ steps.filter.outputs.query_engine_verifikasi_bentuk_request }}
+      interpretation_narasi: ${{ steps.filter.outputs.interpretation_narasi }}
+      interpretation_verifikasi_kesetiaan: ${{ steps.filter.outputs.interpretation_verifikasi_kesetiaan }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            context_resolution_turn_dependency:
+              - 'src/prompts/context_resolution/turn_dependency.md'
+              - 'prompt_reliability/context_resolution/turn_dependency.promptfooconfig.yaml'
+            context_resolution_rewrite:
+              - 'src/prompts/context_resolution/rewrite.md'
+              - 'prompt_reliability/context_resolution/rewrite.promptfooconfig.yaml'
+            context_resolution_matching:
+              - 'src/prompts/context_resolution/matching.md'
+              - 'prompt_reliability/context_resolution/matching.promptfooconfig.yaml'
+            decomposition_klasifikasi:
+              - 'src/prompts/decomposition/klasifikasi.md'
+              - 'prompt_reliability/decomposition/klasifikasi.promptfooconfig.yaml'
+            decomposition_pemecahan:
+              - 'src/prompts/decomposition/pemecahan.md'
+              - 'prompt_reliability/decomposition/pemecahan.promptfooconfig.yaml'
+            decomposition_verifikasi:
+              - 'src/prompts/decomposition/verifikasi.md'
+              - 'prompt_reliability/decomposition/verifikasi.promptfooconfig.yaml'
+            domain_gate_identifikasi:
+              - 'src/prompts/domain_gate/identifikasi.md'
+              - 'prompt_reliability/domain_gate/identifikasi.promptfooconfig.yaml'
+              - 'src/layers/domain_gate/identifikasi.py'
+            domain_gate_verifikasi_titik_buta:
+              - 'src/prompts/domain_gate/verifikasi_titik_buta.md'
+              - 'prompt_reliability/domain_gate/verifikasi_titik_buta.promptfooconfig.yaml'
+              - 'src/layers/domain_gate/verifikasi_titik_buta.py'
+            domain_gate_deteksi_cakupan_individu:
+              - 'src/prompts/domain_gate/deteksi_cakupan_individu.md'
+              - 'prompt_reliability/domain_gate/deteksi_cakupan_individu.promptfooconfig.yaml'
+              - 'src/layers/domain_gate/deteksi_cakupan_individu.py'
+            domain_gate_verifikasi_cakupan_individu:
+              - 'src/prompts/domain_gate/verifikasi_cakupan_individu.md'
+              - 'prompt_reliability/domain_gate/verifikasi_cakupan_individu.promptfooconfig.yaml'
+              - 'src/layers/domain_gate/verifikasi_cakupan_individu.py'
+            retriever_kecocokan_makna_generate:
+              - 'src/prompts/retriever/kecocokan_makna_generate.md'
+              - 'prompt_reliability/retriever/kecocokan_makna_generate.promptfooconfig.yaml'
+              - 'src/layers/retriever/kecocokan_makna.py'
+            retriever_kecocokan_makna_verifikasi:
+              - 'src/prompts/retriever/kecocokan_makna_verifikasi.md'
+              - 'prompt_reliability/retriever/kecocokan_makna_verifikasi.promptfooconfig.yaml'
+              - 'src/layers/retriever/kecocokan_makna.py'
+            retriever_kecukupan_struktural_fallback:
+              - 'src/prompts/retriever/kecukupan_struktural_fallback.md'
+              - 'prompt_reliability/retriever/kecukupan_struktural_fallback.promptfooconfig.yaml'
+            query_engine_penyusunan_request:
+              - 'src/prompts/query_engine/penyusunan_request.md'
+              - 'prompt_reliability/query_engine/penyusunan_request.promptfooconfig.yaml'
+            query_engine_verifikasi_bentuk_request:
+              - 'src/prompts/query_engine/verifikasi_bentuk_request.md'
+              - 'prompt_reliability/query_engine/verifikasi_bentuk_request.promptfooconfig.yaml'
+            interpretation_narasi:
+              - 'src/prompts/interpretation/narasi.md'
+              - 'prompt_reliability/interpretation/narasi.promptfooconfig.yaml'
+            interpretation_verifikasi_kesetiaan:
+              - 'src/prompts/interpretation/verifikasi_kesetiaan.md'
+              - 'prompt_reliability/interpretation/verifikasi_kesetiaan.promptfooconfig.yaml'
+            shared:
+              - 'prompt_reliability/provider.py'
+              - 'prompt_reliability/push_results.py'
+              - 'prompt_reliability/run_and_push.py'
+              - 'prompt_reliability/package.json'
+              - 'prompt_reliability/package-lock.json'
+              - 'src/prompts/loader.py'
+              - 'src/config/llm.py'
+
   go-test:
     name: go-test
     runs-on: ubuntu-latest

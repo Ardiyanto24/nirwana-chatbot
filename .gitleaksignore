@@ -1,11 +1,13 @@
 # False-positive terdokumentasi, bukan rahasia asli.
-# milestones/8.1-fondasi-ci/logs.md mendokumentasikan string dummy
-# "AKIATESTFAKEDUMMY227" yang dipakai Checkpoint 18 untuk membuktikan
-# gate gitleaks genuinely menolak pola menyerupai credential (PR
-# percobaan #1, ditutup tanpa merge). String itu cocok regex
-# aws-access-token tapi bukan kredensial asli - didokumentasikan di
-# decisions.md/logs.md milestone 8.1.
+# milestones/8.1-fondasi-ci/logs.md mendokumentasikan sebuah string dummy
+# (prefix AKIA + 16 karakter buatan) yang sengaja dipakai Checkpoint 18
+# untuk membuktikan gate gitleaks genuinely menolak pola menyerupai
+# credential (PR percobaan #1, ditutup tanpa merge). Nilai literalnya
+# TIDAK ditulis di sini (menghindari re-trigger pada file ini sendiri) -
+# lihat riwayat commit di bawah untuk nilai aslinya.
 a8dae010e48204e6e7ac4f259e96df2008415cb8:milestones/8.1-fondasi-ci/logs.md:aws-access-token:383
 a8dae010e48204e6e7ac4f259e96df2008415cb8:milestones/8.1-fondasi-ci/logs.md:aws-access-token:385
 e7d81656f4f12b95d9fa3252da37616cd652fdcf:milestones/8.1-fondasi-ci/report.md:aws-access-token:14
 ccba86617439ae601699e7c006c05c93c15ea7da:tests/_ci_gate_percobaan_m8_1.py:aws-access-token:7
+22e84e30fe7380c593afabb14e2464a20ae22e3d:.gitleaksignore:aws-access-token:3
+22e84e30fe7380c593afabb14e2464a20ae22e3d:milestones/8.1-fondasi-ci/logs.md:aws-access-token:455

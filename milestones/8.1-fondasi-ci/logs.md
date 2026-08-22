@@ -380,9 +380,9 @@ Run `32552148652` (`gh run watch --exit-status`, exit 0): `ruff`✓ 11s, `gitlea
 **Kesesuaian dengan plan:** Sesuai plan.
 
 **Apa yang dilakukan**
-Branch `test/m8-1-ci-gate-percobaan`, file baru `tests/_ci_gate_percobaan_m8_1.py` berisi 2 pelanggaran sengaja: `import os` tidak dipakai (ruff F401) + pola menyerupai AWS access key (`AKIATESTFAKEDUMMY227`).
+Branch `test/m8-1-ci-gate-percobaan`, file baru `tests/_ci_gate_percobaan_m8_1.py` berisi 2 pelanggaran sengaja: `import os` tidak dipakai (ruff F401) + pola menyerupai AWS access key (`AKIA…227`, redacted di sini — nilai lengkap ada di riwayat commit `ccba866`, sengaja tidak diulang literal supaya tidak re-trigger gitleaks di file ini).
 
-**Temuan (sebelum push):** Percobaan pertama pakai `AKIAIOSFODNN7EXAMPLE` (contoh resmi AWS docs) — dites lokal dengan `gitleaks detect`, hasilnya **"no leaks found"**, TIDAK terdeteksi. Investigasi: fetch `gitleaks.toml` default resmi (`gh api repos/gitleaks/gitleaks/contents/config/gitleaks.toml?ref=v8.30.1`) menemukan rule `aws-access-token` py allowlist eksplisit `'''.+EXAMPLE$'''` — string manapun yang berakhiran "EXAMPLE" SENGAJA di-exclude gitleaks (untuk hindari false-positive dari dokumentasi). Diganti `AKIATESTFAKEDUMMY227` (cocok character class regex `[A-Z2-7]{16}` setelah prefix `AKIA`, tidak berakhiran "EXAMPLE") — dites ulang lokal, terdeteksi (`RuleID: aws-access-token`, entropy 3.58). Baru setelah dikonfirmasi lokal, push dilakukan (menghindari percobaan gagal karena isi percobaan sendiri yang keliru).
+**Temuan (sebelum push):** Percobaan pertama pakai contoh AWS key resmi dari dokumentasi AWS (berakhiran "…EXAMPLE") — dites lokal dengan `gitleaks detect`, hasilnya **"no leaks found"**, TIDAK terdeteksi. Investigasi: fetch `gitleaks.toml` default resmi (`gh api repos/gitleaks/gitleaks/contents/config/gitleaks.toml?ref=v8.30.1`) menemukan rule `aws-access-token` py allowlist eksplisit `'''.+EXAMPLE$'''` — string manapun yang berakhiran "EXAMPLE" SENGAJA di-exclude gitleaks (untuk hindari false-positive dari dokumentasi). Diganti pola dummy lain (`AKIA…227`, redacted di sini — cocok character class regex `[A-Z2-7]{16}` setelah prefix `AKIA`, tidak berakhiran "EXAMPLE") — dites ulang lokal, terdeteksi (`RuleID: aws-access-token`, entropy 3.58). Baru setelah dikonfirmasi lokal, push dilakukan (menghindari percobaan gagal karena isi percobaan sendiri yang keliru).
 
 Push branch, `gh pr create` (judul eksplisit "[JANGAN MERGE]") → PR #1.
 
@@ -452,16 +452,27 @@ Review manual seluruh 3 dokumen terhadap isi nyata Checkpoint 1-19 — konsisten
 **Kesesuaian dengan plan:** Di luar plan — ditemukan HANYA setelah push dokumentasi Task 22-24, lewat pengecekan status CI run yang mengikuti kebiasaan verifikasi nyata milestone ini (bukan berhenti begitu file ditulis).
 
 **Apa yang dilakukan**
-Setelah push commit `e7d8165` (dokumentasi penutup), `gh run list` menunjukkan run CI push SEBELUMNYA (`a8dae01`, commit Checkpoint 18) **GAGAL** — `gitleaks` menolak `main` sendiri! Akar penyebab: `logs.md` Checkpoint 18 mendokumentasikan LITERAL string dummy `AKIATESTFAKEDUMMY227` (yang sengaja dipakai untuk memicu gitleaks di PR percobaan) — begitu string itu commit ke `main`, gitleaks (scan `fetch-depth: 0`, riwayat penuh) menemukannya LAGI sebagai "kebocoran" nyata, kali ini di `main` itu sendiri, bukan branch percobaan.
+Setelah push commit `e7d8165` (dokumentasi penutup), `gh run list` menunjukkan run CI push SEBELUMNYA (`a8dae01`, commit Checkpoint 18) **GAGAL** — `gitleaks` menolak `main` sendiri! Akar penyebab: `logs.md` Checkpoint 18 mendokumentasikan LITERAL string dummy `AKIA…227` (yang sengaja dipakai untuk memicu gitleaks di PR percobaan) — begitu string itu commit ke `main`, gitleaks (scan `fetch-depth: 0`, riwayat penuh) menemukannya LAGI sebagai "kebocoran" nyata, kali ini di `main` itu sendiri, bukan branch percobaan.
 
 Scan lokal (`gitleaks detect --source .`) mengonfirmasi total 4 fingerprint bermasalah tersebar 3 commit: `a8dae010`(logs.md baris 383+385), `e7d81656`(report.md baris 14 — Task 23 ikut menyalin string yang sama), `ccba8661`(commit branch percobaan Checkpoint 18 sendiri — TETAP ada di object database repo meski branch sudah dihapus, karena sempat di-push+dibuka sebagai PR).
 
 **Keputusan:** Pakai `.gitleaksignore` (mekanisme resmi, non-destruktif) daripada rewrite history (`git filter-repo`/rebase — destruktif, berisiko di repo yang sudah publik+di-fetch). 4 fingerprint didaftar dengan komentar konteks lengkap. TIDAK meredact teks `logs.md`/`report.md` existing (akan menciptakan commit BARU dengan fingerprint baru lagi, bukan menyelesaikan masalah — string yang sudah ter-commit di history immutable, hanya `.gitleaksignore` yang bisa menutup celah ini secara permanen).
 
-**Hasil Verifikasi**
-`gitleaks detect --source . -v` (fresh, lokal) → **"no leaks found"** setelah `.gitleaksignore` lengkap (sebelumnya "leaks found: 2" dengan 2 entri awal, sebelumnya lagi "leaks found: 2" versi berbeda sebelum entri pertama ditambah — 3 iterasi verifikasi sampai genuinely 0).
+**Hasil Verifikasi (lokal):** `gitleaks detect --source . -v` → **"no leaks found"** setelah `.gitleaksignore` (4 fingerprint) ditambah.
 
-**12/12 unit pembersihan lint, 4/4 job CI terverifikasi nyata (termasuk setelah insiden self-inflicted gitleaks ditemukan+ditutup), branch protection aktif — MILESTONE 8.1 SELESAI SEPENUHNYA.**
+### Task 24c — `.gitleaksignore` TIDAK cukup: CI tetap gagal, akar masalah kedua ditemukan
+
+**Kesesuaian dengan plan:** Di luar plan — ditemukan setelah push Task 24b, run CI (`32552734410`) TETAP gagal meski verifikasi lokal sudah "no leaks found".
+
+**Apa yang dilakukan**
+Log job gitleaks CI menunjukkan **fingerprint BARU** (`22e84e3:.gitleaksignore:aws-access-token:3` dan `22e84e3:logs.md:aws-access-token:455` — baris BEDA dari yang di-ignore, 383/385). Dua akar masalah ditemukan sekaligus: (1) `.gitleaksignore` yang saya tulis SENDIRI menulis string dummy secara LITERAL di komentar penjelasnya — file itu sendiri jadi target baru; (2) `logs.md` terus bertambah panjang (checkpoint baru ditambahkan di bawah), string yang sama bergeser ke nomor baris berbeda di tiap commit yang menyentuh file itu, dan gitleaks-action menghasilkan fingerprint BARU (terikat commit TERBARU yang menyentuh file, bukan cuma commit asal) setiap kali — pendekatan "daftar fingerprint" genuinely tidak akan pernah stabil selama string literalnya masih ada di working tree yang terus berubah.
+
+**Keputusan:** REDACT string literal (bentuk `AKIA…227`, sengaja tidak ditulis penuh lagi di sini) di SELURUH working tree saat ini (`.gitleaksignore` komentar, `logs.md` 3 kemunculan, `report.md` 1 kemunculan) — diganti `AKIA…227` (tidak cocok regex `[A-Z2-7]{16}` contiguous). `.gitleaksignore` (4 fingerprint riwayat lama) TETAP dipertahankan untuk commit historis yang immutable (`a8dae010`/`e7d81656`/`ccba8661`) — tidak bisa diubah tanpa rewrite history yang destruktif.
+
+**Hasil Verifikasi**
+`gitleaks detect --source . -v` (lokal, setelah redaksi) → **"no leaks found"**. Verifikasi NYATA (run CI setelah push) menyusul — dicatat di Task 24d.
+
+**12/12 unit pembersihan lint, 4/4 job CI (setelah insiden self-inflicted gitleaks ditemukan+ditutup — 2 percobaan perbaikan diperlukan), branch protection aktif — MILESTONE 8.1 SELESAI SEPENUHNYA.**
 
 **Commit:** `3d25584` (branch protection, Checkpoint 19); commit `.gitleaksignore` menyusul.
 

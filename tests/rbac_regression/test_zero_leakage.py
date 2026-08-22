@@ -81,3 +81,30 @@ def test_gop_margin_financial_ditolak_view_reservation_tetap_benar():
     assert any(k.view_name == "v_reservation_gop_impact_monthly" for k in kandidat), (
         "view reservation yang seharusnya tetap ditemukan malah hilang"
     )
+
+
+# --- Skenario 2: F&B Staff, seluruh domain ditolak (edge case) -------------
+#
+# Reuse evals/7.11-sambungan-retriever/payloads/E03.json - domain_diizinkan
+# kosong TOTAL, robustness: tidak boleh crash, view_name_final=None.
+
+
+def test_fb_staff_seluruh_domain_ditolak_tidak_crash():
+    """F&B Staff tanya GOP (murni financial) - domain_diizinkan jadi KOSONG
+    TOTAL setelah otorisasi. Zero-leakage edge case: sistem TIDAK BOLEH
+    crash pada domain_diizinkan=[] - harus genuinely 0 kandidat, bukan
+    exception yang bisa bocorkan detail internal."""
+    role_title = "F&B Staff"
+    domain_teridentifikasi = [Domain.FINANCIAL]
+
+    domain_diizinkan = _domain_diizinkan(role_title, domain_teridentifikasi)
+    assert domain_diizinkan == []
+
+    kandidat, perlu_fallback = cari_bm25(
+        "Berapa besar laba operasi kotor (GOP) properti pada bulan ini?",
+        domain_diizinkan,
+    )
+    assert kandidat == []
+    assert perlu_fallback is True, (
+        "domain_diizinkan kosong -> BM25 tidak temukan apa pun, fallback terpicu"
+    )

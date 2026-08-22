@@ -64,6 +64,24 @@ Buat `tests/rbac_regression/__init__.py`+`test_zero_leakage.py` (docstring lengk
 **Hasil Verifikasi**
 `ruff check`+`format --check` → bersih. `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **1 passed, 2.43 detik** — genuinely tanpa LLM.
 
+**Commit:** `48a20c6` — `test(milestone-8.3): skenario zero-leakage - gop_margin`
+
+---
+
+## Checkpoint 4 — Skenario 2: F&B Staff All-Denied
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 4 — Encode skenario F&B Staff
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`test_fb_staff_seluruh_domain_ditolak_tidak_crash()` — reuse `evals/7.11-.../E03.json` (domain teridentifikasi `[financial]` saja, F&B Staff). Verifikasi empiris dulu (`cari_bm25` dengan `domain_diizinkan=[]`): `kandidat=[]`, `perlu_fallback=True` — dicatat TANPA memicu fallback sungguhan (fungsi diuji berhenti di `cari_bm25`, tidak lanjut ke `_kumpulkan_kandidat`/`cari_embedding`).
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → bersih. `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **2 passed**, 1.95 detik.
+
 **Commit:** (menyusul)
 
 ---

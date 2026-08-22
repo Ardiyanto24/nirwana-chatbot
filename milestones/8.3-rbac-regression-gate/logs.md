@@ -172,6 +172,24 @@ Tambah job `rbac-regression` baru di `.github/workflows/ci.yml` (antara `test-py
 **Hasil Verifikasi**
 `go install github.com/rhysd/actionlint/cmd/actionlint@latest` (preseden M8.1/M8.2) → `actionlint .github/workflows/ci.yml` → **0 temuan**. Verifikasi fungsional nyata (run CI sungguhan) menyusul Checkpoint 11.
 
-**Commit:** (menyusul)
+**Commit:** `82d85fe` — `ci(milestone-8.3): job rbac-regression`
+
+---
+
+## Checkpoint 11 — Verifikasi Nyata: Baseline Lolos
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 11a — Push Checkpoint 7-9 + verifikasi run CI nyata (baseline)
+
+**Kesesuaian dengan plan:** Sesuai plan (bagian pertama — verifikasi baseline lolos; bagian kedua/PR percobaan sengaja-bocor menyusul).
+
+**Apa yang dilakukan**
+Izin eksplisit diminta+diperoleh (`AskUserQuestion`) sebelum push. `git push origin main` (`466dc57..82d85fe`, 3 commit: CEO baseline, sengaja-gagal, job CI). `gh run watch` run `32579838069` sampai selesai.
+
+**Hasil Verifikasi**
+**SELURUH 9 job CI lolos nyata** (bukan simulasi): `rbac-regression` ✓ 16s (`gh run view --job` mengonfirmasi log lengkap: "collected 6 items", 6 PASSED — `gop_margin`, F&B all-denied, Budi HR, Andi Maintenance, CEO baseline, sengaja-dibuat-gagal — `6 passed in 4.80s`), `ruff`✓, `golangci-lint`✓, `changes`✓, `gitleaks`✓, `test-python-fast`✓, `dependency-scan`✓, `go-test`✓, `test-gate`✓ (`test-python-llm` skip bersih — union grup kosong, sah). Job `rbac-regression` genuinely berjalan MANDIRI (tidak menunggu job lain, tidak masuk `needs:` aggregator manapun) sesuai desain Keputusan 3.
+
+**Commit:** (tidak ada — checkpoint verifikasi murni, tidak ada perubahan file baru)
 
 ---

@@ -261,6 +261,24 @@ Tidak ada tindakan perbaikan diambil — konsisten preseden M5.1/M6.1/M7.12/M7.1
 **Hasil Verifikasi**
 `ruff check`+`format --check` → "All checks passed!"/"14 files already formatted". `uv run pytest tests/layers/context_resolution/` → 14/14 passed (61.12s).
 
+**Commit:** `32e4314` — `chore(milestone-8.1): pembersihan ruff - Context Resolution`
+
+---
+
+## Checkpoint 14 — Bersihkan Unit 11: Retriever
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 14 — Ruff fix Unit 11
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 21 file Unit 11. 8 dari 9 temuan (4x `I001`, `UP033` functools.cache, `SIM114`, `F401` enum.Enum sisa residu Checkpoint 6, `UP035`) auto-fixed. 1 non-autofix (`B905` `zip()` tanpa `strict=` di `pencarian_bm25.py:155`) diperbaiki manual — dibaca konteks penuh: `view_names`/`skor_semua` DIJAMIN sama panjang (keduanya berasal dari `_view_names()` yang sama, dipakai identik saat membangun index BM25 maupun daftar nama). Tambah `strict=True` eksplisit — pilihan yang BENAR di sini (bukan `strict=False`), karena gagal cepat kalau invarian ini pernah rusak lebih sesuai prinsip "kejujuran terhadap keterbatasan" daripada diam-diam memotong data yang tidak sejajar.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"21 files already formatted". `uv run pytest tests/layers/retriever/` → 125/125 passed (6.36s).
+
 **Commit:** (menyusul)
 
 ---

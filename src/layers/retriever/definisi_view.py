@@ -913,8 +913,7 @@ DEFINISI_LENGKAP_VIEW: dict[str, str] = {
     ),
 }
 
-CATATAN_LINTAS_DOMAIN: str = (
-    """## Catatan Lintas-Domain
+CATATAN_LINTAS_DOMAIN: str = """## Catatan Lintas-Domain
 
 Aturan berikut berlaku di banyak view sekaligus — dibaca sekali di sini, tidak diulang per view:
 
@@ -925,4 +924,3 @@ Aturan berikut berlaku di banyak view sekaligus — dibaca sekali di sini, tidak
 5. **Beberapa kolom `property_id` adalah hasil join, bukan kolom native tabel sumber** (ditandai "di-join dari..." di tiap view terkait): `v_lookup_fnb_inventory`/`v_lookup_fnb_transactions` (dari `fnb_outlets`), `v_lookup_housekeeping_log` (dari `rooms`), `v_lookup_staff_shifts`/`v_lookup_employee_performance`/`v_lookup_payroll` (dari `employees`), `v_housekeeping_staff_daily`/`v_maintenance_technician_daily` (dari `dim_employee`).
 6. **Data performa individu staff** (`v_housekeeping_staff_daily`, `v_maintenance_technician_daily`, kolom `staff_id`/`assigned_staff_id` di view lookup domain `facility`) — role Staff seharusnya hanya melihat datanya sendiri; view tidak membatasi ini, ditegakkan di API.
 7. **Gap yang diketahui** (dari `milestones/4.2-view-akses-granular-per-domain/report.md`): belum ada index khusus untuk `chatbot_views` — view lookup atas tabel besar (`v_lookup_fnb_transactions` di atas 901rb baris, `v_lookup_housekeeping_log` di atas 425rb baris) belum diuji di beban query API nyata."""
-)

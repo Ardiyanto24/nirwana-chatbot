@@ -49,22 +49,74 @@ _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 # hanya kata fungsi murni tanpa muatan topik/domain).
 _STOPWORDS_ID = frozenset(
     {
-        "yang", "dan", "atau", "di", "ke", "dari", "ini", "itu", "untuk",
-        "dengan", "pada", "adalah", "atas", "akan", "bisa", "ada", "tidak",
-        "tapi", "juga", "saja", "saat", "oleh", "sebagai", "secara", "per",
-        "jadi", "kalau", "karena", "seperti", "lebih", "sudah", "belum",
-        "masih", "harus", "dapat", "agar", "maupun", "serta", "bagi",
-        "tentang", "tanpa", "hal", "satu", "dua", "para", "apa", "gimana",
-        "sih", "ya", "nya", "mu", "ku", "the", "a", "an", "of", "in", "on",
-        "for", "to", "vs", "mis",
+        "yang",
+        "dan",
+        "atau",
+        "di",
+        "ke",
+        "dari",
+        "ini",
+        "itu",
+        "untuk",
+        "dengan",
+        "pada",
+        "adalah",
+        "atas",
+        "akan",
+        "bisa",
+        "ada",
+        "tidak",
+        "tapi",
+        "juga",
+        "saja",
+        "saat",
+        "oleh",
+        "sebagai",
+        "secara",
+        "per",
+        "jadi",
+        "kalau",
+        "karena",
+        "seperti",
+        "lebih",
+        "sudah",
+        "belum",
+        "masih",
+        "harus",
+        "dapat",
+        "agar",
+        "maupun",
+        "serta",
+        "bagi",
+        "tentang",
+        "tanpa",
+        "hal",
+        "satu",
+        "dua",
+        "para",
+        "apa",
+        "gimana",
+        "sih",
+        "ya",
+        "nya",
+        "mu",
+        "ku",
+        "the",
+        "a",
+        "an",
+        "of",
+        "in",
+        "on",
+        "for",
+        "to",
+        "vs",
+        "mis",
     }
 )
 
 
 def _tokenisasi(teks: str) -> list[str]:
-    return [
-        t for t in _TOKEN_PATTERN.findall(teks.lower()) if t not in _STOPWORDS_ID
-    ]
+    return [t for t in _TOKEN_PATTERN.findall(teks.lower()) if t not in _STOPWORDS_ID]
 
 
 @lru_cache(maxsize=1)
@@ -100,7 +152,7 @@ def cari_bm25(
             skor=float(skor),
             sumber=SumberPencarian.BM25,
         )
-        for view_name, skor in zip(view_names, skor_semua)
+        for view_name, skor in zip(view_names, skor_semua, strict=True)
         if domain_map[view_name] in domain_diizinkan and skor > BM25_SKOR_MINIMUM
     ]
     kandidat.sort(key=lambda k: k.skor, reverse=True)

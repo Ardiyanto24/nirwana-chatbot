@@ -13,7 +13,10 @@ import re
 from pathlib import Path
 
 from src.config.katalog_view import DAFTAR_VIEW_PER_DOMAIN
-from src.layers.retriever.definisi_view import CATATAN_LINTAS_DOMAIN, DEFINISI_LENGKAP_VIEW
+from src.layers.retriever.definisi_view import (
+    CATATAN_LINTAS_DOMAIN,
+    DEFINISI_LENGKAP_VIEW,
+)
 
 _KATALOG_PATH = (
     Path(__file__).resolve().parents[3]

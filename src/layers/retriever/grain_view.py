@@ -100,7 +100,9 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
     ),
     # --- fnb (11) ---
     "v_fnb_outlet_daily": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: outlet x tanggal."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: outlet x tanggal.",
     ),
     "v_fnb_category_daily": KarakteristikGrain(
         punya_time_series="ya",
@@ -164,7 +166,9 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
         catatan="grain: properti x tipe kamar x tanggal.",
     ),
     "v_housekeeping_property_daily": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x tanggal."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x tanggal.",
     ),
     "v_housekeeping_staff_daily": KarakteristikGrain(
         punya_time_series="ya",
@@ -187,7 +191,9 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
         catatan="grain: kamar x tahun - tahun tetap dimensi waktu berulang (granularitas tahunan).",
     ),
     "v_maintenance_property_benchmark_yearly": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x tahun."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x tahun.",
     ),
     "v_maintenance_technician_daily": KarakteristikGrain(
         punya_time_series="ya",
@@ -211,7 +217,9 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
     ),
     # --- spa_event (9) ---
     "v_spa_daily": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x tanggal."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x tanggal.",
     ),
     "v_spa_customer_type_daily": KarakteristikGrain(
         punya_time_series="ya",
@@ -229,7 +237,9 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
         catatan="grain: venue x tanggal - venue jadi dimensi pembanding.",
     ),
     "v_event_property_daily": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x tanggal."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x tanggal.",
     ),
     "v_event_type_daily": KarakteristikGrain(
         punya_time_series="ya",
@@ -288,7 +298,9 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
         catatan="grain: properti x status kepegawaian x periode review.",
     ),
     "v_hr_watchlist_monthly": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: karyawan x bulan."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: karyawan x bulan.",
     ),
     "v_lookup_staff_shifts": KarakteristikGrain(
         punya_time_series="ya",
@@ -307,10 +319,14 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
         catatan="grain: properti x lini bisnis x bulan.",
     ),
     "v_financial_gop_overhead": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x bulan."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x bulan.",
     ),
     "v_financial_revenue_runrate_daily": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x tanggal."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x tanggal.",
     ),
     "v_payroll_department_monthly": KarakteristikGrain(
         punya_time_series="ya",
@@ -318,10 +334,14 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
         catatan="grain: properti x departemen x bulan.",
     ),
     "v_financial_service_charge_monthly": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x bulan."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x bulan.",
     ),
     "v_financial_labor_cost_monthly": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x bulan."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x bulan.",
     ),
     "v_payroll_access_level_monthly": KarakteristikGrain(
         punya_time_series="ya",
@@ -334,7 +354,9 @@ GRAIN_STRUKTURAL_VIEW: dict[str, KarakteristikGrain] = {
         catatan="grain: lini bisnis x bulan (tanpa property_id, level grup).",
     ),
     "v_financial_property_benchmark_monthly": KarakteristikGrain(
-        punya_time_series="ya", punya_dimensi_pembanding="ya", catatan="grain: properti x bulan."
+        punya_time_series="ya",
+        punya_dimensi_pembanding="ya",
+        catatan="grain: properti x bulan.",
     ),
     "v_lookup_financial_summary": KarakteristikGrain(
         punya_time_series="ya",

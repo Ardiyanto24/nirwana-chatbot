@@ -32,9 +32,7 @@ def test_kasus_a_bm25_cukup_embedding_tidak_dipanggil(monkeypatch):
 
     monkeypatch.setattr(retriever_module, "cari_embedding", _gagal_jika_dipanggil)
 
-    hasil = cari_kandidat_view(
-        _ai("okupansi Bali bulan ini"), [Domain.RESERVATION]
-    )
+    hasil = cari_kandidat_view(_ai("okupansi Bali bulan ini"), [Domain.RESERVATION])
 
     assert hasil.fallback_terpicu is False
     assert hasil.status == StatusEksekusi.BERHASIL

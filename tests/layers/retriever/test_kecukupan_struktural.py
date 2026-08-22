@@ -23,7 +23,10 @@ from src.layers.retriever.kecukupan_struktural import (
     proses_retrieval_semua,
 )
 from src.schemas.authorization import DomainAuthorization
-from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import (
+    AtomicIntentConstraint,
+    ConstraintCakupanIndividu,
+)
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.retriever import (
@@ -64,13 +67,17 @@ def test_nilai_tunggal_selalu_cukup(time_series, pembanding):
 
 
 def test_tren_time_series_ya_cukup():
-    hasil, alasan = _evaluasi_deterministik(LabelBentukJawaban.TREN, _grain(time_series="ya"))
+    hasil, alasan = _evaluasi_deterministik(
+        LabelBentukJawaban.TREN, _grain(time_series="ya")
+    )
     assert hasil == "cukup"
     assert alasan
 
 
 def test_tren_time_series_tidak_tidak_cukup():
-    hasil, alasan = _evaluasi_deterministik(LabelBentukJawaban.TREN, _grain(time_series="tidak"))
+    hasil, alasan = _evaluasi_deterministik(
+        LabelBentukJawaban.TREN, _grain(time_series="tidak")
+    )
     assert hasil == "tidak_cukup"
     assert alasan
 
@@ -88,7 +95,11 @@ def test_tren_time_series_tidak_pasti_tidak_pasti():
 
 @pytest.mark.parametrize(
     "label",
-    [LabelBentukJawaban.PERBANDINGAN, LabelBentukJawaban.PERINGKAT, LabelBentukJawaban.KOMPOSISI],
+    [
+        LabelBentukJawaban.PERBANDINGAN,
+        LabelBentukJawaban.PERINGKAT,
+        LabelBentukJawaban.KOMPOSISI,
+    ],
 )
 def test_dimensi_pembanding_ya_cukup(label):
     hasil, alasan = _evaluasi_deterministik(label, _grain(pembanding="ya"))
@@ -98,7 +109,11 @@ def test_dimensi_pembanding_ya_cukup(label):
 
 @pytest.mark.parametrize(
     "label",
-    [LabelBentukJawaban.PERBANDINGAN, LabelBentukJawaban.PERINGKAT, LabelBentukJawaban.KOMPOSISI],
+    [
+        LabelBentukJawaban.PERBANDINGAN,
+        LabelBentukJawaban.PERINGKAT,
+        LabelBentukJawaban.KOMPOSISI,
+    ],
 )
 def test_dimensi_pembanding_tidak_tidak_cukup(label):
     hasil, alasan = _evaluasi_deterministik(label, _grain(pembanding="tidak"))
@@ -108,7 +123,11 @@ def test_dimensi_pembanding_tidak_tidak_cukup(label):
 
 @pytest.mark.parametrize(
     "label",
-    [LabelBentukJawaban.PERBANDINGAN, LabelBentukJawaban.PERINGKAT, LabelBentukJawaban.KOMPOSISI],
+    [
+        LabelBentukJawaban.PERBANDINGAN,
+        LabelBentukJawaban.PERINGKAT,
+        LabelBentukJawaban.KOMPOSISI,
+    ],
 )
 def test_dimensi_pembanding_tidak_pasti_tidak_pasti(label):
     hasil, alasan = _evaluasi_deterministik(label, _grain(pembanding="tidak_pasti"))
@@ -129,7 +148,9 @@ def test_label_tidak_dikenal_fail_safe_tidak_pasti():
     seluruh anggota enum di rule table pasti False, jatuh ke cabang
     fail-safe terakhir."""
     label_masa_depan = "deskriptif_naratif"
-    hasil, alasan = _evaluasi_deterministik(label_masa_depan, _grain(time_series="ya", pembanding="ya"))
+    hasil, alasan = _evaluasi_deterministik(
+        label_masa_depan, _grain(time_series="ya", pembanding="ya")
+    )
     assert hasil == "tidak_pasti"
     assert "tidak dikenal rule table" in alasan
 
@@ -150,13 +171,22 @@ def _buat_atomic_intent(
 
 
 def _buat_kandidat(view_name: str, skor: float = 3.0) -> KandidatView:
-    return KandidatView(view_name=view_name, domain=Domain.RESERVATION, skor=skor, sumber=SumberPencarian.BM25)
+    return KandidatView(
+        view_name=view_name,
+        domain=Domain.RESERVATION,
+        skor=skor,
+        sumber=SumberPencarian.BM25,
+    )
 
 
 def _buat_kecocokan_kandidat(
-    view_name: str, label: LabelKecocokanMakna = LabelKecocokanMakna.DITEMUKAN, skor: float = 3.0
+    view_name: str,
+    label: LabelKecocokanMakna = LabelKecocokanMakna.DITEMUKAN,
+    skor: float = 3.0,
 ) -> KecocokanKandidat:
-    return KecocokanKandidat(kandidat=_buat_kandidat(view_name, skor), label=label, alasan="lolos M3.2")
+    return KecocokanKandidat(
+        kandidat=_buat_kandidat(view_name, skor), label=label, alasan="lolos M3.2"
+    )
 
 
 class _FakeUsage:
@@ -189,7 +219,9 @@ def test_fallback_kosong_nol_panggilan_llm(monkeypatch):
         kecukupan_struktural_module,
         "_call_llm_fallback",
         lambda ai, kk: (_ for _ in ()).throw(
-            AssertionError("_call_llm_fallback TIDAK BOLEH dipanggil untuk batch kosong")
+            AssertionError(
+                "_call_llm_fallback TIDAK BOLEH dipanggil untuk batch kosong"
+            )
         ),
     )
     hasil = _evaluasi_llm_fallback(_buat_atomic_intent(), [])
@@ -210,7 +242,9 @@ def test_fallback_sukses_normal(monkeypatch):
         }
     )
     monkeypatch.setattr(
-        kecukupan_struktural_module, "_call_llm_fallback", lambda ai, kk_list: _FakeChatResponse(raw)
+        kecukupan_struktural_module,
+        "_call_llm_fallback",
+        lambda ai, kk_list: _FakeChatResponse(raw),
     )
 
     hasil = _evaluasi_llm_fallback(_buat_atomic_intent(), [kk])
@@ -228,7 +262,9 @@ def test_fallback_api_error_default_aman_semua_tidak_cukup(monkeypatch):
     def _raise_api_error(ai, kk_list):
         raise APIError("simulasi kegagalan API", request=None, body=None)
 
-    monkeypatch.setattr(kecukupan_struktural_module, "_call_llm_fallback", _raise_api_error)
+    monkeypatch.setattr(
+        kecukupan_struktural_module, "_call_llm_fallback", _raise_api_error
+    )
 
     hasil = _evaluasi_llm_fallback(_buat_atomic_intent(), [kk1, kk2])
 
@@ -275,7 +311,11 @@ def test_fallback_kandidat_hilang_dari_respons_default_aman_bukan_drop():
     raw = json.dumps(
         {
             "penilaian": [
-                {"view_name": "v_lookup_bookings", "cukup": True, "alasan": "grain punya tanggal booking"}
+                {
+                    "view_name": "v_lookup_bookings",
+                    "cukup": True,
+                    "alasan": "grain punya tanggal booking",
+                }
             ]
         }
     )
@@ -294,7 +334,8 @@ def test_fallback_kandidat_hilang_dari_respons_default_aman_bukan_drop():
 
 
 def _buat_hasil_kecocokan(
-    kecocokan: list[KecocokanKandidat], label_bentuk_jawaban: LabelBentukJawaban = LabelBentukJawaban.TREN
+    kecocokan: list[KecocokanKandidat],
+    label_bentuk_jawaban: LabelBentukJawaban = LabelBentukJawaban.TREN,
 ) -> HasilKecocokanMakna:
     return HasilKecocokanMakna(
         atomic_intent=_buat_atomic_intent(label_bentuk_jawaban),
@@ -312,11 +353,17 @@ def test_orkestrator_seluruh_deterministik_nol_panggilan_llm(monkeypatch):
         kecukupan_struktural_module,
         "_call_llm_fallback",
         lambda ai, kk: (_ for _ in ()).throw(
-            AssertionError("_call_llm_fallback TIDAK BOLEH dipanggil untuk kandidat deterministik murni")
+            AssertionError(
+                "_call_llm_fallback TIDAK BOLEH dipanggil untuk kandidat deterministik murni"
+            )
         ),
     )
     hasil_kecocokan = _buat_hasil_kecocokan(
-        [_buat_kecocokan_kandidat("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+        [
+            _buat_kecocokan_kandidat(
+                "v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN
+            )
+        ]
     )
 
     hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
@@ -335,20 +382,35 @@ def test_orkestrator_sebagian_butuh_fallback_llm(monkeypatch):
     kk_deterministik = _buat_kecocokan_kandidat(
         "v_reservation_channel_daily", LabelKecocokanMakna.SEBAGIAN
     )
-    kk_ambigu = _buat_kecocokan_kandidat("v_lookup_bookings", LabelKecocokanMakna.DITEMUKAN)
+    kk_ambigu = _buat_kecocokan_kandidat(
+        "v_lookup_bookings", LabelKecocokanMakna.DITEMUKAN
+    )
 
     raw = json.dumps(
-        {"penilaian": [{"view_name": "v_lookup_bookings", "cukup": False, "alasan": "row-level, tidak cukup untuk tren"}]}
+        {
+            "penilaian": [
+                {
+                    "view_name": "v_lookup_bookings",
+                    "cukup": False,
+                    "alasan": "row-level, tidak cukup untuk tren",
+                }
+            ]
+        }
     )
     monkeypatch.setattr(
-        kecukupan_struktural_module, "_call_llm_fallback", lambda ai, kk: _FakeChatResponse(raw)
+        kecukupan_struktural_module,
+        "_call_llm_fallback",
+        lambda ai, kk: _FakeChatResponse(raw),
     )
 
     hasil_kecocokan = _buat_hasil_kecocokan([kk_deterministik, kk_ambigu])
     hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
 
     by_view = {k.kandidat.view_name: k for k in hasil.kecukupan}
-    assert by_view["v_reservation_channel_daily"].sumber_keputusan == SumberKeputusanKecukupan.DETERMINISTIK
+    assert (
+        by_view["v_reservation_channel_daily"].sumber_keputusan
+        == SumberKeputusanKecukupan.DETERMINISTIK
+    )
     assert by_view["v_reservation_channel_daily"].cukup is True
     assert by_view["v_lookup_bookings"].sumber_keputusan == SumberKeputusanKecukupan.LLM
     assert by_view["v_lookup_bookings"].cukup is False
@@ -375,7 +437,11 @@ def test_orkestrator_label_tidak_ditemukan_dikecualikan_dari_evaluasi():
     """Keputusan 3: kandidat berlabel tidak_ditemukan (M3.2) TIDAK ikut
     dievaluasi strukturnya sama sekali."""
     hasil_kecocokan = _buat_hasil_kecocokan(
-        [_buat_kecocokan_kandidat("v_reservation_room_type_daily", LabelKecocokanMakna.TIDAK_DITEMUKAN)]
+        [
+            _buat_kecocokan_kandidat(
+                "v_reservation_room_type_daily", LabelKecocokanMakna.TIDAK_DITEMUKAN
+            )
+        ]
     )
 
     hasil = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
@@ -440,7 +506,11 @@ def test_pipeline_urutan_panggilan_dan_hasil_akhir_konsisten(monkeypatch):
         [_buat_kandidat("v_reservation_room_type_daily")]
     )
     hasil_kecocokan_fixture = _buat_hasil_kecocokan(
-        [_buat_kecocokan_kandidat("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+        [
+            _buat_kecocokan_kandidat(
+                "v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN
+            )
+        ]
     )
     hasil_kecukupan_fixture = HasilKecukupanStruktural(
         atomic_intent=hasil_kecocokan_fixture.atomic_intent,
@@ -471,9 +541,13 @@ def test_pipeline_urutan_panggilan_dan_hasil_akhir_konsisten(monkeypatch):
         assert hasil_kecocokan is hasil_kecocokan_fixture
         return hasil_kecukupan_fixture
 
-    monkeypatch.setattr(kecukupan_struktural_module, "_kumpulkan_kandidat", _fake_kumpulkan_kandidat)
     monkeypatch.setattr(
-        kecukupan_struktural_module, "nilai_kecocokan_makna_atomic_intent", _fake_nilai_kecocokan
+        kecukupan_struktural_module, "_kumpulkan_kandidat", _fake_kumpulkan_kandidat
+    )
+    monkeypatch.setattr(
+        kecukupan_struktural_module,
+        "nilai_kecocokan_makna_atomic_intent",
+        _fake_nilai_kecocokan,
     )
     monkeypatch.setattr(
         kecukupan_struktural_module,
@@ -492,7 +566,9 @@ def test_pipeline_view_name_final_none_tidak_error(monkeypatch):
     """Kasus tidak ada kandidat cukup sama sekali - pipeline tetap
     selesai normal, retrieval.selected_view diisi string kosong (bukan
     exception saat span.set_attribute dipanggil dengan None)."""
-    hasil_pencarian_fixture = _buat_hasil_pencarian([_buat_kandidat("v_properties_ref")])
+    hasil_pencarian_fixture = _buat_hasil_pencarian(
+        [_buat_kandidat("v_properties_ref")]
+    )
     hasil_kecocokan_fixture = _buat_hasil_kecocokan(
         [_buat_kecocokan_kandidat("v_properties_ref", LabelKecocokanMakna.SEBAGIAN)]
     )
@@ -512,7 +588,9 @@ def test_pipeline_view_name_final_none_tidak_error(monkeypatch):
     )
 
     monkeypatch.setattr(
-        kecukupan_struktural_module, "_kumpulkan_kandidat", lambda ai, dd: hasil_pencarian_fixture
+        kecukupan_struktural_module,
+        "_kumpulkan_kandidat",
+        lambda ai, dd: hasil_pencarian_fixture,
     )
     monkeypatch.setattr(
         kecukupan_struktural_module,
@@ -536,9 +614,13 @@ def test_pipeline_view_name_final_none_tidak_error(monkeypatch):
 def _buat_constraint(
     domains_diizinkan: list[Domain], domains_ditolak: list[Domain] | None = None
 ) -> AtomicIntentConstraint:
-    decisions = [DomainAuthorization(domain=d, diizinkan=True) for d in domains_diizinkan]
+    decisions = [
+        DomainAuthorization(domain=d, diizinkan=True) for d in domains_diizinkan
+    ]
     decisions += [
-        DomainAuthorization(domain=d, diizinkan=False, alasan="tidak diizinkan untuk role ini")
+        DomainAuthorization(
+            domain=d, diizinkan=False, alasan="tidak diizinkan untuk role ini"
+        )
         for d in (domains_ditolak or [])
     ]
     return AtomicIntentConstraint(
@@ -550,11 +632,16 @@ def _buat_constraint(
 
 def _hasil_kecukupan_dummy(atomic_intent) -> HasilKecukupanStruktural:
     return HasilKecukupanStruktural(
-        atomic_intent=atomic_intent, kecukupan=[], view_name_final=None, status=StatusEksekusi.BERHASIL
+        atomic_intent=atomic_intent,
+        kecukupan=[],
+        view_name_final=None,
+        status=StatusEksekusi.BERHASIL,
     )
 
 
-def test_proses_retrieval_semua_derive_domain_diizinkan_filter_diizinkan_true(monkeypatch):
+def test_proses_retrieval_semua_derive_domain_diizinkan_filter_diizinkan_true(
+    monkeypatch,
+):
     """Kejadian inti M7.11 Checkpoint 6: proses_retrieval_atomic_intent()
     WAJIB menerima `domain_diizinkan` hasil FILTER `diizinkan=True` saja -
     domain yang ditolak (`diizinkan=False`) TIDAK BOLEH ikut diteruskan,
@@ -572,7 +659,9 @@ def test_proses_retrieval_semua_derive_domain_diizinkan_filter_diizinkan_true(mo
         diterima["domain_diizinkan"] = domain_diizinkan
         return _hasil_kecukupan_dummy(atomic_intent)
 
-    monkeypatch.setattr(kecukupan_struktural_module, "proses_retrieval_atomic_intent", _rekam)
+    monkeypatch.setattr(
+        kecukupan_struktural_module, "proses_retrieval_atomic_intent", _rekam
+    )
 
     hasil = proses_retrieval_semua([constraint])
 
@@ -588,7 +677,9 @@ def test_proses_retrieval_semua_domain_kosong_tetap_diproses_bukan_skip(monkeypa
     `proses_retrieval_atomic_intent()` apa adanya, TIDAK di-skip
     orkestrator (decisions.md Keputusan 7) - mencegah duplikasi logic,
     fungsi per-item sudah terbukti aman menangani domain kosong."""
-    constraint = _buat_constraint(domains_diizinkan=[], domains_ditolak=[Domain.FINANCIAL])
+    constraint = _buat_constraint(
+        domains_diizinkan=[], domains_ditolak=[Domain.FINANCIAL]
+    )
 
     dipanggil = {"n": 0}
 
@@ -597,7 +688,9 @@ def test_proses_retrieval_semua_domain_kosong_tetap_diproses_bukan_skip(monkeypa
         assert domain_diizinkan == []
         return _hasil_kecukupan_dummy(atomic_intent)
 
-    monkeypatch.setattr(kecukupan_struktural_module, "proses_retrieval_atomic_intent", _rekam)
+    monkeypatch.setattr(
+        kecukupan_struktural_module, "proses_retrieval_atomic_intent", _rekam
+    )
 
     hasil = proses_retrieval_semua([constraint])
 
@@ -606,7 +699,9 @@ def test_proses_retrieval_semua_domain_kosong_tetap_diproses_bukan_skip(monkeypa
     assert hasil[0].view_name_final is None
 
 
-def test_proses_retrieval_semua_urutan_dan_panjang_dipertahankan_multi_item(monkeypatch):
+def test_proses_retrieval_semua_urutan_dan_panjang_dipertahankan_multi_item(
+    monkeypatch,
+):
     """Panjang+urutan hasil harus persis sesuai urutan input, tiap item
     diproses independen (bukan di-batch/campur)."""
     c1 = _buat_constraint(domains_diizinkan=[Domain.RESERVATION])

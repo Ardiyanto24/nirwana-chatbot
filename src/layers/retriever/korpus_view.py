@@ -49,15 +49,14 @@ KORPUS_FUNGSI_VIEW: dict[str, str] = {
         "kontribusi tiap tier keanggotaan terhadap booking & revenue."
     ),
     "v_reservation_nationality_daily": (
-        "kontribusi tamu domestik vs mancanegara terhadap booking & "
-        "revenue."
+        "kontribusi tamu domestik vs mancanegara terhadap booking & revenue."
     ),
     "v_lookup_bookings": (
         "status booking hari ini, detail 1 booking spesifik, riwayat "
         "booking 1 tamu (`guest_id`) — kebutuhan Front Office Staff."
     ),
     "v_lookup_daily_occupancy": (
-        "ketersediaan kamar real-time per tipe kamar — \"tipe kamar apa "
+        'ketersediaan kamar real-time per tipe kamar — "tipe kamar apa '
         'yang masih kosong hari ini di properti X".'
     ),
     # --- fnb (11) ---
@@ -68,12 +67,10 @@ KORPUS_FUNGSI_VIEW: dict[str, str] = {
     ),
     "v_fnb_category_daily": "kontribusi revenue per kategori menu di 1 outlet.",
     "v_fnb_hourly": (
-        "pola intraday — jam sibuk sarapan/lunch/dinner/late-night per "
-        "outlet."
+        "pola intraday — jam sibuk sarapan/lunch/dinner/late-night per outlet."
     ),
     "v_fnb_customer_type_daily": (
-        "perbandingan perilaku belanja tamu inhouse vs walk-in per "
-        "outlet."
+        "perbandingan perilaku belanja tamu inhouse vs walk-in per outlet."
     ),
     "v_fnb_menu_item_daily": (
         "menu terlaris, dan apakah food cost tiap menu masih sesuai "
@@ -98,7 +95,7 @@ KORPUS_FUNGSI_VIEW: dict[str, str] = {
     ),
     "v_lookup_fnb_transactions": (
         "menu terlaris/total penjualan hari berjalan — granularitas "
-        "harian di `mart_aggregated` bisa telat untuk pertanyaan \"hari "
+        'harian di `mart_aggregated` bisa telat untuk pertanyaan "hari '
         'ini".'
     ),
     "v_lookup_recipe_bom": (
@@ -142,12 +139,10 @@ KORPUS_FUNGSI_VIEW: dict[str, str] = {
         "rusak)."
     ),
     "v_maintenance_technician_daily": (
-        "beban kerja individu 1 teknisi — jumlah tiket ditangani dan jam "
-        "kerja."
+        "beban kerja individu 1 teknisi — jumlah tiket ditangani dan jam kerja."
     ),
     "v_lookup_rooms": (
-        'status kamar tertentu saat ini — "kamar 305 statusnya apa '
-        'sekarang".'
+        'status kamar tertentu saat ini — "kamar 305 statusnya apa sekarang".'
     ),
     "v_lookup_housekeeping_log": (
         "durasi pembersihan dan status keterlambatan per sesi — riwayat "
@@ -177,12 +172,10 @@ KORPUS_FUNGSI_VIEW: dict[str, str] = {
     ),
     "v_event_property_daily": "tingkat pembatalan event per properti.",
     "v_event_type_daily": (
-        "jenis event mana yang paling sering/paling menguntungkan per "
-        "properti."
+        "jenis event mana yang paling sering/paling menguntungkan per properti."
     ),
     "v_lookup_spa_bookings": (
-        "jadwal booking spa hari ini/mendatang — kebutuhan Spa & Event "
-        "Staff."
+        "jadwal booking spa hari ini/mendatang — kebutuhan Spa & Event Staff."
     ),
     "v_lookup_event_bookings": "detail 1 booking event dan ketersediaan venue.",
     "v_lookup_venues": (
@@ -207,8 +200,7 @@ KORPUS_FUNGSI_VIEW: dict[str, str] = {
         "ada tren historis (data sumber tidak punya tanggal resign)."
     ),
     "v_hr_headcount_status_daily": (
-        "jumlah karyawan per status kepegawaian, per departemen per "
-        "properti."
+        "jumlah karyawan per status kepegawaian, per departemen per properti."
     ),
     "v_hr_performance_department_semester": (
         "rata-rata skor kinerja per departemen — benchmark antar "
@@ -256,8 +248,7 @@ KORPUS_FUNGSI_VIEW: dict[str, str] = {
         "efisiensi operasional."
     ),
     "v_payroll_access_level_monthly": (
-        "perbandingan komponen gaji antar level jabatan "
-        "(staff/manager/corporate)."
+        "perbandingan komponen gaji antar level jabatan (staff/manager/corporate)."
     ),
     "v_financial_business_line_group_monthly": (
         "kontribusi tiap lini bisnis (Room/F&B/Spa&Event) terhadap "
@@ -271,8 +262,7 @@ KORPUS_FUNGSI_VIEW: dict[str, str] = {
         "baris ringkasan properti."
     ),
     "v_lookup_payroll": (
-        "komponen payroll individual 1 karyawan — kebutuhan Finance "
-        "Manager."
+        "komponen payroll individual 1 karyawan — kebutuhan Finance Manager."
     ),
     # --- properties_ref (1) ---
     "v_properties_ref": (

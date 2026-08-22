@@ -42,10 +42,10 @@ cukup. Lihat milestones/3.3-kecukupan-struktural/decisions.md
 Keputusan 9.
 """
 
-from enum import Enum, StrEnum
+from enum import StrEnum
+from typing import Self
 
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.domain_gate import Domain

@@ -116,9 +116,7 @@ def test_parameter_model_diteruskan(monkeypatch):
     model_dipakai = "test-model-parameter-check"
     cari_embedding("query apapun", [Domain.RESERVATION], model_dipakai)
 
-    assert all(
-        call["model"] == model_dipakai for call in fake_client.embeddings.calls
-    )
+    assert all(call["model"] == model_dipakai for call in fake_client.embeddings.calls)
     assert len(fake_client.embeddings.calls) == 2  # 1 batch korpus + 1 query
 
 

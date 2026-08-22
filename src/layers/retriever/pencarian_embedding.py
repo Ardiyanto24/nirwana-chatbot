@@ -15,7 +15,7 @@ dilempar sebagai exception ke pemanggil - pola sama M2.1 "verifikasi
 titik buta gagal teknis: domain langkah 1 tetap dipakai".
 """
 
-from functools import lru_cache
+from functools import cache
 
 import numpy as np
 
@@ -26,7 +26,7 @@ from src.schemas.domain_gate import Domain
 from src.schemas.retriever import KandidatView, SumberPencarian
 
 
-@lru_cache(maxsize=None)
+@cache
 def embed_korpus(model: str) -> dict[str, list[float]]:
     """Embed seluruh 67 teks KORPUS_FUNGSI_VIEW sekali per model (satu
     batch call), di-cache per model - dipanggil ulang untuk tiap

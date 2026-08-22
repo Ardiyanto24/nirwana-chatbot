@@ -38,7 +38,9 @@ from src.schemas.retriever import (
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 
 
-def _buat_atomic_intent(teks: str = "okupansi per tipe kamar Bali bulan ini") -> AtomicIntent:
+def _buat_atomic_intent(
+    teks: str = "okupansi per tipe kamar Bali bulan ini",
+) -> AtomicIntent:
     return AtomicIntent(
         atomic_intent_id=str(uuid.uuid4()),
         teks_kebutuhan=teks,
@@ -49,7 +51,9 @@ def _buat_atomic_intent(teks: str = "okupansi per tipe kamar Bali bulan ini") ->
 
 
 def _buat_kandidat(view_name: str, domain: Domain = Domain.RESERVATION) -> KandidatView:
-    return KandidatView(view_name=view_name, domain=domain, skor=5.0, sumber=SumberPencarian.BM25)
+    return KandidatView(
+        view_name=view_name, domain=domain, skor=5.0, sumber=SumberPencarian.BM25
+    )
 
 
 def _buat_kecocokan(
@@ -58,7 +62,9 @@ def _buat_kecocokan(
     domain: Domain = Domain.RESERVATION,
     alasan: str = "penilaian awal",
 ) -> KecocokanKandidat:
-    return KecocokanKandidat(kandidat=_buat_kandidat(view_name, domain), label=label, alasan=alasan)
+    return KecocokanKandidat(
+        kandidat=_buat_kandidat(view_name, domain), label=label, alasan=alasan
+    )
 
 
 def _buat_hasil_pencarian(kandidat: list[KandidatView]) -> HasilPencarianKandidat:
@@ -217,7 +223,9 @@ class _FakeChatResponse:
 
 
 def test_langkah_generate_sukses_normal(monkeypatch):
-    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hasil_pencarian = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
     raw = json.dumps(
         {
             "penilaian": [
@@ -241,7 +249,9 @@ def test_langkah_generate_sukses_normal(monkeypatch):
 
 
 def test_langkah_generate_api_error_gagal_true_bukan_exception(monkeypatch):
-    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hasil_pencarian = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
 
     def _raise_api_error(hp):
         raise APIError("simulasi kegagalan API", request=None, body=None)
@@ -255,7 +265,9 @@ def test_langkah_generate_api_error_gagal_true_bukan_exception(monkeypatch):
 
 
 def test_langkah_generate_empty_choices_gagal_true(monkeypatch):
-    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hasil_pencarian = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
 
     monkeypatch.setattr(
         kecocokan_makna_module,
@@ -276,7 +288,9 @@ def test_parse_verifikasi_koreksi_ditemukan_ke_sebagian():
     """Koreksi arah 1: Langkah 1 bilang ditemukan, Langkah 2 menurunkan
     ke sebagian (grain-mismatch yang terlewat Langkah 1)."""
     kandidat = [_buat_kandidat("v_reservation_property_daily")]
-    hasil_awal = [_buat_kecocokan("v_reservation_property_daily", LabelKecocokanMakna.DITEMUKAN)]
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_property_daily", LabelKecocokanMakna.DITEMUKAN)
+    ]
     raw = json.dumps(
         {
             "penilaian": [
@@ -298,7 +312,9 @@ def test_parse_verifikasi_koreksi_sebagian_ke_ditemukan():
     """Koreksi arah 2: Langkah 1 terlalu ragu (sebagian), Langkah 2
     menaikkan ke ditemukan (cocok penuh, keraguan awal tidak berdasar)."""
     kandidat = [_buat_kandidat("v_reservation_room_type_daily")]
-    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.SEBAGIAN)]
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.SEBAGIAN)
+    ]
     raw = json.dumps(
         {
             "penilaian": [
@@ -318,7 +334,9 @@ def test_parse_verifikasi_koreksi_sebagian_ke_ditemukan():
 
 def test_parse_verifikasi_konfirmasi_label_tidak_berubah():
     kandidat = [_buat_kandidat("v_reservation_room_type_daily")]
-    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)
+    ]
     raw = json.dumps(
         {
             "penilaian": [
@@ -338,7 +356,9 @@ def test_parse_verifikasi_konfirmasi_label_tidak_berubah():
 
 def test_parse_verifikasi_json_rusak_dipaksa_gagal():
     kandidat = [_buat_kandidat("v_reservation_room_type_daily")]
-    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)
+    ]
 
     hasil, gagal, alasan = _parse_verifikasi("bukan json valid", kandidat, hasil_awal)
 
@@ -358,7 +378,9 @@ def test_parse_verifikasi_kandidat_hilang_fallback_ke_hasil_awal():
     hasil_awal = [
         _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN),
         _buat_kecocokan(
-            "v_reservation_property_daily", LabelKecocokanMakna.TIDAK_DITEMUKAN, alasan="grain salah"
+            "v_reservation_property_daily",
+            LabelKecocokanMakna.TIDAK_DITEMUKAN,
+            alasan="grain salah",
         ),
     ]
     raw = json.dumps(
@@ -377,7 +399,9 @@ def test_parse_verifikasi_kandidat_hilang_fallback_ke_hasil_awal():
     assert gagal is False
     assert len(hasil) == 2
     assert hasil[1].label == LabelKecocokanMakna.TIDAK_DITEMUKAN
-    assert hasil[1].alasan == "grain salah"  # persis alasan Langkah 1, bukan alasan baru
+    assert (
+        hasil[1].alasan == "grain salah"
+    )  # persis alasan Langkah 1, bukan alasan baru
     assert alasan is not None and "missing:v_reservation_property_daily" in alasan
 
 
@@ -398,8 +422,16 @@ def test_langkah_verifikasi_sukses_koreksi_dua_arah(monkeypatch):
     raw = json.dumps(
         {
             "penilaian": [
-                {"view_name": "v_reservation_room_type_daily", "label": "ditemukan", "alasan": "naik"},
-                {"view_name": "v_reservation_property_daily", "label": "sebagian", "alasan": "turun"},
+                {
+                    "view_name": "v_reservation_room_type_daily",
+                    "label": "ditemukan",
+                    "alasan": "naik",
+                },
+                {
+                    "view_name": "v_reservation_property_daily",
+                    "label": "sebagian",
+                    "alasan": "turun",
+                },
             ]
         }
     )
@@ -417,13 +449,19 @@ def test_langkah_verifikasi_sukses_koreksi_dua_arah(monkeypatch):
 
 
 def test_langkah_verifikasi_api_error_gagal_true(monkeypatch):
-    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
-    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+    hasil_pencarian = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)
+    ]
 
     def _raise_api_error(hp, awal):
         raise APIError("simulasi kegagalan API", request=None, body=None)
 
-    monkeypatch.setattr(kecocokan_makna_module, "_call_llm_verifikasi", _raise_api_error)
+    monkeypatch.setattr(
+        kecocokan_makna_module, "_call_llm_verifikasi", _raise_api_error
+    )
 
     hasil, gagal = _langkah_verifikasi(hasil_pencarian, hasil_awal)
 
@@ -443,14 +481,18 @@ def test_orkestrator_kandidat_kosong_nol_panggilan_llm(monkeypatch):
         kecocokan_makna_module,
         "_langkah_generate",
         lambda hp: (_ for _ in ()).throw(
-            AssertionError("_langkah_generate TIDAK BOLEH dipanggil untuk kandidat kosong")
+            AssertionError(
+                "_langkah_generate TIDAK BOLEH dipanggil untuk kandidat kosong"
+            )
         ),
     )
     monkeypatch.setattr(
         kecocokan_makna_module,
         "_langkah_verifikasi",
         lambda hp, awal: (_ for _ in ()).throw(
-            AssertionError("_langkah_verifikasi TIDAK BOLEH dipanggil untuk kandidat kosong")
+            AssertionError(
+                "_langkah_verifikasi TIDAK BOLEH dipanggil untuk kandidat kosong"
+            )
         ),
     )
 
@@ -462,9 +504,15 @@ def test_orkestrator_kandidat_kosong_nol_panggilan_llm(monkeypatch):
 
 
 def test_orkestrator_sukses_penuh_pakai_hasil_langkah_2(monkeypatch):
-    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
-    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.SEBAGIAN)]
-    hasil_final = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+    hasil_pencarian = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.SEBAGIAN)
+    ]
+    hasil_final = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)
+    ]
 
     monkeypatch.setattr(
         kecocokan_makna_module, "_langkah_generate", lambda hp: (hasil_awal, False)
@@ -482,14 +530,20 @@ def test_orkestrator_sukses_penuh_pakai_hasil_langkah_2(monkeypatch):
 
 
 def test_orkestrator_langkah_1_gagal_total_gagal_teknis(monkeypatch):
-    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
+    hasil_pencarian = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
 
-    monkeypatch.setattr(kecocokan_makna_module, "_langkah_generate", lambda hp: ([], True))
+    monkeypatch.setattr(
+        kecocokan_makna_module, "_langkah_generate", lambda hp: ([], True)
+    )
     monkeypatch.setattr(
         kecocokan_makna_module,
         "_langkah_verifikasi",
         lambda hp, awal: (_ for _ in ()).throw(
-            AssertionError("_langkah_verifikasi TIDAK BOLEH dipanggil kalau Langkah 1 gagal total")
+            AssertionError(
+                "_langkah_verifikasi TIDAK BOLEH dipanggil kalau Langkah 1 gagal total"
+            )
         ),
     )
 
@@ -499,9 +553,15 @@ def test_orkestrator_langkah_1_gagal_total_gagal_teknis(monkeypatch):
     assert hasil.kecocokan == []
 
 
-def test_orkestrator_langkah_2_gagal_sebagian_hasil_langkah_1_dipertahankan(monkeypatch):
-    hasil_pencarian = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
-    hasil_awal = [_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)]
+def test_orkestrator_langkah_2_gagal_sebagian_hasil_langkah_1_dipertahankan(
+    monkeypatch,
+):
+    hasil_pencarian = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
+    hasil_awal = [
+        _buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)
+    ]
 
     monkeypatch.setattr(
         kecocokan_makna_module, "_langkah_generate", lambda hp: (hasil_awal, False)
@@ -526,7 +586,14 @@ def test_semua_multi_intent_loop_dan_urutan_dipertahankan(monkeypatch):
     monkeypatch.setattr(
         kecocokan_makna_module,
         "_langkah_generate",
-        lambda hp: ([_buat_kecocokan("v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN)], False),
+        lambda hp: (
+            [
+                _buat_kecocokan(
+                    "v_reservation_room_type_daily", LabelKecocokanMakna.DITEMUKAN
+                )
+            ],
+            False,
+        ),
     )
     monkeypatch.setattr(
         kecocokan_makna_module,
@@ -549,14 +616,20 @@ def test_semua_list_kosong_tidak_error():
 
 
 def test_semua_aggregate_gagal_teknis_dan_sebagian_count(monkeypatch):
-    hp_gagal_total = _buat_hasil_pencarian([_buat_kandidat("v_reservation_room_type_daily")])
-    hp_gagal_verifikasi = _buat_hasil_pencarian([_buat_kandidat("v_reservation_property_daily")])
+    hp_gagal_total = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_room_type_daily")]
+    )
+    hp_gagal_verifikasi = _buat_hasil_pencarian(
+        [_buat_kandidat("v_reservation_property_daily")]
+    )
     hp_sukses = _buat_hasil_pencarian([_buat_kandidat("v_reservation_channel_daily")])
 
     def _fake_generate(hp):
         if hp is hp_gagal_total:
             return [], True
-        return [_buat_kecocokan(hp.kandidat[0].view_name, LabelKecocokanMakna.DITEMUKAN)], False
+        return [
+            _buat_kecocokan(hp.kandidat[0].view_name, LabelKecocokanMakna.DITEMUKAN)
+        ], False
 
     def _fake_verifikasi(hp, awal):
         if hp is hp_gagal_verifikasi:
@@ -566,7 +639,9 @@ def test_semua_aggregate_gagal_teknis_dan_sebagian_count(monkeypatch):
     monkeypatch.setattr(kecocokan_makna_module, "_langkah_generate", _fake_generate)
     monkeypatch.setattr(kecocokan_makna_module, "_langkah_verifikasi", _fake_verifikasi)
 
-    hasil = nilai_kecocokan_makna_semua([hp_gagal_total, hp_gagal_verifikasi, hp_sukses])
+    hasil = nilai_kecocokan_makna_semua(
+        [hp_gagal_total, hp_gagal_verifikasi, hp_sukses]
+    )
 
     status_list = [h.status for h in hasil]
     assert status_list == [

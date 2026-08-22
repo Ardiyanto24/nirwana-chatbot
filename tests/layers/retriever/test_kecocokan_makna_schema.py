@@ -37,8 +37,12 @@ def _buat_kandidat() -> KandidatView:
     )
 
 
-def _buat_kecocokan(label: LabelKecocokanMakna = LabelKecocokanMakna.DITEMUKAN) -> KecocokanKandidat:
-    return KecocokanKandidat(kandidat=_buat_kandidat(), label=label, alasan="grain sesuai kebutuhan")
+def _buat_kecocokan(
+    label: LabelKecocokanMakna = LabelKecocokanMakna.DITEMUKAN,
+) -> KecocokanKandidat:
+    return KecocokanKandidat(
+        kandidat=_buat_kandidat(), label=label, alasan="grain sesuai kebutuhan"
+    )
 
 
 def test_status_gagal_teknis_dengan_kecocokan_nonkosong_ditolak():

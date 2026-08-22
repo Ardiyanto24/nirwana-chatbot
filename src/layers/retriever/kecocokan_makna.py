@@ -28,7 +28,10 @@ from src.config.llm import (
     OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI,
     get_openrouter_client,
 )
-from src.layers.retriever.definisi_view import CATATAN_LINTAS_DOMAIN, DEFINISI_LENGKAP_VIEW
+from src.layers.retriever.definisi_view import (
+    CATATAN_LINTAS_DOMAIN,
+    DEFINISI_LENGKAP_VIEW,
+)
 from src.observability.genai_semconv import (
     GEN_AI_OPERATION_NAME,
     GEN_AI_REQUEST_MODEL,
@@ -107,7 +110,9 @@ def _entri_aman_default(kandidat: KandidatView, alasan: str) -> KecocokanKandida
     keluaran (bukan drop diam-diam) - jaminan struktural decisions.md
     Keputusan 9. Default label=SEBAGIAN (bukan DITEMUKAN) - aman kalau
     memang ternyata bukan kandidat yang tepat, bukan optimis keliru."""
-    return KecocokanKandidat(kandidat=kandidat, label=LabelKecocokanMakna.SEBAGIAN, alasan=alasan)
+    return KecocokanKandidat(
+        kandidat=kandidat, label=LabelKecocokanMakna.SEBAGIAN, alasan=alasan
+    )
 
 
 def _parse_generate(
@@ -134,7 +139,9 @@ def _parse_generate(
         entry = by_view_name.get(kv.view_name)
         if entry is None:
             hasil.append(
-                _entri_aman_default(kv, "parse_anomaly: kandidat tidak muncul di respons LLM")
+                _entri_aman_default(
+                    kv, "parse_anomaly: kandidat tidak muncul di respons LLM"
+                )
             )
             anomali.append(f"missing:{kv.view_name}")
             continue
@@ -156,7 +163,9 @@ def _parse_generate(
     return hasil, False, reason
 
 
-def _langkah_generate(hasil_pencarian: HasilPencarianKandidat) -> tuple[list[KecocokanKandidat], bool]:
+def _langkah_generate(
+    hasil_pencarian: HasilPencarianKandidat,
+) -> tuple[list[KecocokanKandidat], bool]:
     """Langkah 1 - panggil LLM generate, kembalikan (kecocokan, gagal).
     Diasumsikan `hasil_pencarian.kandidat` TIDAK kosong - jalur pintas
     kandidat kosong ditangani orkestrator (Checkpoint 9), bukan di sini."""
@@ -164,7 +173,9 @@ def _langkah_generate(hasil_pencarian: HasilPencarianKandidat) -> tuple[list[Kec
     prompt = load_prompt(_PROMPT_ID_GENERATE)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
-        span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_KECOCOKAN_MAKNA_GENERATE)
+        span.set_attribute(
+            GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_KECOCOKAN_MAKNA_GENERATE
+        )
         span.set_attribute(PROMPT_ID, prompt.id)
         span.set_attribute(PROMPT_VERSION, prompt.version)
 
@@ -172,26 +183,33 @@ def _langkah_generate(hasil_pencarian: HasilPencarianKandidat) -> tuple[list[Kec
             response = _call_llm_generate(hasil_pencarian)
         except APIError as exc:
             span.set_attribute(
-                "retriever.kecocokan_makna.generate_forced_fallback_reason", f"api_error: {exc}"
+                "retriever.kecocokan_makna.generate_forced_fallback_reason",
+                f"api_error: {exc}",
             )
             return [], True
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
             span.set_attribute(
-                "retriever.kecocokan_makna.generate_forced_fallback_reason", "empty_choices"
+                "retriever.kecocokan_makna.generate_forced_fallback_reason",
+                "empty_choices",
             )
             return [], True
 
         raw_content = response.choices[0].message.content or ""
-        hasil, gagal, anomaly_reason = _parse_generate(raw_content, hasil_pencarian.kandidat)
+        hasil, gagal, anomaly_reason = _parse_generate(
+            raw_content, hasil_pencarian.kandidat
+        )
 
         if anomaly_reason:
             span.set_attribute(
-                "retriever.kecocokan_makna.generate_forced_fallback_reason", anomaly_reason
+                "retriever.kecocokan_makna.generate_forced_fallback_reason",
+                anomaly_reason,
             )
         span.set_attribute(
             "retriever.kecocokan_makna.generate_ditemukan_count",
@@ -239,7 +257,9 @@ def _build_user_prompt_verifikasi(
     return "\n".join(lines)
 
 
-def _call_llm_verifikasi(hasil_pencarian: HasilPencarianKandidat, hasil_awal: list[KecocokanKandidat]):
+def _call_llm_verifikasi(
+    hasil_pencarian: HasilPencarianKandidat, hasil_awal: list[KecocokanKandidat]
+):
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`)."""
     client = get_openrouter_client()
@@ -247,7 +267,10 @@ def _call_llm_verifikasi(hasil_pencarian: HasilPencarianKandidat, hasil_awal: li
         model=OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI,
         messages=[
             {"role": "system", "content": _render_system_prompt_verifikasi()},
-            {"role": "user", "content": _build_user_prompt_verifikasi(hasil_pencarian, hasil_awal)},
+            {
+                "role": "user",
+                "content": _build_user_prompt_verifikasi(hasil_pencarian, hasil_awal),
+            },
         ],
         response_format={"type": "json_object"},
         temperature=0,
@@ -288,7 +311,8 @@ def _parse_verifikasi(
                 awal
                 if awal is not None
                 else _entri_aman_default(
-                    kv, "parse_anomaly: kandidat tidak muncul di respons Langkah 2 maupun Langkah 1"
+                    kv,
+                    "parse_anomaly: kandidat tidak muncul di respons Langkah 2 maupun Langkah 1",
                 )
             )
             anomali.append(f"missing:{kv.view_name}")
@@ -300,7 +324,9 @@ def _parse_verifikasi(
             hasil.append(
                 awal
                 if awal is not None
-                else _entri_aman_default(kv, f"parse_anomaly: label tidak valid ({entry.label!r})")
+                else _entri_aman_default(
+                    kv, f"parse_anomaly: label tidak valid ({entry.label!r})"
+                )
             )
             anomali.append(f"invalid_label:{kv.view_name}={entry.label}")
             continue
@@ -322,7 +348,9 @@ def _langkah_verifikasi(
     prompt = load_prompt(_PROMPT_ID_VERIFIKASI)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
-        span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI)
+        span.set_attribute(
+            GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_KECOCOKAN_MAKNA_VERIFIKASI
+        )
         span.set_attribute(PROMPT_ID, prompt.id)
         span.set_attribute(PROMPT_VERSION, prompt.version)
 
@@ -330,17 +358,21 @@ def _langkah_verifikasi(
             response = _call_llm_verifikasi(hasil_pencarian, hasil_awal)
         except APIError as exc:
             span.set_attribute(
-                "retriever.kecocokan_makna.verifikasi_forced_fallback_reason", f"api_error: {exc}"
+                "retriever.kecocokan_makna.verifikasi_forced_fallback_reason",
+                f"api_error: {exc}",
             )
             return [], True
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
             span.set_attribute(
-                "retriever.kecocokan_makna.verifikasi_forced_fallback_reason", "empty_choices"
+                "retriever.kecocokan_makna.verifikasi_forced_fallback_reason",
+                "empty_choices",
             )
             return [], True
 
@@ -351,16 +383,20 @@ def _langkah_verifikasi(
 
         if anomaly_reason:
             span.set_attribute(
-                "retriever.kecocokan_makna.verifikasi_forced_fallback_reason", anomaly_reason
+                "retriever.kecocokan_makna.verifikasi_forced_fallback_reason",
+                anomaly_reason,
             )
 
         dikoreksi_count = sum(
             1
             for baru in hasil
             for lama in hasil_awal
-            if baru.kandidat.view_name == lama.kandidat.view_name and baru.label != lama.label
+            if baru.kandidat.view_name == lama.kandidat.view_name
+            and baru.label != lama.label
         )
-        span.set_attribute("retriever.kecocokan_makna.verifikasi_dikoreksi_count", dikoreksi_count)
+        span.set_attribute(
+            "retriever.kecocokan_makna.verifikasi_dikoreksi_count", dikoreksi_count
+        )
         span.set_attribute(
             "retriever.kecocokan_makna.verifikasi_ditemukan_count",
             sum(1 for k in hasil if k.label == LabelKecocokanMakna.DITEMUKAN),
@@ -398,7 +434,9 @@ def nilai_kecocokan_makna_atomic_intent(
             status=StatusEksekusi.GAGAL_TEKNIS,
         )
 
-    hasil_verifikasi, gagal_verifikasi = _langkah_verifikasi(hasil_pencarian, hasil_awal)
+    hasil_verifikasi, gagal_verifikasi = _langkah_verifikasi(
+        hasil_pencarian, hasil_awal
+    )
     if gagal_verifikasi:
         return HasilKecocokanMakna(
             atomic_intent=hasil_pencarian.atomic_intent,
@@ -424,9 +462,13 @@ def nilai_kecocokan_makna_semua(
     with tracer.start_as_current_span("retriever.nilai_kecocokan_makna_semua") as span:
         span.set_attribute("kecocokan_makna.intent_count", len(daftar_hasil_pencarian))
 
-        hasil = [nilai_kecocokan_makna_atomic_intent(hp) for hp in daftar_hasil_pencarian]
+        hasil = [
+            nilai_kecocokan_makna_atomic_intent(hp) for hp in daftar_hasil_pencarian
+        ]
 
-        gagal_teknis_count = sum(1 for h in hasil if h.status == StatusEksekusi.GAGAL_TEKNIS)
+        gagal_teknis_count = sum(
+            1 for h in hasil if h.status == StatusEksekusi.GAGAL_TEKNIS
+        )
         sebagian_count = sum(1 for h in hasil if h.status == StatusEksekusi.SEBAGIAN)
         span.set_attribute("kecocokan_makna.gagal_teknis_count", gagal_teknis_count)
         span.set_attribute("kecocokan_makna.sebagian_count", sebagian_count)

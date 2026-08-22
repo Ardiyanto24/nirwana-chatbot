@@ -26,11 +26,11 @@ from src.config.llm import OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL, get_openrouter
 from src.layers.retriever.definisi_view import DEFINISI_LENGKAP_VIEW
 from src.layers.retriever.grain_view import GRAIN_STRUKTURAL_VIEW, KarakteristikGrain
 from src.layers.retriever.kecocokan_makna import nilai_kecocokan_makna_atomic_intent
+from src.layers.retriever.retriever import _TRACER_NAME as _RETRIEVER_TRACER_NAME
 from src.layers.retriever.retriever import (
     _atribut_span_dari_hasil,
     _kumpulkan_kandidat,
 )
-from src.layers.retriever.retriever import _TRACER_NAME as _RETRIEVER_TRACER_NAME
 from src.observability.genai_semconv import (
     GEN_AI_OPERATION_NAME,
     GEN_AI_REQUEST_MODEL,
@@ -136,12 +136,16 @@ def _build_user_prompt_fallback(
         "\nDaftar kandidat yang grain-nya ambigu, beserta definisi lengkapnya:",
     ]
     for kk in kandidat_tidak_pasti:
-        definisi = DEFINISI_LENGKAP_VIEW.get(kk.kandidat.view_name, "(definisi tidak ditemukan)")
+        definisi = DEFINISI_LENGKAP_VIEW.get(
+            kk.kandidat.view_name, "(definisi tidak ditemukan)"
+        )
         lines.append(f"\n### {kk.kandidat.view_name}\n{definisi}")
     return "\n".join(lines)
 
 
-def _call_llm_fallback(atomic_intent: AtomicIntent, kandidat_tidak_pasti: list[KecocokanKandidat]):
+def _call_llm_fallback(
+    atomic_intent: AtomicIntent, kandidat_tidak_pasti: list[KecocokanKandidat]
+):
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`), mirror pola kecocokan_makna.py."""
     client = get_openrouter_client()
@@ -149,7 +153,12 @@ def _call_llm_fallback(atomic_intent: AtomicIntent, kandidat_tidak_pasti: list[K
         model=OPENROUTER_MODEL_KECUKUPAN_STRUKTURAL,
         messages=[
             {"role": "system", "content": _render_system_prompt_fallback()},
-            {"role": "user", "content": _build_user_prompt_fallback(atomic_intent, kandidat_tidak_pasti)},
+            {
+                "role": "user",
+                "content": _build_user_prompt_fallback(
+                    atomic_intent, kandidat_tidak_pasti
+                ),
+            },
         ],
         response_format={"type": "json_object"},
         temperature=0,
@@ -241,28 +250,39 @@ def _evaluasi_llm_fallback(
             response = _call_llm_fallback(atomic_intent, kandidat_tidak_pasti)
         except APIError as exc:
             span.set_attribute(
-                "retriever.kecukupan_struktural.fallback_forced_default_reason", f"api_error: {exc}"
+                "retriever.kecukupan_struktural.fallback_forced_default_reason",
+                f"api_error: {exc}",
             )
-            return _default_aman_semua(kandidat_tidak_pasti, f"fallback_teknis: api_error {exc}")
+            return _default_aman_semua(
+                kandidat_tidak_pasti, f"fallback_teknis: api_error {exc}"
+            )
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
             span.set_attribute(
-                "retriever.kecukupan_struktural.fallback_forced_default_reason", "empty_choices"
+                "retriever.kecukupan_struktural.fallback_forced_default_reason",
+                "empty_choices",
             )
-            return _default_aman_semua(kandidat_tidak_pasti, "fallback_teknis: empty_choices")
+            return _default_aman_semua(
+                kandidat_tidak_pasti, "fallback_teknis: empty_choices"
+            )
 
         raw_content = response.choices[0].message.content or ""
         hasil, gagal = _parse_fallback(raw_content, kandidat_tidak_pasti)
 
         if gagal:
             span.set_attribute(
-                "retriever.kecukupan_struktural.fallback_forced_default_reason", "parse_error_total"
+                "retriever.kecukupan_struktural.fallback_forced_default_reason",
+                "parse_error_total",
             )
-            return _default_aman_semua(kandidat_tidak_pasti, "fallback_teknis: parse_error_total")
+            return _default_aman_semua(
+                kandidat_tidak_pasti, "fallback_teknis: parse_error_total"
+            )
 
         span.set_attribute(
             "retriever.kecukupan_struktural.fallback_cukup_count",
@@ -290,7 +310,10 @@ def _pilih_view_name_final(kecukupan: list[KecukupanKandidat]) -> str | None:
 
     terpilih = min(
         kandidat_cukup,
-        key=lambda k: (_URUTAN_LABEL_KECOCOKAN.get(k.kecocokan_label, 99), -k.kandidat.skor),
+        key=lambda k: (
+            _URUTAN_LABEL_KECOCOKAN.get(k.kecocokan_label, 99),
+            -k.kandidat.skor,
+        ),
     )
     return terpilih.kandidat.view_name
 
@@ -340,7 +363,9 @@ def evaluasi_kecukupan_struktural_atomic_intent(
                 )
             )
 
-    hasil_fallback = _evaluasi_llm_fallback(hasil_kecocokan.atomic_intent, kandidat_tidak_pasti)
+    hasil_fallback = _evaluasi_llm_fallback(
+        hasil_kecocokan.atomic_intent, kandidat_tidak_pasti
+    )
 
     seluruh_kecukupan = hasil_deterministik + hasil_fallback
     view_name_final = _pilih_view_name_final(seluruh_kecukupan)
@@ -378,7 +403,9 @@ def proses_retrieval_atomic_intent(
         hasil_kecocokan = nilai_kecocokan_makna_atomic_intent(hasil_pencarian)
         hasil_kecukupan = evaluasi_kecukupan_struktural_atomic_intent(hasil_kecocokan)
 
-        span.set_attribute("retrieval.selected_view", hasil_kecukupan.view_name_final or "")
+        span.set_attribute(
+            "retrieval.selected_view", hasil_kecukupan.view_name_final or ""
+        )
 
         return hasil_kecukupan
 
@@ -412,7 +439,11 @@ def proses_retrieval_semua(
         hasil = [
             proses_retrieval_atomic_intent(
                 item.atomic_intent,
-                [keputusan.domain for keputusan in item.domain_decisions if keputusan.diizinkan],
+                [
+                    keputusan.domain
+                    for keputusan in item.domain_decisions
+                    if keputusan.diizinkan
+                ],
             )
             for item in daftar_constraint
         ]

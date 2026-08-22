@@ -59,7 +59,9 @@ def _kumpulkan_kandidat(
     milik tanggung jawab M3.1), otomatis jadi anak span apa pun yang
     sedang aktif di context pemanggil (span parent-child OTel via
     contextvars, tidak perlu diteruskan eksplisit)."""
-    kandidat_bm25, perlu_fallback = cari_bm25(atomic_intent.teks_kebutuhan, domain_diizinkan)
+    kandidat_bm25, perlu_fallback = cari_bm25(
+        atomic_intent.teks_kebutuhan, domain_diizinkan
+    )
 
     if not perlu_fallback:
         return HasilPencarianKandidat(
@@ -71,9 +73,13 @@ def _kumpulkan_kandidat(
         )
 
     tracer = get_tracer(_TRACER_NAME)
-    with tracer.start_as_current_span("retriever.pencarian_embedding_fallback") as span_fallback:
+    with tracer.start_as_current_span(
+        "retriever.pencarian_embedding_fallback"
+    ) as span_fallback:
         span_fallback.set_attribute(GEN_AI_OPERATION_NAME, "embeddings")
-        span_fallback.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_RETRIEVER_EMBEDDING)
+        span_fallback.set_attribute(
+            GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_RETRIEVER_EMBEDDING
+        )
 
         kandidat_embedding, gagal = cari_embedding(
             atomic_intent.teks_kebutuhan,
@@ -102,9 +108,7 @@ def _atribut_span_dari_hasil(hasil: HasilPencarianKandidat) -> dict:
     bawah maupun orkestrator penutup pipeline M3.3
     (`kecukupan_struktural.proses_retrieval_atomic_intent()`), supaya
     logic derivasinya SATU tempat, tidak diduplikasi."""
-    if not hasil.fallback_terpicu:
-        sumber_utama = "bm25"
-    elif hasil.status == StatusEksekusi.SEBAGIAN:
+    if not hasil.fallback_terpicu or hasil.status == StatusEksekusi.SEBAGIAN:
         sumber_utama = "bm25"
     else:
         sumber_utama = "embedding_fallback"

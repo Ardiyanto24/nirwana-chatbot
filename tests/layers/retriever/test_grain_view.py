@@ -13,7 +13,9 @@ _NILAI_VALID = {"ya", "tidak", "tidak_pasti"}
 
 
 def test_bijektif_dengan_daftar_view_per_domain():
-    seluruh_view_katalog = {v for views in DAFTAR_VIEW_PER_DOMAIN.values() for v in views}
+    seluruh_view_katalog = {
+        v for views in DAFTAR_VIEW_PER_DOMAIN.values() for v in views
+    }
     assert set(GRAIN_STRUKTURAL_VIEW.keys()) == seluruh_view_katalog
 
 
@@ -46,8 +48,14 @@ def test_spot_check_view_snapshot_tanpa_pernyataan_tren_historis_eksplisit_ambig
     Diklasifikasi tidak_pasti (ambigu), bukan tidak (pasti) - dilempar ke
     fallback LLM, bukan ditebak deterministik. Lihat decisions.md
     Keputusan 1 addendum."""
-    assert GRAIN_STRUKTURAL_VIEW["v_facility_room_status_daily"].punya_time_series == "tidak_pasti"
-    assert GRAIN_STRUKTURAL_VIEW["v_hr_headcount_status_daily"].punya_time_series == "tidak_pasti"
+    assert (
+        GRAIN_STRUKTURAL_VIEW["v_facility_room_status_daily"].punya_time_series
+        == "tidak_pasti"
+    )
+    assert (
+        GRAIN_STRUKTURAL_VIEW["v_hr_headcount_status_daily"].punya_time_series
+        == "tidak_pasti"
+    )
 
 
 def test_spot_check_view_snapshot_hr_turnover_pernyataan_eksplisit_tidak_ada_tren():
@@ -81,7 +89,9 @@ def test_minimal_satu_view_diklasifikasi_tidak_pasti_untuk_time_series():
     kandidat row-level tanpa label periode eksplisit (mis. v_lookup_bookings,
     '1 baris = 1 reservasi') diklasifikasi ambigu, dilempar ke fallback LLM."""
     tidak_pasti = [
-        v for v, g in GRAIN_STRUKTURAL_VIEW.items() if g.punya_time_series == "tidak_pasti"
+        v
+        for v, g in GRAIN_STRUKTURAL_VIEW.items()
+        if g.punya_time_series == "tidak_pasti"
     ]
     assert len(tidak_pasti) > 0
     assert "v_lookup_bookings" in tidak_pasti
@@ -89,6 +99,8 @@ def test_minimal_satu_view_diklasifikasi_tidak_pasti_untuk_time_series():
 
 def test_minimal_satu_view_diklasifikasi_tidak_pasti_untuk_dimensi_pembanding():
     tidak_pasti = [
-        v for v, g in GRAIN_STRUKTURAL_VIEW.items() if g.punya_dimensi_pembanding == "tidak_pasti"
+        v
+        for v, g in GRAIN_STRUKTURAL_VIEW.items()
+        if g.punya_dimensi_pembanding == "tidak_pasti"
     ]
     assert len(tidak_pasti) > 0

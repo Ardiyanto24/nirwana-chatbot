@@ -447,8 +447,22 @@ Baris tabel "Status Proyek" M8.1 ditambahkan (kedua file, identik). Paragraf nar
 **Hasil Verifikasi**
 Review manual seluruh 3 dokumen terhadap isi nyata Checkpoint 1-19 — konsisten, tidak ada klaim tanpa bukti.
 
-**12/12 unit pembersihan lint, 4/4 job CI terverifikasi nyata, branch protection aktif — MILESTONE 8.1 SELESAI SEPENUHNYA.**
+### Task 24b — Bug ditemukan setelah push dokumentasi penutup: gitleaks menolak `main` sendiri
 
-**Commit:** `3d25584` (branch protection, Checkpoint 19); dokumentasi penutup ini menyusul commit terpisah.
+**Kesesuaian dengan plan:** Di luar plan — ditemukan HANYA setelah push dokumentasi Task 22-24, lewat pengecekan status CI run yang mengikuti kebiasaan verifikasi nyata milestone ini (bukan berhenti begitu file ditulis).
+
+**Apa yang dilakukan**
+Setelah push commit `e7d8165` (dokumentasi penutup), `gh run list` menunjukkan run CI push SEBELUMNYA (`a8dae01`, commit Checkpoint 18) **GAGAL** — `gitleaks` menolak `main` sendiri! Akar penyebab: `logs.md` Checkpoint 18 mendokumentasikan LITERAL string dummy `AKIATESTFAKEDUMMY227` (yang sengaja dipakai untuk memicu gitleaks di PR percobaan) — begitu string itu commit ke `main`, gitleaks (scan `fetch-depth: 0`, riwayat penuh) menemukannya LAGI sebagai "kebocoran" nyata, kali ini di `main` itu sendiri, bukan branch percobaan.
+
+Scan lokal (`gitleaks detect --source .`) mengonfirmasi total 4 fingerprint bermasalah tersebar 3 commit: `a8dae010`(logs.md baris 383+385), `e7d81656`(report.md baris 14 — Task 23 ikut menyalin string yang sama), `ccba8661`(commit branch percobaan Checkpoint 18 sendiri — TETAP ada di object database repo meski branch sudah dihapus, karena sempat di-push+dibuka sebagai PR).
+
+**Keputusan:** Pakai `.gitleaksignore` (mekanisme resmi, non-destruktif) daripada rewrite history (`git filter-repo`/rebase — destruktif, berisiko di repo yang sudah publik+di-fetch). 4 fingerprint didaftar dengan komentar konteks lengkap. TIDAK meredact teks `logs.md`/`report.md` existing (akan menciptakan commit BARU dengan fingerprint baru lagi, bukan menyelesaikan masalah — string yang sudah ter-commit di history immutable, hanya `.gitleaksignore` yang bisa menutup celah ini secara permanen).
+
+**Hasil Verifikasi**
+`gitleaks detect --source . -v` (fresh, lokal) → **"no leaks found"** setelah `.gitleaksignore` lengkap (sebelumnya "leaks found: 2" dengan 2 entri awal, sebelumnya lagi "leaks found: 2" versi berbeda sebelum entri pertama ditambah — 3 iterasi verifikasi sampai genuinely 0).
+
+**12/12 unit pembersihan lint, 4/4 job CI terverifikasi nyata (termasuk setelah insiden self-inflicted gitleaks ditemukan+ditutup), branch protection aktif — MILESTONE 8.1 SELESAI SEPENUHNYA.**
+
+**Commit:** `3d25584` (branch protection, Checkpoint 19); commit `.gitleaksignore` menyusul.
 
 ---

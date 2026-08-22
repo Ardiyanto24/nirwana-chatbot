@@ -22,7 +22,10 @@ from src.layers.query_engine.verifikasi_bentuk_request import (
 )
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.retriever import (
     HasilKecukupanStruktural,
     KandidatView,
@@ -51,7 +54,9 @@ def _buat_atomic_intent(
 
 
 def _buat_request(view_name: str = _VIEW) -> QueryEngineRequest:
-    return QueryEngineRequest(domain=Domain.RESERVATION, view_name=view_name, params={"property_id": "P01"})
+    return QueryEngineRequest(
+        domain=Domain.RESERVATION, view_name=view_name, params={"property_id": "P01"}
+    )
 
 
 def _buat_hasil_kecukupan(view_name_final: str | None) -> HasilKecukupanStruktural:
@@ -103,7 +108,9 @@ def test_short_circuit_susun_gagal_verifikasi_tidak_dipanggil(monkeypatch):
         )
 
     monkeypatch.setattr(
-        query_engine_module, "verifikasi_bentuk_request_atomic_intent", _gagal_kalau_terpanggil
+        query_engine_module,
+        "verifikasi_bentuk_request_atomic_intent",
+        _gagal_kalau_terpanggil,
     )
 
     hasil_susun, hasil_verifikasi = susun_dan_verifikasi_request_atomic_intent(
@@ -131,7 +138,9 @@ def test_happy_path_request_diteruskan_identik_ke_verifikasi(monkeypatch):
     )
 
     monkeypatch.setattr(
-        query_engine_module, "susun_request_atomic_intent", lambda *a, **kw: hasil_susun_sukses
+        query_engine_module,
+        "susun_request_atomic_intent",
+        lambda *a, **kw: hasil_susun_sukses,
     )
 
     diterima = {}
@@ -142,7 +151,9 @@ def test_happy_path_request_diteruskan_identik_ke_verifikasi(monkeypatch):
         return hasil_verifikasi_sukses
 
     monkeypatch.setattr(
-        query_engine_module, "verifikasi_bentuk_request_atomic_intent", _rekam_verifikasi
+        query_engine_module,
+        "verifikasi_bentuk_request_atomic_intent",
+        _rekam_verifikasi,
     )
 
     hasil_susun, hasil_verifikasi = susun_dan_verifikasi_request_atomic_intent(
@@ -165,7 +176,9 @@ def test_view_name_tervalidasi_retriever_default_ke_view_name(monkeypatch):
     )
 
     monkeypatch.setattr(
-        query_engine_module, "susun_request_atomic_intent", lambda *a, **kw: hasil_susun_sukses
+        query_engine_module,
+        "susun_request_atomic_intent",
+        lambda *a, **kw: hasil_susun_sukses,
     )
 
     diterima = {}
@@ -175,7 +188,9 @@ def test_view_name_tervalidasi_retriever_default_ke_view_name(monkeypatch):
         return None
 
     monkeypatch.setattr(
-        query_engine_module, "verifikasi_bentuk_request_atomic_intent", _rekam_verifikasi
+        query_engine_module,
+        "verifikasi_bentuk_request_atomic_intent",
+        _rekam_verifikasi,
     )
 
     susun_dan_verifikasi_request_atomic_intent(atomic_intent, _VIEW)
@@ -194,7 +209,9 @@ def test_view_name_tervalidasi_retriever_eksplisit_berbeda_diteruskan(monkeypatc
     )
 
     monkeypatch.setattr(
-        query_engine_module, "susun_request_atomic_intent", lambda *a, **kw: hasil_susun_sukses
+        query_engine_module,
+        "susun_request_atomic_intent",
+        lambda *a, **kw: hasil_susun_sukses,
     )
 
     diterima = {}
@@ -204,7 +221,9 @@ def test_view_name_tervalidasi_retriever_eksplisit_berbeda_diteruskan(monkeypatc
         return None
 
     monkeypatch.setattr(
-        query_engine_module, "verifikasi_bentuk_request_atomic_intent", _rekam_verifikasi
+        query_engine_module,
+        "verifikasi_bentuk_request_atomic_intent",
+        _rekam_verifikasi,
     )
 
     susun_dan_verifikasi_request_atomic_intent(
@@ -239,7 +258,9 @@ def test_susun_dan_verifikasi_request_semua_dipanggil_dengan_atomic_intent_dan_v
             None,
         )
 
-    monkeypatch.setattr(query_engine_module, "susun_dan_verifikasi_request_atomic_intent", _rekam)
+    monkeypatch.setattr(
+        query_engine_module, "susun_dan_verifikasi_request_atomic_intent", _rekam
+    )
 
     hasil = susun_dan_verifikasi_request_semua([item])
 
@@ -272,7 +293,9 @@ def test_susun_dan_verifikasi_request_semua_skip_item_view_name_final_none(monke
     assert hasil == []
 
 
-def test_susun_dan_verifikasi_request_semua_urutan_dan_panjang_dipertahankan(monkeypatch):
+def test_susun_dan_verifikasi_request_semua_urutan_dan_panjang_dipertahankan(
+    monkeypatch,
+):
     """Campuran: item view_name_final terisi + item None - hasil hanya
     berisi yang terisi, urutan dipertahankan, panjang hasil < panjang input."""
     item_terisi_1 = _buat_hasil_kecukupan("v_reservation_room_type_daily")
@@ -289,9 +312,13 @@ def test_susun_dan_verifikasi_request_semua_urutan_dan_panjang_dipertahankan(mon
             None,
         )
 
-    monkeypatch.setattr(query_engine_module, "susun_dan_verifikasi_request_atomic_intent", _fake)
+    monkeypatch.setattr(
+        query_engine_module, "susun_dan_verifikasi_request_atomic_intent", _fake
+    )
 
-    hasil = susun_dan_verifikasi_request_semua([item_terisi_1, item_kosong, item_terisi_2])
+    hasil = susun_dan_verifikasi_request_semua(
+        [item_terisi_1, item_kosong, item_terisi_2]
+    )
 
     assert len(hasil) == 2
     assert hasil[0][0].request.view_name == "v_reservation_room_type_daily"

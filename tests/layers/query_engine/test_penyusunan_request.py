@@ -7,8 +7,9 @@ import json
 import uuid
 from datetime import date
 
-import src.layers.query_engine.penyusunan_request as penyusunan_request_module
 from openai import APIError
+
+import src.layers.query_engine.penyusunan_request as penyusunan_request_module
 from src.layers.query_engine.penyusunan_request import (
     _build_user_prompt,
     _parse_response,
@@ -40,11 +41,15 @@ def test_build_user_prompt_memuat_tanggal_referensi_dan_whitelist():
     assert "2026-07-15" in prompt
     assert "period_date_from" in prompt
     assert "room_type_name" in prompt
-    assert "employee_id" not in prompt  # tidak pernah masuk whitelist, tidak muncul di daftar
+    assert (
+        "employee_id" not in prompt
+    )  # tidak pernah masuk whitelist, tidak muncul di daftar
 
 
 def test_build_user_prompt_tanpa_feedback_tidak_memuat_perhatian():
-    prompt = _build_user_prompt(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP, feedback=None)
+    prompt = _build_user_prompt(
+        _buat_atomic_intent(), _VIEW, _TANGGAL_TETAP, feedback=None
+    )
     assert "PERHATIAN" not in prompt
 
 
@@ -63,7 +68,9 @@ def test_build_user_prompt_dengan_feedback_menyisipkan_perhatian():
 
 
 def test_parse_response_sukses():
-    raw = json.dumps({"params": {"property_id": "P01", "period_date_from": "2026-06-01"}})
+    raw = json.dumps(
+        {"params": {"property_id": "P01", "period_date_from": "2026-06-01"}}
+    )
     params, gagal = _parse_response(raw)
     assert gagal is False
     assert params == {"property_id": "P01", "period_date_from": "2026-06-01"}
@@ -84,7 +91,9 @@ def test_parse_response_skema_salah_gagal_true():
 
 
 def test_saring_params_key_valid_lolos():
-    hasil, dibuang = _saring_params_tidak_dikenal(_VIEW, {"property_id": "P01", "room_type_name": "Suite"})
+    hasil, dibuang = _saring_params_tidak_dikenal(
+        _VIEW, {"property_id": "P01", "room_type_name": "Suite"}
+    )
     assert hasil == {"property_id": "P01", "room_type_name": "Suite"}
     assert dibuang == []
 
@@ -100,7 +109,9 @@ def test_saring_params_key_tidak_dikenal_dibuang():
 def test_saring_params_employee_id_selalu_dibuang():
     """employee_id TIDAK PERNAH lolos ke request.params, meski kebetulan
     ada di daftar kolom view (defense in depth, decisions.md Keputusan 7)."""
-    hasil, dibuang = _saring_params_tidak_dikenal(_VIEW, {"employee_id": "E0001", "property_id": "P01"})
+    hasil, dibuang = _saring_params_tidak_dikenal(
+        _VIEW, {"employee_id": "E0001", "property_id": "P01"}
+    )
     assert "employee_id" not in hasil
     assert "employee_id" in dibuang
     assert hasil == {"property_id": "P01"}
@@ -108,7 +119,13 @@ def test_saring_params_employee_id_selalu_dibuang():
 
 def test_saring_params_role_title_domain_view_name_selalu_dibuang():
     hasil, dibuang = _saring_params_tidak_dikenal(
-        _VIEW, {"role_title": "CEO", "domain": "reservation", "view_name": _VIEW, "property_id": "P01"}
+        _VIEW,
+        {
+            "role_title": "CEO",
+            "domain": "reservation",
+            "view_name": _VIEW,
+            "property_id": "P01",
+        },
     )
     assert hasil == {"property_id": "P01"}
     assert set(dibuang) == {"role_title", "domain", "view_name"}
@@ -141,10 +158,18 @@ class _FakeChatResponse:
 
 def test_orkestrator_sukses_normal(monkeypatch):
     raw = json.dumps(
-        {"params": {"property_id": "P01", "period_date_from": "2026-06-01", "period_date_to": "2026-06-30"}}
+        {
+            "params": {
+                "property_id": "P01",
+                "period_date_from": "2026-06-01",
+                "period_date_to": "2026-06-30",
+            }
+        }
     )
     monkeypatch.setattr(
-        penyusunan_request_module, "_call_llm", lambda ai, vn, tr, fb=None: _FakeChatResponse(raw)
+        penyusunan_request_module,
+        "_call_llm",
+        lambda ai, vn, tr, fb=None: _FakeChatResponse(raw),
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -176,7 +201,9 @@ def test_orkestrator_domain_diturunkan_kode_tanpa_ditanyakan_llm(monkeypatch):
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
 
     assert hasil.request.domain == Domain.RESERVATION
-    assert "view_name" in dipanggil_dengan  # _call_llm hanya terima view_name, bukan domain
+    assert (
+        "view_name" in dipanggil_dengan
+    )  # _call_llm hanya terima view_name, bukan domain
 
 
 def test_orkestrator_api_error_gagal_teknis(monkeypatch):
@@ -193,7 +220,9 @@ def test_orkestrator_api_error_gagal_teknis(monkeypatch):
 
 def test_orkestrator_empty_choices_gagal_teknis(monkeypatch):
     monkeypatch.setattr(
-        penyusunan_request_module, "_call_llm", lambda ai, vn, tr, fb=None: _FakeChatResponse("", choices=[])
+        penyusunan_request_module,
+        "_call_llm",
+        lambda ai, vn, tr, fb=None: _FakeChatResponse("", choices=[]),
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -216,7 +245,9 @@ def test_orkestrator_json_rusak_gagal_teknis(monkeypatch):
 def test_orkestrator_key_tidak_dikenal_tersaring_dari_request_final(monkeypatch):
     raw = json.dumps({"params": {"property_id": "P01", "kolom_karangan": "nilai"}})
     monkeypatch.setattr(
-        penyusunan_request_module, "_call_llm", lambda ai, vn, tr, fb=None: _FakeChatResponse(raw)
+        penyusunan_request_module,
+        "_call_llm",
+        lambda ai, vn, tr, fb=None: _FakeChatResponse(raw),
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -228,7 +259,9 @@ def test_orkestrator_key_tidak_dikenal_tersaring_dari_request_final(monkeypatch)
 def test_orkestrator_employee_id_dari_llm_tidak_pernah_lolos(monkeypatch):
     raw = json.dumps({"params": {"employee_id": "E0001", "property_id": "P01"}})
     monkeypatch.setattr(
-        penyusunan_request_module, "_call_llm", lambda ai, vn, tr, fb=None: _FakeChatResponse(raw)
+        penyusunan_request_module,
+        "_call_llm",
+        lambda ai, vn, tr, fb=None: _FakeChatResponse(raw),
     )
 
     hasil = susun_request_atomic_intent(_buat_atomic_intent(), _VIEW, _TANGGAL_TETAP)
@@ -274,7 +307,9 @@ def test_orkestrator_feedback_default_none(monkeypatch):
     assert diterima["feedback"] is None
 
 
-def test_orkestrator_tanggal_referensi_default_terpakai_kalau_tidak_diberikan(monkeypatch):
+def test_orkestrator_tanggal_referensi_default_terpakai_kalau_tidak_diberikan(
+    monkeypatch,
+):
     """tanggal_referensi=None -> default dihitung server-side, bukan
     error/None diteruskan mentah ke _call_llm."""
     tanggal_dipakai = {}

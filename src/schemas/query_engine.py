@@ -17,8 +17,9 @@ TIDAK berlaku di M3.4 (BERHASIL selalu berarti ada request konkret).
 Lihat decisions.md Keputusan 6.
 """
 
+from typing import Self
+
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.session_memory import StatusEksekusi

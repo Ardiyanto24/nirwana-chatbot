@@ -185,6 +185,24 @@ Keputusan 17 (lihat `decisions.md`) - migrasi UP042 diterapkan project-wide di c
 **Hasil Verifikasi**
 `ruff check`+`format --check` → "All checks passed!"/"10 files already formatted". `uv run pytest tests/orchestration/` → 41/41 passed (5.39s).
 
+**Commit:** `d9b3c3c` — `chore(milestone-8.1): pembersihan ruff - Orchestration`
+
+---
+
+## Checkpoint 10 — Bersihkan Unit 7: Query Engine
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 10 — Ruff fix Unit 7
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 11 file Unit 7. Seluruh 9 temuan (6x `I001`, 1x `UP035`, 1x `SIM300` Yoda condition) auto-fixed, 0 manual.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"11 files already formatted". `uv run pytest tests/layers/query_engine/` → 75/75 passed (11.96s).
+
 **Commit:** (menyusul)
 
 ---

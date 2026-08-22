@@ -31,7 +31,10 @@ from pydantic import BaseModel, ValidationError
 
 from src.config.katalog_view import view_ke_domain
 from src.config.llm import OPENROUTER_MODEL_PENYUSUNAN_REQUEST, get_openrouter_client
-from src.layers.query_engine.param_whitelist import PARAM_TERLARANG, PARAM_WHITELIST_VIEW
+from src.layers.query_engine.param_whitelist import (
+    PARAM_TERLARANG,
+    PARAM_WHITELIST_VIEW,
+)
 from src.layers.retriever.definisi_view import DEFINISI_LENGKAP_VIEW
 from src.observability.genai_semconv import (
     GEN_AI_OPERATION_NAME,
@@ -83,7 +86,9 @@ def _build_user_prompt(
             f"Perbaiki parameter berikut berdasarkan alasan ini."
         )
     lines.append(f"\nView data yang dipakai: {view_name}")
-    lines.append(f"\nDefinisi lengkap view (untuk memahami arti tiap kolom):\n{definisi}")
+    lines.append(
+        f"\nDefinisi lengkap view (untuk memahami arti tiap kolom):\n{definisi}"
+    )
     lines.append(
         f"\nDaftar parameter yang VALID untuk view ini "
         f"(HANYA boleh pakai key dari daftar ini):\n{', '.join(whitelist)}"
@@ -107,7 +112,9 @@ def _call_llm(
             {"role": "system", "content": _render_system_prompt()},
             {
                 "role": "user",
-                "content": _build_user_prompt(atomic_intent, view_name, tanggal_referensi, feedback),
+                "content": _build_user_prompt(
+                    atomic_intent, view_name, tanggal_referensi, feedback
+                ),
             },
         ],
         response_format={"type": "json_object"},
@@ -132,7 +139,9 @@ def _parse_response(raw_content: str) -> tuple[dict | None, bool]:
     return hasil.params, False
 
 
-def _saring_params_tidak_dikenal(view_name: str, params: dict) -> tuple[dict, list[str]]:
+def _saring_params_tidak_dikenal(
+    view_name: str, params: dict
+) -> tuple[dict, list[str]]:
     """Filter deterministik pasca-LLM: buang key mana pun yang TIDAK ada
     persis (exact match) di PARAM_WHITELIST_VIEW[view_name]; secara
     eksplisit strip PARAM_TERLARANG kapan pun muncul (defense in depth,
@@ -183,37 +192,54 @@ def susun_request_atomic_intent(
         try:
             response = _call_llm(atomic_intent, view_name, tanggal_referensi, feedback)
         except APIError as exc:
-            span.set_attribute("query_engine.penyusunan_request.gagal_alasan", f"api_error: {exc}")
+            span.set_attribute(
+                "query_engine.penyusunan_request.gagal_alasan", f"api_error: {exc}"
+            )
             return HasilPenyusunanRequest(
-                atomic_intent=atomic_intent, request=None, status=StatusEksekusi.GAGAL_TEKNIS
+                atomic_intent=atomic_intent,
+                request=None,
+                status=StatusEksekusi.GAGAL_TEKNIS,
             )
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
-            span.set_attribute("query_engine.penyusunan_request.gagal_alasan", "empty_choices")
+            span.set_attribute(
+                "query_engine.penyusunan_request.gagal_alasan", "empty_choices"
+            )
             return HasilPenyusunanRequest(
-                atomic_intent=atomic_intent, request=None, status=StatusEksekusi.GAGAL_TEKNIS
+                atomic_intent=atomic_intent,
+                request=None,
+                status=StatusEksekusi.GAGAL_TEKNIS,
             )
 
         raw_content = response.choices[0].message.content or ""
         params_mentah, gagal = _parse_response(raw_content)
 
         if gagal:
-            span.set_attribute("query_engine.penyusunan_request.gagal_alasan", "parse_error")
+            span.set_attribute(
+                "query_engine.penyusunan_request.gagal_alasan", "parse_error"
+            )
             return HasilPenyusunanRequest(
-                atomic_intent=atomic_intent, request=None, status=StatusEksekusi.GAGAL_TEKNIS
+                atomic_intent=atomic_intent,
+                request=None,
+                status=StatusEksekusi.GAGAL_TEKNIS,
             )
 
         params_bersih, dibuang = _saring_params_tidak_dikenal(view_name, params_mentah)
         if dibuang:
             span.set_attribute(
-                "query_engine.penyusunan_request.params_dibuang", ", ".join(sorted(dibuang))
+                "query_engine.penyusunan_request.params_dibuang",
+                ", ".join(sorted(dibuang)),
             )
 
-        request = QueryEngineRequest(domain=domain, view_name=view_name, params=params_bersih)
+        request = QueryEngineRequest(
+            domain=domain, view_name=view_name, params=params_bersih
+        )
         return HasilPenyusunanRequest(
             atomic_intent=atomic_intent, request=request, status=StatusEksekusi.BERHASIL
         )

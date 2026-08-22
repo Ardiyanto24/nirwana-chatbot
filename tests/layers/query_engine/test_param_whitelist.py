@@ -16,7 +16,9 @@ from src.layers.query_engine.param_whitelist import (
 
 
 def test_bijektif_dengan_daftar_view_per_domain():
-    seluruh_view_katalog = {v for views in DAFTAR_VIEW_PER_DOMAIN.values() for v in views}
+    seluruh_view_katalog = {
+        v for views in DAFTAR_VIEW_PER_DOMAIN.values() for v in views
+    }
     assert set(PARAM_WHITELIST_VIEW.keys()) == seluruh_view_katalog
 
 
@@ -36,7 +38,7 @@ def test_setiap_view_punya_lebih_dari_param_global_saja():
 
 def test_param_global_selalu_ada_di_setiap_view():
     for whitelist in PARAM_WHITELIST_VIEW.values():
-        assert PARAM_GLOBAL <= whitelist
+        assert whitelist >= PARAM_GLOBAL
 
 
 def test_param_terlarang_tidak_pernah_bocor_ke_whitelist_manapun():

@@ -6,8 +6,9 @@ preseden test_penyusunan_request.py vs *_schema.py (M3.4)."""
 import json
 import uuid
 
-import src.layers.query_engine.verifikasi_bentuk_request as verifikasi_module
 from openai import APIError
+
+import src.layers.query_engine.verifikasi_bentuk_request as verifikasi_module
 from src.layers.query_engine.verifikasi_bentuk_request import (
     _build_user_prompt,
     _parse_response,
@@ -36,7 +37,9 @@ def _buat_atomic_intent(
     )
 
 
-def _buat_request(view_name: str = _VIEW, params: dict | None = None) -> QueryEngineRequest:
+def _buat_request(
+    view_name: str = _VIEW, params: dict | None = None
+) -> QueryEngineRequest:
     return QueryEngineRequest(
         domain=Domain.RESERVATION,
         view_name=view_name,
@@ -156,7 +159,9 @@ def test_pre_check_gagal_llm_tidak_pernah_dipanggil(monkeypatch):
 
 def test_pre_check_lolos_llm_lolos_true(monkeypatch):
     raw = json.dumps({"lolos": True})
-    monkeypatch.setattr(verifikasi_module, "_call_llm", lambda ai, req: _FakeChatResponse(raw))
+    monkeypatch.setattr(
+        verifikasi_module, "_call_llm", lambda ai, req: _FakeChatResponse(raw)
+    )
 
     hasil = verifikasi_bentuk_request_atomic_intent(
         _buat_atomic_intent(), _VIEW, _buat_request(_VIEW)
@@ -169,8 +174,15 @@ def test_pre_check_lolos_llm_lolos_true(monkeypatch):
 
 
 def test_pre_check_lolos_llm_lolos_false_dengan_alasan(monkeypatch):
-    raw = json.dumps({"lolos": False, "alasan": "rentang tanggal hanya satu hari, tidak cukup untuk tren"})
-    monkeypatch.setattr(verifikasi_module, "_call_llm", lambda ai, req: _FakeChatResponse(raw))
+    raw = json.dumps(
+        {
+            "lolos": False,
+            "alasan": "rentang tanggal hanya satu hari, tidak cukup untuk tren",
+        }
+    )
+    monkeypatch.setattr(
+        verifikasi_module, "_call_llm", lambda ai, req: _FakeChatResponse(raw)
+    )
 
     ai = _buat_atomic_intent(label=LabelBentukJawaban.TREN)
     hasil = verifikasi_bentuk_request_atomic_intent(ai, _VIEW, _buat_request(_VIEW))
@@ -198,7 +210,9 @@ def test_api_error_gagal_teknis(monkeypatch):
 
 def test_empty_choices_gagal_teknis(monkeypatch):
     monkeypatch.setattr(
-        verifikasi_module, "_call_llm", lambda ai, req: _FakeChatResponse("", choices=[])
+        verifikasi_module,
+        "_call_llm",
+        lambda ai, req: _FakeChatResponse("", choices=[]),
     )
 
     hasil = verifikasi_bentuk_request_atomic_intent(
@@ -239,7 +253,11 @@ def test_semua_statistik_agregat_campuran(monkeypatch):
     daftar = [
         (_buat_atomic_intent("kebutuhan 1"), _VIEW, _buat_request(_VIEW)),
         (_buat_atomic_intent("kebutuhan 2"), _VIEW, _buat_request(_VIEW)),
-        (_buat_atomic_intent("kebutuhan 3"), _VIEW, _buat_request(_VIEW_LAIN)),  # pre-check gagal
+        (
+            _buat_atomic_intent("kebutuhan 3"),
+            _VIEW,
+            _buat_request(_VIEW_LAIN),
+        ),  # pre-check gagal
     ]
 
     hasil = verifikasi_bentuk_request_semua(daftar)

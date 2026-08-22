@@ -35,7 +35,10 @@ from src.layers.query_engine.verifikasi_bentuk_request import (
 )
 from src.observability.tracing import get_tracer
 from src.schemas.decomposition import AtomicIntent
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.session_memory import StatusEksekusi
 
@@ -89,11 +92,15 @@ def susun_dan_verifikasi_request_semua(
     tervalidasi_retriever` diisi dari `view_name_final` yang SAMA
     (decisions.md Keputusan 5)."""
     tracer = get_tracer(_TRACER_NAME)
-    with tracer.start_as_current_span("query_engine.susun_dan_verifikasi_request_semua") as span:
+    with tracer.start_as_current_span(
+        "query_engine.susun_dan_verifikasi_request_semua"
+    ) as span:
         span.set_attribute("intent.count", len(daftar_retriever))
 
         hasil = [
-            susun_dan_verifikasi_request_atomic_intent(item.atomic_intent, item.view_name_final)
+            susun_dan_verifikasi_request_atomic_intent(
+                item.atomic_intent, item.view_name_final
+            )
             for item in daftar_retriever
             if item.view_name_final is not None
         ]

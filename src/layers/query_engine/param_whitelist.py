@@ -44,7 +44,9 @@ _KOLOM_TABLE_HEADER = "| Kolom | Deskripsi |"
 _BACKTICK_NAME = re.compile(r"`([a-z_][a-z0-9_]*)`")
 
 PARAM_GLOBAL: frozenset[str] = frozenset({"limit", "offset"})
-PARAM_TERLARANG: frozenset[str] = frozenset({"employee_id", "role_title", "domain", "view_name"})
+PARAM_TERLARANG: frozenset[str] = frozenset(
+    {"employee_id", "role_title", "domain", "view_name"}
+)
 
 
 def _ekstrak_nama_kolom(definisi: str) -> list[str]:

@@ -11,7 +11,10 @@ from pydantic import ValidationError
 
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 from src.schemas.verification_gate import QueryEngineRequest
 
@@ -29,13 +32,19 @@ def _buat_request() -> QueryEngineRequest:
     return QueryEngineRequest(
         domain=Domain.RESERVATION,
         view_name="v_reservation_room_type_daily",
-        params={"property_id": "P01", "period_date_from": "2026-07-01", "period_date_to": "2026-07-31"},
+        params={
+            "property_id": "P01",
+            "period_date_from": "2026-07-01",
+            "period_date_to": "2026-07-31",
+        },
     )
 
 
 def test_berhasil_dengan_request_terisi_valid():
     hasil = HasilPenyusunanRequest(
-        atomic_intent=_buat_atomic_intent(), request=_buat_request(), status=StatusEksekusi.BERHASIL
+        atomic_intent=_buat_atomic_intent(),
+        request=_buat_request(),
+        status=StatusEksekusi.BERHASIL,
     )
     assert hasil.status == StatusEksekusi.BERHASIL
     assert hasil.request is not None
@@ -44,7 +53,9 @@ def test_berhasil_dengan_request_terisi_valid():
 def test_berhasil_dengan_request_none_ditolak():
     with pytest.raises(ValidationError):
         HasilPenyusunanRequest(
-            atomic_intent=_buat_atomic_intent(), request=None, status=StatusEksekusi.BERHASIL
+            atomic_intent=_buat_atomic_intent(),
+            request=None,
+            status=StatusEksekusi.BERHASIL,
         )
 
 
@@ -59,7 +70,9 @@ def test_gagal_teknis_dengan_request_terisi_ditolak():
 
 def test_gagal_teknis_dengan_request_none_valid():
     hasil = HasilPenyusunanRequest(
-        atomic_intent=_buat_atomic_intent(), request=None, status=StatusEksekusi.GAGAL_TEKNIS
+        atomic_intent=_buat_atomic_intent(),
+        request=None,
+        status=StatusEksekusi.GAGAL_TEKNIS,
     )
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
     assert hasil.request is None

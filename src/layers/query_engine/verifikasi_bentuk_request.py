@@ -24,7 +24,10 @@ import json
 from openai import APIError
 from pydantic import BaseModel, ValidationError
 
-from src.config.llm import OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST, get_openrouter_client
+from src.config.llm import (
+    OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST,
+    get_openrouter_client,
+)
 from src.layers.retriever.definisi_view import DEFINISI_LENGKAP_VIEW
 from src.observability.genai_semconv import (
     GEN_AI_OPERATION_NAME,
@@ -64,7 +67,9 @@ def _render_system_prompt() -> str:
 
 
 def _build_user_prompt(atomic_intent: AtomicIntent, request: QueryEngineRequest) -> str:
-    definisi = DEFINISI_LENGKAP_VIEW.get(request.view_name, "(definisi tidak ditemukan)")
+    definisi = DEFINISI_LENGKAP_VIEW.get(
+        request.view_name, "(definisi tidak ditemukan)"
+    )
     return (
         f"Kebutuhan: {atomic_intent.teks_kebutuhan} "
         f"(bentuk jawaban: {atomic_intent.label_bentuk_jawaban.value})\n"
@@ -137,7 +142,9 @@ def verifikasi_bentuk_request_atomic_intent(
 
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
-        span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST)
+        span.set_attribute(
+            GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_VERIFIKASI_BENTUK_REQUEST
+        )
         span.set_attribute(PROMPT_ID, prompt.id)
         span.set_attribute(PROMPT_VERSION, prompt.version)
         span.set_attribute(REQUEST_DOMAIN, request.domain.value)
@@ -147,7 +154,8 @@ def verifikasi_bentuk_request_atomic_intent(
             response = _call_llm(atomic_intent, request)
         except APIError as exc:
             span.set_attribute(
-                "query_engine.verifikasi_bentuk_request.gagal_alasan", f"api_error: {exc}"
+                "query_engine.verifikasi_bentuk_request.gagal_alasan",
+                f"api_error: {exc}",
             )
             return HasilVerifikasiBentukRequest(
                 atomic_intent=atomic_intent,
@@ -159,7 +167,9 @@ def verifikasi_bentuk_request_atomic_intent(
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
             span.set_attribute(
@@ -208,7 +218,9 @@ def verifikasi_bentuk_request_semua(
     statistik agregat, mirror nilai_kecocokan_makna_semua()/
     identifikasi_domain_semua() (Keputusan 13)."""
     tracer = get_tracer(_TRACER_NAME)
-    with tracer.start_as_current_span("query_engine.verifikasi_bentuk_request_semua") as span:
+    with tracer.start_as_current_span(
+        "query_engine.verifikasi_bentuk_request_semua"
+    ) as span:
         span.set_attribute("verifikasi_bentuk_request.intent_count", len(daftar))
 
         hasil = [
@@ -218,9 +230,15 @@ def verifikasi_bentuk_request_semua(
 
         lolos_count = sum(1 for h in hasil if h.lolos is True)
         perlu_revisi_count = sum(1 for h in hasil if h.lolos is False)
-        gagal_teknis_count = sum(1 for h in hasil if h.status == StatusEksekusi.GAGAL_TEKNIS)
+        gagal_teknis_count = sum(
+            1 for h in hasil if h.status == StatusEksekusi.GAGAL_TEKNIS
+        )
         span.set_attribute("verifikasi_bentuk_request.lolos_count", lolos_count)
-        span.set_attribute("verifikasi_bentuk_request.perlu_revisi_count", perlu_revisi_count)
-        span.set_attribute("verifikasi_bentuk_request.gagal_teknis_count", gagal_teknis_count)
+        span.set_attribute(
+            "verifikasi_bentuk_request.perlu_revisi_count", perlu_revisi_count
+        )
+        span.set_attribute(
+            "verifikasi_bentuk_request.gagal_teknis_count", gagal_teknis_count
+        )
 
         return hasil

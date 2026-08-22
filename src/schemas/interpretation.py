@@ -24,8 +24,9 @@ dicatat PROVISIONAL (docs/keputusan-tertunda.md #4). Lihat
 milestones/4.5-.../decisions.md Keputusan 8-9.
 """
 
+from typing import Self
+
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 

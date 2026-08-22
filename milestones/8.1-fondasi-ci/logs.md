@@ -149,6 +149,24 @@ Keputusan 17 (lihat `decisions.md`) - migrasi UP042 diterapkan project-wide di c
 **Hasil Verifikasi**
 `golangci-lint run` → "0 issues." `go test ./...` → 18/18 PASS (termasuk test `Buffer`/retry/queue/eviction M6.2 yang sensitif terhadap regresi).
 
+**Commit:** `22d98b0` — `chore(milestone-8.1): konfigurasi dan pembersihan golangci-lint exporter`
+
+---
+
+## Checkpoint 8 — Bersihkan Unit 5: Interpretation
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 8 — Ruff fix Unit 5
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 9 file Unit 5. Seluruh 6 temuan (5x `I001` import unsorted, 1x `UP035`) auto-fixed, 0 manual.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"9 files already formatted". `uv run pytest tests/layers/interpretation/` → **34/34 passed** (40.74s) — termasuk 2 test konektivitas real-LLM yang sebelumnya gagal karena `GAGAL_TEKNIS` di Checkpoint 6 (lihat investigasi causality di sana); kali ini lolos bersih, mengonfirmasi ulang itu memang non-determinisme LLM sesaat, bukan bug.
+
 **Commit:** (menyusul)
 
 ---

@@ -7,7 +7,11 @@ from src.layers.interpretation.visualisasi import (
     susun_data_visualisasi,
     susun_data_visualisasi_semua,
 )
-from src.schemas.session_memory import LabelBentukJawaban, SessionMemoryPackage, StatusEksekusi
+from src.schemas.session_memory import (
+    LabelBentukJawaban,
+    SessionMemoryPackage,
+    StatusEksekusi,
+)
 
 
 def _paket(
@@ -27,7 +31,9 @@ def _paket(
 
 
 def test_nilai_tunggal_satu_baris_satu_kolom_jadi_scalar():
-    hasil = susun_data_visualisasi(_paket(LabelBentukJawaban.NILAI_TUNGGAL, [{"occupancy_rate": 0.82}]))
+    hasil = susun_data_visualisasi(
+        _paket(LabelBentukJawaban.NILAI_TUNGGAL, [{"occupancy_rate": 0.82}])
+    )
     assert hasil.nilai_tunggal == 0.82
     assert hasil.deret is None
 
@@ -47,7 +53,11 @@ def test_nilai_tunggal_ambigu_multi_baris_fallback_deret():
 
 
 def test_tren_multi_baris_jadi_deret():
-    rows = [{"bulan": "Jan", "v": 0.7}, {"bulan": "Feb", "v": 0.75}, {"bulan": "Mar", "v": 0.8}]
+    rows = [
+        {"bulan": "Jan", "v": 0.7},
+        {"bulan": "Feb", "v": 0.75},
+        {"bulan": "Mar", "v": 0.8},
+    ]
     hasil = susun_data_visualisasi(_paket(LabelBentukJawaban.TREN, rows))
     assert hasil.deret == rows
     assert hasil.nilai_tunggal is None
@@ -66,7 +76,10 @@ def test_peringkat_jadi_deret():
 
 
 def test_komposisi_jadi_deret():
-    rows = [{"departemen": "F&B", "revenue": 100}, {"departemen": "Housekeeping", "revenue": 50}]
+    rows = [
+        {"departemen": "F&B", "revenue": 100},
+        {"departemen": "Housekeeping", "revenue": 50},
+    ]
     hasil = susun_data_visualisasi(_paket(LabelBentukJawaban.KOMPOSISI, rows))
     assert hasil.deret == rows
 

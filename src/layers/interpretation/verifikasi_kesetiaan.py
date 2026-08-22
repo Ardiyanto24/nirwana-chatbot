@@ -23,7 +23,9 @@ from openai import APIError
 from pydantic import BaseModel, ValidationError
 
 from src.config.llm import OPENROUTER_MODEL_VERIFIKASI_KESETIAAN, get_openrouter_client
-from src.layers.interpretation.narasi import _build_user_prompt as _build_user_prompt_narasi
+from src.layers.interpretation.narasi import (
+    _build_user_prompt as _build_user_prompt_narasi,
+)
 from src.layers.interpretation.visualisasi import susun_data_visualisasi_semua
 from src.observability.genai_semconv import (
     GEN_AI_OPERATION_NAME,
@@ -44,7 +46,9 @@ _PROMPT_ID = "interpretation.verifikasi_kesetiaan"
 
 
 def _build_user_prompt(
-    narasi: str, atomic_intents: list[AtomicIntent], packages: list[SessionMemoryPackage]
+    narasi: str,
+    atomic_intents: list[AtomicIntent],
+    packages: list[SessionMemoryPackage],
 ) -> str:
     """Konteks ground-truth (reuse narasi._build_user_prompt(), Keputusan 5)
     + narasi yang dinilai."""
@@ -52,7 +56,11 @@ def _build_user_prompt(
     return f"{konteks_sumber}\n\nNarasi yang dinilai:\n{narasi}"
 
 
-def _call_llm(narasi: str, atomic_intents: list[AtomicIntent], packages: list[SessionMemoryPackage]):
+def _call_llm(
+    narasi: str,
+    atomic_intents: list[AtomicIntent],
+    packages: list[SessionMemoryPackage],
+):
     """Panggilan mentah ke OpenRouter, tanpa span/parsing - dipisah supaya
     bisa dipakai ulang oleh skrip eval (`evals/`), mirror pola seluruh
     layer LLM lain."""
@@ -119,26 +127,41 @@ def verifikasi_kesetiaan_narasi(
                 "interpretation.verifikasi_kesetiaan.gagal_alasan", f"api_error: {exc}"
             )
             return HasilVerifikasiNarasi(
-                narasi=narasi, status=StatusEksekusi.GAGAL_TEKNIS, lolos=None, alasan=None
+                narasi=narasi,
+                status=StatusEksekusi.GAGAL_TEKNIS,
+                lolos=None,
+                alasan=None,
             )
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
-            span.set_attribute("interpretation.verifikasi_kesetiaan.gagal_alasan", "empty_choices")
+            span.set_attribute(
+                "interpretation.verifikasi_kesetiaan.gagal_alasan", "empty_choices"
+            )
             return HasilVerifikasiNarasi(
-                narasi=narasi, status=StatusEksekusi.GAGAL_TEKNIS, lolos=None, alasan=None
+                narasi=narasi,
+                status=StatusEksekusi.GAGAL_TEKNIS,
+                lolos=None,
+                alasan=None,
             )
 
         raw_content = response.choices[0].message.content or ""
         lolos, alasan, gagal = _parse_response(raw_content)
 
         if gagal:
-            span.set_attribute("interpretation.verifikasi_kesetiaan.gagal_alasan", "parse_error")
+            span.set_attribute(
+                "interpretation.verifikasi_kesetiaan.gagal_alasan", "parse_error"
+            )
             return HasilVerifikasiNarasi(
-                narasi=narasi, status=StatusEksekusi.GAGAL_TEKNIS, lolos=None, alasan=None
+                narasi=narasi,
+                status=StatusEksekusi.GAGAL_TEKNIS,
+                lolos=None,
+                alasan=None,
             )
 
         span.set_attribute("interpretation.verifikasi_kesetiaan.lolos", lolos)

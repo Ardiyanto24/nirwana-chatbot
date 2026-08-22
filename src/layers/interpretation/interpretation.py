@@ -14,9 +14,15 @@ Lihat milestones/7.5-menyambungkan-interpretation/decisions.md.
 """
 
 from src.layers.interpretation.narasi import susun_narasi
-from src.layers.interpretation.verifikasi_kesetiaan import verifikasi_dan_susun_visualisasi
+from src.layers.interpretation.verifikasi_kesetiaan import (
+    verifikasi_dan_susun_visualisasi,
+)
 from src.schemas.decomposition import AtomicIntent
-from src.schemas.interpretation import DataVisualisasi, HasilNarasi, HasilVerifikasiNarasi
+from src.schemas.interpretation import (
+    DataVisualisasi,
+    HasilNarasi,
+    HasilVerifikasiNarasi,
+)
 from src.schemas.session_memory import SessionMemoryPackage
 
 

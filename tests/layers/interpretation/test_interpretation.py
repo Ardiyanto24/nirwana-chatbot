@@ -13,10 +13,20 @@ import pytest
 import src.layers.interpretation.interpretation as interpretation_module
 from src.layers.interpretation.interpretation import susun_dan_verifikasi_narasi
 from src.layers.interpretation.narasi import susun_narasi
-from src.layers.interpretation.verifikasi_kesetiaan import verifikasi_dan_susun_visualisasi
+from src.layers.interpretation.verifikasi_kesetiaan import (
+    verifikasi_dan_susun_visualisasi,
+)
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
-from src.schemas.interpretation import DataVisualisasi, HasilNarasi, HasilVerifikasiNarasi
-from src.schemas.session_memory import LabelBentukJawaban, SessionMemoryPackage, StatusEksekusi
+from src.schemas.interpretation import (
+    DataVisualisasi,
+    HasilNarasi,
+    HasilVerifikasiNarasi,
+)
+from src.schemas.session_memory import (
+    LabelBentukJawaban,
+    SessionMemoryPackage,
+    StatusEksekusi,
+)
 
 
 def _buat_atomic_intent(teks: str = "okupansi Bali bulan lalu") -> AtomicIntent:
@@ -84,7 +94,9 @@ def test_narasi_diteruskan_identik_ke_verifikasi(monkeypatch):
         [atomic_intent], [paket], "s1", 1
     )
 
-    assert diterima["narasi"] is hasil_narasi_sukses.narasi  # identity, bukan rekonstruksi
+    assert (
+        diterima["narasi"] is hasil_narasi_sukses.narasi
+    )  # identity, bukan rekonstruksi
     assert hasil_narasi is hasil_narasi_sukses
     assert hasil_verifikasi is hasil_verifikasi_sukses
     assert visualisasi is visualisasi_sukses

@@ -104,7 +104,9 @@ def test_build_user_prompt_menyertakan_relasi_bergantung_pada():
         relasi=RelasiKebutuhan.BERGANTUNG,
         bergantung_pada=[ai_prasyarat.atomic_intent_id],
     )
-    paket_prasyarat = _buat_paket(ai_prasyarat.atomic_intent_id, status=StatusEksekusi.GAGAL_TEKNIS)
+    paket_prasyarat = _buat_paket(
+        ai_prasyarat.atomic_intent_id, status=StatusEksekusi.GAGAL_TEKNIS
+    )
     paket_bergantung = _buat_paket(
         ai_bergantung.atomic_intent_id, status=StatusEksekusi.TERBLOKIR_KETERGANTUNGAN
     )
@@ -201,11 +203,15 @@ def test_susun_narasi_atribut_span_terisi_sesuai_kontrak(monkeypatch):
     paket_lama = _buat_paket(ai_lama.atomic_intent_id, sumber="session_memory (turn 3)")
 
     monkeypatch.setattr(
-        modul, "_call_llm", lambda ais, pks: _FakeChatResponse("Narasi.", _FakeUsage(500, 120))
+        modul,
+        "_call_llm",
+        lambda ais, pks: _FakeChatResponse("Narasi.", _FakeUsage(500, 120)),
     )
     tracer_rekam = _patch_tracer(monkeypatch)
 
-    susun_narasi([ai_baru, ai_lama], [paket_baru, paket_lama], session_id="s1", turn_index=5)
+    susun_narasi(
+        [ai_baru, ai_lama], [paket_baru, paket_lama], session_id="s1", turn_index=5
+    )
 
     atribut = tracer_rekam.span.atribut
     assert atribut["session.id"] == "s1"

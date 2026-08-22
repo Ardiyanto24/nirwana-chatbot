@@ -18,7 +18,11 @@ from src.layers.interpretation.verifikasi_kesetiaan import (
 )
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.interpretation import HasilVerifikasiNarasi
-from src.schemas.session_memory import LabelBentukJawaban, SessionMemoryPackage, StatusEksekusi
+from src.schemas.session_memory import (
+    LabelBentukJawaban,
+    SessionMemoryPackage,
+    StatusEksekusi,
+)
 
 
 def _buat_atomic_intent(teks: str = "kebutuhan") -> AtomicIntent:
@@ -107,7 +111,9 @@ def test_lolos_true(monkeypatch):
         modul, "_call_llm", lambda n, ais, pks: _FakeChatResponse('{"lolos": true}')
     )
 
-    hasil = verifikasi_kesetiaan_narasi("narasi jujur", [ai], [paket], session_id="s1", turn_index=1)
+    hasil = verifikasi_kesetiaan_narasi(
+        "narasi jujur", [ai], [paket], session_id="s1", turn_index=1
+    )
 
     assert hasil.status == StatusEksekusi.BERHASIL
     assert hasil.lolos is True
@@ -121,7 +127,9 @@ def test_lolos_false_dengan_alasan(monkeypatch):
     raw = '{"lolos": false, "alasan": "ada klaim sebab-akibat tak berdasar"}'
     monkeypatch.setattr(modul, "_call_llm", lambda n, ais, pks: _FakeChatResponse(raw))
 
-    hasil = verifikasi_kesetiaan_narasi("narasi buruk", [ai], [paket], session_id="s1", turn_index=1)
+    hasil = verifikasi_kesetiaan_narasi(
+        "narasi buruk", [ai], [paket], session_id="s1", turn_index=1
+    )
 
     assert hasil.lolos is False
     assert hasil.alasan == "ada klaim sebab-akibat tak berdasar"
@@ -134,7 +142,9 @@ def test_lolos_false_tanpa_alasan_dari_llm_dapat_fallback_generik(monkeypatch):
         modul, "_call_llm", lambda n, ais, pks: _FakeChatResponse('{"lolos": false}')
     )
 
-    hasil = verifikasi_kesetiaan_narasi("x", [ai], [paket], session_id="s1", turn_index=1)
+    hasil = verifikasi_kesetiaan_narasi(
+        "x", [ai], [paket], session_id="s1", turn_index=1
+    )
 
     assert hasil.lolos is False
     assert hasil.alasan is not None
@@ -149,7 +159,9 @@ def test_api_error_fallback_aman_gagal_teknis(monkeypatch):
 
     monkeypatch.setattr(modul, "_call_llm", _raise)
 
-    hasil = verifikasi_kesetiaan_narasi("x", [ai], [paket], session_id="s1", turn_index=1)
+    hasil = verifikasi_kesetiaan_narasi(
+        "x", [ai], [paket], session_id="s1", turn_index=1
+    )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
     assert hasil.lolos is None
@@ -160,10 +172,14 @@ def test_json_rusak_gagal_teknis(monkeypatch):
     ai = _buat_atomic_intent()
     paket = _buat_paket(ai.atomic_intent_id)
     monkeypatch.setattr(
-        modul, "_call_llm", lambda n, ais, pks: _FakeChatResponse("bukan json valid {{{")
+        modul,
+        "_call_llm",
+        lambda n, ais, pks: _FakeChatResponse("bukan json valid {{{"),
     )
 
-    hasil = verifikasi_kesetiaan_narasi("x", [ai], [paket], session_id="s1", turn_index=1)
+    hasil = verifikasi_kesetiaan_narasi(
+        "x", [ai], [paket], session_id="s1", turn_index=1
+    )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
 
@@ -175,7 +191,9 @@ def test_empty_choices_gagal_teknis(monkeypatch):
         modul, "_call_llm", lambda n, ais, pks: _FakeChatResponse("", choices=[])
     )
 
-    hasil = verifikasi_kesetiaan_narasi("x", [ai], [paket], session_id="s1", turn_index=1)
+    hasil = verifikasi_kesetiaan_narasi(
+        "x", [ai], [paket], session_id="s1", turn_index=1
+    )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
 
@@ -243,7 +261,9 @@ def test_orkestrator_lolos_false_visualisasi_none_dan_tidak_dipanggil(monkeypatc
 
     assert hasil_verifikasi.lolos is False
     assert visualisasi is None
-    assert dipanggil["count"] == 0, "susun_data_visualisasi_semua() TIDAK boleh dipanggil saat lolos=False"
+    assert dipanggil["count"] == 0, (
+        "susun_data_visualisasi_semua() TIDAK boleh dipanggil saat lolos=False"
+    )
 
 
 def test_orkestrator_gagal_teknis_visualisasi_none(monkeypatch):

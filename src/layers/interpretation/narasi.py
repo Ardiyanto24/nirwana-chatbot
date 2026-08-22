@@ -70,7 +70,11 @@ def _build_user_prompt(
     packages_by_id = {p.atomic_intent_id: p for p in packages}
     intents_by_id = {ai.atomic_intent_id: ai for ai in atomic_intents}
 
-    hilang = [ai.atomic_intent_id for ai in atomic_intents if ai.atomic_intent_id not in packages_by_id]
+    hilang = [
+        ai.atomic_intent_id
+        for ai in atomic_intents
+        if ai.atomic_intent_id not in packages_by_id
+    ]
     if hilang:
         raise ValueError(
             f"atomic_intent tanpa package pasangan (kontrak 1:1 dilanggar): {hilang}"
@@ -83,12 +87,17 @@ def _build_user_prompt(
         lines.append(f"   Bentuk jawaban: {atomic_intent.label_bentuk_jawaban.value}")
         lines.append(f"   Status: {paket.status.value}")
         lines.append(f"   Sumber: {paket.sumber}")
-        lines.append(f"   Nilai hasil: {json.dumps(paket.nilai_hasil, ensure_ascii=False)}")
+        lines.append(
+            f"   Nilai hasil: {json.dumps(paket.nilai_hasil, ensure_ascii=False)}"
+        )
         if paket.catatan_interpretasi:
             lines.append(
                 f"   Catatan interpretasi: {'; '.join(paket.catatan_interpretasi)}"
             )
-        if atomic_intent.relasi == RelasiKebutuhan.BERGANTUNG and atomic_intent.bergantung_pada:
+        if (
+            atomic_intent.relasi == RelasiKebutuhan.BERGANTUNG
+            and atomic_intent.bergantung_pada
+        ):
             prasyarat = []
             for dep_id in atomic_intent.bergantung_pada:
                 dep_intent = intents_by_id.get(dep_id)

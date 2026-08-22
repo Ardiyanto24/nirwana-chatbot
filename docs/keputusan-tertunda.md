@@ -4,6 +4,23 @@ Dokumen ini mencatat keputusan teknis yang genuinely terbuka tapi **belum saatny
 
 ---
 
+## 6. Upgrade Rule `ruff` dari Baseline ke Ketat (Milestone 8.1) — Belum Dijadwalkan
+
+**Status:** AKTIF — rule Baseline (`E, F, I, UP, B, SIM`, `E501` dikeluarkan) SUDAH dipakai produksi (`[tool.ruff]` `pyproject.toml`, gate CI `ci.yml`), TAPI user eksplisit minta dicatat sebagai keputusan tertunda untuk upgrade ke rule Ketat (`ANN`, `ARG`, `PTH`, `TCH`, dst.) di masa depan — bukan keputusan final selamanya.
+
+**Muncul di:** Milestone 8.1 (Fondasi CI), Plan Mode (2026-08-22), saat user diminta memilih tingkat ketat rule ruff pertama kali untuk codebase yang belum pernah py lint config sepanjang 24 milestone sebelumnya.
+
+**Konteks kemunculan:** Tiga opsi diajukan (Minimal `E,F`; Baseline `E,F,I,UP,B,SIM`; Ketat `+ANN,ARG,PTH,TCH,RUF`). Baseline dipilih sebagai titik keseimbangan — menangkap bug pattern nyata (`B`) dan konsistensi (`I`/`UP`/`SIM`) tanpa memaksa refactor besar (anotasi tipe di semua fungsi, migrasi `os.path`→`pathlib`) yang berisiko keluar dari cakupan "fondasi". User secara eksplisit menyatakan preferensi jangka panjang untuk rule Ketat, tapi minta itu ditunda dan dicatat, bukan diterapkan sekarang.
+
+**Kenapa belum saatnya diputuskan:** Rule Ketat (khususnya `ANN` — wajib type annotation di semua fungsi) realistis membutuhkan audit+cleanup besar di ~90 file Python lintas 24 milestone yang ditulis TANPA konvensi anotasi tipe konsisten — investasi waktu yang tidak proporsional untuk milestone "fondasi CI" yang tujuan utamanya cuma menyalakan gate dasar. Cakupan kerja upgrade ini lebih cocok jadi inisiatif cleanup tersendiri dengan checkpoint-nya sendiri, bukan ditambahkan diam-diam ke M8.1.
+
+**Pemicu peninjauan ulang:**
+1. Seluruh milestone PIC 8 (M8.1-8.10) selesai dan CI/CD stabil — sebagai kandidat milestone/inisiatif cleanup lanjutan (mis. "M8.11" opsional, atau pekerjaan non-milestone terpisah mengikuti pola `prompt_reliability/`).
+2. Project menerima kontributor baru selain pemilik saat ini — type annotation lebih bernilai untuk onboarding/tooling IDE saat lebih dari satu orang membaca kode.
+3. Bug nyata ditemukan di produksi yang genuinely akan tertangkap lebih awal oleh `ANN`/`ARG` (mis. parameter yang salah tipe lolos sampai runtime) — bukti konkret bahwa rule Ketat akan bernilai lebih dari sekadar gaya.
+
+---
+
 ## 5. Strategi Penanganan Narasi Gagal Verifikasi Kesetiaan (Milestone 7.17) — Saat Ini Diganti Pesan Generik Total
 
 **Status:** AKTIF — endpoint `POST /v1/turns` SUDAH memakai strategi "ganti total dengan pesan generik" (`src/main.py::_build_turn_response()`) begitu `terverifikasi=False`, TAPI ini dikonfirmasi user sebagai keputusan fase-awal, bukan strategi final.

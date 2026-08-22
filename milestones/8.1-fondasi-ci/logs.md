@@ -449,6 +449,6 @@ Review manual seluruh 3 dokumen terhadap isi nyata Checkpoint 1-19 — konsisten
 
 **12/12 unit pembersihan lint, 4/4 job CI terverifikasi nyata, branch protection aktif — MILESTONE 8.1 SELESAI SEPENUHNYA.**
 
-**Commit:** (menyusul)
+**Commit:** `3d25584` (branch protection, Checkpoint 19); dokumentasi penutup ini menyusul commit terpisah.
 
 ---

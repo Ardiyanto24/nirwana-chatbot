@@ -203,6 +203,28 @@ Keputusan 17 (lihat `decisions.md`) - migrasi UP042 diterapkan project-wide di c
 **Hasil Verifikasi**
 `ruff check`+`format --check` → "All checks passed!"/"11 files already formatted". `uv run pytest tests/layers/query_engine/` → 75/75 passed (11.96s).
 
+**Commit:** `302beff` — `chore(milestone-8.1): pembersihan ruff - Query Engine`
+
+---
+
+## Checkpoint 11 — Bersihkan Unit 8: Support (lintas-layer)
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 11 — Ruff fix Unit 8 + verifikasi full suite
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 11 file Unit 8. Seluruh 5 temuan (2x `UP017` `datetime.UTC`, `UP035` `AsyncIterator`, `UP033` `functools.cache`, `I001`) auto-fixed, 0 manual. **`src/config/{llm,database,roles,employees}.py` dan `src/observability/{tracing,genai_semconv}.py` genuinely 0 temuan — TIDAK berubah sama sekali** (dikonfirmasi `git diff --stat` kosong).
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"11 files already formatted". **Full suite** `uv run pytest tests/` (per catatan blast-radius Unit 8) → 697 passed, **7 failed**, 1 skipped (404.62s) — seluruh 7 kegagalan di modul `domain_gate` (`test_domain_gate.py` x3, `test_verifikasi_titik_buta.py` x2, `test_verifikasi_cakupan_individu.py` x2, kedua terakhir SAMA PERSIS dengan 2 kegagalan yang sudah diinvestigasi tuntas di Checkpoint 6).
+
+**Investigasi causality:** (1) `git diff --stat src/config/ src/observability/` KOSONG — membuktikan `llm.py`/`database.py`/dkk. byte-identik dengan sebelum checkpoint ini, sehingga TIDAK MUNGKIN jadi penyebab (file-file yang benar-benar diedit hanya `db/models.py`, `main.py`, `prompts/loader.py`, tidak satu pun diimpor `domain_gate`). (2) Re-run 5 test yang gagal dalam isolasi → **gagal identik 5/5** (konsisten, bukan random). (3) Baca kode `verifikasi_titik_buta.py:111-127`: `except APIError` DAN guard `if not response.choices:` SAMA-SAMA mengembalikan `gagal=True` — pola defensif yang SUDAH benar ada (beda dari 5 titik rentan `docs/keterbatasan-diterima.md` #17 yang belum py guard ini). Root cause: karakteristik reliabilitas OpenRouter yang sudah didokumentasikan berulang sejak M2.1 (`docs/keterbatasan-diterima.md` #7, "kadang hang/gagal tanpa exception, root cause di luar kendali kode project") — BUKAN regresi dari pembersihan Unit 8, dan bukan celah kode baru (guard defensifnya sudah benar, cuma mendeteksi kegagalan API nyata yang sedang terjadi saat sesi ini berjalan).
+
+Tidak ada tindakan perbaikan diambil — konsisten preseden M5.1/M6.1/M7.12/M7.16/M7.17 (karakteristik infrastruktur di luar cakupan wajar, tidak dicoba "diperbaiki" definitif di level kode).
+
 **Commit:** (menyusul)
 
 ---

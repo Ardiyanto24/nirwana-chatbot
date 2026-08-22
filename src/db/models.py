@@ -23,7 +23,7 @@ untuk membuat tabelnya pertama kali (lihat seed_sample_trace.py).
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Column, DateTime
 from sqlalchemy.dialects.postgresql import JSONB
@@ -126,7 +126,7 @@ class PromptEvalRunRow(SQLModel, table=True):
     output_payload: dict = Field(sa_column=Column(JSON))
     verdict: str
     model: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class ConversationTurnRow(SQLModel, table=True):
@@ -155,7 +155,7 @@ class ConversationTurnRow(SQLModel, table=True):
     pertanyaan: str
     narasi: str
     status: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class TraceRow(SQLModel, table=True):
@@ -173,8 +173,12 @@ class TraceRow(SQLModel, table=True):
     trace_id: str = Field(primary_key=True)
     session_id: str = Field(index=True)
     turn_index: int
-    started_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
-    ended_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    started_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False)
+    )
+    ended_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True))
+    )
     status: str | None = None
     role_title: str | None = None
 
@@ -191,11 +195,17 @@ class SpanRow(SQLModel, table=True):
 
     span_id: str = Field(primary_key=True)
     trace_id: str = Field(foreign_key="traces.trace_id", index=True)
-    parent_span_id: str | None = Field(default=None, foreign_key="spans.span_id", index=True)
+    parent_span_id: str | None = Field(
+        default=None, foreign_key="spans.span_id", index=True
+    )
     layer_name: str
     operation_name: str | None = None
-    started_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
-    ended_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    started_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False)
+    )
+    ended_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True))
+    )
     duration_ms: int | None = None
     error_type: str | None = None
     attributes: dict = Field(default_factory=dict, sa_column=Column(JSONB))

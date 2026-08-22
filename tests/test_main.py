@@ -13,7 +13,11 @@ from sqlalchemy.exc import SQLAlchemyError
 import src.main as main_module
 from src.main import _build_turn_response, app
 from src.schemas.decomposition import DecompositionResult, KlasifikasiKebutuhan
-from src.schemas.interpretation import DataVisualisasi, HasilNarasi, HasilVerifikasiNarasi
+from src.schemas.interpretation import (
+    DataVisualisasi,
+    HasilNarasi,
+    HasilVerifikasiNarasi,
+)
 from src.schemas.orchestration import KeadaanTurn
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
@@ -44,7 +48,9 @@ _DECOMPOSITION_DUMMY = DecompositionResult(
 def _keadaan_turn_dummy(interpretation) -> KeadaanTurn:
     return KeadaanTurn(
         payload=_PAYLOAD_DUMMY,
-        ketergantungan=TurnDependencyResult(is_dependent=False, referenced_turn_index=None),
+        ketergantungan=TurnDependencyResult(
+            is_dependent=False, referenced_turn_index=None
+        ),
         rewrite=RewriteResult(rewritten_question=_PAYLOAD_DUMMY.question),
         session_memory=None,
         decomposition=_DECOMPOSITION_DUMMY,
@@ -123,7 +129,10 @@ def test_build_turn_response_lolos_false_narasi_diganti_generik():
     hasil = _build_turn_response(_keadaan_turn_dummy(_INTERPRETATION_TIDAK_LOLOS))
     assert hasil.narasi == main_module._PESAN_NARASI_BELUM_TERVERIFIKASI
     assert hasil.terverifikasi is False
-    assert hasil.catatan_verifikasi == "klaim sebab-akibat tidak didukung data yang diambil"
+    assert (
+        hasil.catatan_verifikasi
+        == "klaim sebab-akibat tidak didukung data yang diambil"
+    )
     assert hasil.visualisasi is None
     # narasi asli (berpotensi mengandung klaim tidak berdasar) TIDAK boleh bocor
     assert "klaim tidak berdasar" not in hasil.narasi
@@ -142,7 +151,9 @@ def test_build_turn_response_gagal_teknis_diperlakukan_sama_seperti_lolos_false(
 
 def test_endpoint_sukses_mengembalikan_turn_response(monkeypatch):
     monkeypatch.setattr(
-        main_module, "proses_turn", lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS)
+        main_module,
+        "proses_turn",
+        lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS),
     )
     # simpan_riwayat_turn (M7.18) di-mock supaya test ini TIDAK menulis ke
     # DB nyata - file ini murni deterministik (lihat docstring modul).
@@ -160,7 +171,9 @@ def test_endpoint_sukses_mengembalikan_turn_response(monkeypatch):
 
 def test_endpoint_openai_apierror_dipetakan_503(monkeypatch):
     def _raise(payload):
-        raise APIError("pesan internal openai seharusnya tidak bocor", request=None, body=None)
+        raise APIError(
+            "pesan internal openai seharusnya tidak bocor", request=None, body=None
+        )
 
     monkeypatch.setattr(main_module, "proses_turn", _raise)
     response = client.post("/v1/turns", json=_PAYLOAD_RAW)
@@ -227,7 +240,9 @@ def test_endpoint_tetap_200_walau_simpan_riwayat_gagal(monkeypatch):
     # KK2 M7.18 literal, dibuktikan deterministik di titik paling kritis:
     # kegagalan menulis riwayat TIDAK BOLEH menggagalkan response ke user.
     monkeypatch.setattr(
-        main_module, "proses_turn", lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS)
+        main_module,
+        "proses_turn",
+        lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS),
     )
 
     def _simpan_gagal(**kwargs):
@@ -244,7 +259,9 @@ def test_endpoint_tetap_200_walau_simpan_riwayat_gagal(monkeypatch):
 
 def test_simpan_riwayat_dipanggil_dengan_argumen_benar(monkeypatch):
     monkeypatch.setattr(
-        main_module, "proses_turn", lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS)
+        main_module,
+        "proses_turn",
+        lambda payload: _keadaan_turn_dummy(_INTERPRETATION_LOLOS),
     )
     panggilan = {}
 

@@ -9,7 +9,7 @@ lengkap: docs/01-architecture/rancangan-manajemen-prompt.md.
 """
 
 from dataclasses import dataclass, field
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import yaml
@@ -48,7 +48,7 @@ def _split_frontmatter(raw: str) -> tuple[str, str]:
     return parts[1], parts[2].strip("\n")
 
 
-@lru_cache(maxsize=None)
+@cache
 def load_prompt(prompt_id: str) -> PromptTemplate:
     path = _id_to_path(prompt_id)
     if not path.is_file():

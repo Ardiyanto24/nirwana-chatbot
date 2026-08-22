@@ -47,8 +47,8 @@ Jalankan: uv run uvicorn src.main:app --port 8001
 dipanggil proses_turn() secara internal saat Execution)
 """
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
@@ -146,7 +146,9 @@ def _build_turn_response(keadaan: KeadaanTurn) -> TurnResponse:
     )
 
 
-def _simpan_riwayat_percakapan_aman(keadaan: KeadaanTurn, turn_response: TurnResponse) -> None:
+def _simpan_riwayat_percakapan_aman(
+    keadaan: KeadaanTurn, turn_response: TurnResponse
+) -> None:
     # SATU-SATUNYA try/except "tangkap-dan-diam" (tidak re-raise) di
     # seluruh project - forced literal KK2 M7.18 ("kegagalan penulisan
     # riwayat tidak boleh menggagalkan pengiriman response ke user").

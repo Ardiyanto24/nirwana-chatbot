@@ -56,6 +56,106 @@ jobs:
         # test yang genuinely butuh panggilan LLM (mahal+flaky), presisi
         # per-fungsi di file campuran gated+non-gated (Keputusan 5).
 
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    outputs:
+      context_resolution: ${{ steps.filter.outputs.context_resolution }}
+      decomposition: ${{ steps.filter.outputs.decomposition }}
+      domain_gate: ${{ steps.filter.outputs.domain_gate }}
+      query_engine: ${{ steps.filter.outputs.query_engine }}
+      interpretation: ${{ steps.filter.outputs.interpretation }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            context_resolution:
+              - 'src/layers/context_resolution/**'
+              - 'src/schemas/turn_dependency.py'
+              - 'src/schemas/rewrite.py'
+              - 'src/schemas/session_memory.py'
+              - 'src/schemas/matching.py'
+              - 'src/prompts/context_resolution/**'
+            decomposition:
+              - 'src/layers/decomposition/**'
+              - 'src/schemas/decomposition.py'
+              - 'src/prompts/decomposition/**'
+            domain_gate:
+              - 'src/layers/domain_gate/**'
+              - 'src/schemas/domain_gate.py'
+              - 'src/schemas/authorization.py'
+              - 'src/schemas/cakupan_individu.py'
+              - 'src/config/role_permissions.py'
+              - 'src/prompts/domain_gate/**'
+            query_engine:
+              - 'src/layers/query_engine/**'
+              - 'src/schemas/query_engine.py'
+              - 'src/config/slug_view_chatbot_api.py'
+              - 'src/prompts/query_engine/**'
+            interpretation:
+              - 'src/layers/interpretation/**'
+              - 'src/schemas/interpretation.py'
+              - 'src/prompts/interpretation/**'
+            shared:
+              - 'src/config/llm.py'
+              - 'src/prompts/loader.py'
+
+  test-python-llm:
+    name: test-python-llm
+    needs: changes
+    runs-on: ubuntu-latest
+    # Hanya jalan kalau minimal satu grup di atas genuinely berubah -
+    # union kosong berarti job ini SKIP bersih (ditangani job `test-gate`
+    # aggregator, Keputusan 8, supaya tidak memblokir required status
+    # check selamanya untuk PR yang tidak menyentuh layer manapun).
+    if: |
+      needs.changes.outputs.context_resolution == 'true' ||
+      needs.changes.outputs.decomposition == 'true' ||
+      needs.changes.outputs.domain_gate == 'true' ||
+      needs.changes.outputs.query_engine == 'true' ||
+      needs.changes.outputs.interpretation == 'true' ||
+      needs.changes.outputs.shared == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --group dev
+      - name: Bangun daftar file test target dari grup yang berubah
+        id: targets
+        env:
+          CTX: ${{ needs.changes.outputs.context_resolution }}
+          DECOMP: ${{ needs.changes.outputs.decomposition }}
+          DOMAIN: ${{ needs.changes.outputs.domain_gate }}
+          QE: ${{ needs.changes.outputs.query_engine }}
+          INTERP: ${{ needs.changes.outputs.interpretation }}
+          SHARED: ${{ needs.changes.outputs.shared }}
+        run: |
+          FILES=""
+          if [ "$CTX" = "true" ] || [ "$SHARED" = "true" ]; then
+            FILES="$FILES tests/layers/context_resolution/test_turn_dependency.py tests/layers/context_resolution/test_rewrite.py tests/layers/context_resolution/test_matching.py"
+          fi
+          if [ "$DECOMP" = "true" ] || [ "$SHARED" = "true" ]; then
+            FILES="$FILES tests/layers/decomposition/test_decompose.py"
+          fi
+          if [ "$DOMAIN" = "true" ] || [ "$SHARED" = "true" ]; then
+            FILES="$FILES tests/layers/domain_gate/test_identifikasi.py tests/layers/domain_gate/test_domain_gate.py tests/layers/domain_gate/test_verifikasi_titik_buta.py tests/layers/domain_gate/test_deteksi_cakupan_individu.py tests/layers/domain_gate/test_cakupan_individu.py tests/layers/domain_gate/test_verifikasi_cakupan_individu.py"
+          fi
+          if [ "$QE" = "true" ] || [ "$SHARED" = "true" ]; then
+            FILES="$FILES tests/layers/query_engine/test_query_engine.py"
+          fi
+          if [ "$INTERP" = "true" ] || [ "$SHARED" = "true" ]; then
+            FILES="$FILES tests/layers/interpretation/test_interpretation.py"
+          fi
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+      - run: uv run pytest ${{ steps.targets.outputs.files }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
   go-test:
     name: go-test
     runs-on: ubuntu-latest

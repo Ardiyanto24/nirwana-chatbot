@@ -64,6 +64,26 @@ Percobaan kedua (`OPENROUTER_API_KEY=""` saja, `DATABASE_URL` asli dari `.env`):
 **Hasil Verifikasi**
 `actionlint` → 0 temuan (2x, setelah tambah job dan setelah tambah `env:`). Verifikasi fungsional lokal: 670 passed/35 skipped/17.33s (dengan `DATABASE_URL` asli+`OPENROUTER_API_KEY=""`). Verifikasi nyata GitHub Actions (dengan secret asli tersimpan sebagai GitHub Secret, bukan var lokal) menyusul Checkpoint 7.
 
+**Commit:** `1ce6c11` — `feat(milestone-8.2): job test-python-fast`
+
+---
+
+## Checkpoint 4 — `dorny/paths-filter` + job `test-python-llm`
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 4 — Tambah step path-filter + job path-filtered
+
+**Kesesuaian dengan plan:** Sesuai plan (dengan tabel grup direvisi 8→5 sesuai Keputusan 10 Checkpoint 3).
+
+**Apa yang dilakukan**
+Job `changes` baru (step `dorny/paths-filter@v3`) — 5 grup (`context_resolution`, `decomposition`, `domain_gate`, `query_engine`, `interpretation`) + `shared` (`src/config/llm.py`, `src/prompts/loader.py`, Keputusan 6). Tiap grup mencakup `src/layers/<nama>/**`, schema terkait, config terkait, DAN `src/prompts/<nama>/**` (Keputusan 7).
+
+Job `test-python-llm` — `needs: changes`, `if:` di level job (union OR seluruh grup) supaya job SKIP BERSIH (bukan cuma langkah kosong) kalau tidak ada grup relevan berubah — step "Bangun daftar file test target" pakai `env:` untuk membawa nilai `needs.changes.outputs.*` ke bash (bukan interpolasi `${{ }}` langsung di script, praktik lebih aman) lalu `pytest <daftar file>` dengan KEDUA secret (`OPENROUTER_API_KEY`+`DATABASE_URL`).
+
+**Hasil Verifikasi**
+`actionlint` → 0 temuan. Sanity check lokal: union SEMUA 11 file (skenario `shared=true`) → `pytest --collect-only` → 69 test collected, tidak ada error path. Verifikasi FUNGSIONAL (union benar-benar path-filtered sesuai grup yang berubah, dengan secret asli) tidak bisa dites sampai secret GitHub genuinely ada — menyusul Checkpoint 9-10.
+
 **Commit:** (menyusul)
 
 ---

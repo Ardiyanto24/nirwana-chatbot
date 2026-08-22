@@ -193,3 +193,35 @@ Izin eksplisit diminta+diperoleh (`AskUserQuestion`) sebelum push. `git push ori
 **Commit:** (tidak ada — checkpoint verifikasi murni, tidak ada perubahan file baru)
 
 ---
+
+## Checkpoint 10 — Update Branch Protection
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 10 — Tambah required status check `rbac-regression`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Izin eksplisit diminta+diperoleh (`AskUserQuestion`) sebelum mengubah setting GitHub repo. `gh api repos/Ardiyanto24/nirwana-chatbot/branches/main/protection -X PUT` (pola sama persis preseden M8.2 Checkpoint 8) — `required_status_checks.contexts` diperluas dari 7 jadi 8: `+rbac-regression`. Setting lain (`strict=false`, `enforce_admins=false`, tanpa wajib-PR/`restrictions`) dipertahankan identik.
+
+**Hasil Verifikasi**
+Re-fetch `--jq '.required_status_checks.contexts | length, .'` → **8 context** terkonfirmasi persis, termasuk `rbac-regression`.
+
+**Commit:** (tidak ada — perubahan setting GitHub, bukan file repo)
+
+---
+
+### Task 11b — PR Percobaan: Sengaja Longgarkan RBAC di Kode Produksi
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Izin eksplisit diminta+diperoleh (`AskUserQuestion`, mencakup push branch percobaan + buka PR). Branch `percobaan/m8-3-rbac-regression-sengaja-bocor` dari `main` — `periksa_domain()` (`src/layers/domain_gate/otorisasi.py`, KODE PRODUKSI, bukan test) dilonggarkan SENGAJA jadi selalu `diizinkan=True` (import `load_role_permissions` yang jadi tidak terpakai turut dihapus supaya `ruff` tetap bersih — mengisolasi sinyal MERAH murni ke `rbac-regression`, bukan tercampur kegagalan lint). Verifikasi lokal dulu sebelum push: `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **3 failed, 3 passed** (`gop_margin`, F&B all-denied, Andi Maintenance genuinely gagal — ketiganya skenario yang BENAR-BENAR bergantung penolakan otorisasi; Budi/CEO/sengaja-gagal tetap lolos karena tidak bergantung penolakan). Push + `gh pr create` → PR [#4](https://github.com/Ardiyanto24/nirwana-chatbot/pull/4).
+
+**Hasil Verifikasi**
+`gh pr checks 4 --watch` (run `32595510296`) → **`rbac-regression` FAIL nyata (11s)**, `test-python-fast` FAIL (32s, terpisah — juga menguji `otorisasi.py` via unit test lain, konsisten), `test-gate` FAIL (aggregator benar meneruskan kegagalan). 6 job lain (`ruff`/`golangci-lint`/`gitleaks`/`dependency-scan`/`go-test`/`test-python-llm`) tetap PASS (tidak menyentuh `otorisasi.py`). Log job `rbac-regression` (`gh run view --job 97085653589 --log`) dikonfirmasi **PERSIS SAMA** dengan hasil lokal: 3 failed (`gop_margin`/F&B/Andi, pesan `AssertionError` identik) + 3 passed (Budi/CEO/sengaja-gagal). PR ditutup TANPA merge (`gh pr close 4 --comment ...`), branch dihapus lokal+remote (`git branch -D`+`git push origin --delete`). `git checkout main` mengonfirmasi `otorisasi.py` kembali ke versi asli (`git status --short` bersih, hanya 2 perubahan pre-existing tak terkait tersisa), `pytest tests/rbac_regression/ -v` re-run → **6 passed** lagi.
+
+**Commit:** (tidak ada di `main` — seluruh perubahan production code hidup HANYA di branch throwaway yang sudah dihapus)
+
+---

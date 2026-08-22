@@ -202,3 +202,40 @@ def test_andi_maintenance_staff_domain_berbeda_koreksi_tetap_benar():
     assert request_terkoreksi.params["employee_id"] == "emp-eval", (
         "KEBOCORAN: employee_id tidak dipaksa ke ID caller sungguhan"
     )
+
+
+# --- Skenario 5: CEO baseline (kontrol) ------------------------------------
+#
+# Reuse evals/7.11-sambungan-retriever/payloads/E02.json - bukan bukti
+# zero-leakage per se, tapi guard anti-false-positive: role dengan akses
+# LUAS TIDAK BOLEH ditolak/dikoreksi keliru untuk pertanyaan agregat biasa.
+
+
+def test_ceo_baseline_tidak_ada_penolakan_atau_koreksi_palsu():
+    """CEO (akses penuh) tanya occupancy rate agregat - domain
+    teridentifikasi [reservation, properties_ref] (hasil historis M2.1,
+    di-fix di sini), KEDUANYA harus diizinkan (guard anti-false-positive:
+    role akses luas tidak boleh ditolak keliru), DAN constraint cakupan-
+    individu TIDAK terdeteksi (pertanyaan agregat, bukan individu -
+    tegakkan_constraint_cakupan_individu() TIDAK BOLEH mengoreksi apa pun)."""
+    role_title = "CEO"
+    domain_teridentifikasi = [Domain.RESERVATION, Domain.PROPERTIES_REF]
+
+    domain_diizinkan = _domain_diizinkan(role_title, domain_teridentifikasi)
+    assert set(domain_diizinkan) == set(domain_teridentifikasi), (
+        "false-positive: CEO seharusnya diizinkan penuh, ada domain yang keliru ditolak"
+    )
+
+    constraint = ConstraintCakupanIndividu(terdeteksi=False)
+    request_asli = QueryEngineRequest(
+        domain=Domain.RESERVATION,
+        view_name="v_reservation_room_type_daily",
+        params={"period": "2026-08"},
+    )
+    request_hasil, terkoreksi = tegakkan_constraint_cakupan_individu(
+        request_asli, constraint, employee_id="emp-eval"
+    )
+    assert terkoreksi is False, (
+        "false-positive: koreksi dipaksakan padahal tidak terdeteksi individu"
+    )
+    assert request_hasil.params == request_asli.params

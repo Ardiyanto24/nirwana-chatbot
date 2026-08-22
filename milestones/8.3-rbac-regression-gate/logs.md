@@ -118,6 +118,24 @@ Buat `tests/rbac_regression/__init__.py`+`test_zero_leakage.py` (docstring lengk
 **Hasil Verifikasi**
 `ruff check`+`format --check` → bersih. `uv run pytest tests/rbac_regression/ -v` → **4 passed**, 2.33 detik.
 
+**Commit:** `466dc57` — `test(milestone-8.3): skenario zero-leakage - Maintenance Staff Andi`
+
+---
+
+## Checkpoint 7 — Skenario 5: CEO Baseline (Kontrol)
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 7 — Encode skenario CEO
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`test_ceo_baseline_tidak_ada_penolakan_atau_koreksi_palsu()` — reuse `evals/7.11-.../E02.json` (CEO tanya occupancy rate, domain teridentifikasi `[reservation, properties_ref]`, KEDUANYA diizinkan hasil historis M2.1). Berbeda dari Checkpoint 3-6 (semuanya membuktikan penolakan/koreksi BENAR terjadi), skenario ini kontrol anti-false-positive: `_domain_diizinkan()` NYATA harus mengembalikan kedua domain utuh (tidak ada yang keliru ditolak), DAN `tegakkan_constraint_cakupan_individu()` NYATA dengan `constraint.terdeteksi=False` (pertanyaan agregat, bukan individu) harus mengembalikan `terkoreksi=False` dengan params tidak berubah sama sekali.
+
+**Hasil Verifikasi**
+`ruff format`+`check` → bersih (2 file tidak berubah). `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **5 passed, 2.30 detik** — genuinely tanpa LLM. Seluruh 5 skenario zero-leakage rencana plan sekarang terkodekan permanen.
+
 **Commit:** (menyusul)
 
 ---

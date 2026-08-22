@@ -155,3 +155,50 @@ def test_budi_hr_staff_koreksi_paksa_employee_id():
     assert request_terkoreksi.params["full_name"] == "Budi", (
         "koreksi seharusnya cuma menimpa employee_id, field lain tetap apa adanya"
     )
+
+
+# --- Skenario 4: Maintenance Staff "Andi", bukti kedua independen ---------
+#
+# Reuse evals/7.13-sambungan-verification-gate/payloads/E03.json - domain
+# BEDA (facility, bukan hr) DAN dikombinasikan dengan domain_denied
+# (employees_directory ditolak) - constraint cakupan-individu tetap
+# terdeteksi+dikoreksi benar dari domain facility yang diizinkan.
+
+
+def test_andi_maintenance_staff_domain_berbeda_koreksi_tetap_benar():
+    """Maintenance Staff tanya jumlah tiket teknisi "Andi" - domain
+    teridentifikasi [facility, employees_directory] (hasil historis M2.1),
+    employees_directory DITOLAK otorisasi tapi facility diizinkan.
+    Constraint cakupan-individu tetap terdeteksi (hasil historis M2.3, di-
+    fix di sini) DARI domain facility yang diizinkan - koreksi paksa
+    employee_id tetap benar meski salah satu domain sumbernya ditolak."""
+    role_title = "Maintenance Staff"
+    domain_teridentifikasi = [Domain.FACILITY, Domain.EMPLOYEES_DIRECTORY]
+
+    domain_diizinkan = _domain_diizinkan(role_title, domain_teridentifikasi)
+    assert Domain.EMPLOYEES_DIRECTORY not in domain_diizinkan
+    assert Domain.FACILITY in domain_diizinkan
+
+    constraint = ConstraintCakupanIndividu(
+        terdeteksi=True,
+        alasan="kebutuhan menyentuh kategori data performa individu staf",
+    )
+    request_dari_llm = QueryEngineRequest(
+        domain=Domain.FACILITY,
+        view_name="v_maintenance_technician_daily",
+        params={
+            "technician_name": "Andi",
+            "period_date_from": "2026-08-01",
+            "period_date_to": "2026-08-31",
+            "employee_id": "emp-andi-salah",
+        },
+    )
+
+    request_terkoreksi, terkoreksi = tegakkan_constraint_cakupan_individu(
+        request_dari_llm, constraint, employee_id="emp-eval"
+    )
+
+    assert terkoreksi is True
+    assert request_terkoreksi.params["employee_id"] == "emp-eval", (
+        "KEBOCORAN: employee_id tidak dipaksa ke ID caller sungguhan"
+    )

@@ -100,6 +100,24 @@ Buat `tests/rbac_regression/__init__.py`+`test_zero_leakage.py` (docstring lengk
 **Hasil Verifikasi**
 `ruff check`+`format --check` → bersih. `uv run pytest tests/rbac_regression/ -v` → **3 passed**, 2.37 detik.
 
+**Commit:** `842e544` — `test(milestone-8.3): skenario zero-leakage - HR Staff Budi`
+
+---
+
+## Checkpoint 6 — Skenario 4: Maintenance Staff "Andi"
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 6 — Encode skenario Andi
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`test_andi_maintenance_staff_domain_berbeda_koreksi_tetap_benar()` — reuse `evals/7.13-.../E03.json` (Maintenance Staff, domain `[facility, employees_directory]`, `employees_directory` DITOLAK tapi `facility` diizinkan — dikonfirmasi via `periksa_otorisasi_semua()` nyata). Constraint cakupan-individu tetap terdeteksi (di-fix), koreksi paksa `employee_id` tetap benar meski salah satu domain sumber identifikasi ditolak — bukti kedua independen (domain beda dari Budi/`hr`).
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → bersih. `uv run pytest tests/rbac_regression/ -v` → **4 passed**, 2.33 detik.
+
 **Commit:** (menyusul)
 
 ---

@@ -123,3 +123,25 @@ User menjalankan `gh secret set OPENROUTER_API_KEY`/`DATABASE_URL` sendiri (saya
 **Commit:** Tidak ada — perubahan GitHub Settings murni oleh user, tidak ada file repo yang berubah.
 
 ---
+
+## Checkpoint 7 — Push Pertama + Verifikasi Dasar
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 7 — Push + amati run CI nyata
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan 1 bug nyata ditemukan+diperbaiki mid-checkpoint (Keputusan 11).
+
+**Apa yang dilakukan**
+User mengonfirmasi izin push (`AskUserQuestion`). Push 6 commit Checkpoint 1-6 (`d716990..d570b09`) — run CI nyata pertama (`32558796535`) terpicu.
+
+**Hasil run pertama:** `changes`✓, `go-test`✓, `gitleaks`✓, `golangci-lint`✓, `ruff`✓, `dependency-scan`✓ (job M8.1 tidak terpengaruh), `test-python-llm` SKIP bersih (union kosong — push ini cuma menyentuh `.github/`+`milestones/`+`docs/`, benar TIDAK memicu grup manapun). **`test-python-fast` GAGAL** (1 test) — `test-gate` BENAR mendeteksinya sebagai kegagalan (bukti logic aggregator Checkpoint 5 bekerja: `test-python-llm` yang skip TIDAK menggagalkan gate, tapi `test-python-fast` yang genuinely gagal MENGGAGALKAN gate).
+
+Investigasi (Keputusan 11): `test_klasifikasi_respons_revisi.py::test_400_lalu_200_di_revisi_kedua_berhasil` genuinely memanggil `CHATBOT_API_BASE_URL` (kredensial ketiga, instance lokal, mustahil disediakan CI cloud) karena lupa mock `panggil_meta_chatbot_api()` — gap maintenance dari revisit M4.2 yang cuma menyentuh helper `_patch_raw()` di file saudaranya (`test_klasifikasi_respons.py`), bukan duplikatnya di file ini. Diperbaiki: tambah `_patch_meta_tidak_diketahui()` (mirror persis), dipanggil di satu-satunya test yang genuinely mencapai `BERHASIL`.
+
+**Hasil Verifikasi**
+Lokal: `pytest tests/layers/execution/test_klasifikasi_respons_revisi.py` → 5/5 passed. `ruff check`+`format --check` → bersih. Full suite meniru kondisi CI persis (`OPENROUTER_API_KEY=""`+`CHATBOT_API_BASE_URL=""`+`DATABASE_URL` asli) → **670 passed, 35 skipped, 18.53s, 0 gagal**.
+
+**Commit:** (menyusul, push+verifikasi nyata CI kedua di Task 7 lanjutan)
+
+---

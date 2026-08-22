@@ -19,7 +19,7 @@ from src.layers.execution import klasifikasi_respons as modul
 from src.schemas.cakupan_individu import ConstraintCakupanIndividu
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
-from src.schemas.execution import HasilPemanggilanChatbotAPI
+from src.schemas.execution import HasilMetaChatbotAPI, HasilPemanggilanChatbotAPI
 from src.schemas.query_engine import (
     HasilPenyusunanRequest,
     HasilVerifikasiBentukRequest,
@@ -93,6 +93,19 @@ def _patch_raw(monkeypatch, urutan_hasil: list[HasilPemanggilanChatbotAPI]):
     return dipanggil
 
 
+def _patch_meta_tidak_diketahui(monkeypatch):
+    """Mirror test_klasifikasi_respons.py - _meta "tidak diketahui" (both
+    None) supaya status tetap BERHASIL murni dari jalur data utama, tidak
+    tercampur skenario SEBAGIAN. Wajib untuk test yang genuinely mencapai
+    StatusEksekusi.BERHASIL (eksekusi_atomic_intent() lanjut memanggil
+    panggil_meta_chatbot_api() di jalur itu)."""
+    monkeypatch.setattr(
+        modul,
+        "panggil_meta_chatbot_api",
+        lambda request, role_title, employee_id: HasilMetaChatbotAPI(status_code=200),
+    )
+
+
 # --- revisi berhasil di percobaan ke-2 -------------------------------------
 
 
@@ -137,6 +150,7 @@ def test_400_lalu_200_di_revisi_kedua_berhasil(monkeypatch):
             HasilVerifikasiGate(request_final=request, lolos=True, terkoreksi=False)
         ),
     )
+    _patch_meta_tidak_diketahui(monkeypatch)
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(

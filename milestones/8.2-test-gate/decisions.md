@@ -183,6 +183,29 @@ Checkpoint 6 (user menambahkan secret) TETAP menambahkan KEDUA secret bersamaan 
 
 ---
 
+## Keputusan 11: Bug Nyata Ditemukan+Diperbaiki — `test_400_lalu_200_di_revisi_kedua_berhasil` Lupa Mock `panggil_meta_chatbot_api`
+
+**Status:** Ditemukan di tengah implementasi pada Checkpoint 7 (run CI nyata pertama).
+
+**Latar Belakang**
+Run CI nyata pertama (`32558796535`) menunjukkan `test-python-fast` GAGAL — 1 test (`tests/layers/execution/test_klasifikasi_respons_revisi.py::test_400_lalu_200_di_revisi_kedua_berhasil`) genuinely memanggil `get_chatbot_api_base_url()` NYATA (bukan mock), meledak `RuntimeError: CHATBOT_API_BASE_URL tidak diset`. Ini kredensial KETIGA (di luar `OPENROUTER_API_KEY`/`DATABASE_URL` yang sudah dipetakan) yang genuinely tidak mungkin disediakan di CI cloud — `chatbot_api` adalah instance LOKAL milik user (`localhost`), tidak bisa dijangkau runner GitHub Actions.
+
+**Investigasi:** File ini (`test_klasifikasi_respons_revisi.py`) py docstring eksplisit "modul ini TIDAK menyentuh LLM/HTTP sama sekali" — tapi test yang gagal genuinely mencapai `StatusEksekusi.BERHASIL`, yang membuat `eksekusi_atomic_intent()` lanjut memanggil `panggil_meta_chatbot_api()` (fitur `_meta` M4.2 revisit, 2026-08-17). File SAUDARA (`test_klasifikasi_respons.py`) sudah py helper `_patch_meta_tidak_diketahui()` yang di-mock default untuk SETIAP test yang mencapai BERHASIL — tapi `test_klasifikasi_respons_revisi.py` py `_patch_raw()` SENDIRI (duplikat, bukan reuse) yang TIDAK PERNAH diperbarui mengikuti revisit yang sama. Gap maintenance murni: revisit M4.2 hanya menyentuh satu dari dua helper duplikat.
+
+**Keputusan yang Dipilih**
+Perbaiki di tempat: tambah `_patch_meta_tidak_diketahui()` (mirror persis `test_klasifikasi_respons.py`) ke `test_klasifikasi_respons_revisi.py`, panggil di SATU-SATUNYA test yang genuinely mencapai `BERHASIL` (`test_400_lalu_200_di_revisi_kedua_berhasil` — 4 test lain di file yang sama pakai `StatusEksekusi.BERHASIL` cuma sebagai NILAI MOCK ANTARA, bukan hasil akhir, sehingga tidak pernah memanggil `panggil_meta_chatbot_api()`).
+
+**Alasan**
+Ini genuinely bug pre-existing (gap maintenance dari M4.2 revisit), bukan sesuatu yang M8.2 "ciptakan" — Keputusan 5 (path-filter tidak menyentuh kode test) tentang TIDAK me-refactor mekanisme skipif existing, BUKAN larangan memperbaiki bug nyata yang ditemukan lewat eksekusi CI sungguhan (persis filosofi M8.1: perbaiki di file pemilik begitu genuinely terbukti, bukan borongan preventif).
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Tambah `skipif` untuk `CHATBOT_API_BASE_URL` di test ini** — ditolak; itu akan menyembunyikan bug asli (test SEHARUSNYA lolos penuh mocked, sesuai janji docstring file-nya sendiri) di balik skip permanen, bukan memperbaiki akar masalah.
+
+**Dampak**
+`test-python-fast` sekarang genuinely 670/705 passed tanpa gagal sama sekali (diverifikasi lokal meniru kondisi CI persis: `OPENROUTER_API_KEY=""`+`CHATBOT_API_BASE_URL=""`+`DATABASE_URL` asli → 670 passed, 35 skipped, 18.53s). Push perbaikan + re-run CI menyusul.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -197,3 +220,4 @@ Checkpoint 6 (user menambahkan secret) TETAP menambahkan KEDUA secret bersamaan 
 | 8 | Job Aggregator `test-gate` untuk Required Status Check | B | Plan |
 | 9 | Agent Tidak Menambahkan GitHub Secret | B | Plan |
 | 10 | `DATABASE_URL` Disediakan Juga ke `test-python-fast` | A | Checkpoint 3 |
+| 11 | Bug Nyata: `test_400_lalu_200_di_revisi_kedua_berhasil` Lupa Mock `panggil_meta_chatbot_api` | A | Checkpoint 7 |

@@ -115,3 +115,46 @@ Keempat kombinasi menghasilkan PERSIS jumlah+isi config sesuai ekspektasi manual
 **Commit:** (tidak ada — verifikasi murni, tidak ada perubahan file repo; dicatat di sini)
 
 ---
+
+## Checkpoint 7 — Push Baseline + Verifikasi Run Nyata
+
+**Mulai:** 2026-08-23 · **Selesai:** (berjalan)
+
+### Task 7 — Push Checkpoint 1-6 ke main
+
+**Kesesuaian dengan plan:** Penyimpangan ditemukan saat eksekusi — dicatat transparan di bawah.
+
+**Apa yang dilakukan**
+Izin eksplisit diminta+diperoleh (`AskUserQuestion`). `git push origin main` (`f660dc1..45fbf22`, 6 commit).
+
+**Koreksi ekspektasi plan**: plan mengasumsikan push ini akan menghasilkan `changes-prompts`/`prompt-eval` SKIP bersih ("commit ini sendiri TIDAK menyentuh `src/prompts/**`/`prompt_reliability/**/*.yaml`") — asumsi ini KELIRU. `prompt_reliability/run_and_push.py` (dibuat Checkpoint 2, `5b1d0cc`) SENDIRI adalah salah satu path filter `shared` (ditulis di Checkpoint 3, `2390bff`) — karena file itu genuinely BARU di push ini, `dorny/paths-filter` benar mendeteksinya sebagai perubahan, `shared=true` terpicu, `prompt-eval` menjalankan SEMUA 17 config secara nyata (bukan skip). Ini BUKAN bug — mekanisme filter bekerja PERSIS seperti dirancang (file `shared` yang berubah memicu seluruh cakupan) — cuma prediksi "skip bersih" di plan yang tidak memperhitungkan bahwa wrapper barunya sendiri termasuk trigger `shared`. Run nyata `32603441193` diamati (bukan dihentikan) — jadi checkpoint ini SEKALIGUS jadi bukti pertama "`shared` benar-benar memicu seluruh 17 config", bukan cuma checkpoint verifikasi-skip seperti direncanakan.
+
+**Hasil Verifikasi**
+Run `32603441193` selesai **17m58s**, `prompt-eval` **GAGAL** (exit 1), `prompt-eval-gate` genuinely meneruskan kegagalan (mekanisme aggregator TERBUKTI bekerja, sisi positifnya). Rincian per config (urutan sesuai daftar `shared`, dari log `gh run view --job 97105007382 --log`):
+
+| Config | Hasil |
+|---|---|
+| context_resolution/turn_dependency | 5/6 (83%) |
+| context_resolution/rewrite | 5/5 (100%) |
+| context_resolution/matching | 5/5 (100%) |
+| decomposition/klasifikasi | 4/5 (80%) |
+| decomposition/pemecahan | 3/3 (100%) |
+| decomposition/verifikasi | 2/2 (100%) |
+| domain_gate/identifikasi | 9/10 (90%) |
+| domain_gate/verifikasi_titik_buta | 9/10 (90%) |
+| domain_gate/deteksi_cakupan_individu | 10/10 (100%) |
+| domain_gate/verifikasi_cakupan_individu | 10/10 (100%) |
+| retriever/kecocokan_makna_generate | 8/8 (100%) |
+| retriever/kecocokan_makna_verifikasi | 6/8 (75%) |
+| retriever/kecukupan_struktural_fallback | 4/4 (100%) |
+| query_engine/penyusunan_request | 4/4 (100%) |
+| query_engine/verifikasi_bentuk_request | 3/4 (75%) |
+| interpretation/narasi | 13/13 (100%) |
+| interpretation/verifikasi_kesetiaan | 8/10 (80%) |
+| **Total** | **108/117 (92.3%)** |
+
+**Temuan material — dibawa ke user, TIDAK diputuskan sepihak**: dikonfirmasi via `git diff --stat f660dc1..45fbf22 -- src/prompts/ prompt_reliability/*.yaml prompt_reliability/*/*.yaml` → **KOSONG, nol perubahan** — seluruh 9 skenario gagal di 8 config adalah PERILAKU PRA-EXISTING prompt produksi, BUKAN disebabkan apa pun di Milestone 8.4 (yang sama sekali tidak menyentuh isi prompt/config). Ini genuinely baru pertama kali terukur sebagai gate CI blocking — sebelumnya `prompt_reliability/` hanya dijalankan manual/ad-hoc, README `Status` bahkan sudah mencatat preseden "7/8 lolos" untuk config retriever sebagai hasil YANG DITERIMA saat M3.2 ditutup (bukan dianggap kegagalan). Ini KONTRADIKSI langsung dengan premis Keputusan 3 (decisions.md — "assertion dirancang sebagai pemeriksaan biner", diasumsikan berarti gate 100% config-level wajar) — realitanya beberapa config PRODUKSI memang tidak pernah dirancang/diverifikasi 100% pass rate secara historis. Dibawa ke user via `AskUserQuestion` sebelum lanjut Checkpoint 8 (supaya `prompt-eval-gate` tidak langsung jadi required check yang high-friction untuk PR yang genuinely tidak menyentuh prompt manapun).
+
+**Commit:** (tidak ada — verifikasi run nyata, temuan didokumentasikan di sini)
+
+---

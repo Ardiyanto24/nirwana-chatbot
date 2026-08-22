@@ -131,6 +131,24 @@ Migrasi UP042 lintas-unit: `uv run pytest tests/` FULL SUITE (705 test, 498.98s)
 **Temuan**
 Keputusan 17 (lihat `decisions.md`) - migrasi UP042 diterapkan project-wide di checkpoint ini, bukan ditunda per-unit. Unit 10 (`matching.py`, `session_memory.py`), Unit 11 (`retriever.py`), Unit 12 (`domain_gate.py`) akan menemukan skema mereka sudah bersih `UP042` saat checkpoint masing-masing nanti.
 
+**Commit:** `8316ff3` — `chore(milestone-8.1): pembersihan ruff - Decomposition + migrasi StrEnum`
+
+---
+
+## Checkpoint 7 — Bersihkan Unit 4: Go Exporter
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 7 — Konfigurasi `.golangci.yml` + fix
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest` (v2.13.1). Tulis `.golangci.yml` di `custom-exporter/supabaseexporter/` (`version: "2"`, `linters.default: standard` + `enable: [gosec]`). `golangci-lint run --fix` menemukan 1 temuan: `staticcheck QF1008` di `factory.go:84` (`set.TelemetrySettings.Logger` → `set.Logger`) — SEBELUM menerima fix ini, dicek manual: `TelemetrySettings` adalah embedded field (anonymous) di struct `exporter.Settings`, `QF1008` murni penyederhanaan selector field embedded Go (dijamin identik oleh compiler Go, bukan perubahan API/perilaku) — diverifikasi dengan revert+re-run `golangci-lint run` tanpa `--fix` untuk melihat pesan lint mentahnya sebelum menerima fix.
+
+**Hasil Verifikasi**
+`golangci-lint run` → "0 issues." `go test ./...` → 18/18 PASS (termasuk test `Buffer`/retry/queue/eviction M6.2 yang sensitif terhadap regresi).
+
 **Commit:** (menyusul)
 
 ---

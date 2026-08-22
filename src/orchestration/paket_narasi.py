@@ -33,10 +33,14 @@ from src.schemas.session_memory import SessionMemoryPackage, StatusEksekusi
 _TRACER_NAME = "orchestration"
 
 _PESAN_DITOLAK_OTORISASI = "Anda tidak memiliki akses untuk data ini sesuai peran Anda."
-_PESAN_GAGAL_TEKNIS = "Sistem tidak berhasil memproses kebutuhan ini karena kendala teknis."
+_PESAN_GAGAL_TEKNIS = (
+    "Sistem tidak berhasil memproses kebutuhan ini karena kendala teknis."
+)
 
 
-def _paket_selesai(match: AtomicIntentMatch, session_id: str, turn_index: int) -> SessionMemoryPackage:
+def _paket_selesai(
+    match: AtomicIntentMatch, session_id: str, turn_index: int
+) -> SessionMemoryPackage:
     paket_lama = match.paket
     assert paket_lama is not None  # dijamin validator AtomicIntentMatch
     return SessionMemoryPackage(

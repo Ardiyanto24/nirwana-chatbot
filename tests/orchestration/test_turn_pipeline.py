@@ -17,19 +17,27 @@ import pytest
 
 import src.orchestration.turn_pipeline as turn_pipeline_module
 from src.orchestration.turn_pipeline import proses_turn
+from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthorization
+from src.schemas.cakupan_individu import (
+    AtomicIntentConstraint,
+    ConstraintCakupanIndividu,
+)
 from src.schemas.decomposition import (
     AtomicIntent,
     DecompositionResult,
     KlasifikasiKebutuhan,
-    LabelBentukJawaban as LabelBentukJawabanDecomposition,
     RelasiKebutuhan,
 )
-from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthorization
-from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.decomposition import (
+    LabelBentukJawaban as LabelBentukJawabanDecomposition,
+)
 from src.schemas.domain_gate import AtomicIntentDomains, Domain
 from src.schemas.interpretation import HasilNarasi, HasilVerifikasiNarasi
 from src.schemas.matching import AtomicIntentMatch, MatchStatus
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import (
@@ -162,7 +170,9 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         )
 
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", _domain_gate_gagal_kalau_terpanggil
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        _domain_gate_gagal_kalau_terpanggil,
     )
 
     def _otorisasi_gagal_kalau_terpanggil(*args, **kwargs):
@@ -171,7 +181,9 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         )
 
     monkeypatch.setattr(
-        turn_pipeline_module, "periksa_otorisasi_semua", _otorisasi_gagal_kalau_terpanggil
+        turn_pipeline_module,
+        "periksa_otorisasi_semua",
+        _otorisasi_gagal_kalau_terpanggil,
     )
 
     def _cakupan_individu_gagal_kalau_terpanggil(*args, **kwargs):
@@ -191,7 +203,9 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         )
 
     monkeypatch.setattr(
-        turn_pipeline_module, "proses_retrieval_semua", _retriever_gagal_kalau_terpanggil
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        _retriever_gagal_kalau_terpanggil,
     )
 
     def _query_engine_gagal_kalau_terpanggil(*args, **kwargs):
@@ -211,7 +225,9 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         )
 
     monkeypatch.setattr(
-        turn_pipeline_module, "verifikasi_gate_semua", _verification_gate_gagal_kalau_terpanggil
+        turn_pipeline_module,
+        "verifikasi_gate_semua",
+        _verification_gate_gagal_kalau_terpanggil,
     )
 
     def _wave_gagal_kalau_terpanggil(*args, **kwargs):
@@ -229,7 +245,9 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         )
 
     monkeypatch.setattr(
-        turn_pipeline_module, "eksekusi_atomic_intent_semua", _execution_gagal_kalau_terpanggil
+        turn_pipeline_module,
+        "eksekusi_atomic_intent_semua",
+        _execution_gagal_kalau_terpanggil,
     )
 
     def _simpan_paket_gagal_kalau_terpanggil(*args, **kwargs):
@@ -238,7 +256,9 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         )
 
     monkeypatch.setattr(
-        turn_pipeline_module, "susun_dan_simpan_paket_semua", _simpan_paket_gagal_kalau_terpanggil
+        turn_pipeline_module,
+        "susun_dan_simpan_paket_semua",
+        _simpan_paket_gagal_kalau_terpanggil,
     )
 
     def _paket_narasi_gagal_kalau_terpanggil(*args, **kwargs):
@@ -256,7 +276,9 @@ def test_orkestrator_short_circuit_validasi_gagal_ketergantungan_tidak_dipanggil
         )
 
     monkeypatch.setattr(
-        turn_pipeline_module, "susun_dan_verifikasi_narasi", _narasi_gagal_kalau_terpanggil
+        turn_pipeline_module,
+        "susun_dan_verifikasi_narasi",
+        _narasi_gagal_kalau_terpanggil,
     )
 
     with pytest.raises(pydantic.ValidationError):
@@ -268,14 +290,18 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
     (identity) dari tiap langkah, bukan rekonstruksi. retrieve_session_
     memory TIDAK dipanggil (is_dependent=False)."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     monkeypatch.setattr(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
@@ -290,13 +316,17 @@ def test_orkestrator_wiring_keadaan_turn_berisi_objek_identik(monkeypatch):
         turn_pipeline_module, "retrieve_session_memory", _gagal_kalau_terpanggil
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -372,7 +402,9 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
     memory sama-sama terpanggil, dengan argumen yang benar (session_id dari
     payload, turn_index dari referenced_turn_index)."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN2)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=True, referenced_turn_index=1)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=True, referenced_turn_index=1
+    )
     rewrite_asli = RewriteResult(rewritten_question="pertanyaan mandiri")
     paket_asli = [_paket_dummy("a1")]
 
@@ -380,7 +412,9 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
 
     diterima_rewrite = {}
@@ -399,13 +433,17 @@ def test_orkestrator_referensi_terdeteksi_kedua_cabang_terpanggil_argumen_benar(
     monkeypatch.setattr(turn_pipeline_module, "rewrite_to_standalone", _rekam_rewrite)
     monkeypatch.setattr(turn_pipeline_module, "retrieve_session_memory", _rekam_memory)
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -480,13 +518,17 @@ def test_orkestrator_kegagalan_teknis_satu_cabang_menjalar_cabang_lain_tetap_sel
     menunggu kedua thread selesai lewat shutdown(wait=True) sebelum exception
     benar-benar menjalar ke pemanggil - bukan cabang lain dibatalkan paksa)."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN2)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=True, referenced_turn_index=1)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=True, referenced_turn_index=1
+    )
 
     monkeypatch.setattr(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
 
     rewrite_terpanggil = {"n": 0}
@@ -516,14 +558,18 @@ def test_orkestrator_decompose_menerima_rewritten_question_bukan_payload_questio
     kalau kode keliru memakai payload.question, test gagal jelas - bukan
     kebetulan lolos karena kedua teks kebetulan sama."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question="TEKS HASIL REWRITE BERBEDA TOTAL")
 
     monkeypatch.setattr(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
@@ -540,7 +586,9 @@ def test_orkestrator_decompose_menerima_rewritten_question_bukan_payload_questio
         turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -603,20 +651,26 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_none(monkeyp
     (bukan None) sebagai candidates - konversi `session_memory_result or []`
     forced signature match_and_archive() yang menerima list, bukan Optional."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     monkeypatch.setattr(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
 
     diterima_match = {}
@@ -627,7 +681,9 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_none(monkeyp
 
     monkeypatch.setattr(turn_pipeline_module, "match_and_archive", _rekam_match)
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -691,23 +747,31 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_kosong(monke
     tidak dipanggil sama sekali, E02 dipanggil lalu kosong) tapi hasil
     konversi ke Pencocokan konsisten."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN2)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=True, referenced_turn_index=1)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=True, referenced_turn_index=1
+    )
     rewrite_asli = RewriteResult(rewritten_question="pertanyaan mandiri")
 
     monkeypatch.setattr(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "retrieve_session_memory", lambda session_id, turn_index: []
+        turn_pipeline_module,
+        "retrieve_session_memory",
+        lambda session_id, turn_index: [],
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
 
     diterima_match = {}
@@ -718,7 +782,9 @@ def test_orkestrator_match_menerima_list_kosong_saat_session_memory_kosong(monke
 
     monkeypatch.setattr(turn_pipeline_module, "match_and_archive", _rekam_match)
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -782,7 +848,9 @@ def test_orkestrator_domain_gate_menerima_matches_apa_adanya_tanpa_filter(monkey
     identifikasi_domain_semua() sendiri, sudah ada sejak M2.1, lihat
     decisions.md Keputusan 1)."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     atomic_intent_asli = AtomicIntent(
@@ -794,7 +862,9 @@ def test_orkestrator_domain_gate_menerima_matches_apa_adanya_tanpa_filter(monkey
     )
     matches_asli = [
         AtomicIntentMatch(
-            atomic_intent=atomic_intent_asli, status=MatchStatus.PERLU_EKSEKUSI, paket=None
+            atomic_intent=atomic_intent_asli,
+            status=MatchStatus.PERLU_EKSEKUSI,
+            paket=None,
         )
     ]
 
@@ -802,13 +872,17 @@ def test_orkestrator_domain_gate_menerima_matches_apa_adanya_tanpa_filter(monkey
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: matches_asli
@@ -888,7 +962,9 @@ def test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar(
     (bukan konstanta terpisah) supaya test membuktikan nilai itu genuinely
     mengalir dari TurnPayload, bukan kebetulan cocok dengan default."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     domain_gate_asli = [
@@ -909,19 +985,25 @@ def test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: domain_gate_asli
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: domain_gate_asli,
     )
 
     diterima_otorisasi = {}
@@ -931,7 +1013,9 @@ def test_orkestrator_otorisasi_menerima_domain_gate_result_dan_role_title_benar(
         diterima_otorisasi["role_title"] = role_title
         return _OTORISASI_DUMMY
 
-    monkeypatch.setattr(turn_pipeline_module, "periksa_otorisasi_semua", _rekam_otorisasi)
+    monkeypatch.setattr(
+        turn_pipeline_module, "periksa_otorisasi_semua", _rekam_otorisasi
+    )
     monkeypatch.setattr(
         turn_pipeline_module,
         "deteksi_constraint_semua",
@@ -993,7 +1077,9 @@ def test_orkestrator_cakupan_individu_menerima_otorisasi_result_dan_role_title_b
     test sambungan Otorisasi, konsisten membuktikan nilai genuinely mengalir
     dari TurnPayload di tiap titik rantai, bukan konstanta kebetulan cocok."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     otorisasi_asli = [
@@ -1005,7 +1091,9 @@ def test_orkestrator_cakupan_individu_menerima_otorisasi_result_dan_role_title_b
                 relasi=RelasiKebutuhan.INDEPENDEN,
                 bergantung_pada=None,
             ),
-            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            domain_decisions=[
+                DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)
+            ],
         )
     ]
 
@@ -1013,19 +1101,25 @@ def test_orkestrator_cakupan_individu_menerima_otorisasi_result_dan_role_title_b
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -1095,7 +1189,9 @@ def test_orkestrator_retriever_menerima_cakupan_individu_result_persis(monkeypat
     penutup rantai Domain Gate lengkap (M2.1->M2.2->M2.3) mengalir ke
     Retriever (lihat decisions.md Keputusan 3-4)."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     cakupan_individu_asli = [
@@ -1107,7 +1203,9 @@ def test_orkestrator_retriever_menerima_cakupan_individu_result_persis(monkeypat
                 relasi=RelasiKebutuhan.INDEPENDEN,
                 bergantung_pada=None,
             ),
-            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            domain_decisions=[
+                DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)
+            ],
             constraint=ConstraintCakupanIndividu(terdeteksi=False),
         )
     ]
@@ -1116,19 +1214,25 @@ def test_orkestrator_retriever_menerima_cakupan_individu_result_persis(monkeypat
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -1147,7 +1251,9 @@ def test_orkestrator_retriever_menerima_cakupan_individu_result_persis(monkeypat
         diterima_retriever["cakupan_individu_result"] = cakupan_individu_result
         return _RETRIEVER_DUMMY
 
-    monkeypatch.setattr(turn_pipeline_module, "proses_retrieval_semua", _rekam_retriever)
+    monkeypatch.setattr(
+        turn_pipeline_module, "proses_retrieval_semua", _rekam_retriever
+    )
     monkeypatch.setattr(
         turn_pipeline_module,
         "susun_dan_verifikasi_request_semua",
@@ -1193,26 +1299,34 @@ def test_orkestrator_query_engine_menerima_retriever_result_persis(monkeypatch):
     check) hasil proses_retrieval_semua() - titik penutup rantai
     Retriever mengalir ke Query Engine (lihat decisions.md)."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     monkeypatch.setattr(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -1240,7 +1354,9 @@ def test_orkestrator_query_engine_menerima_retriever_result_persis(monkeypatch):
         )
     ]
     monkeypatch.setattr(
-        turn_pipeline_module, "proses_retrieval_semua", lambda cakupan_individu_result: retriever_asli
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: retriever_asli,
     )
 
     diterima_query_engine = {}
@@ -1302,26 +1418,34 @@ def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_i
     (full-set, tidak di-slice per wave) - identity check tetap berlaku
     untuk ketiganya."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     monkeypatch.setattr(
         turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -1338,7 +1462,9 @@ def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_i
                 relasi=RelasiKebutuhan.INDEPENDEN,
                 bergantung_pada=None,
             ),
-            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            domain_decisions=[
+                DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)
+            ],
             constraint=ConstraintCakupanIndividu(terdeteksi=False),
         )
     ]
@@ -1357,12 +1483,16 @@ def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_i
         )
     ]
     monkeypatch.setattr(
-        turn_pipeline_module, "proses_retrieval_semua", lambda cakupan_individu_result: retriever_asli
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: retriever_asli,
     )
 
     hasil_susun_asli = HasilPenyusunanRequest(
         atomic_intent=cakupan_individu_asli[0].atomic_intent,
-        request=QueryEngineRequest(domain=Domain.RESERVATION, view_name="v_dummy", params={}),
+        request=QueryEngineRequest(
+            domain=Domain.RESERVATION, view_name="v_dummy", params={}
+        ),
         status=StatusEksekusi.BERHASIL,
     )
     hasil_verifikasi_asli = HasilVerifikasiBentukRequest(
@@ -1396,7 +1526,9 @@ def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_i
 
     diterima_execution = {}
 
-    def _rekam_execution(verification_gate_wave, cakupan_individu_result, role_title, employee_id):
+    def _rekam_execution(
+        verification_gate_wave, cakupan_individu_result, role_title, employee_id
+    ):
         diterima_execution["verification_gate_wave"] = verification_gate_wave
         diterima_execution["cakupan_individu_result"] = cakupan_individu_result
         diterima_execution["role_title"] = role_title
@@ -1432,8 +1564,12 @@ def test_orkestrator_verification_gate_menerima_query_engine_retriever_cakupan_i
     assert diterima_verification_gate["query_engine_result"] == query_engine_asli
     assert diterima_verification_gate["query_engine_result"][0] is query_engine_asli[0]
     assert diterima_verification_gate["retriever_result"] is retriever_asli
-    assert diterima_verification_gate["cakupan_individu_result"] is cakupan_individu_asli
-    assert diterima_verification_gate["employee_id"] == payload_asli.employee_id == "emp-1"
+    assert (
+        diterima_verification_gate["cakupan_individu_result"] is cakupan_individu_asli
+    )
+    assert (
+        diterima_verification_gate["employee_id"] == payload_asli.employee_id == "emp-1"
+    )
     assert hasil.verification_gate == _VERIFICATION_GATE_DUMMY
 
     assert diterima_execution["verification_gate_wave"] is _VERIFICATION_GATE_DUMMY
@@ -1453,7 +1589,9 @@ def test_orkestrator_wave_kedua_menunggu_wave_pertama_selesai(monkeypatch):
     KK sumber M7.14 ("bandingkan X dengan Y yang butuh Y dulu"): ai-a
     independen, ai-b bergantung pada ai-a."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     atomic_intent_a = AtomicIntent(
@@ -1474,50 +1612,75 @@ def test_orkestrator_wave_kedua_menunggu_wave_pertama_selesai(monkeypatch):
     cakupan_individu_asli = [
         AtomicIntentConstraint(
             atomic_intent=atomic_intent_a,
-            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            domain_decisions=[
+                DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)
+            ],
             constraint=ConstraintCakupanIndividu(terdeteksi=False),
         ),
         AtomicIntentConstraint(
             atomic_intent=atomic_intent_b,
-            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            domain_decisions=[
+                DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)
+            ],
             constraint=ConstraintCakupanIndividu(terdeteksi=False),
         ),
     ]
     retriever_asli = [
         HasilKecukupanStruktural(
-            atomic_intent=atomic_intent_a, kecukupan=[], view_name_final=None,
+            atomic_intent=atomic_intent_a,
+            kecukupan=[],
+            view_name_final=None,
             status=StatusEksekusi.BERHASIL,
         ),
         HasilKecukupanStruktural(
-            atomic_intent=atomic_intent_b, kecukupan=[], view_name_final=None,
+            atomic_intent=atomic_intent_b,
+            kecukupan=[],
+            view_name_final=None,
             status=StatusEksekusi.BERHASIL,
         ),
     ]
 
     def _buat_qe_item(atomic_intent):
-        req = QueryEngineRequest(domain=Domain.RESERVATION, view_name="v_dummy", params={})
+        req = QueryEngineRequest(
+            domain=Domain.RESERVATION, view_name="v_dummy", params={}
+        )
         hasil_susun = HasilPenyusunanRequest(
             atomic_intent=atomic_intent, request=req, status=StatusEksekusi.BERHASIL
         )
         hasil_verifikasi = HasilVerifikasiBentukRequest(
-            atomic_intent=atomic_intent, request=req, status=StatusEksekusi.BERHASIL,
-            lolos=True, alasan=None,
+            atomic_intent=atomic_intent,
+            request=req,
+            status=StatusEksekusi.BERHASIL,
+            lolos=True,
+            alasan=None,
         )
         return hasil_susun, hasil_verifikasi
 
     query_engine_asli = [_buat_qe_item(atomic_intent_a), _buat_qe_item(atomic_intent_b)]
 
-    monkeypatch.setattr(turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli)
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
-    monkeypatch.setattr(turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli)
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
     )
-    monkeypatch.setattr(turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY)
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "match_and_archive", lambda *a, **k: _MATCHES_DUMMY
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -1530,7 +1693,9 @@ def test_orkestrator_wave_kedua_menunggu_wave_pertama_selesai(monkeypatch):
         lambda otorisasi_result, role_title: cakupan_individu_asli,
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "proses_retrieval_semua", lambda cakupan_individu_result: retriever_asli
+        turn_pipeline_module,
+        "proses_retrieval_semua",
+        lambda cakupan_individu_result: retriever_asli,
     )
     monkeypatch.setattr(
         turn_pipeline_module,
@@ -1546,18 +1711,30 @@ def test_orkestrator_wave_kedua_menunggu_wave_pertama_selesai(monkeypatch):
         return [
             (
                 item[0].atomic_intent,
-                HasilVerifikasiGate(request_final=None, lolos=False, terkoreksi=False, alasan_penolakan="dummy"),
+                HasilVerifikasiGate(
+                    request_final=None,
+                    lolos=False,
+                    terkoreksi=False,
+                    alasan_penolakan="dummy",
+                ),
             )
             for item in wave
         ]
 
-    def _fake_exec(verification_gate_wave, cakupan_individu_result, role_title, employee_id):
-        ids = sorted(atomic_intent.atomic_intent_id for atomic_intent, _ in verification_gate_wave)
+    def _fake_exec(
+        verification_gate_wave, cakupan_individu_result, role_title, employee_id
+    ):
+        ids = sorted(
+            atomic_intent.atomic_intent_id
+            for atomic_intent, _ in verification_gate_wave
+        )
         urutan_panggilan.append(f"eksekusi:{','.join(ids)}")
         return []
 
     monkeypatch.setattr(turn_pipeline_module, "verifikasi_gate_semua", _fake_vg)
-    monkeypatch.setattr(turn_pipeline_module, "eksekusi_atomic_intent_semua", _fake_exec)
+    monkeypatch.setattr(
+        turn_pipeline_module, "eksekusi_atomic_intent_semua", _fake_exec
+    )
     monkeypatch.setattr(
         turn_pipeline_module,
         "susun_dan_simpan_paket_semua",
@@ -1603,7 +1780,9 @@ def test_orkestrator_paket_narasi_menerima_matches_otorisasi_paket_eksekusi_pers
     tersambung. `susun_dan_verifikasi_narasi()` (M7.5) pada gilirannya
     WAJIB menerima hasil `susun_paket_narasi()` PERSIS."""
     payload_asli = TurnPayload.model_validate(_RAW_VALID_TURN1)
-    ketergantungan_asli = TurnDependencyResult(is_dependent=False, referenced_turn_index=None)
+    ketergantungan_asli = TurnDependencyResult(
+        is_dependent=False, referenced_turn_index=None
+    )
     rewrite_asli = RewriteResult(rewritten_question=payload_asli.question)
 
     matches_asli = [
@@ -1620,25 +1799,37 @@ def test_orkestrator_paket_narasi_menerima_matches_otorisasi_paket_eksekusi_pers
         )
     ]
 
-    monkeypatch.setattr(turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli)
     monkeypatch.setattr(
-        turn_pipeline_module, "detect_turn_dependency", lambda payload: ketergantungan_asli
+        turn_pipeline_module, "validate_turn_payload", lambda raw: payload_asli
     )
-    monkeypatch.setattr(turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli)
     monkeypatch.setattr(
-        turn_pipeline_module, "decompose_question", lambda question: _DECOMPOSITION_DUMMY
+        turn_pipeline_module,
+        "detect_turn_dependency",
+        lambda payload: ketergantungan_asli,
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module, "rewrite_to_standalone", lambda payload: rewrite_asli
+    )
+    monkeypatch.setattr(
+        turn_pipeline_module,
+        "decompose_question",
+        lambda question: _DECOMPOSITION_DUMMY,
     )
     monkeypatch.setattr(
         turn_pipeline_module, "match_and_archive", lambda *a, **k: matches_asli
     )
     monkeypatch.setattr(
-        turn_pipeline_module, "identifikasi_domain_semua", lambda matches: _DOMAIN_GATE_DUMMY
+        turn_pipeline_module,
+        "identifikasi_domain_semua",
+        lambda matches: _DOMAIN_GATE_DUMMY,
     )
 
     otorisasi_asli = [
         AtomicIntentAuthorization(
             atomic_intent=matches_asli[0].atomic_intent,
-            domain_decisions=[DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)],
+            domain_decisions=[
+                DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True)
+            ],
         )
     ]
     monkeypatch.setattr(
@@ -1679,7 +1870,9 @@ def test_orkestrator_paket_narasi_menerima_matches_otorisasi_paket_eksekusi_pers
     paket_dari_eksekusi_asli = [_paket_dummy("ai-eksekusi")]
     diterima_simpan_paket = {}
 
-    def _rekam_simpan_paket(execution_result, verification_gate_result, session_id, turn_index):
+    def _rekam_simpan_paket(
+        execution_result, verification_gate_result, session_id, turn_index
+    ):
         diterima_simpan_paket["execution_result"] = execution_result
         diterima_simpan_paket["verification_gate_result"] = verification_gate_result
         diterima_simpan_paket["session_id"] = session_id
@@ -1694,7 +1887,9 @@ def test_orkestrator_paket_narasi_menerima_matches_otorisasi_paket_eksekusi_pers
     paket_narasi_asli = [_paket_dummy("ai-narasi")]
     diterima_paket_narasi = {}
 
-    def _rekam_paket_narasi(matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index):
+    def _rekam_paket_narasi(
+        matches, paket_dari_eksekusi, otorisasi_result, session_id, turn_index
+    ):
         diterima_paket_narasi["matches"] = matches
         diterima_paket_narasi["paket_dari_eksekusi"] = paket_dari_eksekusi
         diterima_paket_narasi["otorisasi_result"] = otorisasi_result
@@ -1713,7 +1908,9 @@ def test_orkestrator_paket_narasi_menerima_matches_otorisasi_paket_eksekusi_pers
         diterima_narasi["turn_index"] = turn_index
         return _INTERPRETATION_DUMMY
 
-    monkeypatch.setattr(turn_pipeline_module, "susun_dan_verifikasi_narasi", _rekam_narasi)
+    monkeypatch.setattr(
+        turn_pipeline_module, "susun_dan_verifikasi_narasi", _rekam_narasi
+    )
 
     hasil = proses_turn(_RAW_VALID_TURN1)
 

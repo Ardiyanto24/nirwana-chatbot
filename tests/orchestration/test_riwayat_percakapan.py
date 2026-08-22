@@ -59,7 +59,9 @@ def test_simpan_lalu_baca_balik_cocok_dengan_yang_ditanyakan_dijawab():
 
         assert len(rows) == 1
         assert rows[0].turn_index == 1
-        assert rows[0].pertanyaan == "Berapa occupancy rate properti kita bulan Juni 2026?"
+        assert (
+            rows[0].pertanyaan == "Berapa occupancy rate properti kita bulan Juni 2026?"
+        )
         assert rows[0].narasi == "Occupancy rate Juni 2026 tercatat 78%."
         assert rows[0].status == "berhasil"
         assert rows[0].created_at is not None

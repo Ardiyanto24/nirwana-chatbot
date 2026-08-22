@@ -167,6 +167,24 @@ Keputusan 17 (lihat `decisions.md`) - migrasi UP042 diterapkan project-wide di c
 **Hasil Verifikasi**
 `ruff check`+`format --check` → "All checks passed!"/"9 files already formatted". `uv run pytest tests/layers/interpretation/` → **34/34 passed** (40.74s) — termasuk 2 test konektivitas real-LLM yang sebelumnya gagal karena `GAGAL_TEKNIS` di Checkpoint 6 (lihat investigasi causality di sana); kali ini lolos bersih, mengonfirmasi ulang itu memang non-determinisme LLM sesaat, bukan bug.
 
+**Commit:** `4874931` — `chore(milestone-8.1): pembersihan ruff - Interpretation`
+
+---
+
+## Checkpoint 9 — Bersihkan Unit 6: Orchestration
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 9 — Ruff fix Unit 6
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 10 file Unit 6. 5 dari 6 temuan (`I001` import unsorted) auto-fixed. 1 non-autofix (`SIM105` di `turn_pipeline.py:192`, try/except/pass untuk `turn.index` span attribute — pola identik Unit 1) diperbaiki manual: `contextlib.suppress(TypeError, ValueError)` + tambah `import contextlib`.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"10 files already formatted". `uv run pytest tests/orchestration/` → 41/41 passed (5.39s).
+
 **Commit:** (menyusul)
 
 ---

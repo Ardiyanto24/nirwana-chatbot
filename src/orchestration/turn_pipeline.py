@@ -134,6 +134,7 @@ terpisah. Lihat milestones/6.1-membangun-exporter-dasar/decisions.md
 Keputusan 2.
 """
 
+import contextlib
 from concurrent.futures import ThreadPoolExecutor
 
 from opentelemetry import context as otel_context
@@ -189,10 +190,8 @@ def proses_turn(raw: dict) -> KeadaanTurn:
         if "session_id" in raw:
             span.set_attribute("session.id", str(raw["session_id"]))
         if "turn_index" in raw:
-            try:
+            with contextlib.suppress(TypeError, ValueError):
                 span.set_attribute("turn.index", int(raw["turn_index"]))
-            except (TypeError, ValueError):
-                pass
         # role_title BARU (M6.1 addendum, keterbatasan-diterima.md #19) -
         # sebelumnya tidak pernah jadi span attribute di manapun, membuat
         # kolom traces.role_title (Bagian 4) permanen NULL untuk data asli.
@@ -206,7 +205,8 @@ def proses_turn(raw: dict) -> KeadaanTurn:
         ketergantungan = detect_turn_dependency(payload)
 
         harus_tarik_memory = (
-            ketergantungan.is_dependent and ketergantungan.referenced_turn_index is not None
+            ketergantungan.is_dependent
+            and ketergantungan.referenced_turn_index is not None
         )
 
         ctx = otel_context.get_current()
@@ -237,9 +237,13 @@ def proses_turn(raw: dict) -> KeadaanTurn:
 
         domain_gate_result = identifikasi_domain_semua(matches)
 
-        otorisasi_result = periksa_otorisasi_semua(domain_gate_result, payload.role_title)
+        otorisasi_result = periksa_otorisasi_semua(
+            domain_gate_result, payload.role_title
+        )
 
-        cakupan_individu_result = deteksi_constraint_semua(otorisasi_result, payload.role_title)
+        cakupan_individu_result = deteksi_constraint_semua(
+            otorisasi_result, payload.role_title
+        )
 
         retriever_result = proses_retrieval_semua(cakupan_individu_result)
 
@@ -259,12 +263,18 @@ def proses_turn(raw: dict) -> KeadaanTurn:
                 verification_gate_result.extend(hasil_vg_wave)
 
                 hasil_eksekusi_wave = eksekusi_atomic_intent_semua(
-                    hasil_vg_wave, cakupan_individu_result, payload.role_title, payload.employee_id
+                    hasil_vg_wave,
+                    cakupan_individu_result,
+                    payload.role_title,
+                    payload.employee_id,
                 )
                 execution_result.extend(hasil_eksekusi_wave)
 
         paket_dari_eksekusi = susun_dan_simpan_paket_semua(
-            execution_result, verification_gate_result, payload.session_id, payload.turn_index
+            execution_result,
+            verification_gate_result,
+            payload.session_id,
+            payload.turn_index,
         )
 
         atomic_intents_narasi, paket_narasi_result = susun_paket_narasi(
@@ -276,7 +286,10 @@ def proses_turn(raw: dict) -> KeadaanTurn:
         )
 
         interpretation_result = susun_dan_verifikasi_narasi(
-            atomic_intents_narasi, paket_narasi_result, payload.session_id, payload.turn_index
+            atomic_intents_narasi,
+            paket_narasi_result,
+            payload.session_id,
+            payload.turn_index,
         )
 
         # M6.1 addendum: capture identitas span invoke_agent SEBELUM

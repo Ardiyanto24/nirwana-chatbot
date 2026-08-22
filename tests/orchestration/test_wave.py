@@ -6,7 +6,10 @@ import uuid
 
 from src.orchestration.wave import kelompokkan_wave
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 from src.schemas.verification_gate import QueryEngineRequest
 
@@ -28,13 +31,18 @@ def _buat_atomic_intent(
 def _buat_entry(
     atomic_intent: AtomicIntent,
 ) -> tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]:
-    request = QueryEngineRequest(domain="facility", view_name="v_housekeeping_staff_daily", params={})
+    request = QueryEngineRequest(
+        domain="facility", view_name="v_housekeeping_staff_daily", params={}
+    )
     hasil_susun = HasilPenyusunanRequest(
         atomic_intent=atomic_intent, request=request, status=StatusEksekusi.BERHASIL
     )
     hasil_verifikasi = HasilVerifikasiBentukRequest(
-        atomic_intent=atomic_intent, request=request, status=StatusEksekusi.BERHASIL,
-        lolos=True, alasan=None,
+        atomic_intent=atomic_intent,
+        request=request,
+        status=StatusEksekusi.BERHASIL,
+        lolos=True,
+        alasan=None,
     )
     return hasil_susun, hasil_verifikasi
 
@@ -56,7 +64,11 @@ def test_semua_independen_satu_wave():
     waves = kelompokkan_wave(items)
 
     assert len(waves) == 1
-    assert _ids(waves[0]) == {a.atomic_intent_id, b.atomic_intent_id, c.atomic_intent_id}
+    assert _ids(waves[0]) == {
+        a.atomic_intent_id,
+        b.atomic_intent_id,
+        c.atomic_intent_id,
+    }
 
 
 def test_satu_dependensi_sederhana_dua_wave():
@@ -174,5 +186,7 @@ def test_seluruh_item_muncul_persis_sekali_kasus_campuran():
     waves = kelompokkan_wave(items)
 
     seen = [aid for w in waves for aid in _ids(w)]
-    assert sorted(seen) == sorted([a.atomic_intent_id, b.atomic_intent_id, c.atomic_intent_id])
+    assert sorted(seen) == sorted(
+        [a.atomic_intent_id, b.atomic_intent_id, c.atomic_intent_id]
+    )
     assert len(seen) == len(set(seen))

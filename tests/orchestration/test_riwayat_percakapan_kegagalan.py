@@ -42,7 +42,10 @@ def _buat_paket(status: StatusEksekusi) -> SessionMemoryPackage:
 
 
 def test_status_seragam_berhasil_menghasilkan_berhasil():
-    paket_narasi = [_buat_paket(StatusEksekusi.BERHASIL), _buat_paket(StatusEksekusi.BERHASIL)]
+    paket_narasi = [
+        _buat_paket(StatusEksekusi.BERHASIL),
+        _buat_paket(StatusEksekusi.BERHASIL),
+    ]
     assert modul.tentukan_status_keseluruhan_turn(paket_narasi) == "berhasil"
 
 
@@ -52,7 +55,10 @@ def test_status_seragam_gagal_teknis_menghasilkan_gagal_teknis():
 
 
 def test_status_campuran_menghasilkan_campuran():
-    paket_narasi = [_buat_paket(StatusEksekusi.BERHASIL), _buat_paket(StatusEksekusi.GAGAL_TEKNIS)]
+    paket_narasi = [
+        _buat_paket(StatusEksekusi.BERHASIL),
+        _buat_paket(StatusEksekusi.GAGAL_TEKNIS),
+    ]
     assert modul.tentukan_status_keseluruhan_turn(paket_narasi) == "campuran"
 
 
@@ -60,7 +66,10 @@ def test_status_campuran_tidak_tertukar_dengan_sebagian_existing():
     # "campuran" (status berbeda antar item) HARUS beda dari nilai
     # StatusEksekusi.SEBAGIAN existing (artinya "data basi" satu item),
     # meski salah satu item kebetulan SEBAGIAN.
-    paket_narasi = [_buat_paket(StatusEksekusi.SEBAGIAN), _buat_paket(StatusEksekusi.BERHASIL)]
+    paket_narasi = [
+        _buat_paket(StatusEksekusi.SEBAGIAN),
+        _buat_paket(StatusEksekusi.BERHASIL),
+    ]
     hasil = modul.tentukan_status_keseluruhan_turn(paket_narasi)
     assert hasil == "campuran"
     assert hasil != StatusEksekusi.SEBAGIAN.value

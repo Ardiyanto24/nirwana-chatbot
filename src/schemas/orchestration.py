@@ -131,9 +131,16 @@ from src.schemas.cakupan_individu import AtomicIntentConstraint
 from src.schemas.decomposition import AtomicIntent, DecompositionResult
 from src.schemas.domain_gate import AtomicIntentDomains
 from src.schemas.execution import HasilEksekusiAtomicIntent
-from src.schemas.interpretation import DataVisualisasi, HasilNarasi, HasilVerifikasiNarasi
+from src.schemas.interpretation import (
+    DataVisualisasi,
+    HasilNarasi,
+    HasilVerifikasiNarasi,
+)
 from src.schemas.matching import AtomicIntentMatch
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.retriever import HasilKecukupanStruktural
 from src.schemas.rewrite import RewriteResult
 from src.schemas.session_memory import SessionMemoryPackage
@@ -153,10 +160,14 @@ class KeadaanTurn(BaseModel):
     otorisasi: list[AtomicIntentAuthorization]
     cakupan_individu: list[AtomicIntentConstraint]
     retriever: list[HasilKecukupanStruktural]
-    query_engine: list[tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]]
+    query_engine: list[
+        tuple[HasilPenyusunanRequest, HasilVerifikasiBentukRequest | None]
+    ]
     verification_gate: list[tuple[AtomicIntent, HasilVerifikasiGate]]
     execution: list[HasilEksekusiAtomicIntent]
     paket_narasi: list[SessionMemoryPackage]
-    interpretation: tuple[HasilNarasi, HasilVerifikasiNarasi, list[DataVisualisasi] | None]
+    interpretation: tuple[
+        HasilNarasi, HasilVerifikasiNarasi, list[DataVisualisasi] | None
+    ]
     invoke_agent_trace_id: str
     invoke_agent_span_id: str

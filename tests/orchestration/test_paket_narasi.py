@@ -10,7 +10,11 @@ from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthoriza
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.matching import AtomicIntentMatch, MatchStatus
-from src.schemas.session_memory import LabelBentukJawaban, SessionMemoryPackage, StatusEksekusi
+from src.schemas.session_memory import (
+    LabelBentukJawaban,
+    SessionMemoryPackage,
+    StatusEksekusi,
+)
 
 
 def _buat_atomic_intent(teks: str = "kebutuhan uji") -> AtomicIntent:
@@ -39,7 +43,9 @@ def _buat_paket_lama(
     )
 
 
-def _buat_paket_eksekusi(atomic_intent: AtomicIntent, turn_index: int = 5) -> SessionMemoryPackage:
+def _buat_paket_eksekusi(
+    atomic_intent: AtomicIntent, turn_index: int = 5
+) -> SessionMemoryPackage:
     return SessionMemoryPackage(
         atomic_intent_id=atomic_intent.atomic_intent_id,
         session_id="sess-1",
@@ -56,16 +62,24 @@ def _buat_paket_eksekusi(atomic_intent: AtomicIntent, turn_index: int = 5) -> Se
 def _buat_otorisasi(
     atomic_intent: AtomicIntent, domain_decisions: list[DomainAuthorization]
 ) -> AtomicIntentAuthorization:
-    return AtomicIntentAuthorization(atomic_intent=atomic_intent, domain_decisions=domain_decisions)
+    return AtomicIntentAuthorization(
+        atomic_intent=atomic_intent, domain_decisions=domain_decisions
+    )
 
 
 def test_selesai_re_key_atomic_intent_id_dan_sumber_benar():
     ai = _buat_atomic_intent("butuh A")
     paket_lama = _buat_paket_lama(teks="butuh A", turn_index=3, sumber="eksekusi_baru")
-    match = AtomicIntentMatch(atomic_intent=ai, status=MatchStatus.SELESAI, paket=paket_lama)
+    match = AtomicIntentMatch(
+        atomic_intent=ai, status=MatchStatus.SELESAI, paket=paket_lama
+    )
 
     atomic_intents, packages = susun_paket_narasi(
-        [match], paket_dari_eksekusi=[], otorisasi_result=[], session_id="sess-1", turn_index=5
+        [match],
+        paket_dari_eksekusi=[],
+        otorisasi_result=[],
+        session_id="sess-1",
+        turn_index=5,
     )
 
     assert atomic_intents == [ai]
@@ -90,10 +104,16 @@ def test_selesai_sumber_arsip_berantai_dipertahankan_utuh():
     mempertahankan utuh, bukan menimpa jadi turn saat ini."""
     ai = _buat_atomic_intent()
     paket_lama = _buat_paket_lama(sumber="session_memory (turn 2)")
-    match = AtomicIntentMatch(atomic_intent=ai, status=MatchStatus.SELESAI, paket=paket_lama)
+    match = AtomicIntentMatch(
+        atomic_intent=ai, status=MatchStatus.SELESAI, paket=paket_lama
+    )
 
     _, packages = susun_paket_narasi(
-        [match], paket_dari_eksekusi=[], otorisasi_result=[], session_id="sess-1", turn_index=9
+        [match],
+        paket_dari_eksekusi=[],
+        otorisasi_result=[],
+        session_id="sess-1",
+        turn_index=9,
     )
 
     assert packages[0].sumber == "session_memory (turn 2)"
@@ -101,7 +121,9 @@ def test_selesai_sumber_arsip_berantai_dipertahankan_utuh():
 
 def test_eksekusi_dipakai_apa_adanya():
     ai = _buat_atomic_intent()
-    match = AtomicIntentMatch(atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None)
+    match = AtomicIntentMatch(
+        atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None
+    )
     paket_eksekusi = _buat_paket_eksekusi(ai)
 
     atomic_intents, packages = susun_paket_narasi(
@@ -118,17 +140,27 @@ def test_eksekusi_dipakai_apa_adanya():
 
 def test_gap_rbac_seluruh_domain_ditolak():
     ai = _buat_atomic_intent()
-    match = AtomicIntentMatch(atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None)
+    match = AtomicIntentMatch(
+        atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None
+    )
     otorisasi = _buat_otorisasi(
         ai,
         [
-            DomainAuthorization(domain=Domain.FINANCIAL, diizinkan=False, alasan="role tidak diizinkan"),
-            DomainAuthorization(domain=Domain.HR, diizinkan=False, alasan="role tidak diizinkan"),
+            DomainAuthorization(
+                domain=Domain.FINANCIAL, diizinkan=False, alasan="role tidak diizinkan"
+            ),
+            DomainAuthorization(
+                domain=Domain.HR, diizinkan=False, alasan="role tidak diizinkan"
+            ),
         ],
     )
 
     _, packages = susun_paket_narasi(
-        [match], paket_dari_eksekusi=[], otorisasi_result=[otorisasi], session_id="sess-1", turn_index=1
+        [match],
+        paket_dari_eksekusi=[],
+        otorisasi_result=[otorisasi],
+        session_id="sess-1",
+        turn_index=1,
     )
 
     assert len(packages) == 1
@@ -141,11 +173,17 @@ def test_gap_teknis_domain_decisions_kosong():
     """Domain Gate sendiri gagal teknis (domain_decisions=[]) - BUKAN RBAC,
     walau tidak ada satu pun domain diizinkan."""
     ai = _buat_atomic_intent()
-    match = AtomicIntentMatch(atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None)
+    match = AtomicIntentMatch(
+        atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None
+    )
     otorisasi = _buat_otorisasi(ai, [])
 
     _, packages = susun_paket_narasi(
-        [match], paket_dari_eksekusi=[], otorisasi_result=[otorisasi], session_id="sess-1", turn_index=1
+        [match],
+        paket_dari_eksekusi=[],
+        otorisasi_result=[otorisasi],
+        session_id="sess-1",
+        turn_index=1,
     )
 
     assert packages[0].status == StatusEksekusi.GAGAL_TEKNIS
@@ -156,17 +194,25 @@ def test_gap_teknis_domain_decisions_campuran_sebagian_diizinkan():
     """SEBAGIAN domain diizinkan tapi tetap gap (mis. Retriever/Query
     Engine gagal) - BUKAN RBAC (tidak seluruhnya ditolak)."""
     ai = _buat_atomic_intent()
-    match = AtomicIntentMatch(atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None)
+    match = AtomicIntentMatch(
+        atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None
+    )
     otorisasi = _buat_otorisasi(
         ai,
         [
             DomainAuthorization(domain=Domain.RESERVATION, diizinkan=True),
-            DomainAuthorization(domain=Domain.FINANCIAL, diizinkan=False, alasan="ditolak"),
+            DomainAuthorization(
+                domain=Domain.FINANCIAL, diizinkan=False, alasan="ditolak"
+            ),
         ],
     )
 
     _, packages = susun_paket_narasi(
-        [match], paket_dari_eksekusi=[], otorisasi_result=[otorisasi], session_id="sess-1", turn_index=1
+        [match],
+        paket_dari_eksekusi=[],
+        otorisasi_result=[otorisasi],
+        session_id="sess-1",
+        turn_index=1,
     )
 
     assert packages[0].status == StatusEksekusi.GAGAL_TEKNIS
@@ -174,10 +220,16 @@ def test_gap_teknis_domain_decisions_campuran_sebagian_diizinkan():
 
 def test_gap_teknis_tanpa_entry_otorisasi_sama_sekali():
     ai = _buat_atomic_intent()
-    match = AtomicIntentMatch(atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None)
+    match = AtomicIntentMatch(
+        atomic_intent=ai, status=MatchStatus.PERLU_EKSEKUSI, paket=None
+    )
 
     _, packages = susun_paket_narasi(
-        [match], paket_dari_eksekusi=[], otorisasi_result=[], session_id="sess-1", turn_index=1
+        [match],
+        paket_dari_eksekusi=[],
+        otorisasi_result=[],
+        session_id="sess-1",
+        turn_index=1,
     )
 
     assert packages[0].status == StatusEksekusi.GAGAL_TEKNIS
@@ -201,7 +253,8 @@ def test_campuran_ketiga_kategori_dalam_satu_turn_urutan_dan_panjang_sinkron():
         atomic_intent=ai_gap_rbac, status=MatchStatus.PERLU_EKSEKUSI, paket=None
     )
     otorisasi_rbac = _buat_otorisasi(
-        ai_gap_rbac, [DomainAuthorization(domain=Domain.FINANCIAL, diizinkan=False, alasan="x")]
+        ai_gap_rbac,
+        [DomainAuthorization(domain=Domain.FINANCIAL, diizinkan=False, alasan="x")],
     )
 
     ai_gap_teknis = _buat_atomic_intent("gap teknis")
@@ -235,7 +288,11 @@ def test_campuran_ketiga_kategori_dalam_satu_turn_urutan_dan_panjang_sinkron():
 
 def test_list_kosong_hasil_kosong():
     atomic_intents, packages = susun_paket_narasi(
-        [], paket_dari_eksekusi=[], otorisasi_result=[], session_id="sess-1", turn_index=1
+        [],
+        paket_dari_eksekusi=[],
+        otorisasi_result=[],
+        session_id="sess-1",
+        turn_index=1,
     )
     assert atomic_intents == []
     assert packages == []

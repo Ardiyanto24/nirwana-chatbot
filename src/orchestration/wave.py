@@ -19,7 +19,10 @@ terselesaikan setelah algoritma berhenti progress di-force ke wave
 terakhir.
 """
 
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 
 _QueryEngineItem = tuple[HasilPenyusunanRequest, "HasilVerifikasiBentukRequest | None"]
 

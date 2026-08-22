@@ -12,7 +12,6 @@ decisions.md Keputusan 3. Entri berstatus GAGAL_TEKNIS (M2.1) dilewati -
 tidak ada domain untuk diperiksa, lihat decisions.md Keputusan 9.
 """
 
-from src.config.role_permissions import load_role_permissions
 from src.observability.tracing import get_tracer
 from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthorization
 from src.schemas.domain_gate import AtomicIntentDomains, Domain
@@ -22,17 +21,11 @@ _TRACER_NAME = "domain_gate.otorisasi"
 
 
 def periksa_domain(domain: Domain, role_title: str) -> DomainAuthorization:
-    """Murni fungsi, TANPA span - dipanggil berulang oleh
-    periksa_otorisasi_atomic_intent(), span diemisikan di level situ per
-    domain."""
-    domain_diizinkan = load_role_permissions().get(role_title, frozenset())
-    if domain in domain_diizinkan:
-        return DomainAuthorization(domain=domain, diizinkan=True)
-    return DomainAuthorization(
-        domain=domain,
-        diizinkan=False,
-        alasan=f"role '{role_title}' tidak memiliki akses ke domain '{domain.value}'",
-    )
+    """PERCOBAAN SENGAJA M8.3 Checkpoint 11 - constraint RBAC dilonggarkan
+    secara buatan (SELALU diizinkan) untuk membuktikan job CI
+    rbac-regression genuinely mendeteksi kebocoran ini. TIDAK PERNAH
+    dimerge ke main - branch throwaway."""
+    return DomainAuthorization(domain=domain, diizinkan=True)
 
 
 def periksa_otorisasi_atomic_intent(

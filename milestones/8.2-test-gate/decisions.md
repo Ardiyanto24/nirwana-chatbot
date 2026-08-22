@@ -161,6 +161,28 @@ Tidak ada alternatif dipertimbangkan karena forced by aturan keamanan agent yang
 
 ---
 
+## Keputusan 10: `DATABASE_URL` Disediakan Juga ke `test-python-fast` — Hanya `OPENROUTER_API_KEY` yang Genuinely Path-Filtered
+
+**Status:** Ditemukan di tengah implementasi pada Checkpoint 3.
+
+**Latar Belakang**
+Saat memverifikasi job `test-python-fast` (rencana awal: TANPA kredensial apa pun), `pytest tests/` tanpa `DATABASE_URL` menghasilkan **27 test GAGAL** (bukan skip bersih) di `tests/layers/test_input_layer.py`+`tests/orchestration/test_turn_pipeline.py`, PLUS 1 collection ERROR di `tests/test_main.py` yang menghentikan seluruh proses collection. Investigasi: `src/config/roles.py::load_valid_roles()` (migrasi ke database sejak M1.5) dipanggil dari validasi `role_title` di `TurnPayload` — dampaknya jauh lebih luas dari 8 grup yang sudah dipetakan (Keputusan 4), mencakup Input Layer, Orchestration (via `TestClient`/`proses_turn()`), dan `test_main.py` — bukan sekadar "8 unit yang py test bergerbang eksplisit".
+
+**Keputusan yang Dipilih**
+`test-python-fast` (baseline, SELALU jalan) diberi `DATABASE_URL` sebagai secret, TAPI TETAP TANPA `OPENROUTER_API_KEY`. Diverifikasi lokal (`OPENROUTER_API_KEY="" uv run pytest tests/`, `DATABASE_URL` asli dari `.env`): **670 passed, 35 skipped, 17.33 detik** — nol kegagalan, jauh lebih cepat dari full suite (400-500 detik saat LLM ikut jalan).
+
+**Alasan**
+`DATABASE_URL` (Postgres/Supabase) CEPAT dan TIDAK terbukti flaky — beda kualitatif dari `OPENROUTER_API_KEY` yang sudah 3x terbukti tidak stabil sepanjang M8.1 (`docs/keterbatasan-diterima.md` #7). Path-filtering seharusnya menyasar sumber biaya/waktu/flakiness yang GENUINE (panggilan LLM), bukan seluruh kredensial secara membabi buta. Menyediakan `DATABASE_URL` ke baseline juga menutup 27+1 test yang SEBELUMNYA akan salah dilaporkan gagal (bukan "tidak relevan dengan perubahan", tapi genuinely butuh DB untuk validasi role yang sudah jadi bagian arsitektur sejak M1.5).
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Tetap TANPA kredensial apa pun di `test-python-fast` (rencana asli)** — ditolak setelah bukti nyata: menghasilkan 27 test gagal + 1 collection error yang akan membuat gate SELALU merah untuk PR manapun, termasuk yang tidak menyentuh Input Layer/Orchestration sama sekali — bukan sinyal kualitas kode, murni artefak kredensial hilang.
+- **Perlakukan Input Layer/Orchestration/`test_main.py` sebagai grup path-filter baru (mirip 8 grup lain)** — dipertimbangkan, ditolak karena `DATABASE_URL` sendiri genuinely tidak mahal/flaky (beda `OPENROUTER_API_KEY`) — filtering hanya bernilai untuk yang benar-benar constrained (biaya API, waktu, keandalan).
+
+**Dampak**
+Checkpoint 6 (user menambahkan secret) TETAP menambahkan KEDUA secret bersamaan (tidak berubah urutan), tapi job assignment berubah: `test-python-fast` sekarang butuh `DATABASE_URL` (bukan genuinely "tanpa kredensial" seperti draf plan awal). Daftar SKIP presisi (`pytest tests/ -v -rs` dengan `DATABASE_URL` asli, `OPENROUTER_API_KEY=""`) dikonfirmasi **35 test**, TAPI tersebar hanya **5 grup** (bukan 8 seperti tabel plan awal) — `verification_gate` (`test_verifikasi_gate.py`) dan `orchestration` (`test_riwayat_percakapan.py`) TIDAK py sisa test bergerbang sama sekali (murni DB-gated, sekarang tercakup baseline); `execution` (`test_penyimpanan_paket_integrasi.py`) py 1 skip TAPI alasannya BUKAN kredensial ("kegagalan DB nyata sengaja tidak disimulasikan otomatis di sini" — skip permanen sengaja, tidak relevan untuk path-filter). Tabel pemetaan Checkpoint 4 direvisi jadi 5 grup: `context_resolution`(8), `decomposition`(4), `domain_gate`(19), `query_engine`(1), `interpretation`(2) = 34 test genuinely `OPENROUTER_API_KEY`-gated.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -174,3 +196,4 @@ Tidak ada alternatif dipertimbangkan karena forced by aturan keamanan agent yang
 | 7 | Perubahan Prompt Ikut Memicu Grup Layer yang Sama | B | Plan |
 | 8 | Job Aggregator `test-gate` untuk Required Status Check | B | Plan |
 | 9 | Agent Tidak Menambahkan GitHub Secret | B | Plan |
+| 10 | `DATABASE_URL` Disediakan Juga ke `test-python-fast` | A | Checkpoint 3 |

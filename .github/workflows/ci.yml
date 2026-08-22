@@ -36,6 +36,26 @@ jobs:
           version: v2.13.1
           working-directory: custom-exporter/supabaseexporter
 
+  test-python-fast:
+    name: test-python-fast
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --group dev
+      - run: uv run pytest tests/
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        # DATABASE_URL disediakan (cepat+andal, beda dari OPENROUTER_API_KEY -
+        # Keputusan 10, decisions.md: role_title TurnPayload database-backed
+        # sejak M1.5, dibutuhkan luas di luar 8 grup LLM). OPENROUTER_API_KEY
+        # SENGAJA tidak diberikan di sini - skipif existing (module-level
+        # pytestmark atau per-fungsi @pytestmark_llm) otomatis skip bersih
+        # test yang genuinely butuh panggilan LLM (mahal+flaky), presisi
+        # per-fungsi di file campuran gated+non-gated (Keputusan 5).
+
   go-test:
     name: go-test
     runs-on: ubuntu-latest

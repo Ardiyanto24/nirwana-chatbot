@@ -34,7 +34,9 @@ from src.schemas.domain_gate import Domain, IdentifikasiDomainResult
 _TRACER_NAME = "domain_gate.identifikasi"
 _PROMPT_ID = "domain_gate.identifikasi"
 
-_DAFTAR_DOMAIN = [(domain.value, deskripsi) for domain, deskripsi in DESKRIPSI_DOMAIN.items()]
+_DAFTAR_DOMAIN = [
+    (domain.value, deskripsi) for domain, deskripsi in DESKRIPSI_DOMAIN.items()
+]
 
 
 def _render_context() -> dict:
@@ -42,7 +44,10 @@ def _render_context() -> dict:
     prompt()`) DAN provider Promptfoo (`prompt_reliability/provider.py`,
     config `render_context`) supaya reliability testing selalu memakai
     context identik dengan yang benar-benar dikirim saat runtime."""
-    return {"daftar_domain": _DAFTAR_DOMAIN, "catatan_pola_jebakan": CATATAN_POLA_JEBAKAN}
+    return {
+        "daftar_domain": _DAFTAR_DOMAIN,
+        "catatan_pola_jebakan": CATATAN_POLA_JEBAKAN,
+    }
 
 
 def _render_system_prompt() -> str:
@@ -115,12 +120,16 @@ def identifikasi_domain(atomic_intent: AtomicIntent) -> IdentifikasiDomainResult
         try:
             response = _call_llm(atomic_intent)
         except APIError as exc:
-            span.set_attribute("domain_gate.identifikasi.forced_fallback_reason", f"api_error: {exc}")
+            span.set_attribute(
+                "domain_gate.identifikasi.forced_fallback_reason", f"api_error: {exc}"
+            )
             return IdentifikasiDomainResult(domains=[], gagal=True)
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
             span.set_attribute(
@@ -132,7 +141,9 @@ def identifikasi_domain(atomic_intent: AtomicIntent) -> IdentifikasiDomainResult
         result, anomaly_reason = _parse_and_decide(raw_content)
 
         if anomaly_reason:
-            span.set_attribute("domain_gate.identifikasi.forced_fallback_reason", anomaly_reason)
+            span.set_attribute(
+                "domain_gate.identifikasi.forced_fallback_reason", anomaly_reason
+            )
         span.set_attribute(
             "domain_gate.identifikasi.domains_found",
             ",".join(d.value for d in result.domains),

@@ -57,7 +57,9 @@ def periksa_otorisasi_atomic_intent(
 
             keputusan = periksa_domain(domain, role_title)
 
-            span.set_attribute("rbac.decision", "allow" if keputusan.diizinkan else "deny")
+            span.set_attribute(
+                "rbac.decision", "allow" if keputusan.diizinkan else "deny"
+            )
             if not keputusan.diizinkan:
                 span.set_attribute("error.type", "ditolak_otorisasi")
 

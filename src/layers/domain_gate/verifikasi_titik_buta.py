@@ -38,7 +38,9 @@ from src.schemas.domain_gate import Domain, VerifikasiTitikButaResult
 _TRACER_NAME = "domain_gate.verifikasi_titik_buta"
 _PROMPT_ID = "domain_gate.verifikasi_titik_buta"
 
-_DAFTAR_DOMAIN = [(domain.value, deskripsi) for domain, deskripsi in DESKRIPSI_DOMAIN.items()]
+_DAFTAR_DOMAIN = [
+    (domain.value, deskripsi) for domain, deskripsi in DESKRIPSI_DOMAIN.items()
+]
 
 
 def _render_context() -> dict:
@@ -46,7 +48,10 @@ def _render_context() -> dict:
     Promptfoo (`prompt_reliability/provider.py`, config `render_context`)
     supaya reliability testing selalu memakai context identik dengan yang
     benar-benar dikirim saat runtime."""
-    return {"daftar_domain": _DAFTAR_DOMAIN, "catatan_pola_jebakan": CATATAN_POLA_JEBAKAN}
+    return {
+        "daftar_domain": _DAFTAR_DOMAIN,
+        "catatan_pola_jebakan": CATATAN_POLA_JEBAKAN,
+    }
 
 
 def _render_system_prompt() -> str:
@@ -90,7 +95,9 @@ def _parse_and_decide(raw_content: str) -> tuple[VerifikasiTitikButaResult, str 
         data = json.loads(raw_content)
         raw_result = _RawVerifikasiTitikButaResult.model_validate(data)
     except (json.JSONDecodeError, ValidationError) as exc:
-        return VerifikasiTitikButaResult(domain_tambahan=[], gagal=True), f"parse_error: {exc}"
+        return VerifikasiTitikButaResult(
+            domain_tambahan=[], gagal=True
+        ), f"parse_error: {exc}"
 
     valid_domains, invalid_domains = bounds_check_domains(raw_result.domain_tambahan)
     reason = f"dropped_invalid_domains: {invalid_domains}" if invalid_domains else None
@@ -104,7 +111,9 @@ def verifikasi_titik_buta(
     prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
-        span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA)
+        span.set_attribute(
+            GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_DOMAIN_VERIFIKASI_TITIK_BUTA
+        )
         span.set_attribute(PROMPT_ID, prompt.id)
         span.set_attribute(PROMPT_VERSION, prompt.version)
 
@@ -112,17 +121,21 @@ def verifikasi_titik_buta(
             response = _call_llm(atomic_intent, domain_awal)
         except APIError as exc:
             span.set_attribute(
-                "domain_gate.verifikasi_titik_buta.forced_fallback_reason", f"api_error: {exc}"
+                "domain_gate.verifikasi_titik_buta.forced_fallback_reason",
+                f"api_error: {exc}",
             )
             return VerifikasiTitikButaResult(domain_tambahan=[], gagal=True)
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
             span.set_attribute(
-                "domain_gate.verifikasi_titik_buta.forced_fallback_reason", "empty_choices"
+                "domain_gate.verifikasi_titik_buta.forced_fallback_reason",
+                "empty_choices",
             )
             return VerifikasiTitikButaResult(domain_tambahan=[], gagal=True)
 
@@ -131,7 +144,8 @@ def verifikasi_titik_buta(
 
         if anomaly_reason:
             span.set_attribute(
-                "domain_gate.verifikasi_titik_buta.forced_fallback_reason", anomaly_reason
+                "domain_gate.verifikasi_titik_buta.forced_fallback_reason",
+                anomaly_reason,
             )
         span.set_attribute(
             "domain_gate.verifikasi_titik_buta.domain_tambahan_count",

@@ -18,8 +18,9 @@ decisions.md Keputusan 7), bukan lewat field skema tambahan yang tidak
 dikonsumsi siapa pun.
 """
 
+from typing import Self
+
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.authorization import DomainAuthorization
 from src.schemas.decomposition import AtomicIntent

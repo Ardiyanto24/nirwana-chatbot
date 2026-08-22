@@ -19,7 +19,9 @@ from src.schemas.session_memory import StatusEksekusi
 _TRACER_NAME = "domain_gate.domain_gate"
 
 
-def identifikasi_domain_atomic_intent(atomic_intent: AtomicIntent) -> AtomicIntentDomains:
+def identifikasi_domain_atomic_intent(
+    atomic_intent: AtomicIntent,
+) -> AtomicIntentDomains:
     """Gabungkan Langkah 1 (identifikasi) + Langkah 2 (verifikasi titik
     buta) untuk SATU atomic intent. Langkah 2 TIDAK dipanggil kalau Langkah
     1 gagal total - tidak ada domain_awal untuk diverifikasi."""
@@ -49,7 +51,9 @@ def identifikasi_domain_atomic_intent(atomic_intent: AtomicIntent) -> AtomicInte
     )
 
 
-def identifikasi_domain_semua(matches: list[AtomicIntentMatch]) -> list[AtomicIntentDomains]:
+def identifikasi_domain_semua(
+    matches: list[AtomicIntentMatch],
+) -> list[AtomicIntentDomains]:
     """Untuk seluruh atomic intent berstatus PERLU_EKSEKUSI dalam satu turn,
     identifikasi domainnya satu per satu (bukan batch - lihat decisions.md
     Keputusan 10)."""

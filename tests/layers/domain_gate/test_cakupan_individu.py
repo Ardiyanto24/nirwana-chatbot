@@ -70,7 +70,9 @@ def test_pre_filter_role_bukan_staff_tier_tanpa_panggilan_llm(monkeypatch):
 
     def _deteksi_gagal_jika_dipanggil(atomic_intent):
         panggilan["deteksi"] += 1
-        raise AssertionError("deteksi_cakupan_individu TIDAK BOLEH dipanggil untuk role non-Staff")
+        raise AssertionError(
+            "deteksi_cakupan_individu TIDAK BOLEH dipanggil untuk role non-Staff"
+        )
 
     def _verifikasi_gagal_jika_dipanggil(atomic_intent, terdeteksi_awal):
         panggilan["verifikasi"] += 1
@@ -79,10 +81,14 @@ def test_pre_filter_role_bukan_staff_tier_tanpa_panggilan_llm(monkeypatch):
         )
 
     monkeypatch.setattr(
-        cakupan_individu_module, "deteksi_cakupan_individu", _deteksi_gagal_jika_dipanggil
+        cakupan_individu_module,
+        "deteksi_cakupan_individu",
+        _deteksi_gagal_jika_dipanggil,
     )
     monkeypatch.setattr(
-        cakupan_individu_module, "verifikasi_cakupan_individu", _verifikasi_gagal_jika_dipanggil
+        cakupan_individu_module,
+        "verifikasi_cakupan_individu",
+        _verifikasi_gagal_jika_dipanggil,
     )
 
     aia = _buat_atomic_intent_authorization(
@@ -111,10 +117,14 @@ def test_pre_filter_domain_tidak_relevan_tanpa_panggilan_llm(monkeypatch):
         )
 
     monkeypatch.setattr(
-        cakupan_individu_module, "deteksi_cakupan_individu", _deteksi_gagal_jika_dipanggil
+        cakupan_individu_module,
+        "deteksi_cakupan_individu",
+        _deteksi_gagal_jika_dipanggil,
     )
     monkeypatch.setattr(
-        cakupan_individu_module, "verifikasi_cakupan_individu", _verifikasi_gagal_jika_dipanggil
+        cakupan_individu_module,
+        "verifikasi_cakupan_individu",
+        _verifikasi_gagal_jika_dipanggil,
     )
 
     aia = _buat_atomic_intent_authorization(

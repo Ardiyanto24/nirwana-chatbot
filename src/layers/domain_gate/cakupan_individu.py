@@ -10,10 +10,15 @@ Fail-closed (terdeteksi=True) kalau kedua langkah LLM gagal teknis
 """
 
 from src.layers.domain_gate.deteksi_cakupan_individu import deteksi_cakupan_individu
-from src.layers.domain_gate.verifikasi_cakupan_individu import verifikasi_cakupan_individu
+from src.layers.domain_gate.verifikasi_cakupan_individu import (
+    verifikasi_cakupan_individu,
+)
 from src.observability.tracing import get_tracer
 from src.schemas.authorization import AtomicIntentAuthorization
-from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import (
+    AtomicIntentConstraint,
+    ConstraintCakupanIndividu,
+)
 from src.schemas.domain_gate import Domain
 
 _TRACER_NAME = "domain_gate.cakupan_individu"
@@ -36,7 +41,9 @@ ROLE_STAFF_TIER: frozenset[str] = frozenset(
 _DOMAIN_RELEVAN = frozenset({Domain.FACILITY, Domain.HR})
 
 
-def _domain_diizinkan_relevan(atomic_intent_authorization: AtomicIntentAuthorization) -> bool:
+def _domain_diizinkan_relevan(
+    atomic_intent_authorization: AtomicIntentAuthorization,
+) -> bool:
     return any(
         d.domain in _DOMAIN_RELEVAN and d.diizinkan
         for d in atomic_intent_authorization.domain_decisions
@@ -60,7 +67,9 @@ def deteksi_constraint_atomic_intent(
 
         if role_title not in ROLE_STAFF_TIER:
             span.set_attribute("rbac.individual_scope_constraint", False)
-            span.set_attribute("domain_gate.cakupan_individu.pre_filter", "role_bukan_staff_tier")
+            span.set_attribute(
+                "domain_gate.cakupan_individu.pre_filter", "role_bukan_staff_tier"
+            )
             return AtomicIntentConstraint(
                 atomic_intent=atomic_intent_authorization.atomic_intent,
                 domain_decisions=atomic_intent_authorization.domain_decisions,
@@ -80,7 +89,9 @@ def deteksi_constraint_atomic_intent(
 
         atomic_intent = atomic_intent_authorization.atomic_intent
         hasil_awal = deteksi_cakupan_individu(atomic_intent)
-        hasil_verifikasi = verifikasi_cakupan_individu(atomic_intent, hasil_awal.terdeteksi)
+        hasil_verifikasi = verifikasi_cakupan_individu(
+            atomic_intent, hasil_awal.terdeteksi
+        )
 
         if hasil_awal.gagal and hasil_verifikasi.gagal:
             span.set_attribute("rbac.individual_scope_constraint", True)

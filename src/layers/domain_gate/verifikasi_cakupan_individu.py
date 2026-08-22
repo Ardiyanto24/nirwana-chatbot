@@ -18,7 +18,10 @@ import json
 from openai import APIError
 from pydantic import BaseModel, ValidationError
 
-from src.config.llm import OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI, get_openrouter_client
+from src.config.llm import (
+    OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI,
+    get_openrouter_client,
+)
 from src.layers.domain_gate.deteksi_cakupan_individu import _DAFTAR_VIEW_RENDER
 from src.layers.domain_gate.konteks_cakupan_individu import CATATAN_INDIVIDU_VS_AGREGAT
 from src.observability.genai_semconv import (
@@ -59,7 +62,9 @@ class _RawVerifikasiResult(BaseModel):
 
 def _build_user_prompt(atomic_intent: AtomicIntent, terdeteksi_awal: bool) -> str:
     kesimpulan = "terdeteksi" if terdeteksi_awal else "tidak terdeteksi"
-    return f"Kebutuhan: {atomic_intent.teks_kebutuhan}\nKesimpulan Langkah 1: {kesimpulan}"
+    return (
+        f"Kebutuhan: {atomic_intent.teks_kebutuhan}\nKesimpulan Langkah 1: {kesimpulan}"
+    )
 
 
 def _call_llm(atomic_intent: AtomicIntent, terdeteksi_awal: bool):
@@ -70,7 +75,10 @@ def _call_llm(atomic_intent: AtomicIntent, terdeteksi_awal: bool):
         model=OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI,
         messages=[
             {"role": "system", "content": _render_system_prompt()},
-            {"role": "user", "content": _build_user_prompt(atomic_intent, terdeteksi_awal)},
+            {
+                "role": "user",
+                "content": _build_user_prompt(atomic_intent, terdeteksi_awal),
+            },
         ],
         response_format={"type": "json_object"},
         temperature=0,
@@ -78,7 +86,9 @@ def _call_llm(atomic_intent: AtomicIntent, terdeteksi_awal: bool):
     )
 
 
-def _parse_and_decide(raw_content: str) -> tuple[VerifikasiCakupanIndividuResult, str | None]:
+def _parse_and_decide(
+    raw_content: str,
+) -> tuple[VerifikasiCakupanIndividuResult, str | None]:
     """Parse hasil LLM. Mengembalikan (result, alasan_anomali) - alasan
     diisi kalau parse gagal, None kalau bersih."""
     try:
@@ -90,7 +100,9 @@ def _parse_and_decide(raw_content: str) -> tuple[VerifikasiCakupanIndividuResult
             f"parse_error: {exc}",
         )
 
-    return VerifikasiCakupanIndividuResult(terdeteksi_tambahan=raw_result.terdeteksi_tambahan), None
+    return VerifikasiCakupanIndividuResult(
+        terdeteksi_tambahan=raw_result.terdeteksi_tambahan
+    ), None
 
 
 def verifikasi_cakupan_individu(
@@ -100,7 +112,9 @@ def verifikasi_cakupan_individu(
     prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
-        span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI)
+        span.set_attribute(
+            GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_CAKUPAN_INDIVIDU_VERIFIKASI
+        )
         span.set_attribute(PROMPT_ID, prompt.id)
         span.set_attribute(PROMPT_VERSION, prompt.version)
 
@@ -111,24 +125,32 @@ def verifikasi_cakupan_individu(
                 "domain_gate.verifikasi_cakupan_individu.forced_fallback_reason",
                 f"api_error: {exc}",
             )
-            return VerifikasiCakupanIndividuResult(terdeteksi_tambahan=False, gagal=True)
+            return VerifikasiCakupanIndividuResult(
+                terdeteksi_tambahan=False, gagal=True
+            )
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
             span.set_attribute(
-                "domain_gate.verifikasi_cakupan_individu.forced_fallback_reason", "empty_choices"
+                "domain_gate.verifikasi_cakupan_individu.forced_fallback_reason",
+                "empty_choices",
             )
-            return VerifikasiCakupanIndividuResult(terdeteksi_tambahan=False, gagal=True)
+            return VerifikasiCakupanIndividuResult(
+                terdeteksi_tambahan=False, gagal=True
+            )
 
         raw_content = response.choices[0].message.content or ""
         result, anomaly_reason = _parse_and_decide(raw_content)
 
         if anomaly_reason:
             span.set_attribute(
-                "domain_gate.verifikasi_cakupan_individu.forced_fallback_reason", anomaly_reason
+                "domain_gate.verifikasi_cakupan_individu.forced_fallback_reason",
+                anomaly_reason,
             )
         span.set_attribute(
             "domain_gate.verifikasi_cakupan_individu.terdeteksi_tambahan",

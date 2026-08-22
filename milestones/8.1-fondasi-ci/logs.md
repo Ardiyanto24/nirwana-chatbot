@@ -279,6 +279,26 @@ Tidak ada tindakan perbaikan diambil — konsisten preseden M5.1/M6.1/M7.12/M7.1
 **Hasil Verifikasi**
 `ruff check`+`format --check` → "All checks passed!"/"21 files already formatted". `uv run pytest tests/layers/retriever/` → 125/125 passed (6.36s).
 
+**Commit:** `fde501a` — `chore(milestone-8.1): pembersihan ruff - Retriever`
+
+---
+
+## Checkpoint 15 — Bersihkan Unit 12: Domain Gate
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 15 — Ruff fix Unit 12 (unit terakhir/terbesar)
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 22 file Unit 12. Seluruh 7 temuan (3x `I001`, 3x `UP035`, 1x `F401` enum.Enum sisa residu Checkpoint 6) auto-fixed, 0 manual.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"22 files already formatted". `uv run pytest tests/layers/domain_gate/` → 249 passed, **7 failed** (178.08s) — **SET KEGAGALAN IDENTIK PERSIS** dengan Checkpoint 11 (sama 7 nama test, sama pesan `gagal=True`). Diverifikasi TIDAK ada regresi baru: `git diff src/layers/domain_gate/verifikasi_titik_buta.py` menunjukkan murni reflow whitespace `ruff format` (line-wrap ekspresi panjang, nol perubahan logika/kondisi). Kegagalan ke-3 kalinya dengan signature identik mengonfirmasi ULANG ini karakteristik reliabilitas OpenRouter pra-eksisting (`docs/keterbatasan-diterima.md` #7) yang sedang aktif terjadi sepanjang sesi kerja ini — bukan regresi Unit 12, tidak ada tindakan perbaikan diambil (konsisten Checkpoint 11).
+
+**12/12 unit pembersihan lint (Checkpoint 4-15) SELESAI.**
+
 **Commit:** (menyusul)
 
 ---

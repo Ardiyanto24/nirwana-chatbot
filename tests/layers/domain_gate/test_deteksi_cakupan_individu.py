@@ -63,7 +63,9 @@ pytestmark_llm = pytest.mark.skipif(
 
 @pytestmark_llm
 def test_kasus_jelas_individu_performa_staf_tertentu():
-    atomic_intent = _buat_atomic_intent("Bagaimana performa staf housekeeping Budi bulan ini?")
+    atomic_intent = _buat_atomic_intent(
+        "Bagaimana performa staf housekeeping Budi bulan ini?"
+    )
     result = deteksi_cakupan_individu(atomic_intent)
     assert result.gagal is False
     assert result.terdeteksi is True
@@ -87,7 +89,9 @@ def test_kasus_jelas_agregat_jumlah_staf_hadir():
 
 @pytestmark_llm
 def test_kasus_jelas_agregat_rata_rata_departemen():
-    atomic_intent = _buat_atomic_intent("Berapa rata-rata skor kinerja departemen housekeeping?")
+    atomic_intent = _buat_atomic_intent(
+        "Berapa rata-rata skor kinerja departemen housekeeping?"
+    )
     result = deteksi_cakupan_individu(atomic_intent)
     assert result.gagal is False
     assert result.terdeteksi is False

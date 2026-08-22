@@ -47,6 +47,7 @@ def _buat_atomic_intent_domains(
         status=status,
     )
 
+
 _ALL_ROLES = [
     "CEO",
     "Corporate Finance Director",
@@ -74,50 +75,98 @@ _ALL_ROLES = [
 # yang role-per-role) - "role mana saja yang punya akses ke domain ini".
 _EXPECTED_GRANTED_ROLES: dict[Domain, set[str]] = {
     Domain.RESERVATION: {
-        "CEO", "Corporate Finance Director", "Corporate Operations Director",
-        "Corporate Revenue Director", "General Manager", "Revenue Manager",
-        "F&B Manager", "Housekeeping Manager", "Finance Manager", "Front Office Staff",
+        "CEO",
+        "Corporate Finance Director",
+        "Corporate Operations Director",
+        "Corporate Revenue Director",
+        "General Manager",
+        "Revenue Manager",
+        "F&B Manager",
+        "Housekeeping Manager",
+        "Finance Manager",
+        "Front Office Staff",
     },
     Domain.FNB: {
-        "CEO", "Corporate Operations Director", "General Manager",
-        "F&B Manager", "F&B Staff",
+        "CEO",
+        "Corporate Operations Director",
+        "General Manager",
+        "F&B Manager",
+        "F&B Staff",
     },
     Domain.FACILITY: {
-        "CEO", "Corporate Operations Director", "General Manager",
-        "Housekeeping Manager", "Maintenance Manager",
-        "Housekeeping Staff", "Maintenance Staff",
+        "CEO",
+        "Corporate Operations Director",
+        "General Manager",
+        "Housekeeping Manager",
+        "Maintenance Manager",
+        "Housekeeping Staff",
+        "Maintenance Staff",
     },
     Domain.SPA_EVENT: {
-        "CEO", "Corporate Operations Director", "General Manager",
-        "Spa & Event Manager", "Spa & Event Staff",
+        "CEO",
+        "Corporate Operations Director",
+        "General Manager",
+        "Spa & Event Manager",
+        "Spa & Event Staff",
     },
     Domain.HR: {
-        "CEO", "Corporate HR Director", "General Manager",
-        "HR Manager", "HR Staff",
+        "CEO",
+        "Corporate HR Director",
+        "General Manager",
+        "HR Manager",
+        "HR Staff",
     },
     Domain.FINANCIAL: {
-        "CEO", "Corporate Finance Director", "Corporate Revenue Director",
-        "General Manager", "Finance Manager", "Finance Staff",
+        "CEO",
+        "Corporate Finance Director",
+        "Corporate Revenue Director",
+        "General Manager",
+        "Finance Manager",
+        "Finance Staff",
     },
     Domain.PROPERTIES_REF: {
-        "CEO", "Corporate Finance Director", "Corporate HR Director",
-        "Corporate Operations Director", "Corporate Revenue Director",
-        "General Manager", "Revenue Manager", "F&B Manager",
-        "Housekeeping Manager", "Maintenance Manager", "Spa & Event Manager",
-        "HR Manager", "Finance Manager", "Front Office Staff",
+        "CEO",
+        "Corporate Finance Director",
+        "Corporate HR Director",
+        "Corporate Operations Director",
+        "Corporate Revenue Director",
+        "General Manager",
+        "Revenue Manager",
+        "F&B Manager",
+        "Housekeeping Manager",
+        "Maintenance Manager",
+        "Spa & Event Manager",
+        "HR Manager",
+        "Finance Manager",
+        "Front Office Staff",
     },
     Domain.EMPLOYEES_DIRECTORY: {
-        "CEO", "Corporate Finance Director", "Corporate HR Director",
-        "Corporate Operations Director", "General Manager", "F&B Manager",
-        "Housekeeping Manager", "Maintenance Manager", "Spa & Event Manager",
-        "HR Manager", "Finance Manager", "HR Staff", "Finance Staff",
+        "CEO",
+        "Corporate Finance Director",
+        "Corporate HR Director",
+        "Corporate Operations Director",
+        "General Manager",
+        "F&B Manager",
+        "Housekeeping Manager",
+        "Maintenance Manager",
+        "Spa & Event Manager",
+        "HR Manager",
+        "Finance Manager",
+        "HR Staff",
+        "Finance Staff",
     },
     Domain.GUESTS_PII: {
-        "CEO", "Corporate Revenue Director", "Revenue Manager",
-        "Spa & Event Manager", "Front Office Staff", "Spa & Event Staff",
+        "CEO",
+        "Corporate Revenue Director",
+        "Revenue Manager",
+        "Spa & Event Manager",
+        "Front Office Staff",
+        "Spa & Event Staff",
     },
     Domain.GUESTS_PROFILE: {
-        "CEO", "Corporate Revenue Director", "Revenue Manager",
+        "CEO",
+        "Corporate Revenue Director",
+        "Revenue Manager",
     },
 }
 
@@ -175,4 +224,7 @@ def test_periksa_otorisasi_semua_melewati_gagal_teknis():
     hasil = periksa_otorisasi_semua([gagal, berhasil], "HR Staff")
 
     assert len(hasil) == 1
-    assert hasil[0].atomic_intent.atomic_intent_id == berhasil.atomic_intent.atomic_intent_id
+    assert (
+        hasil[0].atomic_intent.atomic_intent_id
+        == berhasil.atomic_intent.atomic_intent_id
+    )

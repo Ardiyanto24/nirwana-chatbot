@@ -11,8 +11,9 @@ keputusan tunggal per atomic intent - forced Kriteria Keberhasilan 2
 sumber, lihat decisions.md Keputusan 3.
 """
 
+from typing import Self
+
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.domain_gate import Domain

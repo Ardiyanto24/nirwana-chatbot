@@ -24,10 +24,10 @@ juga menaruh tipe hasil antara di modul schemas/, bukan lokal di file
 layer.
 """
 
-from enum import Enum, StrEnum
+from enum import StrEnum
+from typing import Self
 
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.session_memory import StatusEksekusi
@@ -66,7 +66,5 @@ class AtomicIntentDomains(BaseModel):
         if self.status == StatusEksekusi.GAGAL_TEKNIS and self.domains:
             raise ValueError("status=gagal_teknis wajib domains kosong")
         if self.status != StatusEksekusi.GAGAL_TEKNIS and not self.domains:
-            raise ValueError(
-                "status selain gagal_teknis wajib domains non-kosong"
-            )
+            raise ValueError("status selain gagal_teknis wajib domains non-kosong")
         return self

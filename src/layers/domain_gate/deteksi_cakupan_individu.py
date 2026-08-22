@@ -17,7 +17,10 @@ import json
 from openai import APIError
 from pydantic import BaseModel, ValidationError
 
-from src.config.llm import OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI, get_openrouter_client
+from src.config.llm import (
+    OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI,
+    get_openrouter_client,
+)
 from src.layers.domain_gate.konteks_cakupan_individu import (
     CATATAN_INDIVIDU_VS_AGREGAT,
     DAFTAR_VIEW_CAKUPAN_INDIVIDU,
@@ -82,24 +85,32 @@ def _call_llm(atomic_intent: AtomicIntent):
     )
 
 
-def _parse_and_decide(raw_content: str) -> tuple[DeteksiCakupanIndividuResult, str | None]:
+def _parse_and_decide(
+    raw_content: str,
+) -> tuple[DeteksiCakupanIndividuResult, str | None]:
     """Parse hasil LLM. Mengembalikan (result, alasan_anomali) - alasan
     diisi kalau parse gagal, None kalau bersih."""
     try:
         data = json.loads(raw_content)
         raw_result = _RawDeteksiResult.model_validate(data)
     except (json.JSONDecodeError, ValidationError) as exc:
-        return DeteksiCakupanIndividuResult(terdeteksi=False, gagal=True), f"parse_error: {exc}"
+        return DeteksiCakupanIndividuResult(
+            terdeteksi=False, gagal=True
+        ), f"parse_error: {exc}"
 
     return DeteksiCakupanIndividuResult(terdeteksi=raw_result.terdeteksi), None
 
 
-def deteksi_cakupan_individu(atomic_intent: AtomicIntent) -> DeteksiCakupanIndividuResult:
+def deteksi_cakupan_individu(
+    atomic_intent: AtomicIntent,
+) -> DeteksiCakupanIndividuResult:
     tracer = get_tracer(_TRACER_NAME)
     prompt = load_prompt(_PROMPT_ID)
     with tracer.start_as_current_span("chat") as span:
         span.set_attribute(GEN_AI_OPERATION_NAME, "chat")
-        span.set_attribute(GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI)
+        span.set_attribute(
+            GEN_AI_REQUEST_MODEL, OPENROUTER_MODEL_CAKUPAN_INDIVIDU_IDENTIFIKASI
+        )
         span.set_attribute(PROMPT_ID, prompt.id)
         span.set_attribute(PROMPT_VERSION, prompt.version)
 
@@ -107,17 +118,21 @@ def deteksi_cakupan_individu(atomic_intent: AtomicIntent) -> DeteksiCakupanIndiv
             response = _call_llm(atomic_intent)
         except APIError as exc:
             span.set_attribute(
-                "domain_gate.deteksi_cakupan_individu.forced_fallback_reason", f"api_error: {exc}"
+                "domain_gate.deteksi_cakupan_individu.forced_fallback_reason",
+                f"api_error: {exc}",
             )
             return DeteksiCakupanIndividuResult(terdeteksi=False, gagal=True)
 
         if response.usage is not None:
             span.set_attribute(GEN_AI_USAGE_INPUT_TOKENS, response.usage.prompt_tokens)
-            span.set_attribute(GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens)
+            span.set_attribute(
+                GEN_AI_USAGE_OUTPUT_TOKENS, response.usage.completion_tokens
+            )
 
         if not response.choices:
             span.set_attribute(
-                "domain_gate.deteksi_cakupan_individu.forced_fallback_reason", "empty_choices"
+                "domain_gate.deteksi_cakupan_individu.forced_fallback_reason",
+                "empty_choices",
             )
             return DeteksiCakupanIndividuResult(terdeteksi=False, gagal=True)
 
@@ -126,8 +141,11 @@ def deteksi_cakupan_individu(atomic_intent: AtomicIntent) -> DeteksiCakupanIndiv
 
         if anomaly_reason:
             span.set_attribute(
-                "domain_gate.deteksi_cakupan_individu.forced_fallback_reason", anomaly_reason
+                "domain_gate.deteksi_cakupan_individu.forced_fallback_reason",
+                anomaly_reason,
             )
-        span.set_attribute("domain_gate.deteksi_cakupan_individu.terdeteksi", result.terdeteksi)
+        span.set_attribute(
+            "domain_gate.deteksi_cakupan_individu.terdeteksi", result.terdeteksi
+        )
 
         return result

@@ -299,6 +299,18 @@ Tidak ada tindakan perbaikan diambil — konsisten preseden M5.1/M6.1/M7.12/M7.1
 
 **12/12 unit pembersihan lint (Checkpoint 4-15) SELESAI.**
 
+**Commit:** `e92c1cd` — `chore(milestone-8.1): pembersihan ruff - Domain Gate`
+
+### Task 15b — Celah tabel unit ditemukan+ditutup (sanity check akhir)
+
+**Kesesuaian dengan plan:** Penyimpangan kecil — tabel 12 unit di plan (Checkpoint 3 pengantar) tidak mencakup `tests/config/test_katalog_view.py`+`test_catatan_nullable_bermakna.py` (dua file test di `tests/config/`, terpisah dari `tests/layers/`, tidak eksplisit dilampirkan ke Unit 9/11 saat tabel disusun meski source-nya — `src/config/catatan_nullable_bermakna.py`/`katalog_view.py` — sudah benar dilampirkan).
+
+**Apa yang dilakukan**
+Sanity check `uv run ruff check src/ tests/`+`format --check src/ tests/` di SELURUH project (bukan cuma per-unit) sebelum menganggap seluruh 12 unit benar-benar tuntas — menemukan `tests/config/test_catatan_nullable_bermakna.py` belum diformat (0 temuan `check`, cuma `format`). `ruff format`+`check --fix` pada `tests/config/` (2 file test + `__init__.py`) — 1 file reformatted, 0 temuan lint.
+
+**Hasil Verifikasi**
+`uv run ruff check src/ tests/` + `uv run ruff format --check src/ tests/` (SELURUH project, bukan subset) → "All checks passed!"/"175 files already formatted" — genuinely 0 temuan di mana pun, bukan cuma 12 unit yang eksplisit tercatat. `uv run pytest tests/config/` → 10/10 passed.
+
 **Commit:** (menyusul)
 
 ---

@@ -25,7 +25,10 @@ _KATALOG_PATH = (
 _FRASA_KUNCI_SUMBER = {
     ("v_lookup_fnb_transactions", "guest_id"): "~70% kosong",
     ("v_lookup_maintenance_tickets", "room_id"): "kerusakan di fasilitas umum",
-    ("v_maintenance_ticket_daily", "avg_exceeds_sla_threshold"): "NULL jika durasi belum ada",
+    (
+        "v_maintenance_ticket_daily",
+        "avg_exceeds_sla_threshold",
+    ): "NULL jika durasi belum ada",
 }
 
 

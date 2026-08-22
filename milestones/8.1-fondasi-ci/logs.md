@@ -22,6 +22,29 @@ Menulis `milestones/8.1-fondasi-ci/decisions.md` (15 keputusan: 5 Jenis A + 10 J
 **Hasil Verifikasi**
 Review manual `decisions.md` — format Jenis A/B sesuai template, seluruh 5 keputusan `AskUserQuestion` tercermin akurat, seluruh keputusan turunan menyebut sumber paksaan eksplisit.
 
-**Commit:** (menyusul, digabung task ini)
+**Commit:** `7d2b4cc` — `docs(milestone-8.1): keputusan`
+
+---
+
+## Checkpoint 2 — Scan Rahasia Riwayat Penuh
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 2 — Full-history gitleaks scan
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`go install github.com/zricethezav/gitleaks/v8@latest` (path modul sebenarnya `zricethezav/gitleaks`, bukan `gitleaks/gitleaks` seperti percobaan pertama — org GitHub `gitleaks` menaungi repo tapi path modul Go tetap nama lama maintainer; dikoreksi begitu `go install` gagal dengan pesan "module declares its path as..."). Resolve ke `v8.30.1`. Binary terpasang di `C:\Users\LENOVO\go\bin\gitleaks.exe`.
+
+Jalankan `gitleaks detect --source . -v` dari root repo (default scan SELURUH riwayat git, bukan cuma working tree — sesuai kebutuhan checkpoint ini karena repo baru terkonfirmasi PUBLIC di Checkpoint 1).
+
+**Hasil Verifikasi**
+Output nyata: "654 commits scanned", "scanned ~6243890 bytes (6.24 MB) in 1.07s", **"no leaks found"**. Nol temuan — baik rahasia asli maupun false-positive. Tidak perlu `.gitleaksignore`.
+
+**Temuan**
+Riwayat 199+ commit yang baru live publik (dikonfirmasi Checkpoint 1) genuinely bersih dari kredensial — tidak ada eskalasi yang diperlukan, checkpoint lanjut normal ke Checkpoint 3.
+
+**Commit:** (menyusul)
 
 ---

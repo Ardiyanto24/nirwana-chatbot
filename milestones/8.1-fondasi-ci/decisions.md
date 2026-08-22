@@ -323,6 +323,27 @@ Unit 10 (Context Resolution: `matching.py`, `session_memory.py`), Unit 11 (Retri
 
 ---
 
+## Keputusan 18: Cakupan Branch Protection — `required_status_checks` Saja, Bukan Wajib PR
+
+**Status:** Ditemukan di tengah implementasi pada Checkpoint 19.
+
+**Latar Belakang**
+Keputusan 3 (branch protection dinyalakan sekarang) belum menentukan detail konfigurasi `gh api` — GitHub branch protection punya banyak sub-opsi (`enforce_admins`, `required_pull_request_reviews`, `restrictions`, mewajibkan PR sebelum merge sama sekali) yang tidak dibahas eksplisit di plan. Keputusan penuh mewajibkan alur PR untuk SEMUA perubahan akan mengubah workflow project secara fundamental — 24 milestone sebelumnya (dan seluruh checkpoint M8.1 ini sendiri) memakai commit langsung ke `main`, bukan PR.
+
+**Keputusan yang Dipilih**
+`required_status_checks` (4 job wajib lolos) SAJA — `enforce_admins: false`, `required_pull_request_reviews: null`, `restrictions: null`. Ini mewajibkan checks lolos KHUSUS untuk PR yang dibuka (seperti PR percobaan Checkpoint 18), TANPA memaksa setiap perubahan harus lewat PR, dan TANPA mengunci admin/owner repo dari commit langsung.
+
+**Alasan**
+Literal KK sumber M8.1 hanya minta "checks lolos sebelum merge" dibuktikan lewat PR percobaan — tidak eksplisit meminta perubahan workflow project dari commit-langsung ke wajib-PR. Memaksakan `enforce_admins: true`+wajib-PR akan jadi perubahan scope besar di luar apa yang diminta/dikonfirmasi user, berisiko memblokir workflow M8.2-8.5 berikutnya yang masih mengikuti pola commit-langsung yang sama.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **`enforce_admins: true` + wajib PR untuk semua perubahan** — ditolak; mengubah workflow project secara fundamental tanpa dikonfirmasi eksplisit user, dan bertentangan dengan pola nyata yang dipakai men-develop M8.1 ini sendiri (commit langsung ke `main`).
+
+**Dampak**
+M8.2-8.5 (menambah check baru ke daftar wajib yang sama) mewarisi pola ini kecuali user memutuskan lain. Kalau user ingin workflow PR-wajib penuh di masa depan, itu keputusan terpisah yang perlu diajukan eksplisit — dicatat sebagai kandidat `docs/keputusan-tertunda.md` kalau relevan nanti.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -344,3 +365,4 @@ Unit 10 (Context Resolution: `matching.py`, `session_memory.py`), Unit 11 (Retri
 | 15 | Commit `ci.yml` Pakai Tipe `ci` | B | Plan |
 | 16 | Keluarkan E501 (Line-Too-Long) dari Rule Set | A | Checkpoint 3 |
 | 17 | Migrasi `UP042` (`StrEnum`) Diterapkan Lintas-Unit Setelah Audit | A | Checkpoint 6 |
+| 18 | Cakupan Branch Protection — `required_status_checks` Saja | A | Checkpoint 19 |

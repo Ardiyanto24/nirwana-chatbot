@@ -397,6 +397,58 @@ Run nyata `32552303789` (`gh run watch`): **`ruff` GAGAL** ("Process completed w
 
 `gh pr close 1 --delete-branch` — PR ditutup TANPA merge, branch remote+lokal dihapus. `git status -sb` dikonfirmasi `main` bersih, file percobaan tidak ada.
 
-**Commit:** Branch percobaan `ccba866` tidak pernah masuk `main` (dihapus). Log ini sendiri menyusul di commit dokumentasi berikut.
+**Commit:** Branch percobaan `ccba866` tidak pernah masuk `main` (dihapus). `a8dae01` — `test(milestone-8.1): verifikasi nyata gate CI via PR percobaan`.
+
+---
+
+## Checkpoint 19 — Branch Protection `main`
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 21 — Aktifkan branch protection
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan 1 keputusan konfigurasi tambahan ditemukan mid-implementation (Keputusan 18, lihat `decisions.md`) — cakupan `required_status_checks` saja, bukan wajib-PR penuh.
+
+**Apa yang dilakukan**
+`gh api repos/Ardiyanto24/nirwana-chatbot/branches/main/protection -X PUT` dengan body: `required_status_checks.checks` berisi 4 context (`ruff (lint + format)`, `golangci-lint (govet + staticcheck + gosec)`, `gitleaks (secret scan)`, `dependency-scan (pip-audit + govulncheck)`) — nama context PERSIS sama dengan `name:` job di `ci.yml`, dikonfirmasi cocok dari output `gh pr checks` Checkpoint 18. `strict: false`, `enforce_admins: false`, `required_pull_request_reviews: null`, `restrictions: null`.
+
+**Hasil Verifikasi**
+Re-fetch `gh api .../branches/main/protection --jq '.required_status_checks.contexts'` → seluruh 4 nama context terkonfirmasi ada persis seperti yang di-set.
+
+**Commit:** (menyusul, digabung Checkpoint 20 — tidak ada file kode, hanya setting GitHub + dokumentasi)
+
+---
+
+## Checkpoint 20 — Dokumentasi dan Penutupan
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 22 — `docs/keputusan-tertunda.md` #6
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Entri baru #6: upgrade rule ruff Baseline→Ketat, dengan 3 pemicu peninjauan konkret (PIC 8 selesai sepenuhnya, kontributor baru, bukti bug nyata yang akan tertangkap `ANN`/`ARG`).
+
+### Task 23 — `report.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `milestones/8.1-fondasi-ci/report.md` — 3 KK sumber vs bukti nyata (seluruhnya Ya), diagram Mermaid alur 4 job + branch protection, 7 penyimpangan dari plan didaftar eksplisit, keterbatasan (keputusan tertunda #6, gitleaks-action comment permission, LLM flakiness pra-eksisting), follow-up ke M8.2.
+
+### Task 24 — Perbarui status `CLAUDE.md`+`AGENT.md`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Baris tabel "Status Proyek" M8.1 ditambahkan (kedua file, identik). Paragraf narasi "PIC 8 direncanakan" diperluas dengan paragraf M8.1 baru (temuan mid-implementation, 2 bug nyata `ci.yml`, hasil PR percobaan) — pola sama seperti update status milestone-milestone sebelumnya (M7.6, M7.7, dst).
+
+**Hasil Verifikasi**
+Review manual seluruh 3 dokumen terhadap isi nyata Checkpoint 1-19 — konsisten, tidak ada klaim tanpa bukti.
+
+**12/12 unit pembersihan lint, 4/4 job CI terverifikasi nyata, branch protection aktif — MILESTONE 8.1 SELESAI SEPENUHNYA.**
+
+**Commit:** (menyusul)
 
 ---

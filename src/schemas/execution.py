@@ -40,10 +40,9 @@ genuinely tidak diketahui, BUKAN default aman) - TIDAK ada invarian yang
 memaksa keduanya terisi.
 """
 
-from typing import Any
+from typing import Any, Self
 
 from pydantic import BaseModel, model_validator
-from typing_extensions import Self
 
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.session_memory import StatusEksekusi
@@ -98,9 +97,13 @@ class HasilEksekusiAtomicIntent(BaseModel):
                 raise ValueError("status=gagal_teknis wajib kegagalan_alasan terisi")
         if self.status in (StatusEksekusi.BERHASIL, StatusEksekusi.SEBAGIAN):
             if self.kegagalan_alasan is not None:
-                raise ValueError("status=berhasil/sebagian tidak boleh punya kegagalan_alasan")
+                raise ValueError(
+                    "status=berhasil/sebagian tidak boleh punya kegagalan_alasan"
+                )
             if self.bug_prioritas_tinggi:
-                raise ValueError("status=berhasil/sebagian tidak boleh bug_prioritas_tinggi=True")
+                raise ValueError(
+                    "status=berhasil/sebagian tidak boleh bug_prioritas_tinggi=True"
+                )
         return self
 
 

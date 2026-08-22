@@ -20,7 +20,10 @@ from src.schemas.cakupan_individu import ConstraintCakupanIndividu
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.execution import HasilPemanggilanChatbotAPI
-from src.schemas.query_engine import HasilPenyusunanRequest, HasilVerifikasiBentukRequest
+from src.schemas.query_engine import (
+    HasilPenyusunanRequest,
+    HasilVerifikasiBentukRequest,
+)
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
 from src.schemas.verification_gate import HasilVerifikasiGate, QueryEngineRequest
 
@@ -37,7 +40,9 @@ def _buat_atomic_intent() -> AtomicIntent:
 
 
 def _buat_request(params: dict | None = None) -> QueryEngineRequest:
-    return QueryEngineRequest(domain=Domain.RESERVATION, view_name=_VIEW, params=params or {})
+    return QueryEngineRequest(
+        domain=Domain.RESERVATION, view_name=_VIEW, params=params or {}
+    )
 
 
 _CONSTRAINT_TIDAK_TERDETEKSI = ConstraintCakupanIndividu(terdeteksi=False)
@@ -98,7 +103,9 @@ def test_400_lalu_200_di_revisi_kedua_berhasil(monkeypatch):
     dipanggil_http = _patch_raw(
         monkeypatch,
         [
-            HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "property_id salah bentuk"}),
+            HasilPemanggilanChatbotAPI(
+                status_code=400, body={"detail": "property_id salah bentuk"}
+            ),
             HasilPemanggilanChatbotAPI(status_code=200, body=[{"a": 1}]),
         ],
     )
@@ -107,27 +114,38 @@ def test_400_lalu_200_di_revisi_kedua_berhasil(monkeypatch):
     def _fake_susun(atomic_intent, view_name, feedback=None):
         dipanggil_susun["count"] += 1
         dipanggil_susun["feedback"] = feedback
-        return HasilPenyusunanRequest(atomic_intent=ai, request=request_baru, status=StatusEksekusi.BERHASIL)
+        return HasilPenyusunanRequest(
+            atomic_intent=ai, request=request_baru, status=StatusEksekusi.BERHASIL
+        )
 
     monkeypatch.setattr(modul, "susun_request_atomic_intent", _fake_susun)
     monkeypatch.setattr(
         modul,
         "verifikasi_bentuk_request_atomic_intent",
         lambda atomic_intent, view_name, request: HasilVerifikasiBentukRequest(
-            atomic_intent=ai, request=request, status=StatusEksekusi.BERHASIL, lolos=True, alasan=None
+            atomic_intent=ai,
+            request=request,
+            status=StatusEksekusi.BERHASIL,
+            lolos=True,
+            alasan=None,
         ),
     )
     monkeypatch.setattr(
         modul,
         "verifikasi_gate",
-        lambda request, constraint, employee_id, view_name_tervalidasi_retriever: HasilVerifikasiGate(
-            request_final=request, lolos=True, terkoreksi=False
+        lambda request, constraint, employee_id, view_name_tervalidasi_retriever: (
+            HasilVerifikasiGate(request_final=request, lolos=True, terkoreksi=False)
         ),
     )
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        ai, _VIEW, _buat_request(), _CONSTRAINT_TIDAK_TERDETEKSI, role_title="X", employee_id="E0001"
+        ai,
+        _VIEW,
+        _buat_request(),
+        _CONSTRAINT_TIDAK_TERDETEKSI,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.BERHASIL
@@ -143,7 +161,9 @@ def test_400_lalu_200_di_revisi_kedua_berhasil(monkeypatch):
 
 def test_revisi_gagal_susun_gagal_teknis(monkeypatch):
     ai = _buat_atomic_intent()
-    _patch_raw(monkeypatch, [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "x"})])
+    _patch_raw(
+        monkeypatch, [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "x"})]
+    )
 
     monkeypatch.setattr(
         modul,
@@ -155,7 +175,12 @@ def test_revisi_gagal_susun_gagal_teknis(monkeypatch):
     _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        ai, _VIEW, _buat_request(), _CONSTRAINT_TIDAK_TERDETEKSI, role_title="X", employee_id="E0001"
+        ai,
+        _VIEW,
+        _buat_request(),
+        _CONSTRAINT_TIDAK_TERDETEKSI,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
@@ -168,7 +193,9 @@ def test_revisi_gagal_susun_gagal_teknis(monkeypatch):
 def test_revisi_gagal_verifikasi_bentuk_gagal_teknis(monkeypatch):
     ai = _buat_atomic_intent()
     request_baru = _buat_request()
-    _patch_raw(monkeypatch, [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "x"})])
+    _patch_raw(
+        monkeypatch, [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "x"})]
+    )
 
     monkeypatch.setattr(
         modul,
@@ -191,7 +218,12 @@ def test_revisi_gagal_verifikasi_bentuk_gagal_teknis(monkeypatch):
     _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        ai, _VIEW, _buat_request(), _CONSTRAINT_TIDAK_TERDETEKSI, role_title="X", employee_id="E0001"
+        ai,
+        _VIEW,
+        _buat_request(),
+        _CONSTRAINT_TIDAK_TERDETEKSI,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
@@ -204,7 +236,9 @@ def test_revisi_gagal_verifikasi_bentuk_gagal_teknis(monkeypatch):
 def test_revisi_gagal_verification_gate_gagal_teknis(monkeypatch):
     ai = _buat_atomic_intent()
     request_baru = _buat_request()
-    _patch_raw(monkeypatch, [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "x"})])
+    _patch_raw(
+        monkeypatch, [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "x"})]
+    )
 
     monkeypatch.setattr(
         modul,
@@ -217,20 +251,34 @@ def test_revisi_gagal_verification_gate_gagal_teknis(monkeypatch):
         modul,
         "verifikasi_bentuk_request_atomic_intent",
         lambda atomic_intent, view_name, request: HasilVerifikasiBentukRequest(
-            atomic_intent=ai, request=request, status=StatusEksekusi.BERHASIL, lolos=True, alasan=None
+            atomic_intent=ai,
+            request=request,
+            status=StatusEksekusi.BERHASIL,
+            lolos=True,
+            alasan=None,
         ),
     )
     monkeypatch.setattr(
         modul,
         "verifikasi_gate",
-        lambda request, constraint, employee_id, view_name_tervalidasi_retriever: HasilVerifikasiGate(
-            request_final=None, lolos=False, terkoreksi=False, alasan_penolakan="constraint gagal"
+        lambda request, constraint, employee_id, view_name_tervalidasi_retriever: (
+            HasilVerifikasiGate(
+                request_final=None,
+                lolos=False,
+                terkoreksi=False,
+                alasan_penolakan="constraint gagal",
+            )
         ),
     )
     _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        ai, _VIEW, _buat_request(), _CONSTRAINT_TIDAK_TERDETEKSI, role_title="X", employee_id="E0001"
+        ai,
+        _VIEW,
+        _buat_request(),
+        _CONSTRAINT_TIDAK_TERDETEKSI,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
@@ -244,33 +292,45 @@ def test_400_berulang_sampai_batas_revisi_habis(monkeypatch):
     ai = _buat_atomic_intent()
     request_baru = _buat_request()
     dipanggil_http = _patch_raw(
-        monkeypatch, [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "selalu salah"})]
+        monkeypatch,
+        [HasilPemanggilanChatbotAPI(status_code=400, body={"detail": "selalu salah"})],
     )
     dipanggil_susun = {"count": 0}
 
     def _fake_susun(atomic_intent, view_name, feedback=None):
         dipanggil_susun["count"] += 1
-        return HasilPenyusunanRequest(atomic_intent=ai, request=request_baru, status=StatusEksekusi.BERHASIL)
+        return HasilPenyusunanRequest(
+            atomic_intent=ai, request=request_baru, status=StatusEksekusi.BERHASIL
+        )
 
     monkeypatch.setattr(modul, "susun_request_atomic_intent", _fake_susun)
     monkeypatch.setattr(
         modul,
         "verifikasi_bentuk_request_atomic_intent",
         lambda atomic_intent, view_name, request: HasilVerifikasiBentukRequest(
-            atomic_intent=ai, request=request, status=StatusEksekusi.BERHASIL, lolos=True, alasan=None
+            atomic_intent=ai,
+            request=request,
+            status=StatusEksekusi.BERHASIL,
+            lolos=True,
+            alasan=None,
         ),
     )
     monkeypatch.setattr(
         modul,
         "verifikasi_gate",
-        lambda request, constraint, employee_id, view_name_tervalidasi_retriever: HasilVerifikasiGate(
-            request_final=request, lolos=True, terkoreksi=False
+        lambda request, constraint, employee_id, view_name_tervalidasi_retriever: (
+            HasilVerifikasiGate(request_final=request, lolos=True, terkoreksi=False)
         ),
     )
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        ai, _VIEW, _buat_request(), _CONSTRAINT_TIDAK_TERDETEKSI, role_title="X", employee_id="E0001"
+        ai,
+        _VIEW,
+        _buat_request(),
+        _CONSTRAINT_TIDAK_TERDETEKSI,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
@@ -279,4 +339,7 @@ def test_400_berulang_sampai_batas_revisi_habis(monkeypatch):
     assert dipanggil_http["count"] == modul.EXECUTION_MAX_REVISI
     # revisi (susun_request_atomic_intent) dipanggil EXECUTION_MAX_REVISI - 1 kali
     assert dipanggil_susun["count"] == modul.EXECUTION_MAX_REVISI - 1
-    assert tracer_rekam.span.atribut["execution.revisi_count"] == modul.EXECUTION_MAX_REVISI - 1
+    assert (
+        tracer_rekam.span.atribut["execution.revisi_count"]
+        == modul.EXECUTION_MAX_REVISI - 1
+    )

@@ -10,7 +10,7 @@ test_klasifikasi_respons_revisi.py untuk jalur 400.
 """
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -106,7 +106,7 @@ _WAKTU_STALE = "2020-01-01T00:00:00+00:00"
 
 
 def _waktu_segar() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 # --- data_quality_status="flagged" -----------------------------------------
@@ -114,7 +114,9 @@ def _waktu_segar() -> str:
 
 def test_flagged_menghasilkan_sebagian(monkeypatch):
     _patch_raw_200(monkeypatch)
-    _patch_meta(monkeypatch, HasilMetaChatbotAPI(status_code=200, data_quality_status="flagged"))
+    _patch_meta(
+        monkeypatch, HasilMetaChatbotAPI(status_code=200, data_quality_status="flagged")
+    )
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = _eksekusi(monkeypatch)
@@ -125,7 +127,9 @@ def test_flagged_menghasilkan_sebagian(monkeypatch):
     assert hasil.kegagalan_alasan is None
     assert hasil.bug_prioritas_tinggi is False
     assert tracer_rekam.span.atribut["error.type"] == "sebagian"
-    assert tracer_rekam.span.atribut["execution.alasan_sebagian"] == "data_quality_flagged"
+    assert (
+        tracer_rekam.span.atribut["execution.alasan_sebagian"] == "data_quality_flagged"
+    )
     assert tracer_rekam.span.atribut["execution.data_quality_status"] == "flagged"
 
 
@@ -136,7 +140,9 @@ def test_last_refreshed_at_basi_menghasilkan_sebagian(monkeypatch):
     _patch_raw_200(monkeypatch)
     _patch_meta(
         monkeypatch,
-        HasilMetaChatbotAPI(status_code=200, data_quality_status="ok", last_refreshed_at=_WAKTU_STALE),
+        HasilMetaChatbotAPI(
+            status_code=200, data_quality_status="ok", last_refreshed_at=_WAKTU_STALE
+        ),
     )
     tracer_rekam = _patch_tracer(monkeypatch)
 
@@ -152,7 +158,9 @@ def test_last_refreshed_at_segar_tetap_berhasil(monkeypatch):
     waktu_segar = _waktu_segar()
     _patch_meta(
         monkeypatch,
-        HasilMetaChatbotAPI(status_code=200, data_quality_status="ok", last_refreshed_at=waktu_segar),
+        HasilMetaChatbotAPI(
+            status_code=200, data_quality_status="ok", last_refreshed_at=waktu_segar
+        ),
     )
     _patch_tracer(monkeypatch)
 
@@ -167,7 +175,9 @@ def test_flagged_dan_stale_sekaligus_tetap_sebagian_tidak_dobel(monkeypatch):
     _patch_meta(
         monkeypatch,
         HasilMetaChatbotAPI(
-            status_code=200, data_quality_status="flagged", last_refreshed_at=_WAKTU_STALE
+            status_code=200,
+            data_quality_status="flagged",
+            last_refreshed_at=_WAKTU_STALE,
         ),
     )
 
@@ -194,7 +204,8 @@ def test_data_quality_status_null_tetap_berhasil(monkeypatch):
 def test_panggilan_meta_gagal_tetap_berhasil_tanpa_retry(monkeypatch):
     _patch_raw_200(monkeypatch)
     dipanggil_meta = _patch_meta(
-        monkeypatch, HasilMetaChatbotAPI(status_code=None, kegagalan_transport="timeout")
+        monkeypatch,
+        HasilMetaChatbotAPI(status_code=None, kegagalan_transport="timeout"),
     )
 
     hasil = _eksekusi(monkeypatch)
@@ -210,7 +221,9 @@ def test_last_refreshed_at_format_tak_terduga_tidak_dianggap_basi(monkeypatch):
     _patch_raw_200(monkeypatch)
     _patch_meta(
         monkeypatch,
-        HasilMetaChatbotAPI(status_code=200, last_refreshed_at="bukan-format-tanggal-valid"),
+        HasilMetaChatbotAPI(
+            status_code=200, last_refreshed_at="bukan-format-tanggal-valid"
+        ),
     )
 
     hasil = _eksekusi(monkeypatch)
@@ -231,7 +244,7 @@ def test_data_basi_false_untuk_waktu_segar():
 
 def test_data_basi_tepat_di_ambang_belum_basi():
     waktu = (
-        datetime.now(timezone.utc)
+        datetime.now(UTC)
         - timedelta(hours=modul.EXECUTION_DATA_STALENESS_THRESHOLD_JAM - 1)
     ).isoformat()
     assert modul._data_basi(waktu) is False

@@ -28,7 +28,7 @@ tim database) dipanggil SEKALI (tanpa retry, lihat
 """
 
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from src.config.chatbot_api import (
@@ -47,7 +47,10 @@ from src.layers.query_engine.verifikasi_bentuk_request import (
 )
 from src.layers.verification_gate.verifikasi_gate import verifikasi_gate
 from src.observability.tracing import get_tracer
-from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import (
+    AtomicIntentConstraint,
+    ConstraintCakupanIndividu,
+)
 from src.schemas.decomposition import AtomicIntent
 from src.schemas.execution import HasilEksekusiAtomicIntent, HasilPemanggilanChatbotAPI
 from src.schemas.session_memory import StatusEksekusi
@@ -64,7 +67,9 @@ def _kegagalan_infra(hasil: HasilPemanggilanChatbotAPI) -> bool:
     jalur penanganannya sendiri di luar retry infra."""
     if hasil.kegagalan_transport is not None:
         return True
-    return hasil.status_code is not None and hasil.status_code >= _STATUS_MIN_SERVER_ERROR
+    return (
+        hasil.status_code is not None and hasil.status_code >= _STATUS_MIN_SERVER_ERROR
+    )
 
 
 def _panggil_dengan_retry_infra(
@@ -96,8 +101,8 @@ def _data_basi(last_refreshed_at: str) -> bool:
     except ValueError:
         return False
     if waktu.tzinfo is None:
-        waktu = waktu.replace(tzinfo=timezone.utc)
-    usia = datetime.now(timezone.utc) - waktu
+        waktu = waktu.replace(tzinfo=UTC)
+    usia = datetime.now(UTC) - waktu
     return usia > timedelta(hours=EXECUTION_DATA_STALENESS_THRESHOLD_JAM)
 
 
@@ -140,7 +145,9 @@ def _revisi_request(
     (M2.4) APA ADANYA tanpa modifikasi (keduanya stateless, Keputusan 8).
     Mengembalikan (request_final, None) kalau lolos ketiganya, atau
     (None, alasan_spesifik) di titik pertama yang gagal."""
-    hasil_susun = susun_request_atomic_intent(atomic_intent, view_name, feedback=feedback)
+    hasil_susun = susun_request_atomic_intent(
+        atomic_intent, view_name, feedback=feedback
+    )
     if hasil_susun.status != StatusEksekusi.BERHASIL or hasil_susun.request is None:
         return None, "revisi_gagal_susun"
 
@@ -150,7 +157,9 @@ def _revisi_request(
     if not hasil_verif_bentuk.lolos:
         return None, "revisi_gagal_verifikasi_bentuk"
 
-    hasil_gate = verifikasi_gate(hasil_verif_bentuk.request, constraint, employee_id, view_name)
+    hasil_gate = verifikasi_gate(
+        hasil_verif_bentuk.request, constraint, employee_id, view_name
+    )
     if not hasil_gate.lolos or hasil_gate.request_final is None:
         return None, "revisi_gagal_verification_gate"
 
@@ -207,7 +216,9 @@ def eksekusi_atomic_intent(
             status_code = hasil_http.status_code
 
             if status_code == 200:
-                hasil_meta = panggil_meta_chatbot_api(current_request, role_title, employee_id)
+                hasil_meta = panggil_meta_chatbot_api(
+                    current_request, role_title, employee_id
+                )
                 status_akhir, alasan_kualitas = _tentukan_kualitas_data(
                     hasil_meta.data_quality_status, hasil_meta.last_refreshed_at
                 )
@@ -325,7 +336,8 @@ def eksekusi_atomic_intent_semua(
         span.set_attribute("intent.count", len(verification_gate_wave))
 
         constraint_by_id = {
-            c.atomic_intent.atomic_intent_id: c.constraint for c in cakupan_individu_result
+            c.atomic_intent.atomic_intent_id: c.constraint
+            for c in cakupan_individu_result
         }
 
         hasil: list[HasilEksekusiAtomicIntent] = []

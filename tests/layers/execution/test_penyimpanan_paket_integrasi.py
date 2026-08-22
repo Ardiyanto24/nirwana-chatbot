@@ -32,9 +32,9 @@ pytestmark = pytest.mark.skipif(
 def _cleanup(session_id: str) -> None:
     with Session(get_engine()) as session:
         session.exec(
-            text("DELETE FROM session_memory_packages WHERE session_id = :sid").bindparams(
-                sid=session_id
-            )
+            text(
+                "DELETE FROM session_memory_packages WHERE session_id = :sid"
+            ).bindparams(sid=session_id)
         )
         session.commit()
 

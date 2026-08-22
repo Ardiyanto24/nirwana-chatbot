@@ -225,6 +225,24 @@ Keputusan 17 (lihat `decisions.md`) - migrasi UP042 diterapkan project-wide di c
 
 Tidak ada tindakan perbaikan diambil — konsisten preseden M5.1/M6.1/M7.12/M7.16/M7.17 (karakteristik infrastruktur di luar cakupan wajar, tidak dicoba "diperbaiki" definitif di level kode).
 
+**Commit:** `c57a229` — `chore(milestone-8.1): pembersihan ruff - Support lintas-layer`
+
+---
+
+## Checkpoint 12 — Bersihkan Unit 9: Execution
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 12 — Ruff fix Unit 9
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`ruff format` + `ruff check --fix` pada 13 file Unit 9. 8 dari 9 temuan (`I001`, `UP017` datetime.UTC x4, `UP035`) auto-fixed. 1 non-autofix (`F841` variabel `kelas_span_asli` tidak terpakai di `test_pemanggilan_chatbot_api.py:296`) diperbaiki manual — dibaca konteks penuh dulu (bukan cuma percaya saran ruff): variabel murni dead code, `monkeypatch.setattr` di baris berikutnya sudah auto-revert via fixture pytest, tidak ada restorasi manual yang hilang. Dihapus.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → "All checks passed!"/"13 files already formatted". `uv run pytest tests/layers/execution/` → 90 passed, 1 skipped (pra-eksisting) — 15.51s.
+
 **Commit:** (menyusul)
 
 ---

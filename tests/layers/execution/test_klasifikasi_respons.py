@@ -25,7 +25,10 @@ import uuid
 import pytest
 
 from src.layers.execution import klasifikasi_respons as modul
-from src.schemas.cakupan_individu import AtomicIntentConstraint, ConstraintCakupanIndividu
+from src.schemas.cakupan_individu import (
+    AtomicIntentConstraint,
+    ConstraintCakupanIndividu,
+)
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import Domain
 from src.schemas.execution import (
@@ -122,13 +125,19 @@ def _patch_meta_tidak_diketahui(monkeypatch):
 
 def test_200_langsung_berhasil(monkeypatch):
     body = [{"property_id": "P01", "occupancy_rate": 0.75}]
-    dipanggil = _patch_raw(monkeypatch, [HasilPemanggilanChatbotAPI(status_code=200, body=body)])
+    dipanggil = _patch_raw(
+        monkeypatch, [HasilPemanggilanChatbotAPI(status_code=200, body=body)]
+    )
     _patch_meta_tidak_diketahui(monkeypatch)
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        _buat_atomic_intent(), "v_reservation_room_type_daily", _buat_request(),
-        constraint=None, role_title="X", employee_id="E0001",
+        _buat_atomic_intent(),
+        "v_reservation_room_type_daily",
+        _buat_request(),
+        constraint=None,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.BERHASIL
@@ -147,8 +156,12 @@ def test_200_body_kosong_tetap_berhasil(monkeypatch):
     _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        _buat_atomic_intent(), "v_reservation_room_type_daily", _buat_request(),
-        constraint=None, role_title="X", employee_id="E0001",
+        _buat_atomic_intent(),
+        "v_reservation_room_type_daily",
+        _buat_request(),
+        constraint=None,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.BERHASIL
@@ -161,13 +174,22 @@ def test_200_body_kosong_tetap_berhasil(monkeypatch):
 @pytest.mark.parametrize("status_code", [403, 404])
 def test_403_404_eskalasi_tanpa_retry(monkeypatch, status_code):
     dipanggil = _patch_raw(
-        monkeypatch, [HasilPemanggilanChatbotAPI(status_code=status_code, body={"detail": "ditolak"})]
+        monkeypatch,
+        [
+            HasilPemanggilanChatbotAPI(
+                status_code=status_code, body={"detail": "ditolak"}
+            )
+        ],
     )
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        _buat_atomic_intent(), "v_reservation_room_type_daily", _buat_request(),
-        constraint=None, role_title="X", employee_id="E0001",
+        _buat_atomic_intent(),
+        "v_reservation_room_type_daily",
+        _buat_request(),
+        constraint=None,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
@@ -188,8 +210,12 @@ def test_500_berturut_habis_batas_gagal_teknis(monkeypatch):
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        _buat_atomic_intent(), "v_reservation_room_type_daily", _buat_request(),
-        constraint=None, role_title="X", employee_id="E0001",
+        _buat_atomic_intent(),
+        "v_reservation_room_type_daily",
+        _buat_request(),
+        constraint=None,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
@@ -201,13 +227,18 @@ def test_500_berturut_habis_batas_gagal_teknis(monkeypatch):
 
 def test_timeout_berturut_habis_batas_gagal_teknis(monkeypatch):
     dipanggil = _patch_raw(
-        monkeypatch, [HasilPemanggilanChatbotAPI(status_code=None, kegagalan_transport="timeout")]
+        monkeypatch,
+        [HasilPemanggilanChatbotAPI(status_code=None, kegagalan_transport="timeout")],
     )
     _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        _buat_atomic_intent(), "v_reservation_room_type_daily", _buat_request(),
-        constraint=None, role_title="X", employee_id="E0001",
+        _buat_atomic_intent(),
+        "v_reservation_room_type_daily",
+        _buat_request(),
+        constraint=None,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.GAGAL_TEKNIS
@@ -227,8 +258,12 @@ def test_500_lalu_sukses_percobaan_kedua_berhasil(monkeypatch):
     tracer_rekam = _patch_tracer(monkeypatch)
 
     hasil = modul.eksekusi_atomic_intent(
-        _buat_atomic_intent(), "v_reservation_room_type_daily", _buat_request(),
-        constraint=None, role_title="X", employee_id="E0001",
+        _buat_atomic_intent(),
+        "v_reservation_room_type_daily",
+        _buat_request(),
+        constraint=None,
+        role_title="X",
+        employee_id="E0001",
     )
 
     assert hasil.status == StatusEksekusi.BERHASIL
@@ -242,17 +277,24 @@ def test_500_lalu_sukses_percobaan_kedua_berhasil(monkeypatch):
 
 
 def _buat_hasil_vg(
-    atomic_intent: AtomicIntent, lolos: bool = True, request: QueryEngineRequest | None = None
+    atomic_intent: AtomicIntent,
+    lolos: bool = True,
+    request: QueryEngineRequest | None = None,
 ) -> HasilVerifikasiGate:
     req = request or _buat_request()
     if not lolos:
         return HasilVerifikasiGate(
-            request_final=None, lolos=False, terkoreksi=False, alasan_penolakan="fixture test"
+            request_final=None,
+            lolos=False,
+            terkoreksi=False,
+            alasan_penolakan="fixture test",
         )
     return HasilVerifikasiGate(request_final=req, lolos=True, terkoreksi=False)
 
 
-def _buat_constraint(atomic_intent: AtomicIntent, terdeteksi: bool = False) -> AtomicIntentConstraint:
+def _buat_constraint(
+    atomic_intent: AtomicIntent, terdeteksi: bool = False
+) -> AtomicIntentConstraint:
     return AtomicIntentConstraint(
         atomic_intent=atomic_intent,
         domain_decisions=[],
@@ -280,7 +322,9 @@ def test_eksekusi_atomic_intent_semua_skip_lolos_false(monkeypatch):
     ]
     cakupan = [_buat_constraint(a1), _buat_constraint(a2)]
 
-    hasil = modul.eksekusi_atomic_intent_semua(wave, cakupan, "Front Office Staff", "E0001")
+    hasil = modul.eksekusi_atomic_intent_semua(
+        wave, cakupan, "Front Office Staff", "E0001"
+    )
 
     assert len(dipanggil) == 1
     assert dipanggil[0][0][0].atomic_intent_id == a2.atomic_intent_id
@@ -301,7 +345,11 @@ def test_eksekusi_atomic_intent_semua_argumen_benar_per_item(monkeypatch):
                 "employee_id": employee_id,
             }
         )
-        return HasilEksekusiAtomicIntent(atomic_intent=atomic_intent, status=StatusEksekusi.BERHASIL, nilai_hasil=[{}])
+        return HasilEksekusiAtomicIntent(
+            atomic_intent=atomic_intent,
+            status=StatusEksekusi.BERHASIL,
+            nilai_hasil=[{}],
+        )
 
     monkeypatch.setattr(modul, "eksekusi_atomic_intent", _spy)
 
@@ -309,7 +357,9 @@ def test_eksekusi_atomic_intent_semua_argumen_benar_per_item(monkeypatch):
     request1 = _buat_request()
     hasil_vg1 = _buat_hasil_vg(a1, lolos=True, request=request1)
     constraint1 = ConstraintCakupanIndividu(terdeteksi=True, alasan="fixture test")
-    cakupan1 = AtomicIntentConstraint(atomic_intent=a1, domain_decisions=[], constraint=constraint1)
+    cakupan1 = AtomicIntentConstraint(
+        atomic_intent=a1, domain_decisions=[], constraint=constraint1
+    )
 
     hasil = modul.eksekusi_atomic_intent_semua(
         [(a1, hasil_vg1)], [cakupan1], "HR Staff", "E0071"
@@ -332,14 +382,21 @@ def test_eksekusi_atomic_intent_semua_multi_item_constraint_tidak_tertukar(monke
 
     def _spy(atomic_intent, view_name, request, constraint, role_title, employee_id):
         dipanggil.append((atomic_intent.atomic_intent_id, constraint.terdeteksi))
-        return HasilEksekusiAtomicIntent(atomic_intent=atomic_intent, status=StatusEksekusi.BERHASIL, nilai_hasil=[{}])
+        return HasilEksekusiAtomicIntent(
+            atomic_intent=atomic_intent,
+            status=StatusEksekusi.BERHASIL,
+            nilai_hasil=[{}],
+        )
 
     monkeypatch.setattr(modul, "eksekusi_atomic_intent", _spy)
 
     a1 = _buat_atomic_intent()
     a2 = _buat_atomic_intent()
     wave = [(a1, _buat_hasil_vg(a1)), (a2, _buat_hasil_vg(a2))]
-    cakupan_dibalik = [_buat_constraint(a2, terdeteksi=True), _buat_constraint(a1, terdeteksi=False)]
+    cakupan_dibalik = [
+        _buat_constraint(a2, terdeteksi=True),
+        _buat_constraint(a1, terdeteksi=False),
+    ]
 
     modul.eksekusi_atomic_intent_semua(wave, cakupan_dibalik, "X", "E0001")
 
@@ -353,7 +410,9 @@ def test_eksekusi_atomic_intent_semua_urutan_dan_panjang_dipertahankan(monkeypat
         modul,
         "eksekusi_atomic_intent",
         lambda atomic_intent, *a, **kw: HasilEksekusiAtomicIntent(
-            atomic_intent=atomic_intent, status=StatusEksekusi.BERHASIL, nilai_hasil=[{}]
+            atomic_intent=atomic_intent,
+            status=StatusEksekusi.BERHASIL,
+            nilai_hasil=[{}],
         ),
     )
 

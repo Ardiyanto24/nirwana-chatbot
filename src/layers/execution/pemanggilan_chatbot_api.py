@@ -52,9 +52,13 @@ def _panggil_chatbot_api_raw(
         with httpx.Client(timeout=CHATBOT_API_TIMEOUT_DETIK) as client:
             response = client.get(url, params=query_params)
     except httpx.TimeoutException:
-        return HasilPemanggilanChatbotAPI(status_code=None, kegagalan_transport="timeout")
+        return HasilPemanggilanChatbotAPI(
+            status_code=None, kegagalan_transport="timeout"
+        )
     except httpx.TransportError:
-        return HasilPemanggilanChatbotAPI(status_code=None, kegagalan_transport="connection_error")
+        return HasilPemanggilanChatbotAPI(
+            status_code=None, kegagalan_transport="connection_error"
+        )
 
     try:
         body = response.json()
@@ -117,7 +121,9 @@ def panggil_meta_chatbot_api(
     except httpx.TimeoutException:
         return HasilMetaChatbotAPI(status_code=None, kegagalan_transport="timeout")
     except httpx.TransportError:
-        return HasilMetaChatbotAPI(status_code=None, kegagalan_transport="connection_error")
+        return HasilMetaChatbotAPI(
+            status_code=None, kegagalan_transport="connection_error"
+        )
 
     if response.status_code != 200:
         return HasilMetaChatbotAPI(status_code=response.status_code)

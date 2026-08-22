@@ -40,7 +40,9 @@ def _patch_store(monkeypatch):
 
 
 def test_bungkus_list_jadi_rows():
-    assert modul._bungkus_nilai_hasil([{"a": 1}, {"a": 2}]) == {"rows": [{"a": 1}, {"a": 2}]}
+    assert modul._bungkus_nilai_hasil([{"a": 1}, {"a": 2}]) == {
+        "rows": [{"a": 1}, {"a": 2}]
+    }
 
 
 def test_bungkus_none_jadi_rows_kosong():
@@ -80,7 +82,12 @@ def test_catatan_view_name_none_tidak_menghasilkan_apa_apa():
 
 def test_catatan_view_tidak_terdaftar_katalog_tidak_menghasilkan_apa_apa():
     nilai_hasil = [{"kolom_apapun": None}]
-    assert modul._catatan_interpretasi_untuk_hasil("v_view_lain_yang_tidak_ada_di_katalog", nilai_hasil) == []
+    assert (
+        modul._catatan_interpretasi_untuk_hasil(
+            "v_view_lain_yang_tidak_ada_di_katalog", nilai_hasil
+        )
+        == []
+    )
 
 
 def test_catatan_nilai_hasil_kosong_tidak_menghasilkan_apa_apa():
@@ -99,14 +106,18 @@ def test_catatan_kualitas_sebagian_flagged():
 
 
 def test_catatan_kualitas_sebagian_stale():
-    catatan = modul._catatan_kualitas_data(StatusEksekusi.SEBAGIAN, "ok", "2020-01-01T00:00:00+00:00")
+    catatan = modul._catatan_kualitas_data(
+        StatusEksekusi.SEBAGIAN, "ok", "2020-01-01T00:00:00+00:00"
+    )
     assert len(catatan) == 1
     assert "2020-01-01T00:00:00+00:00" in catatan[0]
     assert "ambang kesegaran" in catatan[0]
 
 
 def test_catatan_kualitas_sebagian_flagged_dan_stale_prioritas_flagged():
-    catatan = modul._catatan_kualitas_data(StatusEksekusi.SEBAGIAN, "flagged", "2020-01-01T00:00:00+00:00")
+    catatan = modul._catatan_kualitas_data(
+        StatusEksekusi.SEBAGIAN, "flagged", "2020-01-01T00:00:00+00:00"
+    )
     assert len(catatan) == 1
     assert "flagged" in catatan[0]
 
@@ -120,7 +131,12 @@ def test_catatan_kualitas_berhasil_tidak_diketahui():
 def test_catatan_kualitas_berhasil_ok_tidak_ada_catatan():
     """Kualitas dikonfirmasi ok - tidak perlu catatan apa pun (tidak
     mengotori catatan_interpretasi dengan 'semua baik-baik saja')."""
-    assert modul._catatan_kualitas_data(StatusEksekusi.BERHASIL, "ok", "2026-08-17T00:00:00+00:00") == []
+    assert (
+        modul._catatan_kualitas_data(
+            StatusEksekusi.BERHASIL, "ok", "2026-08-17T00:00:00+00:00"
+        )
+        == []
+    )
 
 
 def test_catatan_kualitas_gagal_teknis_tidak_menghasilkan_apa_apa():
@@ -229,7 +245,9 @@ def test_orkestrator_exception_store_diteruskan_apa_adanya(monkeypatch):
     monkeypatch.setattr(modul, "store_session_memory", _fake_store_gagal)
 
     with pytest.raises(RuntimeError, match="simulasi DB gagal"):
-        modul.susun_dan_simpan_paket(_buat_atomic_intent(), "sess-1", 1, StatusEksekusi.BERHASIL)
+        modul.susun_dan_simpan_paket(
+            _buat_atomic_intent(), "sess-1", 1, StatusEksekusi.BERHASIL
+        )
 
 
 # --- susun_dan_simpan_paket_semua() (Milestone 7.15) ------------------------
@@ -249,13 +267,19 @@ def _buat_hasil_eksekusi(
             kegagalan_alasan=kegagalan_alasan or "simulasi gagal",
         )
     return HasilEksekusiAtomicIntent(
-        atomic_intent=atomic_intent, status=status, nilai_hasil=nilai_hasil or [{"a": 1}]
+        atomic_intent=atomic_intent,
+        status=status,
+        nilai_hasil=nilai_hasil or [{"a": 1}],
     )
 
 
-def _buat_vg_entry(atomic_intent: AtomicIntent, view_name: str) -> tuple[AtomicIntent, HasilVerifikasiGate]:
+def _buat_vg_entry(
+    atomic_intent: AtomicIntent, view_name: str
+) -> tuple[AtomicIntent, HasilVerifikasiGate]:
     request = QueryEngineRequest(domain=Domain.FACILITY, view_name=view_name, params={})
-    return atomic_intent, HasilVerifikasiGate(request_final=request, lolos=True, terkoreksi=False)
+    return atomic_intent, HasilVerifikasiGate(
+        request_final=request, lolos=True, terkoreksi=False
+    )
 
 
 def test_susun_dan_simpan_paket_semua_list_kosong_hasil_kosong(monkeypatch):
@@ -336,7 +360,10 @@ def test_susun_dan_simpan_paket_semua_multi_item_view_name_tidak_tertukar(monkey
     ai1 = _buat_atomic_intent()
     ai2 = _buat_atomic_intent()
     eksekusi = [_buat_hasil_eksekusi(ai1), _buat_hasil_eksekusi(ai2)]
-    vg_result_dibalik = [_buat_vg_entry(ai2, "v_untuk_ai2"), _buat_vg_entry(ai1, "v_untuk_ai1")]
+    vg_result_dibalik = [
+        _buat_vg_entry(ai2, "v_untuk_ai2"),
+        _buat_vg_entry(ai1, "v_untuk_ai1"),
+    ]
 
     modul.susun_dan_simpan_paket_semua(eksekusi, vg_result_dibalik, "sess-1", 1)
 

@@ -48,7 +48,9 @@ def _bungkus_nilai_hasil(nilai_hasil: Any) -> dict:
     return {"rows": [nilai_hasil]}
 
 
-def _catatan_interpretasi_untuk_hasil(view_name: str | None, nilai_hasil: Any) -> list[str]:
+def _catatan_interpretasi_untuk_hasil(
+    view_name: str | None, nilai_hasil: Any
+) -> list[str]:
     """HANYA kolom yang (a) benar-benar None di baris hasil DAN (b)
     terdaftar CATATAN_NULLABLE_BERMAKNA[view_name] yang memicu catatan.
     Kolom null yang TIDAK terdaftar tidak memicu apa pun - jujur soal
@@ -73,7 +75,9 @@ def _catatan_interpretasi_untuk_hasil(view_name: str | None, nilai_hasil: Any) -
 
 
 def _catatan_kualitas_data(
-    status: StatusEksekusi, data_quality_status: str | None, last_refreshed_at: str | None
+    status: StatusEksekusi,
+    data_quality_status: str | None,
+    last_refreshed_at: str | None,
 ) -> list[str]:
     """Revisit (Keputusan 9): nada BERBEDA untuk SEBAGIAN (terkonfirmasi)
     vs BERHASIL+kualitas tidak diketahui (netral) - kejujuran soal
@@ -116,9 +120,9 @@ def susun_dan_simpan_paket(
     ditelan. `data_quality_status`/`last_refreshed_at` (Revisit,
     Keputusan 9) opsional - diteruskan dari `HasilEksekusiAtomicIntent`
     M4.2 kalau ada."""
-    catatan = _catatan_interpretasi_untuk_hasil(view_name, nilai_hasil) + _catatan_kualitas_data(
-        status, data_quality_status, last_refreshed_at
-    )
+    catatan = _catatan_interpretasi_untuk_hasil(
+        view_name, nilai_hasil
+    ) + _catatan_kualitas_data(status, data_quality_status, last_refreshed_at)
     package = SessionMemoryPackage(
         atomic_intent_id=atomic_intent.atomic_intent_id,
         session_id=session_id,

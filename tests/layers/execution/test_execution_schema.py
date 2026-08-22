@@ -46,7 +46,9 @@ def test_berhasil_dengan_nilai_hasil_list_kosong_valid():
     """Hasil kosong (0 baris) tetap sah BERHASIL - lihat decisions.md
     Keputusan 1 (0 legitimate berbeda dari 0 karena bug)."""
     hasil = HasilEksekusiAtomicIntent(
-        atomic_intent=_buat_atomic_intent(), status=StatusEksekusi.BERHASIL, nilai_hasil=[]
+        atomic_intent=_buat_atomic_intent(),
+        status=StatusEksekusi.BERHASIL,
+        nilai_hasil=[],
     )
     assert hasil.status == StatusEksekusi.BERHASIL
     assert hasil.nilai_hasil == []
@@ -89,7 +91,9 @@ def test_gagal_teknis_dengan_kegagalan_alasan_terisi_valid():
 
 def test_gagal_teknis_tanpa_kegagalan_alasan_ditolak():
     with pytest.raises(ValidationError):
-        HasilEksekusiAtomicIntent(atomic_intent=_buat_atomic_intent(), status=StatusEksekusi.GAGAL_TEKNIS)
+        HasilEksekusiAtomicIntent(
+            atomic_intent=_buat_atomic_intent(), status=StatusEksekusi.GAGAL_TEKNIS
+        )
 
 
 def test_gagal_teknis_dengan_nilai_hasil_terisi_ditolak():
@@ -156,7 +160,9 @@ def test_sebagian_dengan_bug_prioritas_tinggi_true_ditolak():
 
 def test_data_quality_status_dan_last_refreshed_at_default_none():
     hasil = HasilEksekusiAtomicIntent(
-        atomic_intent=_buat_atomic_intent(), status=StatusEksekusi.BERHASIL, nilai_hasil=[]
+        atomic_intent=_buat_atomic_intent(),
+        status=StatusEksekusi.BERHASIL,
+        nilai_hasil=[],
     )
     assert hasil.data_quality_status is None
     assert hasil.last_refreshed_at is None
@@ -173,7 +179,9 @@ def test_meta_status_code_dan_kegagalan_transport_xor():
 
 
 def test_meta_200_dengan_field_null_valid():
-    hasil = HasilMetaChatbotAPI(status_code=200, data_quality_status=None, last_refreshed_at=None)
+    hasil = HasilMetaChatbotAPI(
+        status_code=200, data_quality_status=None, last_refreshed_at=None
+    )
     assert hasil.status_code == 200
     assert hasil.data_quality_status is None
 
@@ -183,7 +191,9 @@ def test_meta_200_dengan_field_null_valid():
 
 def test_default_retry_dan_revisi_count_nol():
     hasil = HasilEksekusiAtomicIntent(
-        atomic_intent=_buat_atomic_intent(), status=StatusEksekusi.BERHASIL, nilai_hasil=[]
+        atomic_intent=_buat_atomic_intent(),
+        status=StatusEksekusi.BERHASIL,
+        nilai_hasil=[],
     )
     assert hasil.retry_count_infra == 0
     assert hasil.revisi_count == 0

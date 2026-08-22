@@ -16,11 +16,14 @@ terpisah dari `test-gate` generik (M8.2) - lihat job CI `rbac-regression`.
 
 import uuid
 
+import pytest
+
 from src.layers.domain_gate.otorisasi import periksa_otorisasi_semua
 from src.layers.retriever.pencarian_bm25 import cari_bm25
 from src.layers.verification_gate.verifikasi_gate import (
     tegakkan_constraint_cakupan_individu,
 )
+from src.schemas.authorization import AtomicIntentAuthorization, DomainAuthorization
 from src.schemas.cakupan_individu import ConstraintCakupanIndividu
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import AtomicIntentDomains, Domain
@@ -239,3 +242,66 @@ def test_ceo_baseline_tidak_ada_penolakan_atau_koreksi_palsu():
         "false-positive: koreksi dipaksakan padahal tidak terdeteksi individu"
     )
     assert request_hasil.params == request_asli.params
+
+
+# --- Skenario "sengaja dibuat gagal" (KK2 sumber) --------------------------
+#
+# BUKAN skenario zero-leakage yang lolos (kebalikan dari 5 skenario di atas)
+# - membuktikan assertion zero-leakage GENUINELY mendeteksi kebocoran kalau
+# constraint RBAC dilonggarkan secara buatan, bukan assertion yang kebetulan
+# selalu lolos apapun kondisinya. Test INI SENDIRI harus PASS.
+
+
+def _otorisasi_bocor_sengaja(
+    atomic_intent_domains_list: list[AtomicIntentDomains], role_title: str
+) -> list[AtomicIntentAuthorization]:
+    """Pengganti periksa_otorisasi_semua() yang SENGAJA salah mengizinkan
+    SELURUH domain (termasuk yang seharusnya ditolak) - simulasi constraint
+    RBAC dilonggarkan secara buatan di kode uji, sesuai KK2 sumber M8.3."""
+    return [
+        AtomicIntentAuthorization(
+            atomic_intent=aid.atomic_intent,
+            domain_decisions=[
+                DomainAuthorization(domain=d, diizinkan=True) for d in aid.domains
+            ],
+        )
+        for aid in atomic_intent_domains_list
+    ]
+
+
+def test_sengaja_dibuat_gagal_assertion_zero_leakage_genuinely_mendeteksi(monkeypatch):
+    """Replikasi PERSIS skenario gop_margin (test_gop_margin_financial_...
+    di atas), TAPI dengan periksa_otorisasi_semua() di-monkeypatch supaya
+    SENGAJA melonggarkan financial jadi diizinkan. Membuktikan assertion
+    "KEBOCORAN: kandidat dari domain financial yang ditolak muncul di hasil
+    pencarian" GENUINELY terpicu saat constraint dilonggarkan - bukan
+    assertion yang selalu lolos tanpa syarat. Beda dari 5 skenario lain:
+    yang lain membuktikan gate LOLOS untuk kasus aman, ini membuktikan gate
+    MERAH untuk kasus bocor buatan (pytest.raises menangkap AssertionError
+    yang seharusnya muncul, test ini sendiri tetap PASS)."""
+    monkeypatch.setattr(
+        "tests.rbac_regression.test_zero_leakage.periksa_otorisasi_semua",
+        _otorisasi_bocor_sengaja,
+    )
+
+    role_title = "Front Office Staff"
+    domain_teridentifikasi = [
+        Domain.RESERVATION,
+        Domain.FINANCIAL,
+        Domain.PROPERTIES_REF,
+    ]
+
+    domain_diizinkan_bocor = _domain_diizinkan(role_title, domain_teridentifikasi)
+    assert Domain.FINANCIAL in domain_diizinkan_bocor, (
+        "setup gagal - monkeypatch seharusnya melonggarkan financial jadi diizinkan"
+    )
+
+    kandidat, _ = cari_bm25(
+        "Bagaimana hubungan antara deviasi harga dan gop_margin properti di Bali?",
+        domain_diizinkan_bocor,
+    )
+
+    with pytest.raises(AssertionError, match="KEBOCORAN"):
+        assert not any(k.domain == Domain.FINANCIAL for k in kandidat), (
+            "KEBOCORAN: kandidat dari domain financial yang ditolak muncul di hasil pencarian"
+        )

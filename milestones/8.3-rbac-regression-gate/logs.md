@@ -136,6 +136,24 @@ Buat `tests/rbac_regression/__init__.py`+`test_zero_leakage.py` (docstring lengk
 **Hasil Verifikasi**
 `ruff format`+`check` → bersih (2 file tidak berubah). `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **5 passed, 2.30 detik** — genuinely tanpa LLM. Seluruh 5 skenario zero-leakage rencana plan sekarang terkodekan permanen.
 
+**Commit:** `625099f` — `test(milestone-8.3): skenario zero-leakage - CEO baseline`
+
+---
+
+## Checkpoint 8 — Test "Sengaja Dibuat Gagal" (KK2 Sumber)
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 8 — Test deteksi kebocoran buatan
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`test_sengaja_dibuat_gagal_assertion_zero_leakage_genuinely_mendeteksi()` — mereplikasi PERSIS alur `test_gop_margin_...` (Checkpoint 3), TAPI `periksa_otorisasi_semua()` di-`monkeypatch` (fixture pytest bawaan) ke `_otorisasi_bocor_sengaja()` yang SENGAJA mengizinkan seluruh domain termasuk `financial`. Dua lapis pembuktian: (1) assert eksplisit sebelum `pytest.raises` bahwa `Domain.FINANCIAL` genuinely muncul di `domain_diizinkan_bocor` (membuktikan monkeypatch benar-benar mengubah perilaku, bukan no-op); (2) `pytest.raises(AssertionError, match="KEBOCORAN")` membungkus assertion PERSIS sama (pesan sama persis) dengan yang dipakai skenario `gop_margin` asli — membuktikan assertion itu GENUINELY terpicu saat constraint dilonggarkan, bukan assertion yang kebetulan selalu lolos apapun kondisinya. Test ini sendiri harus PASS (mekanisme deteksi bekerja), beda filosofis dari 5 skenario Checkpoint 3-7 (yang membuktikan gate LOLOS untuk kasus aman).
+
+**Hasil Verifikasi**
+`ruff format`+`check` → bersih. `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **6 passed, 2.30 detik**. Seluruh KK2 sumber (deteksi kebocoran buatan) terbukti sebagai unit test — verifikasi CI nyata (kode produksi dilonggarkan, bukan cuma test) menyusul Checkpoint 11.
+
 **Commit:** (menyusul)
 
 ---

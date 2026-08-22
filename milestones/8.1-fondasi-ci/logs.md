@@ -474,6 +474,15 @@ Log job gitleaks CI menunjukkan **fingerprint BARU** (`22e84e3:.gitleaksignore:a
 
 **12/12 unit pembersihan lint, 4/4 job CI (setelah insiden self-inflicted gitleaks ditemukan+ditutup — 2 percobaan perbaikan diperlukan), branch protection aktif — MILESTONE 8.1 SELESAI SEPENUHNYA.**
 
+### Task 24d — Verifikasi akhir: `main` genuinely hijau
+
+**Hasil Verifikasi**
+Push commit `6622e4e` (redaksi lengkap) memicu run CI `32552926824` — `gh run view --json conclusion,status` → `{"conclusion":"success","status":"completed"}`. Ke-4 job (`ruff`, `gitleaks`, `golangci-lint`, `dependency-scan`) LOLOS. `main` genuinely bersih — insiden self-inflicted gitleaks (Task 24b-24d, dipicu dokumentasi milestone ini sendiri) ditemukan+ditutup TUNTAS, bukan disembunyikan atau ditinggalkan merah.
+
+**Commit:** `6622e4e` — `fix(milestone-8.1): redact string dummy - .gitleaksignore per-fingerprint tidak stabil`.
+
+---
+
 **Commit:** `3d25584` (branch protection, Checkpoint 19); commit `.gitleaksignore` menyusul.
 
 ---

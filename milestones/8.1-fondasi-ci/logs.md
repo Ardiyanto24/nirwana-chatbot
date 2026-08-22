@@ -45,6 +45,27 @@ Output nyata: "654 commits scanned", "scanned ~6243890 bytes (6.24 MB) in 1.07s"
 **Temuan**
 Riwayat 199+ commit yang baru live publik (dikonfirmasi Checkpoint 1) genuinely bersih dari kredensial — tidak ada eskalasi yang diperlukan, checkpoint lanjut normal ke Checkpoint 3.
 
-**Commit:** (menyusul)
+**Commit:** `3ca9bc1` — `docs(milestone-8.1): verifikasi bebas-rahasia riwayat commit penuh`
+
+---
+
+## Checkpoint 3 — Ruff: Konfigurasi Global
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 3 — Tambah `ruff` + tulis `[tool.ruff]`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan 1 keputusan tambahan ditemukan di tengah checkpoint (lihat Temuan).
+
+**Apa yang dilakukan**
+`uv add --dev ruff` (resolve `ruff==0.16.4`). Tulis `[tool.ruff]` (`target-version="py313"`) + `[tool.ruff.lint]` (`select=["E","F","I","UP","B","SIM"]`) di `pyproject.toml`.
+
+**Temuan**
+`uv run ruff check src/ tests/` awal menunjukkan 933 temuan — 867 (93%) adalah `E501`. Uji coba `ruff format` di salinan scratch (`$TEMP`, bukan repo) mengurangi jadi 551, analisis distribusi (median 113 char, mean 132, max 515 char) menunjukkan mayoritas tidak bisa dibereskan formatter. Diajukan ke user via `AskUserQuestion` dengan data konkret (opsi keluarkan E501 / naikkan line-length 120 / pertahankan apa adanya) — user pilih **keluarkan E501** (`ignore=["E501"]`). Dicatat sebagai **Keputusan 16** (Jenis A, ditemukan Checkpoint 3) di `decisions.md`. Setelah `ignore` ditambahkan, total temuan turun ke **66** (53 auto-fixable, 13 manual) — skala realistis untuk 12 checkpoint berikutnya.
+
+**Hasil Verifikasi**
+`uv run ruff check src/ tests/` berhasil dieksekusi dengan config baru (exit 1 karena masih ada 66 temuan yang belum dibersihkan — itu memang cakupan Checkpoint 4-15, bukan checkpoint ini). Config sendiri valid (tidak ada error parsing TOML/config).
+
+**Commit:** `0ff978f` — `chore(milestone-8.1): konfigurasi global ruff` (kode); `docs` menyusul untuk decisions.md+logs.md
 
 ---

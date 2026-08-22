@@ -275,6 +275,28 @@ Project belum pernah pakai tipe `ci` di 24 milestone sebelumnya (tidak pernah ad
 
 ---
 
+## Keputusan 16: Keluarkan E501 (Line-Too-Long) dari Rule Set
+
+**Status:** Ditemukan di tengah implementasi pada Checkpoint 3.
+
+**Latar Belakang**
+Setelah `[tool.ruff]` ditulis (rule Baseline, Keputusan 1), `uv run ruff check src/ tests/` menunjukkan 933 total temuan — 867 di antaranya (93%) `E501` line-too-long. Uji coba `ruff format` di salinan scratch (tidak menyentuh repo) mengurangi jadi 551, tapi analisis distribusi sisa pelanggaran (median 113 char, mean 132, maksimum 515 char) menunjukkan mayoritas genuinely tidak bisa dibereskan formatter — kemungkinan besar komentar/docstring naratif Bahasa Indonesia yang memang gaya dokumentasi project ini. Menaikkan `line-length` ke 100/120 tetap menyisakan 404/236 pelanggaran. Ini genuinely tidak terduga saat rule Baseline dipilih (Keputusan 1) — E501 tidak pernah dibahas eksplisit sebagai risiko dominan saat itu.
+
+**Keputusan yang Dipilih**
+Tambah `ignore = ["E501"]` di `[tool.ruff.lint]`, select tetap `E,F,I,UP,B,SIM` (rule lain tidak berubah).
+
+**Alasan**
+`ruff format` (Black-compatible) sudah menjamin konsistensi lebar kode untuk ekspresi yang bisa di-reflow; E501 sisa murni menghukum komentar/docstring/string panjang yang memang pilihan gaya dokumentasi, bukan indikator bug/kualitas kode — sejalan dengan alasan awal memilih Baseline (moderate cleanup, bukan refactor besar-besaran). Praktik umum industri saat sudah memakai formatter otomatis. Setelah `ignore` ditambahkan, total temuan turun ke 66 (53 auto-fixable, 13 manual) — proporsional untuk cakupan "fondasi".
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Naikkan `line-length` ke 120** — ditolak; data menunjukkan masih menyisakan 236 pelanggaran (43% dari 551), tidak cukup efektif mengurangi noise.
+- **Pertahankan E501 apa adanya (88 char, wajib)** — ditolak; akan membengkakkan SETIAP checkpoint pembersihan (Checkpoint 4-15) jadi didominasi kerja wrapping baris komentar/docstring, bertentangan dengan alasan awal memilih Baseline alih-alih Ketat (menghindari cleanup besar yang keluar dari cakupan "fondasi").
+
+**Dampak**
+Checkpoint 4-15 sekarang realistis (66 temuan total di seluruh 12 unit, bukan 933) — konsisten skala "moderate cleanup" yang dijanjikan Keputusan 1. `docs/keputusan-tertunda.md` (Task 22) perlu mencatat E501/line-length sebagai bagian pertimbangan saat upgrade ke rule Ketat nanti, bukan cuma `ANN`/`ARG`/`PTH`/`TCH`.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -294,3 +316,4 @@ Project belum pernah pakai tipe `ci` di 24 milestone sebelumnya (tidak pernah ad
 | 13 | `govulncheck` via `go install` | B | Plan |
 | 14 | Update Tabel "Struktur Repository" di Checkpoint yang Sama | B | Plan |
 | 15 | Commit `ci.yml` Pakai Tipe `ci` | B | Plan |
+| 16 | Keluarkan E501 (Line-Too-Long) dari Rule Set | A | Checkpoint 3 |

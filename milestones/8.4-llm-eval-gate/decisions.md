@@ -65,6 +65,8 @@ Konsisten realita config hari ini (tidak ada satu pun yang didesain dengan toler
 **Dampak**
 `prompt_reliability/run_and_push.py` (Checkpoint 2) tidak perlu logic parsing pass-rate — cukup propagate exit code `npx promptfoo eval` apa adanya ke caller.
 
+**Addendum (Checkpoint 7, 2026-08-23) — dikonfirmasi ulang setelah bukti empiris nyata**: run CI baseline (tidak sengaja menjalankan seluruh 17 config lewat trigger `shared`) mengungkap 108/117 (92.3%) pass rate — 9 skenario gagal di 8 config (termasuk 2 config RBAC-sensitif `domain_gate/identifikasi`+`verifikasi_titik_buta`, masing-masing 9/10), SELURUHNYA perilaku pra-existing (dikonfirmasi `git diff` kosong terhadap `src/prompts/`/config — nol perubahan sesi ini). Ini genuinely kontradiksi asumsi awal keputusan ini ("assertion dirancang biner" tidak sama dengan "config historis selalu 100% pass" — preseden README `prompt_reliability/` M3.2 malah eksplisit menerima "7/8 lolos" sebagai hasil closing yang sah). Dibawa ke user via `AskUserQuestion` SEBELUM Checkpoint 8 (branch protection) — user MENGKONFIRMASI ULANG Keputusan 3 apa adanya (gate 100% tetap, TIDAK dilonggarkan), menerima trade-off eksplisit: PR yang genuinely tidak menyentuh prompt manapun (cuma trigger `shared`) berisiko ikut diblokir kegagalan pra-existing yang tidak terkait perubahannya — kegagalan berulang di skenario yang sama diperlakukan sebagai sinyal untuk memperbaiki prompt/skenario terkait via follow-up terpisah, BUKAN alasan melonggarkan gate. Opsi "non-blocking dulu" (preseden M8.1 Baseline→Ketat) dan "investigasi dulu" ditawarkan tapi TIDAK dipilih.
+
 ---
 
 ## Keputusan 4: Push Hasil ke Supabase (`prompt_eval_runs`) Masuk Cakupan Sekarang

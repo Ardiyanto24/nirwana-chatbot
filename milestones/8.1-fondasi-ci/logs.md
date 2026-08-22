@@ -311,6 +311,28 @@ Sanity check `uv run ruff check src/ tests/`+`format --check src/ tests/` di SEL
 **Hasil Verifikasi**
 `uv run ruff check src/ tests/` + `uv run ruff format --check src/ tests/` (SELURUH project, bukan subset) → "All checks passed!"/"175 files already formatted" — genuinely 0 temuan di mana pun, bukan cuma 12 unit yang eksplisit tercatat. `uv run pytest tests/config/` → 10/10 passed.
 
+**Commit:** `b99734f` — `chore(milestone-8.1): tutup celah tabel unit - tests/config/`
+
+---
+
+## Checkpoint 16 — Baseline Kerentanan Dependency (Zero-Tolerance)
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 16 — Jalankan pip-audit + govulncheck
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Instal `govulncheck` (`go install golang.org/x/vuln/cmd/govulncheck@latest`, v1.7.0, DB per 2026-08-21). Jalankan `govulncheck ./...` dari `custom-exporter/supabaseexporter/` dan `uv run --with pip-audit pip-audit` dari root project — sekali, terhadap `go.sum`/`uv.lock` saat ini (KK3 sumber).
+
+**Hasil Verifikasi**
+`govulncheck` → **"No vulnerabilities found."** `pip-audit` → **"No known vulnerabilities found"**. Baseline resmi: **0 CVE aktif** di kedua ekosistem.
+
+### Task 17 — Remediasi (kebijakan zero-tolerance)
+
+**Kesesuaian dengan plan:** Sesuai plan — tidak ada CVE ditemukan, sehingga tidak ada remediasi yang genuinely diperlukan. Kebijakan zero-tolerance (Keputusan 2) tidak diuji nyata di titik ini karena baseline sudah bersih sejak awal.
+
 **Commit:** (menyusul)
 
 ---

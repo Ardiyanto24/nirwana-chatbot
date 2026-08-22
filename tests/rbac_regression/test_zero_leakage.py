@@ -18,9 +18,14 @@ import uuid
 
 from src.layers.domain_gate.otorisasi import periksa_otorisasi_semua
 from src.layers.retriever.pencarian_bm25 import cari_bm25
+from src.layers.verification_gate.verifikasi_gate import (
+    tegakkan_constraint_cakupan_individu,
+)
+from src.schemas.cakupan_individu import ConstraintCakupanIndividu
 from src.schemas.decomposition import AtomicIntent, RelasiKebutuhan
 from src.schemas.domain_gate import AtomicIntentDomains, Domain
 from src.schemas.session_memory import LabelBentukJawaban, StatusEksekusi
+from src.schemas.verification_gate import QueryEngineRequest
 
 
 def _buat_atomic_intent(teks: str) -> AtomicIntent:
@@ -107,4 +112,46 @@ def test_fb_staff_seluruh_domain_ditolak_tidak_crash():
     assert kandidat == []
     assert perlu_fallback is True, (
         "domain_diizinkan kosong -> BM25 tidak temukan apa pun, fallback terpicu"
+    )
+
+
+# --- Skenario 3: HR Staff "Budi", koreksi paksa cakupan individu -----------
+#
+# Reuse evals/7.13-sambungan-verification-gate/payloads/E01.json - LLM
+# (Cakupan Individu M2.3, DI-FIX di sini) mendeteksi kebutuhan performa
+# individu, tapi params["employee_id"] hasil LLM BISA salah/dimanipulasi -
+# Verification Gate (M2.4, deterministik) WAJIB menimpa paksa ke ID caller
+# sungguhan, bukan sekadar menolak.
+
+
+def test_budi_hr_staff_koreksi_paksa_employee_id():
+    """HR Staff (employee_id="emp-eval") tanya performa individu "Budi" -
+    constraint cakupan-individu terdeteksi (hasil historis M2.3, di-fix di
+    sini). params["employee_id"] hasil LLM (bisa salah - contoh dipakai di
+    sini: "emp-budi-salah") WAJIB ditimpa paksa ke ID caller sungguhan,
+    bukan dipercaya apa adanya dari LLM."""
+    constraint = ConstraintCakupanIndividu(
+        terdeteksi=True,
+        alasan="kebutuhan menyentuh kategori data performa individu staf",
+    )
+    request_dari_llm = QueryEngineRequest(
+        domain=Domain.HR,
+        view_name="v_hr_employee_performance_semester",
+        params={
+            "full_name": "Budi",
+            "review_period": "2026-S2",
+            "employee_id": "emp-budi-salah",
+        },
+    )
+
+    request_terkoreksi, terkoreksi = tegakkan_constraint_cakupan_individu(
+        request_dari_llm, constraint, employee_id="emp-eval"
+    )
+
+    assert terkoreksi is True
+    assert request_terkoreksi.params["employee_id"] == "emp-eval", (
+        "KEBOCORAN: employee_id tidak dipaksa ke ID caller sungguhan"
+    )
+    assert request_terkoreksi.params["full_name"] == "Budi", (
+        "koreksi seharusnya cuma menimpa employee_id, field lain tetap apa adanya"
     )

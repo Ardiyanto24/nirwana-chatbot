@@ -82,6 +82,24 @@ Buat `tests/rbac_regression/__init__.py`+`test_zero_leakage.py` (docstring lengk
 **Hasil Verifikasi**
 `ruff check`+`format --check` → bersih. `OPENROUTER_API_KEY="" uv run pytest tests/rbac_regression/ -v` → **2 passed**, 1.95 detik.
 
+**Commit:** `b9de2ce` — `test(milestone-8.3): skenario zero-leakage - F&B Staff all-denied`
+
+---
+
+## Checkpoint 5 — Skenario 3: HR Staff "Budi"
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 5 — Encode skenario Budi
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`test_budi_hr_staff_koreksi_paksa_employee_id()` — reuse `evals/7.13-.../E01.json` (HR Staff, `employee_id="emp-eval"`, constraint cakupan-individu terdeteksi True dari hasil historis M2.3). `QueryEngineRequest` dibangun dengan `employee_id` SENGAJA salah ("emp-budi-salah", simulasi hasil LLM yang bisa keliru), panggil `tegakkan_constraint_cakupan_individu()` NYATA (pure function, tanpa LLM/DB) — assert `employee_id` ditimpa paksa ke `"emp-eval"`, field lain (`full_name`) tidak berubah.
+
+**Hasil Verifikasi**
+`ruff check`+`format --check` → bersih. `uv run pytest tests/rbac_regression/ -v` → **3 passed**, 2.37 detik.
+
 **Commit:** (menyusul)
 
 ---

@@ -22,6 +22,24 @@ Menulis `milestones/8.4-llm-eval-gate/decisions.md` (9 keputusan: 4 Jenis A + 5 
 **Hasil Verifikasi**
 Review manual `decisions.md` — format Jenis A/B sesuai template, keempat keputusan `AskUserQuestion` tercermin akurat termasuk narasi koreksi riset Keputusan 2.
 
+**Commit:** `2c7b242` — `docs(milestone-8.4): keputusan`
+
+---
+
+## Checkpoint 2 — Wrapper `run_and_push.py` + Verifikasi Lokal 1 Config
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 2 — Bangun wrapper + verifikasi end-to-end
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Verifikasi empiris dulu flag concurrency CLI: `npx promptfoo eval --help` (dari `prompt_reliability/`) mengonfirmasi `-j, --max-concurrency <number>` (default: 4) — sesuai dugaan awal di plan, dikunci ke nilai rendah `2` di wrapper (Keputusan 8, riwayat hang OpenRouter). Bangun `prompt_reliability/run_and_push.py` — terima 1 path config, extract `prompt_id`/`model` dari YAML (`yaml.safe_load(...)["providers"][0]["config"]`), `version` via `src.prompts.loader.load_prompt(prompt_id).version` (live, bukan hardcode), jalankan `npx promptfoo eval -c <config> --output <tmp>.json --max-concurrency 2 --no-progress-bar` via `subprocess.run` (portabilitas Windows: `shell=True` HANYA saat `platform.system()=="Windows"`, supaya shim `.cmd` npx ter-resolve — Linux CI tetap `shell=False`), import `push_results()` LANGSUNG (bukan subprocess CLI kedua, Keputusan 6) untuk push hasil apa pun exit code-nya, lalu propagate exit code Promptfoo apa adanya ke caller (Keputusan 3).
+
+**Hasil Verifikasi**
+`ruff check` bersih, `ruff format` (1 baris disesuaikan). Run lokal nyata `PROMPTFOO_PYTHON=.venv/Scripts/python.exe uv run python prompt_reliability/run_and_push.py prompt_reliability/decomposition/verifikasi.promptfooconfig.yaml` (config termurah, 2 test case) → **2/2 PASSED, 26 detik, exit code 0**, `push 2 baris ke prompt_eval_runs` tercetak. **Dikonfirmasi NYATA lewat query SQL langsung ke Supabase** (bukan percaya log semata) — 2 baris `PromptEvalRunRow` ditemukan (`prompt_id=decomposition.verifikasi`, `prompt_version=1` benar diextract dari frontmatter, `model=deepseek/deepseek-v4-pro` benar diextract dari YAML, `verdict=lolos` keduanya, `git_commit_hash` cocok HEAD saat itu, `scenario_id` sesuai deskripsi test case).
+
 **Commit:** (menyusul)
 
 ---

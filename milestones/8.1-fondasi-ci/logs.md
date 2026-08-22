@@ -333,6 +333,24 @@ Instal `govulncheck` (`go install golang.org/x/vuln/cmd/govulncheck@latest`, v1.
 
 **Kesesuaian dengan plan:** Sesuai plan — tidak ada CVE ditemukan, sehingga tidak ada remediasi yang genuinely diperlukan. Kebijakan zero-tolerance (Keputusan 2) tidak diuji nyata di titik ini karena baseline sudah bersih sejak awal.
 
+**Commit:** `f8772b6` — `docs(milestone-8.1): baseline kerentanan dependency (0 CVE)`
+
+---
+
+## Checkpoint 17 — Bangun `ci.yml`
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 18 — Tulis `.github/workflows/ci.yml` + perbarui Struktur Repository
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Tulis `.github/workflows/ci.yml` — 4 job (`ruff`, `golangci-lint`, `gitleaks`, `dependency-scan`), trigger `push`+`pull_request` ke `main`. `golangci-lint` pin `v2.13.1` (versi lokal yang sudah diverifikasi Checkpoint 7), `govulncheck` pin `v1.7.0` (versi lokal Checkpoint 16) — reproducibility CI vs lokal. `gitleaks` pakai `gitleaks/gitleaks-action@v2` resmi (Keputusan 8, gratis karena repo PUBLIC) dengan `fetch-depth: 0` (scan riwayat penuh, konsisten Checkpoint 2). Perbarui tabel "Struktur Repository" `CLAUDE.md`+`AGENT.md` (baris baru `.github/workflows/`, keduanya gitignored jadi tidak perlu commit git — dikonfirmasi `git check-ignore -v`).
+
+**Hasil Verifikasi**
+`uv run python -c "import yaml; yaml.safe_load(...)"` → valid, 4 job terdeteksi persis nama yang dibutuhkan Checkpoint 19 (branch protection). `actionlint` (diinstal `go install github.com/rhysd/actionlint/cmd/actionlint@latest`) dijalankan terhadap `ci.yml` → 0 temuan. Verifikasi NYATA (run sungguhan GitHub Actions) menyusul Checkpoint 18 setelah file ini di-push.
+
 **Commit:** (menyusul)
 
 ---

@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ruff:
+    name: ruff (lint + format)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --group dev
+      - run: uv run ruff check src/ tests/
+      - run: uv run ruff format --check src/ tests/
+
+  golangci-lint:
+    name: golangci-lint (govet + staticcheck + gosec)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: custom-exporter/supabaseexporter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: custom-exporter/supabaseexporter/go.mod
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.13.1
+          working-directory: custom-exporter/supabaseexporter
+
+  gitleaks:
+    name: gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-scan:
+    name: dependency-scan (pip-audit + govulncheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: pip-audit (uv.lock)
+        run: uv run --with pip-audit pip-audit
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: custom-exporter/supabaseexporter/go.mod
+      - name: govulncheck (go.sum)
+        working-directory: custom-exporter/supabaseexporter
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+          govulncheck ./...

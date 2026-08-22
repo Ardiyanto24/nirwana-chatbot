@@ -193,3 +193,27 @@ Run CI nyata setelah fix (`32559487377`): **`test-python-fast` GAGAL**, `test-py
 **Commit:** Branch percobaan `fe5b3d1` (setelah amend) tidak pernah masuk `main` (dihapus). Log ini menyusul commit dokumentasi berikut.
 
 ---
+
+## Checkpoint 10 — PR Percobaan #2: `test-python-llm` Path-Filtered
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 10 — Buat branch percobaan + buka PR
+
+**Kesesuaian dengan plan:** Sesuai plan. Belajar dari kesalahan Checkpoint 9: `git add` file spesifik (bukan `-A`), nama test file/fungsi pakai prefix `test_` yang benar sejak awal.
+
+**Apa yang dilakukan**
+Branch `test/m8-2-llm-gate-percobaan` — komentar sengaja di `src/layers/domain_gate/identifikasi.py` (trigger path-filter via SOURCE path, bukan cuma test path) + 1 test baru assertion gagal deterministik (`test_sengaja_gagal_percobaan_gate_m8_2_domain_gate`) di `tests/layers/domain_gate/test_identifikasi.py`. Diverifikasi lokal dulu (ruff bersih, test genuinely gagal) sebelum `git add` 2 file spesifik (dikonfirmasi `git status --short` cuma 2 file, tidak ada insiden `-A` lagi).
+
+### Task 11 — Amati hasil CI nyata, tutup PR
+
+**Hasil Verifikasi**
+Run CI nyata (`32559640670`): **`test-python-llm` KALI INI GENUINELY JALAN** (3m53s, bukan skip) — daftar target PERSIS 6 file grup `domain_gate` sesuai pemetaan (`test_identifikasi.py`, `test_domain_gate.py`, `test_verifikasi_titik_buta.py`, `test_deteksi_cakupan_individu.py`, `test_cakupan_individu.py`, `test_verifikasi_cakupan_individu.py`) — **BUKTI PRESISI union path-filter TERPENUHI PENUH**. Job GAGAL (assertion sengaja salah) → `test-gate` GAGAL. `test-python-fast` JUGA gagal (test baru tidak ber-`skipif`, tertangkap kedua job independen — bukan anomali, cuma menegaskan test itu sendiri bukan LLM-eksklusif).
+
+`gh pr close 3 --delete-branch` — PR ditutup TANPA merge, branch dihapus. `git status -sb` dikonfirmasi kembali bersih (2 item pra-existing tidak berubah), `identifikasi.py` genuinely kembali ke versi `main` (komentar percobaan hilang).
+
+**Kedua KK sumber M8.2 (tier fast + tier LLM path-filtered) TERPENUHI PENUH lewat eksekusi nyata.**
+
+**Commit:** Branch percobaan `0176dce` tidak pernah masuk `main` (dihapus). Log ini menyusul commit dokumentasi berikut.
+
+---

@@ -367,6 +367,36 @@ Run kedua menyisakan 2 warning non-fatal: "Restore cache failed: Dependencies fi
 **Hasil Verifikasi**
 Run `32552148652` (`gh run watch --exit-status`, exit 0): `ruff`✓ 11s, `gitleaks`✓ 5s, `golangci-lint`✓ 37s, `dependency-scan`✓ 39s — SELURUH 4 job lolos nyata di GitHub Actions, bukan simulasi. `actionlint` re-run setelah fix cache path → 0 temuan.
 
-**Commit:** `320e80e` (fix golangci-lint-action version) — commit fix cache path menyusul, digabung Checkpoint 18.
+**Commit:** `320e80e` (fix golangci-lint-action version), `e014d57` (fix cache-dependency-path setup-go).
+
+---
+
+## Checkpoint 18 — PR Percobaan Nyata
+
+**Mulai:** 2026-08-22 · **Selesai:** 2026-08-22
+
+### Task 19 — Buat branch percobaan + buka PR
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Branch `test/m8-1-ci-gate-percobaan`, file baru `tests/_ci_gate_percobaan_m8_1.py` berisi 2 pelanggaran sengaja: `import os` tidak dipakai (ruff F401) + pola menyerupai AWS access key (`AKIATESTFAKEDUMMY227`).
+
+**Temuan (sebelum push):** Percobaan pertama pakai `AKIAIOSFODNN7EXAMPLE` (contoh resmi AWS docs) — dites lokal dengan `gitleaks detect`, hasilnya **"no leaks found"**, TIDAK terdeteksi. Investigasi: fetch `gitleaks.toml` default resmi (`gh api repos/gitleaks/gitleaks/contents/config/gitleaks.toml?ref=v8.30.1`) menemukan rule `aws-access-token` py allowlist eksplisit `'''.+EXAMPLE$'''` — string manapun yang berakhiran "EXAMPLE" SENGAJA di-exclude gitleaks (untuk hindari false-positive dari dokumentasi). Diganti `AKIATESTFAKEDUMMY227` (cocok character class regex `[A-Z2-7]{16}` setelah prefix `AKIA`, tidak berakhiran "EXAMPLE") — dites ulang lokal, terdeteksi (`RuleID: aws-access-token`, entropy 3.58). Baru setelah dikonfirmasi lokal, push dilakukan (menghindari percobaan gagal karena isi percobaan sendiri yang keliru).
+
+Push branch, `gh pr create` (judul eksplisit "[JANGAN MERGE]") → PR #1.
+
+### Task 20 — Amati hasil CI nyata, tutup PR
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Hasil Verifikasi**
+Run nyata `32552303789` (`gh run watch`): **`ruff` GAGAL** ("Process completed with exit code 1", F401), **`gitleaks` GAGAL** ("🛑 Leaks detected", `aws-access-token`) — `golangci-lint` dan `dependency-scan` tetap LOLOS (benar, file percobaan tidak menyentuh Go/dependency). **KK2 sumber TERPENUHI PENUH**: PR percobaan dengan pelanggaran lint DAN pola menyerupai credential terbukti ditolak CI lewat run nyata GitHub Actions.
+
+**Temuan minor (non-blocking):** `gitleaks-action` gagal menulis komentar inline di PR ("Resource not accessible by integration" — `GITHUB_TOKEN` default tidak py permission `pull-requests: write`) — TIDAK mempengaruhi status check (job tetap FAIL dengan benar, mekanisme gate tidak terganggu), cuma fitur komentar otomatis yang tidak jalan. Tidak diperbaiki (di luar cakupan KK, murni cosmetic).
+
+`gh pr close 1 --delete-branch` — PR ditutup TANPA merge, branch remote+lokal dihapus. `git status -sb` dikonfirmasi `main` bersih, file percobaan tidak ada.
+
+**Commit:** Branch percobaan `ccba866` tidak pernah masuk `main` (dihapus). Log ini sendiri menyusul di commit dokumentasi berikut.
 
 ---

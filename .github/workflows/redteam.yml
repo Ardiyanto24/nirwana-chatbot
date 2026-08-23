@@ -1,0 +1,71 @@
+name: Red-Team Scan
+
+# Workflow TERPISAH dari ci.yml (Milestone 8.5, Keputusan 6, decisions.md -
+# forced KK sumber verbatim "workflow cron terpisah dari ci.yml utama").
+# TIDAK PERNAH ditambahkan sebagai required status check branch protection
+# (forced KK2 sumber "tanpa memblokir PR manapun") - job ini genuinely bisa
+# merah karena non-determinisme LLM (repeat 3x, lihat Keputusan 3), BUKAN
+# sinyal PR tertentu salah. Job ditandai gagal HANYA untuk visibilitas di
+# riwayat run (mudah dilihat sekilas ada temuan tanpa buka Job Summary) -
+# tidak pernah dikonsumsi sebagai gate oleh workflow/branch protection lain.
+on:
+  schedule:
+    - cron: "0 3 * * 1" # Senin 03:00 UTC, jam sepi
+  workflow_dispatch: {} # verifikasi manual (Keputusan 7) - tanpa menunggu jadwal
+
+jobs:
+  redteam-scan:
+    name: redteam-scan
+    runs-on: ubuntu-latest
+    # timeout-minutes eksplisit - repeat 3x mentripel risiko hang OpenRouter
+    # (keterbatasan-diterima.md #7, recurrence nyata Checkpoint 2 milestone
+    # ini sendiri - proses sempat hang 34+ menit sebelum di-kill manual).
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: npm ci (prompt_reliability)
+        working-directory: prompt_reliability
+        run: npm ci
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --group dev
+      - name: Jalankan skenario redteam - identifikasi
+        continue-on-error: true
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          PROMPTFOO_PYTHON: ${{ github.workspace }}/.venv/bin/python
+        run: |
+          npx --prefix prompt_reliability promptfoo eval \
+            -c prompt_reliability/redteam/identifikasi.redteam.promptfooconfig.yaml \
+            --repeat 3 --max-concurrency 2 --no-progress-bar \
+            --output prompt_reliability/redteam/_ci_output_identifikasi.json
+      - name: Jalankan skenario redteam - verifikasi_titik_buta
+        continue-on-error: true
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          PROMPTFOO_PYTHON: ${{ github.workspace }}/.venv/bin/python
+        run: |
+          npx --prefix prompt_reliability promptfoo eval \
+            -c prompt_reliability/redteam/verifikasi_titik_buta.redteam.promptfooconfig.yaml \
+            --repeat 3 --max-concurrency 2 --no-progress-bar \
+            --output prompt_reliability/redteam/_ci_output_verifikasi_titik_buta.json
+      - name: Tulis laporan ke Job Summary + tandai job (visibilitas saja)
+        if: always()
+        run: |
+          {
+            echo "# Red-Team Scan - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo ""
+            echo "Skenario prompt injection/RBAC bypass terhadap domain_gate/identifikasi.md + verifikasi_titik_buta.md - repeat 3x per skenario. Lihat milestones/8.5-red-team-adversarial-scan/ untuk konteks lengkap."
+            echo ""
+            uv run python prompt_reliability/redteam/klasifikasi_hasil.py \
+              prompt_reliability/redteam/_ci_output_identifikasi.json \
+              prompt_reliability/redteam/_ci_output_verifikasi_titik_buta.json | tee /tmp/laporan.md
+          } >> "$GITHUB_STEP_SUMMARY"
+          if grep -q "GAGAL KONSISTEN" /tmp/laporan.md; then
+            echo "::warning::Ditemukan skenario GAGAL KONSISTEN - lihat Job Summary. Job ditandai gagal HANYA untuk visibilitas riwayat run, TIDAK PERNAH memblokir PR apa pun (bukan required status check)."
+            exit 1
+          fi

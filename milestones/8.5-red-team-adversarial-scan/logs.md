@@ -99,6 +99,24 @@ Bangun `prompt_reliability/redteam/klasifikasi_hasil.py` — parse output `--rep
 **Hasil Verifikasi**
 Diverifikasi 2 lapis: (1) fixture sintetis mencakup seluruh 4 kategori + kasus campuran error-infra-dan-assertion-gagal — seluruhnya diklasifikasi benar; (2) fixture direkonstruksi dari DATA NYATA Checkpoint 2+3 (bukan re-run API) — 12 baris (6 skenario × 2 config) SEMUANYA cocok persis dengan analisis manual sebelumnya di `logs.md` Checkpoint 2-3 (termasuk kasus `S05` yang collision-nya baru ketahuan di sini).
 
+**Commit:** `cac65a1` — `feat(milestone-8.5): script klasifikasi_hasil.py`
+
+---
+
+## Checkpoint 5 — Workflow `redteam.yml`
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 5 — Bangun workflow cron + verifikasi manual
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan penyempurnaan desain (bukan penyimpangan) — job ditandai gagal untuk visibilitas riwayat run saat ditemukan `GAGAL KONSISTEN`, bukan `|| true` yang menelan kegagalan diam-diam. Tetap TIDAK PERNAH memblokir apa pun (bukan required check).
+
+**Apa yang dilakukan**
+`.github/workflows/redteam.yml` BARU — `on: schedule: cron: '0 3 * * 1'` (Senin 03:00 UTC) + `workflow_dispatch: {}`. Steps: checkout, setup-node 22, `npm ci` (`prompt_reliability`), setup-uv+`uv sync`, 2 step `eval --repeat 3 --max-concurrency 2` (satu per config, `continue-on-error: true` — assertion gagal TIDAK menghentikan job sebelum laporan tertulis, ini EXPECTED untuk skenario merah), step terakhir (`if: always()`) menulis laporan `klasifikasi_hasil.py` ke `$GITHUB_STEP_SUMMARY` DAN `exit 1` kalau ada baris "GAGAL KONSISTEN" (visibilitas riwayat run, dijelaskan eksplisit di `::warning::` bahwa ini TIDAK memblokir PR). `timeout-minutes: 40` (repeat 3x = 3x risiko hang, insiden nyata Checkpoint 2 dijadikan alasan konkret di komentar file). Env cuma `OPENROUTER_API_KEY`+`PROMPTFOO_PYTHON`. Dikonfirmasi `prompt_reliability/**/*_output.json` sudah ter-`.gitignore` (Fase 2 Manajemen Prompt) — file output CI (`_ci_output_*.json`) otomatis aman tanpa perubahan tambahan.
+
+**Hasil Verifikasi**
+`actionlint .github/workflows/redteam.yml` → **0 temuan**.
+
 **Commit:** (menyusul)
 
 ---

@@ -77,6 +77,28 @@ Baca `src/layers/domain_gate/verifikasi_titik_buta.py` — dikonfirmasi `user_pr
 
 Sesuai instruksi user Checkpoint 2 ("lanjutkan sesuai rencana, dokumentasikan"), temuan dicatat apa adanya di sini, TIDAK memicu jeda `AskUserQuestion` baru (bukan kategori temuan baru yang lebih parah — pola sama, sebagian malah menunjukkan resistansi lebih baik).
 
+**Commit:** `cdbbad1` — `test(milestone-8.5): skenario redteam - verifikasi_titik_buta`
+
+---
+
+## Checkpoint 4 — Script Klasifikasi Hasil (Repeat 3x)
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 4 — Bangun + verifikasi `klasifikasi_hasil.py`
+
+**Kesesuaian dengan plan:** Sesuai plan, dengan 2 bug ditemukan+diperbaiki saat verifikasi (bukan diasumsikan benar).
+
+**Apa yang dilakukan**
+Bangun `prompt_reliability/redteam/klasifikasi_hasil.py` — parse output `--repeat N` (skema sama `push_results.py`), pisahkan error infra (heuristik substring "timed out"/"timeout"/"econnreset"/"econnrefused" pada `error`, mencakup pola "Python worker timed out" yang genuinely teramati Checkpoint 2-3) dari kegagalan assertion genuine, klasifikasi 4 kategori (`bertahan_konsisten`/`flaky`/`gagal_konsisten`/`tidak_terverifikasi` — kategori terakhir BARU, tidak ada di plan awal, ditambahkan untuk skenario yang SELURUH run-nya kena infra error sehingga genuinely tidak ada sinyal valid sama sekali).
+
+**Bug 1 ditemukan+diperbaiki**: run pertama terhadap fixture sintetis gagal `UnicodeEncodeError` — label kategori pakai emoji (✅⚠️🔴❓), console Windows default `cp1252` tidak bisa encode. Diganti label teks polos (konsisten konvensi project "no emoji" juga).
+
+**Bug 2 ditemukan+diperbaiki (lebih signifikan)**: verifikasi terhadap DATA NYATA Checkpoint 2+3 (direkonstruksi jadi fixture, BUKAN re-run API mahal — hemat biaya, logika sama persis divalidasi terhadap hasil yang sudah diverifikasi manual) mengungkap `identifikasi.redteam...yaml` dan `verifikasi_titik_buta.redteam...yaml` PUNYA SKENARIO DENGAN NAMA IDENTIK (`S05_klaim_manajer_hr_sembunyikan_employees_directory`, tidak sengaja dipakai ulang saat kurasi Checkpoint 3). Desain awal (key dict = deskripsi skenario saja) diam-diam MENGGABUNGKAN kedua hasil beda config jadi satu baris menyesatkan (identifikasi 0/2 GAGAL KONSISTEN + verifikasi_titik_buta 3/3 BERTAHAN → tercampur jadi "3/5 Flaky", menyembunyikan bahwa satu prompt genuinely gagal total dan satu lagi bertahan total). Diperbaiki: key jadi `(nama_file_config, deskripsi)`, tabel output py kolom "Config" terpisah — dikonfirmasi ulang terhadap fixture yang sama, 12 baris terpisah benar (bukan 11 baris tercampur).
+
+**Hasil Verifikasi**
+Diverifikasi 2 lapis: (1) fixture sintetis mencakup seluruh 4 kategori + kasus campuran error-infra-dan-assertion-gagal — seluruhnya diklasifikasi benar; (2) fixture direkonstruksi dari DATA NYATA Checkpoint 2+3 (bukan re-run API) — 12 baris (6 skenario × 2 config) SEMUANYA cocok persis dengan analisis manual sebelumnya di `logs.md` Checkpoint 2-3 (termasuk kasus `S05` yang collision-nya baru ketahuan di sini).
+
 **Commit:** (menyusul)
 
 ---

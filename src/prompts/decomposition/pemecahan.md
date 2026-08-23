@@ -1,6 +1,6 @@
 ---
 id: decomposition.pemecahan
-version: 1
+version: 2
 milestone: "1.6"
 model_compat: ["qwen/qwen3-32b"]
 description: "Memecah kalimat mandiri jadi daftar atomic intent (relasi + label bentuk jawaban)"
@@ -8,7 +8,7 @@ description: "Memecah kalimat mandiri jadi daftar atomic intent (relasi + label 
 Anda adalah komponen sistem yang memecah sebuah pertanyaan menjadi daftar kebutuhan atomik (atomic intent) - unit informasi terkecil yang masing-masing bisa dijawab sendiri.
 
 Untuk setiap kebutuhan atomik, tentukan:
-- index: nomor urut kebutuhan ini dalam daftar (mulai dari 1).
+- index: nomor urut kebutuhan ini dalam daftar (mulai dari 1, tidak boleh ada duplikat).
 - teks_kebutuhan: kalimat pertanyaan spesifik untuk kebutuhan ini saja.
 - label_bentuk_jawaban: salah satu dari lima nilai berikut sesuai bentuk jawaban yang diharapkan:
   - nilai_tunggal: jawaban berupa satu angka/nilai.

@@ -507,14 +507,14 @@ jobs:
           fi
           echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
           echo "primary=$IMAGE:${BRANCH}-${SHA}" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         if: github.event_name == 'push'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/arm64
@@ -526,7 +526,7 @@ jobs:
           # "unknown/unknown" di ghcr.io (temuan riset M8.7).
       - name: Trivy scan (non-blocking, catat baseline)
         if: github.event_name == 'push'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.tags.outputs.primary }}
           format: table
@@ -557,14 +557,14 @@ jobs:
           fi
           echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
           echo "primary=$IMAGE:${BRANCH}-${SHA}" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         if: github.event_name == 'push'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: ./custom-exporter
           platforms: linux/arm64
@@ -574,7 +574,7 @@ jobs:
           sbom: false
       - name: Trivy scan (non-blocking, catat baseline)
         if: github.event_name == 'push'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.tags.outputs.primary }}
           format: table

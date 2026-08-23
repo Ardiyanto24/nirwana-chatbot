@@ -1,0 +1,35 @@
+# Milestone 8.7 - konteks build image backend hanya butuh src/, pyproject.toml,
+# uv.lock. Semua yang lain dikecualikan supaya build context kecil+cepat dan
+# tidak membocorkan rahasia/proyek lain ke dalam image.
+
+.git
+.github
+.agents
+.claude
+.venv
+.pytest_cache
+.ruff_cache
+.env
+.env.example
+
+# Dokumentasi & proses - tidak dibutuhkan runtime
+docs
+milestones
+skills-lock.json
+CLAUDE.md
+AGENT.md
+
+# Test/eval - tidak dibutuhkan runtime image
+tests
+evals
+prompt_reliability
+
+# Repo/proyek lain yang sengaja bersarang di sini - jangan pernah ikut
+# ke dalam image backend
+dashboard
+custom-exporter
+infra
+
+# Python cache
+**/__pycache__
+**/*.pyc

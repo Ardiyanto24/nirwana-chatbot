@@ -95,6 +95,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="Nirwana Chatbot - Input Layer", lifespan=lifespan)
 
 
+@app.get("/health")
+def health() -> dict[str, str]:
+    # Milestone 8.7 - murni buktikan proses hidup (tanpa DB/LLM/chatbot_api),
+    # dipakai verifikasi image container + nanti health-check reverse-proxy
+    # (M8.9) dan deploy pipeline (M8.10, KK sumber eksplisit menyebut
+    # "endpoint health/versi").
+    return {"status": "ok"}
+
+
 @app.exception_handler(ValidationError)
 async def validation_error_handler(
     request: Request, exc: ValidationError

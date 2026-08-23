@@ -178,3 +178,21 @@ Re-fetch `--jq '.required_status_checks.contexts | length, .'` → **9 context**
 **Commit:** (tidak ada — perubahan setting GitHub, bukan file repo)
 
 ---
+
+## Checkpoint 9 — PR Percobaan #1: Presisi Filter (KK1)
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 9 — Sentuh satu prompt, buktikan presisi
+
+**Kesesuaian dengan plan:** Penyesuaian kecil — plan sempat menyebut `domain_gate/identifikasi.md` (mengikuti "mis." KK literal) sebagai kandidat, TAPI diganti `decomposition/pemecahan` (config yang terkonfirmasi 100% reliable di run Checkpoint 7, 3/3) supaya bukti presisi TIDAK tercampur dengan flakiness pra-existing #21 — `identifikasi.md` disimpan untuk Checkpoint 10 (sengaja-gagal) di mana kegagalan justru yang diinginkan.
+
+**Apa yang dilakukan**
+Izin eksplisit diminta+diperoleh. Branch `percobaan/m8-4-precisi-filter-pemecahan` — `src/prompts/decomposition/pemecahan.md` disentuh (bump `version` 1→2 + klarifikasi kecil non-breaking "index tidak boleh duplikat", diverifikasi dulu tidak bentrok assertion existing). Push + `gh pr create` → PR [#5](https://github.com/Ardiyanto24/nirwana-chatbot/pull/5).
+
+**Hasil Verifikasi**
+`gh pr checks 5 --watch` (run `32612628760`) → **`prompt-eval` PASS nyata (1m57s)**, `prompt-eval-gate` PASS, SELURUH 9 required check hijau (termasuk `prompt-eval-gate` untuk PERTAMA KALI sebagai required check). Log job (`gh run view --job 97127945468 --log`) dikonfirmasi: **HANYA 1 `::group::` block** (bukan 17), `Running 3 test cases` (persis jumlah skenario `decomposition/pemecahan`), `3 passed (100%)` — config lain (16 sisanya) TIDAK ikut jalan. PR ditutup TANPA merge, branch dihapus lokal+remote, `git status`/`checkout main` mengonfirmasi `pemecahan.md` kembali ke versi asli (`version: 1`).
+
+**Commit:** (tidak ada di `main` — seluruh perubahan hidup HANYA di branch throwaway yang sudah dihapus)
+
+---

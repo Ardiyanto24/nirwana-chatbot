@@ -196,3 +196,24 @@ Izin eksplisit diminta+diperoleh. Branch `percobaan/m8-4-precisi-filter-pemecaha
 **Commit:** (tidak ada di `main` — seluruh perubahan hidup HANYA di branch throwaway yang sudah dihapus)
 
 ---
+
+## Checkpoint 10 — PR Percobaan #2: Sengaja Dibuat Gagal (KK2)
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 10 — Longgarkan/rusak prompt RBAC-sensitif, buktikan blocking
+
+**Kesesuaian dengan plan:** Butuh 2 percobaan — percobaan pertama TIDAK menghasilkan bukti valid, ditemukan+dikoreksi transparan, bukan disembunyikan.
+
+**Apa yang dilakukan — Percobaan v1 (GAGAL sebagai bukti, tapi bukan kegagalan proses)**
+Branch `percobaan/m8-4-sengaja-gagal-identifikasi` — `src/prompts/domain_gate/identifikasi.md` dirusak dengan menghapus placeholder `{{ catatan_pola_jebakan }}` (panduan pola lintas-domain, sumber SEBENARNYA dari kemampuan model mendeteksi `financial` tersirat dari kata "margin" — dikonfirmasi via `src/layers/domain_gate/identifikasi.py::_render_context()`). Verifikasi LOKAL dulu (disiplin project) → **exit code 100, 9/10, S01 FAIL** (`{"domains": ["financial"]}`, kehilangan `"fnb"`) — tampak seperti bukti valid. PR [#6](https://github.com/Ardiyanto24/nirwana-chatbot/pull/6) dibuka, `gh pr checks --watch` run `32613061737` → **`prompt-eval` genuinely PASS (2m23s)**, BUKAN merah seperti diharapkan. Investigasi: LLM (qwen3-32b) ternyata BISA menginfer `financial` dari "margin keuntungan" lewat world knowledge saja, TANPA butuh hint eksplisit — non-determinisme LLM (temperature=0 tidak menjamin reproduksibilitas sempurna lintas panggilan API, preseden `docs/keterbatasan-diterima.md` #1) membuat percobaan v1 genuinely TIDAK reliable sebagai bukti "sengaja gagal". PR #6 ditutup TANPA merge (dengan catatan jujur di komentar penutup), branch dihapus.
+
+**Apa yang dilakukan — Percobaan v2 (berhasil, dipakai sebagai bukti final)**
+Branch `percobaan/m8-4-sengaja-gagal-identifikasi-v2` — pendekatan diganti: KOREKSI skema kunci JSON wajib dari `"domains"` jadi `"domain_list"` di instruksi format output (bukan menghapus panduan implisit lagi) — hipotesis: model instruct-tuned jauh lebih reliable mengikuti instruksi FORMAT eksplisit ketimbang menyembunyikan/memaksa inferensi pengetahuan implisit. Verifikasi lokal dulu → **0/10 lolos (100% gagal), exit code 100** — SELURUH assertion `JSON.parse(output).domains` gagal (field `domains` genuinely `undefined`). PR [#7](https://github.com/Ardiyanto24/nirwana-chatbot/pull/7) dibuka.
+
+**Hasil Verifikasi**
+`gh pr checks 7 --watch` (run `32613431710`) → **`prompt-eval` genuinely FAIL (1m42s, 0/10 dikonfirmasi identik lokal via `gh run view --job 97130051920 --log`)**, **`prompt-eval-gate` FAIL**, `test-gate` DAN `test-python-llm` JUGA fail (bonus konfirmasi — `identifikasi.md` juga masuk filter `domain_gate` M8.2, unit test di `tests/layers/domain_gate/` turut terdampak regresi prompt yang sama, dua gate independen sama-sama mendeteksi). `gh pr view 7 --json mergeable,mergeStateStatus` → **`mergeStateStatus: BLOCKED`** (dikonfirmasi genuinely diblokir merge, bukan cuma job merah tanpa efek). PR ditutup TANPA merge (komentar penutup mengutip `mergeStateStatus`), branch v1 DAN v2 dihapus lokal+remote, `git checkout main` mengonfirmasi `identifikasi.md` kembali ke versi asli (`version: 1`, `catatan_pola_jebakan` utuh, key `domains` utuh) — dikonfirmasi `git status --short` bersih (hanya 2 perubahan pre-existing tak terkait tersisa) DAN `pytest tests/layers/domain_gate/ --collect-only` tetap 256 test (tidak ada residu).
+
+**Commit:** (tidak ada di `main` — seluruh perubahan (v1 maupun v2) hidup HANYA di branch throwaway yang sudah dihapus)
+
+---

@@ -4,6 +4,27 @@ Dokumen ini mencatat keputusan teknis yang genuinely terbuka tapi **belum saatny
 
 ---
 
+## 7. Kebijakan Blocking Trivy (Threshold Severity) untuk Image Docker (Milestone 8.7) — Baseline Direkam, Belum Diputuskan
+
+**Status:** AKTIF — Trivy scan sudah dijalankan nyata di CI (`build-and-push-backend`/`build-and-push-exporter`, `.github/workflows/ci.yml`) untuk KEDUA image, hasilnya NON-BLOCKING (`exit-code: "0"`), murni dicatat sebagai baseline.
+
+**Muncul di:** Milestone 8.7 (Kontainerisasi Backend), Checkpoint 11-13 (2026-08-23).
+
+**Konteks kemunculan:** Sama seperti `pip-audit`/`govulncheck` di Milestone 8.1 (Keputusan 2 di sana), belum ada data nyata soal CVE apa yang akan ditemukan sebelum image pertama kali di-scan — memutuskan kebijakan blocking tanpa data risikonya menutup PR/deploy karena CVE base-image yang belum tentu py fix upstream. User memilih (dari `AskUserQuestion`) menjalankan scan dulu untuk baseline, kebijakan blocking diputuskan setelah data di tangan — proses yang sama persis dengan M8.1.
+
+**Baseline nyata yang sudah direkam** (`milestones/8.7-kontainerisasi-backend/logs.md` Checkpoint 13):
+- Backend (`python:3.13-slim` + dependency Python): OS-level 189 temuan (UNKNOWN 6, LOW 66, MEDIUM 64, HIGH 50, CRITICAL 3); dependency Python 3 temuan (MEDIUM 1, HIGH 2 — termasuk `msgpack` 1.1.2, fix tersedia 1.2.1, transitive dependency lewat OpenTelemetry/dependency lain).
+- Exporter (`alpine` + Go binary): 1 temuan (UNKNOWN 1) — jauh lebih bersih.
+
+**Kenapa belum saatnya diputuskan:** Baseline ini baru SATU titik data (build pertama). Kebijakan blocking berapa pun (mis. CRITICAL saja, atau CRITICAL+HIGH) berisiko diputuskan prematur tanpa tahu seberapa sering CVE baru muncul di base image Debian dari waktu ke waktu, atau apakah 3 CVE CRITICAL saat ini py fix upstream yang tinggal di-upgrade.
+
+**Pemicu peninjauan ulang:**
+1. Milestone 8.8 selesai (VPS nyata ada) — image ini benar-benar akan di-deploy, jadi kebijakan keamanan image jadi lebih mendesak diputuskan sebelum deploy production sungguhan.
+2. Beberapa run `build-and-push-*` berikutnya terkumpul cukup data untuk melihat pola (apakah jumlah CVE stabil, bertambah, atau ada yang genuinely py fix yang belum diambil).
+3. `msgpack` HIGH (fix tersedia 1.2.1) — cek apakah upgrade ini bisa diambil sekarang tanpa menunggu keputusan blocking policy penuh (perbaikan spesifik satu CVE dengan fix tersedia bisa diambil independen dari kebijakan umum).
+
+---
+
 ## 6. Upgrade Rule `ruff` dari Baseline ke Ketat (Milestone 8.1) — Belum Dijadwalkan
 
 **Status:** AKTIF — rule Baseline (`E, F, I, UP, B, SIM`, `E501` dikeluarkan) SUDAH dipakai produksi (`[tool.ruff]` `pyproject.toml`, gate CI `ci.yml`), TAPI user eksplisit minta dicatat sebagai keputusan tertunda untuk upgrade ke rule Ketat (`ANN`, `ARG`, `PTH`, `TCH`, dst.) di masa depan — bukan keputusan final selamanya.

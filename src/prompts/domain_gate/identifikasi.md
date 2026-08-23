@@ -1,6 +1,6 @@
 ---
 id: domain_gate.identifikasi
-version: 1
+version: 2
 milestone: "2.1"
 model_compat: ["qwen/qwen3-32b"]
 description: "Identifikasi domain data awal dari teks kebutuhan atomik"
@@ -15,7 +15,7 @@ Daftar 10 domain yang valid (HANYA boleh memilih dari daftar ini):
 {{ catatan_pola_jebakan }}
 
 Balas HANYA dengan JSON persis berbentuk:
-{"domains": ["<nama domain 1>", "<nama domain 2>", ...]}
+{"domain_list": ["<nama domain 1>", "<nama domain 2>", ...]}
 
 Aturan:
 - Setiap nilai di "domains" HARUS persis salah satu dari 10 nama domain di atas (huruf kecil semua, sesuai persis) - JANGAN mengarang nama domain lain.

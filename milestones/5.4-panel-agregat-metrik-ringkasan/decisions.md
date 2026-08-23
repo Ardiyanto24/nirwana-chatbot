@@ -227,6 +227,31 @@ Tidak ada alternatif dipertimbangkan karena forced by preseden M5.3 + teks liter
 
 ---
 
+## Keputusan 14 (Addendum): `page.tsx` Diberi `force-dynamic` + `db.ts` Dibuat Lazy — Cegah Static Render dan Koneksi DB Saat Build
+
+**Status:** Ditemukan di Milestone 8.6 (2026-08-23, saat riset lalu eksekusi Plan Mode untuk menyambungkan `dashboard/` ke CI+Vercel), diperbaiki di sini atas konfirmasi eksplisit user — bukan ditutup di M8.6 sendiri, karena perbaikan perilaku rendering+koneksi DB dashboard adalah tanggung jawab milestone pemilik (M5.2 untuk `db.ts`, M5.4 untuk `page.tsx`; dicatat di sini karena keduanya satu root cause yang sama ditemukan bersamaan).
+
+**Latar Belakang**
+Investigasi M8.6 menemukan `dashboard/src/app/page.tsx` (Keputusan 1 di atas) tidak memakai `searchParams`/`cookies`/`headers`/dynamic API apa pun dan tidak punya `export const dynamic` — kandidat static rendering default Next.js App Router. `dashboard/src/lib/db.ts` (M5.2 Keputusan 4) membuat koneksi Postgres di level MODUL TOP-LEVEL (`export const sql = process.env.NODE_ENV === "production" ? createClient() : ...`, throw kalau `DATABASE_URL` kosong). Dugaan awal: kombinasi keduanya membuat `next build` mengeksekusi `getSummaryMetrics()` sekali saat build lalu membekukan datanya — bertentangan dengan prinsip arsitektur "Dashboard publik wajib identik isinya dengan dashboard privat (Grafana)" (`CLAUDE.md`).
+
+**Koreksi empiris di tengah eksekusi (masih 2026-08-23):** perbaikan pertama (`export const dynamic = "force-dynamic"` saja di `page.tsx`) TERNYATA TIDAK CUKUP — dibuktikan salah lewat percobaan nyata (`.env.local` dihapus sementara, `npm run build` dijalankan): build tetap GAGAL di fase "Collecting page data" untuk `/` MAUPUN `/traces` dengan error persis `DATABASE_URL tidak diset`. Akar masalah sesungguhnya: Next.js App Router meng-import (mengevaluasi) modul SETIAP route saat fase itu untuk mengumpulkan konfigurasi route — ini terjadi untuk route dynamic MAUPUN static, jadi `db.ts` versi eager tetap ter-trigger apa pun status rendering halamannya. `export const dynamic` sama sekali tidak memengaruhi kapan modul di-*import*, hanya memengaruhi kapan konten di-*render*. Bug staleness produksi (bagian pertama temuan) tetap valid dan `force-dynamic` tetap solusi yang benar untuk itu — tapi TIDAK berdampak apa pun ke masalah `next build`/CI.
+
+**Keputusan yang Dipilih**
+1. `dashboard/src/app/page.tsx`: tetap diberi `export const dynamic = "force-dynamic";` (menutup bug staleness produksi — tidak berubah dari draf awal).
+2. `dashboard/src/lib/db.ts`: `createClient()` DIBUAT LAZY lewat `Proxy` — client Postgres baru benar-benar dibuat saat query pertama dipanggil (trap `apply` untuk pemanggilan tagged-template `sql\`...\``, trap `get` untuk akses method seperti `.begin`), bukan saat modul di-*import*. Caching `globalThis.__nirwanaDashboardDb` disederhanakan berlaku sama untuk dev DAN production (sebelumnya dibedakan). `traces.ts`/`summary.ts` TIDAK perlu diubah sama sekali — keduanya tetap `import { sql } from "@/lib/db"` dan memakai `sql\`...\`` persis seperti sebelumnya, karena Proxy meneruskan pemanggilan itu transparan ke client lazy di baliknya.
+
+**Alasan**
+User memilih opsi "refactor `db.ts` jadi lazy" (dari 3 alternatif babak kedua: refactor lazy / beri `DATABASE_URL` ke CI / kombinasi keduanya) setelah koreksi di atas dibawa balik lewat `AskUserQuestion` — lihat `milestones/8.6-remote-ci-dashboard/decisions.md` Keputusan 9 untuk detail lengkap kedua babak pertanyaan. Pendekatan Proxy dipilih (bukan getter function `getSql()` yang mengharuskan seluruh call site diubah) karena `postgres()` mengembalikan objek callable+py method — Proxy meniru bentuk itu persis sehingga TIDAK ADA perubahan di `traces.ts`/`summary.ts`, meminimalkan blast radius perbaikan.
+
+**Opsi yang Dipertimbangkan tapi Ditolak**
+- **Beri `DATABASE_URL` ke CI sebagai secret, `db.ts` tidak diubah** — ditolak: tidak menutup akar masalah (fase "Collecting page data" tetap butuh koneksi DB nyata setiap kali CI jalan, bukan cuma sekali), dan menambah kredensial DB yang sebenarnya bisa dihindari sepenuhnya di CI.
+- **Getter function `getSql()` mengganti export `sql`** — dipertimbangkan sebagai pola lazy yang lebih konvensional, ditolak karena mengharuskan `traces.ts`+`summary.ts` diubah (setiap pemanggilan `sql\`...\`` jadi `getSql()\`...\``) tanpa manfaat tambahan dibanding Proxy yang mencapai hasil sama dengan blast radius lebih kecil.
+
+**Dampak**
+`dashboard/src/app/page.tsx` selalu dynamic-rendered (tiap request, bukan build-time) — menutup bug staleness. `dashboard/src/lib/db.ts` tidak lagi connect DB saat modul di-*import* dalam kondisi apa pun (dev maupun production, build maupun runtime) — menutup bug `next build`/CI. `milestones/8.6-remote-ci-dashboard/decisions.md` Keputusan 3 (job `build` tidak butuh `DATABASE_URL`) bergantung langsung pada perbaikan `db.ts` ini, BUKAN pada `force-dynamic` semata seperti dugaan awal. Dibuktikan nyata: `npm run build` dengan `.env.local` dihapus sementara sukses penuh (route `/`+`/traces`+`/traces/[traceId]` seluruhnya `ƒ Dynamic`); `npm run lint`+`npm test` (16/16) tetap hijau; smoke test `next start` dengan `DATABASE_URL` asli terisi mengonfirmasi `/` dan `/traces` tetap mengembalikan data nyata (HTTP 200, konten "Jumlah Query"/"Daftar Trace" tampil) — regresi fungsional nol.
+
+---
+
 ## Daftar Isi Keputusan
 
 | # | Judul | Jenis | Checkpoint Terkait |
@@ -244,3 +269,4 @@ Tidak ada alternatif dipertimbangkan karena forced by preseden M5.3 + teks liter
 | 11 | Panel Kumulatif Seluruh Data, Tidak Berjendela Waktu | B | Plan |
 | 12 | Tidak Ada Seed Data Baru | B | Plan |
 | 13 | Verifikasi UI Wajib via Browser Nyata + Query SQL Manual Independen | B | Plan |
+| 14 | Addendum M8.6: `page.tsx` diberi `force-dynamic` + `db.ts` dibuat lazy (Proxy), cegah static render dan koneksi DB saat build | A | Addendum 2026-08-23 |

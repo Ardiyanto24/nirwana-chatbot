@@ -39,16 +39,16 @@ Tidak ada alternatif dipertimbangkan karena forced by preseden gaya yang sudah k
 ## Keputusan 3: Job `build` Tidak Diberi `DATABASE_URL`
 
 **Sumber Paksaan**
-Perbaikan Checkpoint 2 (lihat Keputusan 9) — setelah `dashboard/src/app/page.tsx` diberi `export const dynamic = "force-dynamic"`, tidak ada page yang dieksekusi Next.js saat `next build` (semua page jadi dynamic-rendered saat request, bukan build-time), sehingga `db.ts` (yang connect ke Postgres di level modul saat `NODE_ENV=production`) tidak pernah ter-trigger selama build.
+Perbaikan Checkpoint 2 (lihat Keputusan 9) — `dashboard/src/lib/db.ts` dibuat LAZY (client Postgres dibuat via `Proxy` saat query pertama benar-benar dipanggil, bukan saat modul di-*import*). Ini forced-nya BUKAN `export const dynamic = "force-dynamic"` di `page.tsx` seperti dugaan awal (dikoreksi empiris di tengah eksekusi — lihat Keputusan 9): Next.js App Router meng-import modul SETIAP route (dynamic maupun static) saat fase "Collecting page data" `next build`, jadi `export const dynamic` semata tidak pernah cukup untuk mencegah `db.ts` ter-trigger.
 
 **Keputusan yang Diikuti**
 Step `npm run build` di job `build` `ci.yml` TIDAK diberi env `DATABASE_URL` sama sekali.
 
 **Catatan Ketergantungan**
-Kalau di masa depan ada page baru yang genuinely butuh static rendering (mis. halaman marketing statis tanpa data dinamis), keputusan ini tidak perlu diubah — hanya berlaku untuk page yang mengonsumsi `db.ts`. Kalau ada page baru yang mengonsumsi `db.ts` TANPA `export const dynamic`, gap yang sama (Keputusan 9) akan muncul lagi dan perlu fix serupa.
+Kalau di masa depan ada modul lain yang membuat koneksi eksternal (DB/API pihak ketiga) di level modul TOP-LEVEL tanpa pola lazy serupa, gap yang sama akan muncul lagi untuk modul itu — pola `Proxy`/lazy-getter di `db.ts` adalah preseden yang sebaiknya diikuti untuk modul serupa di masa depan.
 
 **Opsi yang Dipertimbangkan tapi Ditolak**
-- **Beri `DATABASE_URL` sebagai GitHub secret supaya build tetap bisa prerender apa adanya** — ditolak lewat `AskUserQuestion` (lihat Keputusan 9), karena menambah kredensial DB yang sebenarnya tidak perlu di CI dan tidak menutup bug staleness produksi.
+- **Beri `DATABASE_URL` sebagai GitHub secret supaya build tetap bisa prerender apa adanya** — ditolak lewat `AskUserQuestion` (lihat Keputusan 9), karena tidak menutup akar masalah dan menambah kredensial DB yang sebenarnya bisa dihindari sepenuhnya di CI.
 
 ---
 
@@ -132,25 +132,30 @@ Tidak ada — murni memperkuat bukti, tidak mengubah bentuk deliverable.
 
 ---
 
-## Keputusan 9: Bug Staleness Halaman Ringkasan Diperbaiki Sekarang (`force-dynamic`)
+## Keputusan 9: Bug Staleness Halaman Ringkasan + Bug Build-Time DB — Diperbaiki Sekarang (Dua Babak)
 
-**Status:** Diputuskan sebelum implementasi (dari plan, lewat `AskUserQuestion`).
+**Status:** Diputuskan sebelum implementasi (dari plan, lewat `AskUserQuestion`), DIREVISI di tengah eksekusi Checkpoint 2 (2026-08-23) setelah verifikasi empiris membuktikan keputusan babak pertama tidak cukup.
 
-**Latar Belakang**
-Riset Plan Mode menemukan `dashboard/src/app/page.tsx` tidak memakai dynamic API apa pun (`searchParams`/`cookies`/`headers`) dan tanpa `export const dynamic` eksplisit — kandidat static rendering default Next.js App Router. `dashboard/src/lib/db.ts` baris 35-38 membuat koneksi Postgres di level modul TOP-LEVEL saat `NODE_ENV === "production"` (throw kalau `DATABASE_URL` kosong). Kombinasi keduanya: `next build` akan mengeksekusi `getSummaryMetrics()` sekali saat build (genuinely connect DB), lalu MEMBEKUKAN datanya sampai deploy berikutnya — bertentangan dengan prinsip arsitektur "Dashboard publik wajib identik isinya dengan dashboard privat (Grafana)" dan komentar `page.tsx` sendiri yang mengimplikasikan real-time. Ini juga membuat job CI `build` (KK M8.6) gagal tanpa `DATABASE_URL` nyata sebagai secret. Bug ini genuinely berasal dari M5.4 (Checkpoint pembuatan halaman Ringkasan), bukan diperkenalkan M8.6 — baru bermanifestasi sekarang karena M8.6 adalah pertama kalinya `next build`+deploy produksi sungguhan dijalankan end-to-end (M5.1-5.4 sebelumnya hanya diverifikasi lewat `next dev`, yang selalu dynamic, tidak pernah menjalankan mode production build).
+**Latar Belakang — Babak 1 (Plan Mode)**
+Riset Plan Mode menemukan `dashboard/src/app/page.tsx` tidak memakai dynamic API apa pun (`searchParams`/`cookies`/`headers`) dan tanpa `export const dynamic` eksplisit — kandidat static rendering default Next.js App Router. `dashboard/src/lib/db.ts` baris 35-38 membuat koneksi Postgres di level modul TOP-LEVEL saat `NODE_ENV === "production"` (throw kalau `DATABASE_URL` kosong). Dugaan awal: kombinasi keduanya membuat `next build` mengeksekusi `getSummaryMetrics()` sekali saat build lalu membekukan datanya — bertentangan dengan prinsip arsitektur real-time, dan (diduga) membuat job CI `build` gagal tanpa `DATABASE_URL`. Bug ini genuinely berasal dari M5.4/M5.2, bukan diperkenalkan M8.6 — baru bermanifestasi sekarang karena M8.6 adalah pertama kalinya `next build` produksi sungguhan dijalankan end-to-end (M5.1-5.4 sebelumnya hanya diverifikasi lewat `next dev`).
 
-**Keputusan yang Dipilih**
-Perbaiki sekarang: tambahkan `export const dynamic = "force-dynamic";` di `dashboard/src/app/page.tsx`, dieksekusi sebagai Checkpoint 2 milestone ini, didokumentasikan sebagai addendum di `milestones/5.4-.../decisions.md` (lihat Keputusan 6).
+**Keputusan Babak 1 (ditolak balik oleh bukti empiris):** `export const dynamic = "force-dynamic";` di `page.tsx` SAJA, dengan asumsi ini juga menghilangkan kebutuhan `DATABASE_URL` di `next build`.
+
+**Koreksi empiris (Checkpoint 2, masih 2026-08-23):** Setelah perbaikan babak 1 diterapkan, verifikasi nyata (`.env.local` dihapus sementara, `npm run build` dijalankan) membuktikan klaim "build tidak butuh DB sama sekali" SALAH — build tetap gagal di fase "Collecting page data" untuk `/` MAUPUN `/traces` dengan error `DATABASE_URL tidak diset`. Akar masalah sesungguhnya: Next.js App Router meng-import modul SETIAP route (dynamic maupun static) di fase itu untuk mengumpulkan konfigurasi — `export const dynamic` sama sekali tidak mencegah modul di-*import*, hanya memengaruhi kapan konten di-*render*. Temuan ini dibawa balik ke user lewat `AskUserQuestion` kedua (mengoreksi kesalahan sebelumnya secara transparan) sebelum melanjutkan.
+
+**Keputusan Babak 2 (final):** `dashboard/src/lib/db.ts` direfactor jadi LAZY lewat `Proxy` (client Postgres dibuat saat query pertama benar-benar dipanggil, trap `apply`+`get`, BUKAN saat modul di-*import*) — lihat detail lengkap di `milestones/5.4-.../decisions.md` Keputusan 14. `force-dynamic` di `page.tsx` TETAP dipertahankan (masih valid untuk bug staleness produksi, terpisah dari masalah build).
 
 **Alasan**
-User memilih opsi ini secara eksplisit dari 3 alternatif yang diajukan. Efek ganda yang menguntungkan: (1) menutup bug staleness produksi sesuai prinsip arsitektur real-time, (2) job CI `build` jadi tidak perlu `DATABASE_URL` sama sekali (Keputusan 3) — lebih aman (tidak expose kredensial DB ke CI runner) tanpa trade-off nyata.
+Babak 1: user memilih perbaikan sekarang dari 3 alternatif yang diajukan, berdasar klaim yang saat itu diyakini benar. Babak 2: setelah koreksi, user memilih opsi "refactor `db.ts` jadi lazy" (dari 3 alternatif babak kedua) — benar-benar menutup akar masalah (bukan cuma gejalanya), dan Proxy dipilih atas getter function karena tidak mengharuskan `traces.ts`/`summary.ts` diubah.
 
 **Opsi yang Dipertimbangkan tapi Ditolak**
-- **Beri `DATABASE_URL` ke CI sebagai secret, kode tidak diubah** — ditolak: menambah kredensial DB yang sebenarnya tidak perlu di CI runner, dan TIDAK menutup bug staleness di produksi Vercel (data tetap beku sampai deploy berikutnya).
-- **Tunda, catat sebagai keterbatasan diterima** — ditolak: perbaikannya sederhana (satu baris `export const dynamic`) dan berdampak langsung ke KK M8.6 sendiri, tidak proporsional untuk ditunda.
+- **Babak 1 — Beri `DATABASE_URL` ke CI sebagai secret, kode tidak diubah** — ditolak: TIDAK menutup bug staleness di produksi Vercel.
+- **Babak 1 — Tunda, catat sebagai keterbatasan diterima** — ditolak: dianggap sederhana diperbaiki (ternyata prediksi ini sendiri yang meleset).
+- **Babak 2 — Beri `DATABASE_URL` ke CI sebagai secret, `db.ts` tidak diubah** — ditolak: tidak menutup akar masalah, CI akan genuinely connect DB nyata tiap run tanpa alasan kuat.
+- **Babak 2 — Kombinasi (`force-dynamic` dipertahankan + terima `DATABASE_URL` di CI)** — opsi ketiga yang diajukan di putaran kedua, tidak dipilih user yang memilih perbaikan akar penuh (opsi lazy `db.ts`).
 
 **Dampak**
-`milestones/5.4-panel-agregat-metrik-ringkasan/decisions.md` mendapat addendum baru. Job CI `build` M8.6 (Keputusan 3) tidak butuh `DATABASE_URL`.
+`milestones/5.4-panel-agregat-metrik-ringkasan/decisions.md` Keputusan 14 mendokumentasikan kedua babak. Job CI `build` M8.6 (Keputusan 3) tidak butuh `DATABASE_URL` — bergantung pada perbaikan `db.ts` (Babak 2), BUKAN `force-dynamic` semata seperti dugaan Babak 1. Verifikasi nyata: `npm run build` tanpa `DATABASE_URL` sukses (seluruh route `ƒ Dynamic`), `npm run lint` bersih, `npm test` 16/16 lolos, smoke test `next start` dengan `DATABASE_URL` asli mengonfirmasi `/`+`/traces` tetap mengembalikan data nyata (nol regresi fungsional).
 
 ---
 

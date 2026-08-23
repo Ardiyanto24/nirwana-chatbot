@@ -10,13 +10,20 @@ Pola diadaptasi dari `infra/observability/smoke_test/send_dummy_span_secondary.p
 `setup_tracing()` (dipanggil sekali) + `get_tracer()` (dipanggil tiap layer).
 """
 
+import os
+
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-OTLP_ENDPOINT = "localhost:4317"
+# Milestone 8.7 (kontainerisasi) - default localhost:4317 dipertahankan
+# untuk backend jalan di host (dev lokal, tidak berubah). Di dalam
+# container, override lewat OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+# (DNS internal Docker Compose) - nama env var mengikuti konvensi resmi
+# OpenTelemetry SDK, bukan nama custom.
+OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317")
 
 
 def setup_tracing(service_name: str) -> TracerProvider:

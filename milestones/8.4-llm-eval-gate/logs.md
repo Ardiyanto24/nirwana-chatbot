@@ -155,6 +155,26 @@ Run `32603441193` selesai **17m58s**, `prompt-eval` **GAGAL** (exit 1), `prompt-
 
 **Temuan material — dibawa ke user, TIDAK diputuskan sepihak**: dikonfirmasi via `git diff --stat f660dc1..45fbf22 -- src/prompts/ prompt_reliability/*.yaml prompt_reliability/*/*.yaml` → **KOSONG, nol perubahan** — seluruh 9 skenario gagal di 8 config adalah PERILAKU PRA-EXISTING prompt produksi, BUKAN disebabkan apa pun di Milestone 8.4 (yang sama sekali tidak menyentuh isi prompt/config). Ini genuinely baru pertama kali terukur sebagai gate CI blocking — sebelumnya `prompt_reliability/` hanya dijalankan manual/ad-hoc, README `Status` bahkan sudah mencatat preseden "7/8 lolos" untuk config retriever sebagai hasil YANG DITERIMA saat M3.2 ditutup (bukan dianggap kegagalan). Ini KONTRADIKSI langsung dengan premis Keputusan 3 (decisions.md — "assertion dirancang sebagai pemeriksaan biner", diasumsikan berarti gate 100% config-level wajar) — realitanya beberapa config PRODUKSI memang tidak pernah dirancang/diverifikasi 100% pass rate secara historis. Dibawa ke user via `AskUserQuestion` sebelum lanjut Checkpoint 8 (supaya `prompt-eval-gate` tidak langsung jadi required check yang high-friction untuk PR yang genuinely tidak menyentuh prompt manapun).
 
-**Commit:** (tidak ada — verifikasi run nyata, temuan didokumentasikan di sini)
+**Commit:** `be25695` — `docs(milestone-8.4): catat temuan run nyata - 108/117 (92.3%) pass rate`
+
+Addendum: `e551b9b` — `docs(milestone-8.4): konfirmasi ulang gate 100% + catat keterbatasan #21` (user mengonfirmasi Keputusan 3 dipertahankan via `AskUserQuestion`, entri baru `docs/keterbatasan-diterima.md` #21).
+
+---
+
+## Checkpoint 8 — Update Branch Protection
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 8 — Tambah required status check `prompt-eval-gate`
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+Izin eksplisit diminta+diperoleh (`AskUserQuestion`, eksplisit menyebut risiko check ini kemungkinan MERAH saat ini karena Checkpoint 7). `gh api repos/Ardiyanto24/nirwana-chatbot/branches/main/protection -X PUT` (pola sama preseden M8.2/M8.3) — `required_status_checks.contexts` diperluas dari 8 jadi 9: `+prompt-eval-gate`. Setting lain dipertahankan identik.
+
+**Hasil Verifikasi**
+Re-fetch `--jq '.required_status_checks.contexts | length, .'` → **9 context** terkonfirmasi persis, termasuk `prompt-eval-gate`.
+
+**Commit:** (tidak ada — perubahan setting GitHub, bukan file repo)
 
 ---

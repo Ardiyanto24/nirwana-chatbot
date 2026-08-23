@@ -5,6 +5,8 @@ on:
     branches: [main, develop, staging]
   pull_request:
     branches: [main, develop, staging]
+# Verifikasi Milestone 8.7 Checkpoint 5: memicu run nyata di branch
+# staging untuk membuktikan trigger 3-branch benar-benar bekerja.
 
 jobs:
   ruff:

@@ -172,6 +172,27 @@ Ringkasan agregat (dari log step, `$GITHUB_STEP_SUMMARY` sendiri tidak berhasil 
 
 **KK1 sumber TERPENUHI**: "Minimal satu skenario red-team dijalankan nyata dan hasilnya dicatat jujur" — run nyata `32618773964` genuinely dijalankan (36 panggilan OpenRouter sungguhan), hasil (termasuk temuan yang MEMBURUK dari SEBELUMNYA "bertahan" jadi "gagal" untuk vtb S05) dicatat apa adanya di atas, TIDAK disembunyikan.
 
-**Commit:** (menyusul — TERTUNDA, izin push diminta terpisah)
+**Commit:** `7bc062e` — `docs(milestone-8.5): verifikasi nyata run terjadwal (KK1)`
+
+---
+
+## Checkpoint 8 — Verifikasi Nyata: KK2 (Non-Blocking + Riwayat Terpisah)
+
+**Mulai:** 2026-08-23 · **Selesai:** 2026-08-23
+
+### Task 8 — Konfirmasi branch protection + riwayat run
+
+**Kesesuaian dengan plan:** Sesuai plan.
+
+**Apa yang dilakukan**
+`gh api repos/Ardiyanto24/nirwana-chatbot/branches/main/protection --jq '.required_status_checks.contexts | length, .'` — dan `gh run list --workflow=redteam.yml` vs `gh run list --workflow=ci.yml`.
+
+**Hasil Verifikasi**
+- Branch protection **TETAP 9 context** (identik akhir M8.4 — `ruff`/`golangci-lint`/`gitleaks`/`dependency-scan`/`go-test`/`test-python-fast`/`test-gate`/`rbac-regression`/`prompt-eval-gate`), **`redteam-scan` TIDAK ADA di daftar** — dikonfirmasi genuinely tidak pernah masuk required status check.
+- `gh run list --workflow=redteam.yml` → hanya 1 entri (run `32618773964`, event `workflow_dispatch`). `gh run list --workflow=ci.yml` → riwayat event `push` murni (5 run terbaru, seluruhnya trigger push M8.5). **Riwayat run genuinely terpisah** — dua daftar `gh run list` per-workflow tidak beririsan sama sekali (workflow file berbeda = riwayat run berbeda sepenuhnya di GitHub Actions, bukan cuma difilter tampilannya).
+
+**KK2 sumber TERPENUHI**: "Job berjalan sesuai jadwal cron tanpa memblokir PR manapun, dibuktikan riwayat run terjadwal yang terpisah dari riwayat run PR" — kedua bukti di atas mengonfirmasi ini nyata, bukan asumsi desain.
+
+**Commit:** (menyusul)
 
 ---
